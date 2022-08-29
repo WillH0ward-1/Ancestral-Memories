@@ -85,8 +85,6 @@ public class CharacterClass : MonoBehaviour
     public bool playerHasDied = false;
     public bool playerIsReviving = false;
 
-    public bool playerIsMonkey = false;
-
     public CheckIfUnderwater underwaterCheck;
 
     public PlayerWalk playerWalk;
@@ -97,7 +95,7 @@ public class CharacterClass : MonoBehaviour
 
     public GodRayControl godRay;
 
-    private EvolutionControl evolution;
+    public MonkeyMorph monkeyMorph;
 
     // FUNCTIONS ============================================================
 
@@ -106,8 +104,6 @@ public class CharacterClass : MonoBehaviour
         currentHealth = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
-
-        playerIsMonkey = false;
 
         playerIsDiseased = false;
 
@@ -177,7 +173,7 @@ public class CharacterClass : MonoBehaviour
  
         if (currentEvolution <= 25)
         {
-            evolution.playerIsMonkey = true;
+            //monkeyMorph.playerIsMonkey = true;
 
         }
 
