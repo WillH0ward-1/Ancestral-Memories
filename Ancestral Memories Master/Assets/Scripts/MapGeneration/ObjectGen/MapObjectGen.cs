@@ -57,4 +57,8 @@ public class MapObjectGen : MonoBehaviour
             DestroyImmediate(transform.GetChild(0).gameObject);
         }
     }
+
+    internal class GetVerts
+    {
+    }
 }

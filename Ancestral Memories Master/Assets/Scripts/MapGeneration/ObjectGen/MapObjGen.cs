@@ -21,29 +21,29 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] Vector2 rotationRange;
 
-    public List<GameObject> mapObjects;
+    public List<GameObject> mapObjectList;
 
     public GameObject[] mapElements;
 
-    [SerializeField] float width = 0;
+    [SerializeField] float sampleWidth = 1000;
 
-    [SerializeField] float height = 0;
+    [SerializeField] float sampleHeight = 1000;
 
-    [SerializeField] float radius = 0;
+    [SerializeField] float minimumRadius = 70;
 
-    [SerializeField] GameObject root;
+    [SerializeField] GameObject hierarchyRoot;
 
     private readonly string treeTag = "Trees";
     private readonly string waterTag = "Water";
     private readonly string groundTag = "Ground";
 
-    [SerializeField] private float xPosition;
-    [SerializeField] private float yPosition;
-    [SerializeField] private float zPosition;
+    [SerializeField] private float xPosition = -500;
+    [SerializeField] private float yPosition = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
+    [SerializeField] private float zPosition = -500;
 
-    [SerializeField] float obstacleSizeX;
-    [SerializeField] float obstacleSizeY;
-    [SerializeField] float obstacleSizeZ;
+    [SerializeField] float obstacleSizeX = 1;
+    [SerializeField] float obstacleSizeY = 14;
+    [SerializeField] float obstacleSizeZ = 1;
 
     [SerializeField] float yOffset;
 
@@ -69,17 +69,16 @@ public class MapObjGen : MonoBehaviour
     {
         ResetOffset();
 
-        mapObjects.Clear();
+        //mapObjectList.Clear();
 
-        PoissonDiscSampler sampler = new PoissonDiscSampler(width, height, radius);
+        PoissonDiscSampler sampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRadius);
 
         PoissonDiscSampling(sampler);
- 
+
     }
 
     void PoissonDiscSampling(PoissonDiscSampler sampler)
     {
-
         foreach (Vector2 sample in sampler.Samples())
         {
             GameObject randomTree = GetRandomTree(mapElements);
@@ -95,9 +94,9 @@ public class MapObjGen : MonoBehaviour
 
             instantiatedPrefab.tag = treeTag;
 
-            instantiatedPrefab.transform.SetParent(root.transform);
+            instantiatedPrefab.transform.SetParent(hierarchyRoot.transform);
 
-            mapObjects.Add(instantiatedPrefab);
+            mapObjectList.Add(instantiatedPrefab);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -110,7 +109,7 @@ public class MapObjGen : MonoBehaviour
     {
         SetOffset();
 
-        foreach (GameObject mapObject in mapObjects)
+        foreach (GameObject mapObject in mapObjectList)
         {
             /*
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitGround, Mathf.Infinity, LayerMask.GetMask("Ground")))
@@ -136,14 +135,15 @@ public class MapObjGen : MonoBehaviour
                 if (hitWater.transform.gameObject.layer == LayerWater)
                 {
                     Debug.Log("Water Ahoy!");
-                    DestroyTree();
-                } else
+                    DestroyObject();
+                }
+                else
                 {
                     continue;
                 }
             }
 
-            void DestroyTree()
+            void DestroyObject()
             {
                 if (Application.isEditor)
                 {
@@ -162,10 +162,10 @@ public class MapObjGen : MonoBehaviour
 
         void ListCleanup()
         {
-            for (var i = mapObjects.Count - 1; i > -1; i--)
+            for (var i = mapObjectList.Count - 1; i > -1; i--)
             {
-                if (mapObjects[i] == null)
-                    mapObjects.RemoveAt(i);
+                if (mapObjectList[i] == null)
+                    mapObjectList.RemoveAt(i);
             }
         }
 
@@ -173,7 +173,7 @@ public class MapObjGen : MonoBehaviour
 
         void AnchorToGround()
         {
-            foreach (GameObject mapObject in mapObjects)
+            foreach (GameObject mapObject in mapObjectList)
             {
                 if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity))
                 {
@@ -188,9 +188,8 @@ public class MapObjGen : MonoBehaviour
 
                     mapObject.transform.position = newPosition;
 
-                    Debug.Log("Clamped to Ground!");
- 
-                    Debug.Log("Distance: " + distance);
+                    //Debug.Log("Clamped to Ground!");
+                    //Debug.Log("Distance: " + distance);
                 }
             }
 
@@ -200,24 +199,25 @@ public class MapObjGen : MonoBehaviour
         void AddColliders()
         {
 
-            foreach (GameObject mapObject in mapObjects)
+            foreach (GameObject mapObject in mapObjectList)
             {
+                mapObject.AddComponent<MeshCollider>();
+
                 navMeshObstacle = GetComponent<NavMeshObstacle>();
                 navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
 
                 navMeshObstacle.enabled = true;
                 //navMeshObstacle.carveOnlyStationary = true;
-                navMeshObstacle.carving = true;
-              
+                navMeshObstacle.carving = false;
+
                 navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
 
-              
             }
 
             Debug.Log("Colliders Generated!");
         }
     }
-    
+
     void SetOffset()
     {
         mapObject.transform.position = new Vector3(xPosition, yPosition, zPosition);
@@ -225,50 +225,56 @@ public class MapObjGen : MonoBehaviour
 
     void ResetOffset()
     {
-        mapObject.transform.position = new Vector3(0,0,0);
+        mapObject.transform.position = new Vector3(0, 0, 0);
     }
 
     [SerializeField] private float newY;
 
     void ClearList()
     {
-        for (var i = 0; i < mapObjects.Count; i++)
+        for (var i = 0; i < mapObjectList.Count; i++)
         {
-            mapObjects.RemoveAt(i);
+            mapObjectList.RemoveAt(i);
         }
 
         ResetOffset();
     }
-    
+
     public void Clear()
     {
         if (Application.isEditor)
         {
             ClearList();
-            foreach (Transform child in root.transform)
+
+            foreach (Transform child in hierarchyRoot.transform)
             {
                 DestroyImmediate(child.gameObject);
-                if (root.transform.childCount != 0)
+                if (hierarchyRoot.transform.childCount != 0)
                 {
                     continue;
                 }
+
             }
 
-        } else
+        }
+        else
 
         {
             ClearList();
-            foreach (Transform child in root.transform)
+
+            foreach (Transform child in hierarchyRoot.transform)
             {
                 Destroy(child.gameObject);
-                if (root.transform.childCount != 0)
+                if (hierarchyRoot.transform.childCount != 0)
                 {
                     continue;
+
                 }
             }
         }
     }
+}
 
     // Update is called once per frame
 
-}
+

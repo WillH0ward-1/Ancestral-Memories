@@ -20,8 +20,6 @@ public class PlayerWalk : MonoBehaviour
 
     public GameObject playerBase;
 
-    public GameObject clickRange;
-
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_WALK = "Player_walk";
     const string PLAYER_JOG = "Player_jog";
@@ -37,16 +35,6 @@ public class PlayerWalk : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         agent.isStopped = true;
-    }
-
-    public float Remap(float value, float iMin, float iMax, float oMin, float oMax)
-    {
-        float outputVal;
-
-        float t = Mathf.InverseLerp(iMin, iMax, value);
-        outputVal = Mathf.Lerp(oMin, oMax, t);
-
-        return outputVal;
     }
 
     [SerializeField]

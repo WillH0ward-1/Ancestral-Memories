@@ -49,27 +49,30 @@ public class CharacterClass : MonoBehaviour
 
     // PLAYER STATS =======================================================
 
-    public int maxHealth = 100;
-    public int minHealth = 0;
+    private int playerAge = 24;
+    private int ageToDie = 0;
 
-    public int maxHunger = 100;
-    public int minHunger = 0;
+    private int maxHealth = 100;
+    private int minHealth = 0;
 
-    public int maxFaith = 100;
-    public int minFaith = 0;
+    private int maxHunger = 100;
+    private int minHunger = 0;
 
-    public int maxEvolution = 100;
-    public int minEvolution = 0;
+    private int maxFaith = 100;
+    private int minFaith = 0;
+
+    private int maxEvolution = 100;
+    private int minEvolution = 0;
 
     public HealthBar playerHealth;
     public HungerBar playerHunger;
     public FaithBar playerFaith;
     public EvolutionBar evolutionBar;
 
-    public float currentHealth;
-    public float currentHunger;
-    public float currentFaith;
-    public float currentEvolution;
+    [SerializeField] public float currentHealth;
+    [SerializeField] public float currentHunger;
+    [SerializeField] public float currentFaith;
+    [SerializeField] public float currentEvolution;
 
     public bool playerIsStarving = false;
     public bool playerHasStarved = false;
@@ -88,11 +91,13 @@ public class CharacterClass : MonoBehaviour
 
     public PlayerWalk playerWalk;
 
-    private AuraControl auraControl;
+    //private AuraControl auraControl;
 
     public bool respawn;
 
     public GodRayControl godRay;
+
+    private EvolutionControl evolution;
 
     // FUNCTIONS ============================================================
 
@@ -101,6 +106,8 @@ public class CharacterClass : MonoBehaviour
         currentHealth = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
+
+        playerIsMonkey = false;
 
         playerIsDiseased = false;
 
@@ -167,13 +174,21 @@ public class CharacterClass : MonoBehaviour
             }
         }
 
+ 
+        if (currentEvolution <= 25)
+        {
+            evolution.playerIsMonkey = true;
+
+        }
+
+
         // UPDATE PLAYER STATS
 
         float hungerMultipler = 0.5f;
 
         float faithMultiplier = 0.5f;
 
-        float evolutionMultiplier = -0.25f;
+        float evolutionMultiplier = 0.25f;
 
         // If multipliers set to negative, it should drop faster and vice versa for positive.
 
@@ -330,6 +345,7 @@ public class CharacterClass : MonoBehaviour
     {
         if (currentFaith < 50) // currentFaith should be > x. 
         {
+            playerIsReviving = true;
             PrepareRevive();
         } else
         {
@@ -346,7 +362,7 @@ public class CharacterClass : MonoBehaviour
 
     private void PrepareRevive()
     {
-        playerIsReviving = true;
+        
         StartCoroutine(GetReviveAnimationLength());
     }
 
