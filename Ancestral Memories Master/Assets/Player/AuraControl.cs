@@ -1,0 +1,54 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class AuraControl : MonoBehaviour
+{
+
+    public Material auraShader;
+
+    [SerializeField]
+    private CharacterClass player;
+
+    public int maxAura = 1;
+    public int minAura = -1;
+
+    public Renderer[] auraRenderers = new Renderer[0];
+
+    private float targetAuraVal = 1f;
+    private float currentAuraVal = 1f;
+
+    public float auraIntensity;
+
+    private void OnEnable() => player.OnFaithChanged += faithChanged;
+
+    private void OnDisable() => player.OnFaithChanged -= faithChanged;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
+
+        auraIntensity = auraShader.GetFloat("_AuraIntensity");
+        auraIntensity = maxAura;
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        currentAuraVal = Mathf.Lerp(currentAuraVal, targetAuraVal, 2f * Time.deltaTime);
+
+        foreach (Renderer renderer in auraRenderers)
+        {
+            renderer.material.SetFloat("_AuraIntensity", currentAuraVal);
+        }
+
+    }
+
+    private void faithChanged(int faith, int maxFaith)
+    {
+        targetAuraVal = (float)faith / maxFaith;
+    }
+}

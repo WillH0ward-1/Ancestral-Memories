@@ -1,0 +1,225 @@
+fileFormatVersion: 2
+guid: a9a761f9d0e6e48389326a857be8ba1a
+ModelImporter:
+  serializedVersion: 22102
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Attire
+    second: {fileID: 2100000, guid: c5d9732bad33b4da1a531021504de49c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Body
+    second: {fileID: 2100000, guid: 5ae45fd83553641b1881ee00c6a8ff4d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BodyAuraBake
+    second: {fileID: 2100000, guid: 139da5a4fcfca46ba9750cb5632d78fa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BodyHair
+    second: {fileID: 2100000, guid: da16ccff00185447e9358665c45aa3f3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Hair
+    second: {fileID: 2100000, guid: c2c793eede3674e4b9871d7d65bf4313, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LegAuraBaked
+    second: {fileID: 2100000, guid: 139da5a4fcfca46ba9750cb5632d78fa, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    rigImportErrors: "Invalid Avatar Rig Configuration. Missing or invalid transform:\n\tRequired
+      human bone 'LeftUpperLeg' not found\n"
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 3
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 15
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human:
+    - boneName: Body Aura
+      humanName: Hips
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Leg Aura
+      humanName: Spine
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    skeleton:
+    - name: CavemanNew(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Main Body
+      parentName: CavemanNew(Clone)
+      position: {x: 0.004999964, y: 1.0000021, z: 0.059999675}
+      rotation: {x: 0.9975028, y: 0, z: -0, w: 0.070626855}
+      scale: {x: 107.60625, y: 107.60625, z: 129.1275}
+    - name: Leg Wraps
+      parentName: CavemanNew(Clone)
+      position: {x: 0.004999964, y: 1.1265656, z: 0.5184041}
+      rotation: {x: 0.9975028, y: 0, z: -0, w: 0.070626855}
+      scale: {x: 309.61334, y: 179.74397, z: 215.69281}
+    - name: Body Hair
+      parentName: CavemanNew(Clone)
+      position: {x: 0.004999964, y: 1.0000021, z: 0.059999675}
+      rotation: {x: 0.9975028, y: 0, z: -0, w: 0.070626855}
+      scale: {x: 107.60625, y: 107.60625, z: 129.1275}
+    - name: Leg Hair
+      parentName: Body Hair
+      position: {x: 4.6566128e-12, y: -3.72529e-10, z: 3.7252902e-11}
+      rotation: {x: -0.000000006690591, y: 0, z: -0, w: 1}
+      scale: {x: 1.6703861, y: 1.6703862, z: 1.6703863}
+    - name: Body Aura
+      parentName: CavemanNew(Clone)
+      position: {x: 0.004999964, y: 1.0000021, z: 0.059999675}
+      rotation: {x: 0.9975028, y: 0, z: -0, w: 0.070626855}
+      scale: {x: 107.60625, y: 107.60625, z: 129.1275}
+    - name: Leg Aura
+      parentName: Body Aura
+      position: {x: 4.6566128e-12, y: -0.0005641958, z: -0.0036527014}
+      rotation: {x: -0.000000004460394, y: 0, z: -0, w: 1}
+      scale: {x: 2.8772807, y: 1.6703861, z: 1.6703863}
+    - name: Scarf
+      parentName: CavemanNew(Clone)
+      position: {x: 0.004999964, y: 1.0000021, z: 0.059999675}
+      rotation: {x: 0.9975028, y: 0, z: -0, w: 0.070626855}
+      scale: {x: 107.60625, y: 107.60625, z: 129.1275}
+    - name: SkullMask
+      parentName: CavemanNew(Clone)
+      position: {x: 0.024112415, y: 0, z: -0.292912}
+      rotation: {x: 0.00000008146034, y: 0.0000000031432146, z: 0.0000000013969841,
+        w: 1}
+      scale: {x: 49333.223, y: 49333.223, z: 49333.223}
+    - name: Plane001
+      parentName: CavemanNew(Clone)
+      position: {x: -0.020080294, y: 0, z: -0.0017367951}
+      rotation: {x: -0.6743798, y: -0.2126311, z: -0.21263114, w: 0.6743797}
+      scale: {x: 2.5399997, y: 2.5399997, z: 2.54}
+    - name: Camera
+      parentName: CavemanNew(Clone)
+      position: {x: -7.3588915, y: 4.958309, z: 6.925791}
+      rotation: {x: 0.0906284, y: 0.8937962, z: -0.20997299, w: 0.38577998}
+      scale: {x: 100, y: 100.00001, z: 99.99999}
+    - name: Light
+      parentName: CavemanNew(Clone)
+      position: {x: 0.023754656, y: 7.5438614, z: 6.784546}
+      rotation: {x: 0.35647044, y: 0.65923744, z: 0.53852195, w: -0.38513508}
+      scale: {x: 100, y: 100, z: 100}
+    - name: Feather
+      parentName: CavemanNew(Clone)
+      position: {x: -0, y: 3.37, z: 0}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 2.0843093, y: 2.1065276, z: 2.0947978}
+    - name: bone
+      parentName: CavemanNew(Clone)
+      position: {x: 0.0037463035, y: 0.004598719, z: -0.0045573357}
+      rotation: {x: 0.000000081460335, y: 0, z: -0, w: 1}
+      scale: {x: 100, y: 100, z: 100}
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 3
+  humanoidOversampling: 1
+  avatarSetup: 1
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
