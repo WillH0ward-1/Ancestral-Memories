@@ -129,8 +129,15 @@ public class PlayerWalk : MonoBehaviour
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
-            //float runThreshold = cursorDistance / 2;
+            Debug.Log("Cursor Distance:" + cursorDistance);
+            Debug.Log("Speed:" + agent.speed);
 
+            agent.isStopped = false;
+
+            //Debug.Log("Player moving?" + agent.isStopped);
+
+            //agent.acceleration = x;
+            //float runThreshold = cursorDistance / 2;
             //player.ChangeAnimationState(PLAYER_WALK);
 
             if (Input.GetKeyDown(KeyCode.LeftShift))
@@ -141,15 +148,6 @@ public class PlayerWalk : MonoBehaviour
 
                 }
             }
-
-            
-
-            Debug.Log("Cursor Distance:" + cursorDistance);
-            Debug.Log("Speed:" + agent.speed);
-
-            //agent.acceleration = x;
-            agent.isStopped = false;
-            //Debug.Log("Player moving?" + agent.isStopped);
 
             
         }

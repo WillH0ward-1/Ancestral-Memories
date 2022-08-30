@@ -189,7 +189,7 @@ public class CharacterClass : MonoBehaviour
         // If multipliers set to negative, it should drop faster and vice versa for positive.
 
         GetHungry(0.1f * hungerMultipler);
-        LoseFaith(0.1f * faithMultiplier);
+        DepleteFaith(0.1f * faithMultiplier);
         Evolve(0.1f * evolutionMultiplier);
     }
 
@@ -220,7 +220,7 @@ public class CharacterClass : MonoBehaviour
 
         while (playerIsDiseased == true)
         {
-            int diseaseMultiplier = 0;
+            int diseaseMultiplier;
 
             if (diseaseSeverity == "mild")
             {
@@ -310,7 +310,9 @@ public class CharacterClass : MonoBehaviour
         }
     }
 
-    public void LoseFaith(float faith)
+    public event Action<int, int> OnFaithChanged;
+
+    public void DepleteFaith(float faith)
     {
 
         currentFaith -= faith;
@@ -349,8 +351,6 @@ public class CharacterClass : MonoBehaviour
         }
     }
 
-    public event Action<int, int> OnFaithChanged;
-
     private void PrepareRespawn()
     {
         StartCoroutine(RespawnBuffer());
@@ -371,7 +371,6 @@ public class CharacterClass : MonoBehaviour
 
     private void RevivePlayer()
     {
-
         // REVIVE PLAYER - Complete Reset.
 
         godRay.godRay = true;
@@ -387,7 +386,6 @@ public class CharacterClass : MonoBehaviour
 
     IEnumerator ResumeGame()
     {
-
         float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSeconds(animationLength);
 

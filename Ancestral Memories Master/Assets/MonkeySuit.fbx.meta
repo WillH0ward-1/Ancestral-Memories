@@ -3,7 +3,13 @@ guid: 779e1c9445584418199c0c3087b0f7eb
 ModelImporter:
   serializedVersion: 22102
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MonkeyMaterial
+    second: {fileID: -876546973899608171, guid: af4f6c263321d4e7e99053a78061eab8,
+      type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -89,7 +95,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 0.005
+    globalScale: 0.5
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

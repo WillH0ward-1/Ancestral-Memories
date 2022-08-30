@@ -19,12 +19,28 @@ public class MonkeyMorph : MonoBehaviour
     public float lerpDuration = 5;
 
     public bool playerIsMonkey = false;
+
+    private int blendShapeIndex = 0;
+
     // Start is called before the first frame update
 
     private void Awake()
     {
         playerIsMonkey = true;
         Renderers();
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown("space"))
+        {
+            SwitchCostume();
+        }
+    }
+
+    void SwitchCostume()
+    {
+        Morph();
     }
 
     public void Morph()
@@ -40,7 +56,7 @@ public class MonkeyMorph : MonoBehaviour
             endVal = 0;
         }
 
-        if (playerIsMonkey == false)
+        else if (playerIsMonkey == false)
         {
             currentVal = 0;
             endVal = 100;
@@ -48,19 +64,19 @@ public class MonkeyMorph : MonoBehaviour
 
         float timeElapsed = 0;
 
-        while (timeElapsed < lerpDuration)
+        while (timeElapsed <= lerpDuration)
         {
-            var x = Mathf.Lerp(currentVal, endVal, timeElapsed / lerpDuration);
+            var lerpVal = Mathf.Lerp(currentVal, endVal, timeElapsed / lerpDuration);
             timeElapsed += Time.deltaTime;
 
-            meshRenderer.SetBlendShapeWeight(0, x);
+            meshRenderer.SetBlendShapeWeight(blendShapeIndex, lerpVal);
 
-            yield return null;
-
-            if (timeElapsed == lerpDuration)
+            if (timeElapsed >= lerpDuration)
             {
                 Renderers();
             }
+
+            yield return null;
         }
 
     }
@@ -80,19 +96,6 @@ public class MonkeyMorph : MonoBehaviour
             DisableRenderers(humanState);
             playerIsMonkey = true;
         }
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown("space"))
-        {
-            SwitchCostume();
-        }
-    }
-
-    void SwitchCostume()
-    {
-        Morph();
     }
 
     public void DisableRenderers(GameObject state)
