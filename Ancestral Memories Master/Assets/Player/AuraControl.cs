@@ -6,13 +6,13 @@ using UnityEngine;
 public class AuraControl : MonoBehaviour
 {
 
-    public Material auraShader;
+    public Material auraMaterial;
 
     [SerializeField]
     private CharacterClass player;
 
     public int maxAura = 1;
-    public int minAura = -1;
+    public int minAura = 0;
 
     public Renderer[] auraRenderers = new Renderer[0];
 
@@ -22,7 +22,6 @@ public class AuraControl : MonoBehaviour
     public float auraIntensity;
 
     private void OnEnable() => player.OnFaithChanged += faithChanged;
-
     private void OnDisable() => player.OnFaithChanged -= faithChanged;
 
     // Start is called before the first frame update
@@ -30,7 +29,7 @@ public class AuraControl : MonoBehaviour
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
 
-        auraIntensity = auraShader.GetFloat("_AuraIntensity");
+        auraIntensity = auraMaterial.GetFloat("_AuraIntensity");
         auraIntensity = maxAura;
 
     }

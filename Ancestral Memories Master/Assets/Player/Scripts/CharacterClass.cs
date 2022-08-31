@@ -95,8 +95,6 @@ public class CharacterClass : MonoBehaviour
 
     public GodRayControl godRay;
 
-    public MonkeyMorph monkeyMorph;
-
     // FUNCTIONS ============================================================
 
     private void Start()
