@@ -9,11 +9,9 @@ using System.Collections;
 public class ControlAlpha : MonoBehaviour
 {
 
-    public CharacterClass player;
+    private readonly CharacterClass player;
 
-    public SkinnedMeshRenderer meshRenderer;
-
-    public event Action<int, int> OnAlphaChanged;
+    [SerializeField] private SkinnedMeshRenderer meshRenderer;
 
     private Material alphaShader;
 
@@ -23,178 +21,202 @@ public class ControlAlpha : MonoBehaviour
     [SerializeField] private GameObject humanRenderer;
     [SerializeField] private GameObject monkeyRenderer;
 
+    [SerializeField] private Renderer[] monkeyRenderers;
+    [SerializeField] private Renderer[] humanRenderers;
+
     private Material humanMaterial;
     private Material monkeyMaterial;
 
-    public float humanCurrentAlphaValue = 0f;
-    public float humanTargetAlphaValue = 0f;
+    [SerializeField] private float humanCurrentAlphaValue = 0f;
+    [SerializeField] private float humanTargetAlphaValue = 0f;
 
-    public float monkeyCurrentAlphaValue = 0f;
-    public float monkeyTargetAlphaValue = 0f;
-
-    public float humanAlphaIntensity;
-    public float monkeyAlphaIntensity;
-
-    private Renderer[] monkeyRenderers;
-    public Renderer[] humanRenderers;
+    [SerializeField] private float monkeyCurrentAlphaValue = 0f;
+    [SerializeField] private float monkeyTargetAlphaValue = 0f;
 
     private int maxAlpha = 1;
     private int minAlpha = 0;
 
+    [SerializeField] private float lerpDuration = 2;
+    [SerializeField] private float retriggerBuffer = 2;
+
     private int blendShapeIndex = 0;
-
+    [SerializeField] float blendShapeDuration = 0;
     [SerializeField] float currentBlendShapeWeight = 0;
-    [SerializeField] float endBlendShapeWeight = 0;
+    [SerializeField] float targetBlendShapeWeight = 0;
 
-    public bool playerIsMonkey = false;
+    public bool playerIsHuman = false;
+    public bool playerIsTransforming = false;
 
-    private void Start()
+    private void Awake()
     {
-        playerIsMonkey = true;
+        playerIsHuman = false;
+        playerIsTransforming = false;
+        blendShapeDuration = lerpDuration;
+        CheckRenderers();
+
     }
 
     void Update()
     {
         if (Input.GetKeyDown("space"))
         {
-            StartFade();
-            StartCoroutine(StartBlendShape());
-            Debug.Log("playerIsMonkey?: " + playerIsMonkey);
+            if (!playerIsTransforming) {
+               
+                playerIsHuman ^= true; // Invert boolean with 'xor'
+
+                StartFade();
+                StartCoroutine(StartBlendShape());
+
+                //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
+            }
         }
 
-        if (playerIsMonkey == true)
+    }
+
+    void CheckRenderers()
+    {
+        if (!playerIsTransforming)
         {
-            DisableRenderers(humanRenderer);
-            EnableRenderers(monkeyRenderer);
-        }
+            if (playerIsHuman == false)
+            {
+                DisableRenderers(humanRenderer);
+                EnableRenderers(monkeyRenderer);
+            }
 
-        else if (playerIsMonkey == false)
-        {
-            DisableRenderers(monkeyRenderer);
-            EnableRenderers(humanRenderer);
-        }
+            else if (playerIsHuman == true)
+            {
+                DisableRenderers(monkeyRenderer);
+                EnableRenderers(humanRenderer);
+            }
 
+        }
     }
 
     public void StartFade()
     {
+        playerIsTransforming = true;
 
+        EnableRenderers(humanRenderer);
+        EnableRenderers(monkeyRenderer);
+       
         humanRenderers = humanObject.GetComponentsInChildren<Renderer>();
         monkeyRenderers = monkeyObject.GetComponentsInChildren<Renderer>();
 
-        Debug.Log("humanRenders: " + humanRenderers);
-        Debug.Log("monkeyRenderers: " + monkeyRenderers);
+        StartCoroutine(Fade());
+    }
 
-
-        foreach (Renderer renderer in humanRenderers)
+    void SetTargetAlpha()
+    {
+        if (playerIsHuman == false) // If player is already monkey, it has to switch to human & vice versa.
         {
-            var materials = new Material[renderer.materials.Length];
 
-            for (int i = 0; i < renderer.materials.Length; i++)
-            {
-                humanCurrentAlphaValue = renderer.material.GetFloat("_Alpha");
-            }
+            /* maxAlpha = Visible | minAlpha = Invisible; */
+
+            monkeyCurrentAlphaValue = minAlpha; // Fade in monkey.
+            monkeyTargetAlphaValue = maxAlpha;
+
+            humanCurrentAlphaValue = maxAlpha; // Fade out human.
+            humanTargetAlphaValue = minAlpha;
+
         }
 
-        foreach (Renderer renderer in monkeyRenderers)
+        else if (playerIsHuman == true)
         {
-            var materials = new Material[renderer.materials.Length];
 
-            for (int i = 0; i < renderer.materials.Length; i++)
-            {
-                monkeyCurrentAlphaValue = renderer.material.GetFloat("_Alpha");
-            }
-        }
+            monkeyCurrentAlphaValue = maxAlpha; // Fade out monkey.
+            monkeyTargetAlphaValue = minAlpha;
 
-        SetTargetAlpha();
-
-        void SetTargetAlpha()
-        {
-            if (playerIsMonkey == false) // If player is already monkey, it has to switch to human & vice versa.
-            {
-                monkeyCurrentAlphaValue = 0; // Fade in monkey.
-                monkeyTargetAlphaValue = 1;
-
-                humanCurrentAlphaValue = 1; // Fade out human.
-                humanTargetAlphaValue = 0;
-
-            }
-
-            else if (playerIsMonkey == true)
-            {
-
-                monkeyCurrentAlphaValue = 1; // Fade out monkey.
-                monkeyTargetAlphaValue = 0;
-
-                humanCurrentAlphaValue = 0; // Fade in human.
-                humanTargetAlphaValue = 1;
-            }
-
-            StartCoroutine(Fade());
+            humanCurrentAlphaValue = minAlpha; // Fade in human.
+            humanTargetAlphaValue = maxAlpha;
         }
     }
 
-
-    //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-
-    [SerializeField] private float lerpDuration = 5;
-
     private IEnumerator Fade()
     {
+        monkeyCurrentAlphaValue = minAlpha;
+        humanCurrentAlphaValue = minAlpha;
+
+        SetTargetAlpha();
+
         float timeElapsed = 0;
 
         while (timeElapsed <= lerpDuration)
         {
-            humanCurrentAlphaValue = Mathf.Lerp(humanCurrentAlphaValue, humanTargetAlphaValue, timeElapsed / lerpDuration);
-            monkeyCurrentAlphaValue = Mathf.Lerp(monkeyCurrentAlphaValue, monkeyTargetAlphaValue, timeElapsed / lerpDuration);
+            var humanLerpVal = Mathf.Lerp(humanCurrentAlphaValue, humanTargetAlphaValue, timeElapsed / lerpDuration);
+            var monkeyLerpVal = Mathf.Lerp(monkeyCurrentAlphaValue, monkeyTargetAlphaValue, timeElapsed / lerpDuration);
+
             timeElapsed += Time.deltaTime;
-            yield return null;
 
+            setHumanAlpha();
+            setMonkeyAlpha();
 
-            foreach (Material m in humanObject.GetComponentInChildren<Renderer>().materials)
+            void setHumanAlpha()
             {
-                m.SetFloat("_Alpha", humanCurrentAlphaValue);
+                foreach (Renderer renderer in humanRenderers)
+                {
+                    foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
+                    {
+                        material.SetFloat("_Alpha", humanLerpVal);
+                    }
+                }
             }
 
-
-            foreach (Material m in monkeyObject.GetComponentInChildren<Renderer>().materials)
+            void setMonkeyAlpha()
             {
-                m.SetFloat("_Alpha", monkeyCurrentAlphaValue);
+                foreach (Renderer renderer in monkeyRenderers)
+                {
+                    foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
+                    {
+                        material.SetFloat("_Alpha", monkeyLerpVal);
+                    }
+                }
             }
         }
 
+        if (timeElapsed >= lerpDuration)
+        {
+            yield return new WaitForSeconds(retriggerBuffer);
+            playerIsTransforming = false;
+            CheckRenderers();
+        }
     }
 
     IEnumerator StartBlendShape()
     {
-        if (playerIsMonkey == true)
-        {
-            currentBlendShapeWeight = 100;
-            endBlendShapeWeight = 0;
-        }
 
-        else if (playerIsMonkey == false)
+        SetTargetBlend();
+
+        void SetTargetBlend()
         {
-            currentBlendShapeWeight = 0;
-            endBlendShapeWeight = 100;
+            if (playerIsHuman == false)
+            {
+                currentBlendShapeWeight = 100;
+                targetBlendShapeWeight = 0;
+            }
+
+            else if (playerIsHuman == true)
+            {
+                currentBlendShapeWeight = 0;
+                targetBlendShapeWeight = 100;
+            }
         }
 
         float timeElapsed = 0;
 
         while (timeElapsed <= lerpDuration)
         {
-            var lerpVal = Mathf.Lerp(currentBlendShapeWeight, endBlendShapeWeight, timeElapsed / lerpDuration);
+            var lerpVal = Mathf.Lerp(currentBlendShapeWeight, targetBlendShapeWeight, timeElapsed / blendShapeDuration);
             timeElapsed += Time.deltaTime;
 
             meshRenderer.SetBlendShapeWeight(blendShapeIndex, lerpVal);
 
             yield return null;
         }
-
     }
 
     public void DisableRenderers(GameObject state)
     {
+
         SkinnedMeshRenderer[] meshRenderers = state.transform.GetComponentsInChildren<SkinnedMeshRenderer>();
 
         foreach (SkinnedMeshRenderer meshRenderer in meshRenderers)
@@ -205,7 +227,7 @@ public class ControlAlpha : MonoBehaviour
     }
 
     public void EnableRenderers(GameObject state)
-    {
+    { 
         SkinnedMeshRenderer[] meshRenderers = state.transform.GetComponentsInChildren<SkinnedMeshRenderer>();
 
         foreach (SkinnedMeshRenderer meshRenderer in meshRenderers)
@@ -213,5 +235,4 @@ public class ControlAlpha : MonoBehaviour
             meshRenderer.enabled = true;
         }
     }
-
 }

@@ -60,7 +60,7 @@ public class CamFollow : MonoBehaviour
 
         } else
         {
-            ZoomCamera.orthographicSize = 35;
+            ZoomCamera.orthographicSize = maxZoom;
         }
 
         TriggerInterval();
@@ -89,8 +89,8 @@ public class CamFollow : MonoBehaviour
     {
         if (cinematicActive == true)
         {
-            ZoomCamera.farClipPlane = 1000;
-            ZoomCamera.nearClipPlane = -1000;
+            ZoomCamera.farClipPlane = 2000;
+            ZoomCamera.nearClipPlane = -2000;
         }
 
         if (cinematicActive == false)
@@ -134,30 +134,26 @@ public class CamFollow : MonoBehaviour
 
     public void AllowUserZoom()
     {
-
-        if (cinematicActive == true)
+        if (!cinematicActive == true)
         {
-            return;
-        }
+            if (ZoomCamera.orthographic)
+            {
+                ZoomCamera.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Use this when using Orthographic Camera.
+            }
+            else
+            {
+                ZoomCamera.fieldOfView -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Otherwise, use this (Perspective Camera).
+            }
 
-        if (ZoomCamera.orthographic)
-        {
-            ZoomCamera.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Use this when using Orthographic Camera.
-        }
-        else
-        {
-            ZoomCamera.fieldOfView -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Otherwise, use this (Perspective Camera).
-        }
+            if (ZoomCamera.orthographicSize > maxZoom)
+            {
+                ZoomCamera.orthographicSize = maxZoom;
+            }
 
-
-        if (ZoomCamera.orthographicSize >= maxZoom)
-        {
-            ZoomCamera.orthographicSize = maxZoom;
-        }
-
-        if (ZoomCamera.orthographicSize <= minZoom)
-        {
-            ZoomCamera.orthographicSize = minZoom;
+            if (ZoomCamera.orthographicSize < minZoom)
+            {
+                ZoomCamera.orthographicSize = minZoom;
+            }
         }
     }
 

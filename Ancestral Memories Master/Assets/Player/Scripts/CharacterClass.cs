@@ -89,6 +89,8 @@ public class CharacterClass : MonoBehaviour
 
     public PlayerWalk playerWalk;
 
+    public GameObject[] animators;
+
     //private AuraControl auraControl;
 
     public bool respawn;
@@ -106,6 +108,12 @@ public class CharacterClass : MonoBehaviour
         playerIsDiseased = false;
 
         currentEvolution = minEvolution;
+        foreach (GameObject g in animators) {
+            foreach (Animator a in GetComponentsInChildren<Animator>())
+            {
+                animator = a;
+            }
+        }
 
         animator = GetComponent<Animator>();
 
@@ -339,7 +347,7 @@ public class CharacterClass : MonoBehaviour
 
     public void CheckForRevival()
     {
-        if (currentFaith < 50) // currentFaith should be > x. 
+        if (currentFaith < 50) // In order to revive, currentFaith needs to be > x. 
         {
             playerIsReviving = true;
             PrepareRevive();
@@ -356,7 +364,6 @@ public class CharacterClass : MonoBehaviour
 
     private void PrepareRevive()
     {
-        
         StartCoroutine(GetReviveAnimationLength());
     }
 
