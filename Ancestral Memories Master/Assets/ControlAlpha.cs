@@ -9,14 +9,14 @@ using System.Collections;
 public class ControlAlpha : MonoBehaviour
 {
 
-    private readonly CharacterClass player;
+    [SerializeField] public CharacterClass player;
 
     [SerializeField] private SkinnedMeshRenderer meshRenderer;
 
     private Material alphaShader;
 
-    [SerializeField] private GameObject humanObject;
-    [SerializeField] private GameObject monkeyObject;
+    [SerializeField] public GameObject humanObject;
+    [SerializeField] public GameObject monkeyObject;
 
     [SerializeField] private GameObject humanRenderer;
     [SerializeField] private GameObject monkeyRenderer;
@@ -33,10 +33,10 @@ public class ControlAlpha : MonoBehaviour
     [SerializeField] private float monkeyCurrentAlphaValue = 0f;
     [SerializeField] private float monkeyTargetAlphaValue = 0f;
 
-    private int maxAlpha = 1;
-    private int minAlpha = 0;
+    private float maxAlpha = 1;
+    private float minAlpha = 0;
 
-    [SerializeField] private float lerpDuration = 2;
+    [SerializeField] private float lerpDuration = 1;
     [SerializeField] private float retriggerBuffer = 2;
 
     private int blendShapeIndex = 0;
@@ -63,6 +63,8 @@ public class ControlAlpha : MonoBehaviour
             if (!playerIsTransforming) {
                
                 playerIsHuman ^= true; // Invert boolean with 'xor'
+
+                player.SwitchAnimators();
 
                 StartFade();
                 StartCoroutine(StartBlendShape());
@@ -98,14 +100,14 @@ public class ControlAlpha : MonoBehaviour
 
         EnableRenderers(humanRenderer);
         EnableRenderers(monkeyRenderer);
-       
+
         humanRenderers = humanObject.GetComponentsInChildren<Renderer>();
         monkeyRenderers = monkeyObject.GetComponentsInChildren<Renderer>();
 
         StartCoroutine(Fade());
     }
 
-    void SetTargetAlpha()
+    private IEnumerator Fade()
     {
         if (playerIsHuman == false) // If player is already monkey, it has to switch to human & vice versa.
         {
@@ -122,28 +124,20 @@ public class ControlAlpha : MonoBehaviour
 
         else if (playerIsHuman == true)
         {
-
             monkeyCurrentAlphaValue = maxAlpha; // Fade out monkey.
             monkeyTargetAlphaValue = minAlpha;
 
             humanCurrentAlphaValue = minAlpha; // Fade in human.
             humanTargetAlphaValue = maxAlpha;
         }
-    }
 
-    private IEnumerator Fade()
-    {
-        monkeyCurrentAlphaValue = minAlpha;
-        humanCurrentAlphaValue = minAlpha;
-
-        SetTargetAlpha();
 
         float timeElapsed = 0;
-
         while (timeElapsed <= lerpDuration)
         {
-            var humanLerpVal = Mathf.Lerp(humanCurrentAlphaValue, humanTargetAlphaValue, timeElapsed / lerpDuration);
-            var monkeyLerpVal = Mathf.Lerp(monkeyCurrentAlphaValue, monkeyTargetAlphaValue, timeElapsed / lerpDuration);
+
+            float humanLerpVal = Mathf.Lerp(humanCurrentAlphaValue, humanTargetAlphaValue, timeElapsed / lerpDuration);
+            float monkeyLerpVal = Mathf.Lerp(monkeyCurrentAlphaValue, monkeyTargetAlphaValue, timeElapsed / lerpDuration);
 
             timeElapsed += Time.deltaTime;
 
@@ -205,7 +199,7 @@ public class ControlAlpha : MonoBehaviour
 
         while (timeElapsed <= lerpDuration)
         {
-            var lerpVal = Mathf.Lerp(currentBlendShapeWeight, targetBlendShapeWeight, timeElapsed / blendShapeDuration);
+            float lerpVal = Mathf.Lerp(currentBlendShapeWeight, targetBlendShapeWeight, timeElapsed / blendShapeDuration);
             timeElapsed += Time.deltaTime;
 
             meshRenderer.SetBlendShapeWeight(blendShapeIndex, lerpVal);

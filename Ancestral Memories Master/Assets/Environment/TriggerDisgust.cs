@@ -5,6 +5,8 @@ using UnityEngine;
 public class TriggerDisgust : MonoBehaviour
 {
 
+    public PlayerDisease playerDisease;
+
     [SerializeField] private Animator animator;
 
     CharacterClass player;
@@ -23,7 +25,7 @@ public class TriggerDisgust : MonoBehaviour
         diseaseChance = Random.Range(0, 100);
             if(diseaseChance >= player.currentFaith){
 
-            player.ContractDisease();
+            playerDisease.ContractDisease();
 
         }         
     }
@@ -35,6 +37,6 @@ public class TriggerDisgust : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-       
+        diseaseChance = 0;
     }
 }

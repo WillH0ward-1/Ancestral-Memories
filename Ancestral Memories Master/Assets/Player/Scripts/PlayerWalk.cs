@@ -14,7 +14,7 @@ public class PlayerWalk : MonoBehaviour
 
     private NavMeshAgent agent;
 
-    public Animator animator;
+    //private Animator animator;
 
     public CharacterClass player;
 
@@ -61,7 +61,7 @@ public class PlayerWalk : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetMouseButton(0) && player.playerHasDied == false && cineCam.cinematicActive == false)
+        if (Input.GetMouseButton(0) && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
         {
             CastRayToGround();
         }
@@ -69,7 +69,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if(agent.isStopped == false && player.playerHasDied == false)
+            if(agent.isStopped == false && player.playerHasDied == false && player.playerIsReviving == false)
             {
                 StopAgent();
             }

@@ -6,8 +6,10 @@ using UnityEngine.SceneManagement;
 
 public class CharacterClass : MonoBehaviour
 {
-    [SerializeField]
-    public Animator animator;
+
+    private Animator activeAnimator;
+
+    private Animator inactiveAnimator;
 
     private string currentState;
 
@@ -69,10 +71,10 @@ public class CharacterClass : MonoBehaviour
     public FaithBar playerFaith;
     public EvolutionBar evolutionBar;
 
-    [SerializeField] public float currentHealth;
-    [SerializeField] public float currentHunger;
-    [SerializeField] public float currentFaith;
-    [SerializeField] public float currentEvolution;
+    public float currentHealth;
+    public float currentHunger;
+    public float currentFaith;
+    public float currentEvolution;
 
     public bool playerIsStarving = false;
     public bool playerHasStarved = false;
@@ -85,57 +87,122 @@ public class CharacterClass : MonoBehaviour
     public bool playerHasDied = false;
     public bool playerIsReviving = false;
 
+    private GameManagement gameManager;
+
     public CheckIfUnderwater underwaterCheck;
 
     public PlayerWalk playerWalk;
 
-    public GameObject[] animators;
+    [SerializeField] private GodRayControl god;
 
+    public List<GameObject> activeAnimators = new List<GameObject>();
+    public List<GameObject> inactiveAnimators = new List<GameObject>();
+
+    [SerializeField] private float animationCrossFade = 2f;
     //private AuraControl auraControl;
 
     public bool respawn;
 
     public GodRayControl godRay;
 
+    public ControlAlpha alphaControl;
+
     // FUNCTIONS ============================================================
 
-    private void Start()
+    private void Awake()
     {
+        SwitchAnimators();
+
         currentHealth = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
+        currentEvolution = minEvolution;
 
         playerIsDiseased = false;
 
-        currentEvolution = minEvolution;
-        foreach (GameObject g in animators) {
-            foreach (Animator a in GetComponentsInChildren<Animator>())
-            {
-                animator = a;
-            }
-        }
-
-        animator = GetComponent<Animator>();
 
     }
 
-    public float crossFadeLength = 2f;
+    public void SwitchAnimators()
+    {
+
+     //   AnimatorClipInfo[] CurrentClipInfo = activeAnimator.GetCurrentAnimatorClipInfo(0);
+
+        if (alphaControl.playerIsHuman == false) // If player is already monkey, it has to switch to human & vice versa.
+        {
+            inactiveAnimators.Remove(alphaControl.humanObject);
+            activeAnimators.Add(alphaControl.monkeyObject);
+
+            if (activeAnimators.Contains(alphaControl.humanObject))
+            {
+                activeAnimators.Remove(alphaControl.humanObject);
+                inactiveAnimators.Add(alphaControl.humanObject);
+            }
+
+            AssignAnimators();
+            AssignInactiveAnimators();
+        }
+
+        else if (alphaControl.playerIsHuman == true)
+        {
+            inactiveAnimators.Remove(alphaControl.monkeyObject);
+            activeAnimators.Add(alphaControl.humanObject);
+
+            if (activeAnimators.Contains(alphaControl.monkeyObject))
+            {
+                activeAnimators.Remove(alphaControl.monkeyObject);
+                inactiveAnimators.Add(alphaControl.monkeyObject);
+            }
+
+            AssignAnimators();
+            AssignInactiveAnimators();
+        }
+
+         void AssignAnimators()
+        {
+            foreach (GameObject g in activeAnimators)
+            {
+                foreach (Animator a in g.GetComponentsInChildren<Animator>())
+                {
+                    activeAnimator = a;
+                }
+            }
+        }
+
+         void AssignInactiveAnimators()
+        {
+            foreach (GameObject g in inactiveAnimators)
+            {
+                foreach (Animator a in g.GetComponentsInChildren<Animator>())
+                {
+                    inactiveAnimator = a;
+                }
+            }
+        }
+    }
+
+    [SerializeField] private float crossFadeLength;
 
     public void ChangeAnimationState(string newState)
     {
+
+        float crossFadeLength = animationCrossFade;
+
         if (currentState == newState)
         {
             return;
         }
 
-        animator.CrossFadeInFixedTime(newState, crossFadeLength);
+        activeAnimator.CrossFadeInFixedTime(newState, crossFadeLength);
+        inactiveAnimator.CrossFadeInFixedTime(newState, crossFadeLength);
 
         currentState = newState;
     }
 
     public void AdjustAnimationSpeed(float newSpeed)
     {
-        animator.speed = newSpeed;
+        activeAnimator.speed = newSpeed;
+        inactiveAnimator.speed = newSpeed;
     }
 
     private void Update()
@@ -171,6 +238,7 @@ public class CharacterClass : MonoBehaviour
             if (playerHasDied == true)
             {
                 ChangeAnimationState(PLAYER_STARVE);
+
                 playerIsStarving = false;
                 playerHasStarved = true;
             }
@@ -197,65 +265,6 @@ public class CharacterClass : MonoBehaviour
         GetHungry(0.1f * hungerMultipler);
         DepleteFaith(0.1f * faithMultiplier);
         Evolve(0.1f * evolutionMultiplier);
-    }
-
-    public void ContractDisease()
-    {
-        string[] diseaseSeverities = { "mild", "severe", "fatal", "terminal" };
-        int diseaseIndex = diseaseSeverities.Length - 1;
-        string diseaseSeverity = "";
-
-        CaculateChanceOfDisease();
-
-        void CaculateChanceOfDisease()
-        {
-            // Factor in current health, faith, age etc...
-            NotifyOfDisease();
-        }
-
-        void NotifyOfDisease(){
-
-            for (int i = 0; i < diseaseSeverities.Length; i++)
-            {
-                diseaseSeverity = diseaseSeverities[diseaseIndex];
-                Debug.Log("Player has been infected with a " + diseaseSeverity + " disease!"); // Make so that there are stages. Mild, Severe, Fatal, Terminal
-
-                playerIsDiseased = true;
-            }
-        }
-
-        while (playerIsDiseased == true)
-        {
-            int diseaseMultiplier;
-
-            if (diseaseSeverity == "mild")
-            {
-                diseaseMultiplier = 2;
-                TakeDamage(0.00005f * diseaseMultiplier);
-            }
-            if (diseaseSeverity == "severe")
-            {
-                diseaseMultiplier = 3;
-                TakeDamage(0.0005f * diseaseMultiplier);
-            }
-            if (diseaseSeverity == "fatal")
-            {
-                diseaseMultiplier = 4;
-                TakeDamage(0.005f * diseaseMultiplier);
-            }
-            if (diseaseSeverity == "terminal")
-            {
-                diseaseMultiplier = 5;
-                TakeDamage(0.05f * diseaseMultiplier);
-            }
-        }
-
-    }
-
-    public void HealDisease()
-    {
-        Debug.Log("Player has miraculously recovered from disease!");
-        playerIsDiseased = false;
     }
 
     public void TakeDamage(float damage)
@@ -369,16 +378,38 @@ public class CharacterClass : MonoBehaviour
 
     IEnumerator GetReviveAnimationLength()
     {
-        float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSeconds(animationLength);
         RevivePlayer();
+    }
+
+    public IEnumerator ResetPlayer()
+    {
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(animationLength);
+
+        playerHasDied = false;
+        godRay.godRay = false;
+        playerIsReviving = false;
+
+        ChangeAnimationState(PLAYER_IDLE);
+
+        Debug.Log("Player Has Been Resurrected!");
+    }
+
+    public IEnumerator RespawnBuffer()
+    {
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(1).length;
+        yield return new WaitForSeconds(animationLength); // Wait for this many seconds before respawning. This may be an audio cue in future.
+        respawn = true;
+        ResetGame();
     }
 
     private void RevivePlayer()
     {
         // REVIVE PLAYER - Complete Reset.
 
-        godRay.godRay = true;
+        StartCoroutine(god.TriggerGodRay());
 
         ChangeAnimationState(PLAYER_REVIVING);
 
@@ -389,31 +420,14 @@ public class CharacterClass : MonoBehaviour
         currentFaith = maxFaith;
     }
 
-    IEnumerator ResumeGame()
+    public IEnumerator ResumeGame()
     {
-        float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(animationLength);
-
-        playerHasDied = false;
-        godRay.godRay = false;
-        playerIsReviving = false;
-
-        ChangeAnimationState(PLAYER_IDLE);
-    
-        Debug.Log("Player Has Been Resurrected!");
+        StartCoroutine(ResetPlayer());
+        yield return null;
     }
 
-    // RESPAWN + RESET GAME
 
-    IEnumerator RespawnBuffer()
-    {
-        float animationLength = animator.GetCurrentAnimatorStateInfo(1).length;
-        yield return new WaitForSeconds(animationLength); // Wait for this many seconds before respawning. This may be an audio cue in future.
-        respawn = true;
-        ResetGame();
-    }
-
-    private void ResetGame()
+    public void ResetGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         print("Game Restarted.");

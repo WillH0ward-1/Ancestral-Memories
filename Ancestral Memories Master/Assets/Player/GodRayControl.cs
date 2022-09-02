@@ -11,14 +11,16 @@ public class GodRayControl : MonoBehaviour
     [SerializeField]
     private CharacterClass player;
 
-    public float maxAura = 1f;
-    public float minAura = -1f;
+    [SerializeField] private float maxAura = 1f;
+    [SerializeField] private float minAura = 0f;
 
     public Renderer[] auraRenderers = new Renderer[0];
 
     private float auraIntensity;
 
     public bool godRay = false;
+
+    [SerializeField] private float lerpDuration = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -29,40 +31,48 @@ public class GodRayControl : MonoBehaviour
 
     }
 
-    public void Update()
+    public IEnumerator TriggerGodRay()
     {
-        if (player.playerIsReviving == true && godRay == true )
+        auraIntensity = minAura;
+
+        float lerpAura = Mathf.Lerp(minAura, maxAura, Time.deltaTime / lerpDuration);
+        float timeElapsed = 0;
+
+        while (timeElapsed <= lerpDuration)
         {
-            TriggerGodRay();
-        }
-
-        if (godRay == false)
-        {
-            RemoveGodRay();
-        }
-    
-
-        void TriggerGodRay()
-        {
-            auraIntensity = minAura;
-
-            minAura = Mathf.Lerp(minAura, maxAura, 2f * Time.deltaTime);
-
             foreach (Renderer renderer in auraRenderers)
             {
-                renderer.material.SetFloat("_AuraIntensity", minAura);
+                renderer.material.SetFloat("_AuraIntensity", lerpAura);
             }
         }
 
-        void RemoveGodRay()
+        if (timeElapsed >= lerpDuration)
         {
-            maxAura = Mathf.Lerp(maxAura, minAura, 2f * Time.deltaTime);
+            StartCoroutine(RemoveGodRay());
+            yield return null;
+        }
+    }
 
+    IEnumerator RemoveGodRay()
+    {
+        auraIntensity = minAura;
+
+        float lerpAura = Mathf.Lerp(maxAura, minAura, Time.deltaTime / lerpDuration);
+        float timeElapsed = 0;
+
+        while (timeElapsed <= lerpDuration)
+        {
             foreach (Renderer renderer in auraRenderers)
             {
-                renderer.material.SetFloat("_AuraIntensity", maxAura);
+                renderer.material.SetFloat("_AuraIntensity", lerpAura);
             }
+        }
+
+        if (timeElapsed >= lerpDuration)
+        {
+            yield return null;
         }
     }
 }
+
 
