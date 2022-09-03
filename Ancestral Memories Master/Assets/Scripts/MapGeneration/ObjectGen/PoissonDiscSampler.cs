@@ -16,12 +16,11 @@ public class PoissonDiscSampler
     private Vector2[,] grid;
     private List<Vector2> activeSamples = new List<Vector2>();
 
+    /// width (x):  each sample's x coordinate will be in the range of 0 - width.
+    /// height (y): each sample's y coordinate will be in the range of 0 - height.
 
-    /// Create a sampler with the following parameters:
-    ///
-    /// width:  each sample's x coordinate will be between [0, width]
-    /// height: each sample's y coordinate will be between [0, height]
     /// radius: each sample will be at least `radius` units away from any other sample, and at most 2 * `radius`.
+
     /// 
     public PoissonDiscSampler(float width, float height, float radius)
     {

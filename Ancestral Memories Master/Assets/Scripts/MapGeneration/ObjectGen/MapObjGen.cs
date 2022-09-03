@@ -14,8 +14,17 @@ public class MapObjGen : MonoBehaviour
     //private MeshFilter meshFilter;
     private Mesh mesh;
 
-    [SerializeField] Vector3 minScale;
-    [SerializeField] Vector3 maxScale;
+    [SerializeField] Vector3 minTreeScale;
+    [SerializeField] Vector3 maxTreeScale;
+
+    [SerializeField] Vector3 minGrassScale;
+    [SerializeField] Vector3 maxGrassScale;
+
+    [SerializeField] Vector3 minFoliageScale;
+    [SerializeField] Vector3 maxFoliageScale;
+
+    [SerializeField] Vector3 minRockScale;
+    [SerializeField] Vector3 maxRockScale;
 
     [SerializeField, Range(0, 1)] float rotateTowardsNormal;
 
@@ -23,19 +32,28 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> mapObjectList;
 
-    public GameObject[] mapElements;
+    public GameObject[] trees;
+    public GameObject[] grass;
+    public GameObject[] foliage;
+    public GameObject[] rocks;
 
     [SerializeField] float sampleWidth = 1000;
 
     [SerializeField] float sampleHeight = 1000;
 
-    [SerializeField] float minimumRadius = 70;
+    [SerializeField] float minimumTreeRadius = 70;
+    [SerializeField] float minimumGrassRadius = 70;
+    [SerializeField] float minimumFoliageRadius = 70;
+    [SerializeField] float minimumRockRadius = 70;
 
     [SerializeField] GameObject hierarchyRoot;
 
     private readonly string treeTag = "Trees";
     private readonly string waterTag = "Water";
     private readonly string groundTag = "Ground";
+    private readonly string grassTag = "Grass";
+    private readonly string foliageTag = "Foliage";
+    private readonly string rockTag = "Rocks";
 
     [SerializeField] private float xPosition = -500;
     [SerializeField] private float yPosition = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
@@ -60,7 +78,7 @@ public class MapObjGen : MonoBehaviour
         Generate();
     }
 
-    public GameObject GetRandomTree(GameObject[] mapElements)
+    public GameObject GetRandomObject(GameObject[] mapElements)
     {
         return mapElements[Random.Range(0, mapElements.Length - 1)];
     }
@@ -71,38 +89,128 @@ public class MapObjGen : MonoBehaviour
 
         //mapObjectList.Clear();
 
-        PoissonDiscSampler sampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRadius);
+        PoissonDiscSampler treeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTreeRadius);
+        PoissonDiscSampler grassSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumGrassRadius);
+        PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
+        PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
 
-        PoissonDiscSampling(sampler);
+        TreePoissonDisc(treeSampler);
+        GrassPoissonDisc(grassSampler);
+        FoliagePoissonDisc(foliageSampler);
+        RocksPoissonDisc(rockSampler);
 
+        GroundCheck();
     }
 
-    void PoissonDiscSampling(PoissonDiscSampler sampler)
+    void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
-        foreach (Vector2 sample in sampler.Samples())
+        foreach (Vector2 sample in treeSampler.Samples())
         {
-            GameObject randomTree = GetRandomTree(mapElements);
+            GameObject randomTree = GetRandomObject(trees);
 
-            GameObject instantiatedPrefab = Instantiate(randomTree, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedTree = Instantiate(randomTree, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
 
-            instantiatedPrefab.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            instantiatedTree.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            instantiatedPrefab.transform.localScale = new Vector3(
-            Random.Range(minScale.x, maxScale.x),
-            Random.Range(minScale.y, maxScale.y),
-            Random.Range(minScale.z, maxScale.z));
+            instantiatedTree.transform.localScale = new Vector3(
+            Random.Range(minTreeScale.x, maxTreeScale.x),
+            Random.Range(minTreeScale.y, maxTreeScale.y),
+            Random.Range(minTreeScale.z, maxTreeScale.z));
 
-            instantiatedPrefab.tag = treeTag;
 
-            instantiatedPrefab.transform.SetParent(hierarchyRoot.transform);
+            instantiatedTree.tag = treeTag;
 
-            mapObjectList.Add(instantiatedPrefab);
+            instantiatedTree.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedTree);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
 
-        GroundCheck();
+    }
+
+    void GrassPoissonDisc(PoissonDiscSampler grassSampler)
+    {
+        foreach (Vector2 sample in grassSampler.Samples())
+        {
+            GameObject randomGrass = GetRandomObject(grass);
+
+            GameObject instantiatedGrass = Instantiate(randomGrass, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+
+            instantiatedGrass.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            instantiatedGrass.transform.localScale = new Vector3(
+            Random.Range(minGrassScale.x, maxGrassScale.x),
+            Random.Range(minGrassScale.y, maxGrassScale.y),
+            Random.Range(minGrassScale.z, maxGrassScale.z));
+
+
+            instantiatedGrass.tag = grassTag;
+
+            instantiatedGrass.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedGrass);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+
+    }
+
+    void FoliagePoissonDisc(PoissonDiscSampler foliageSamples)
+    {
+        foreach (Vector2 sample in foliageSamples.Samples())
+        {
+            GameObject randomFoliage = GetRandomObject(foliage);
+
+            GameObject instantiatedFoliage = Instantiate(randomFoliage, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+
+            instantiatedFoliage.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            instantiatedFoliage.transform.localScale = new Vector3(
+            Random.Range(minFoliageScale.x, maxFoliageScale.x),
+            Random.Range(minFoliageScale.y, maxFoliageScale.y),
+            Random.Range(minFoliageScale.z, maxFoliageScale.z));
+
+
+            instantiatedFoliage.tag = foliageTag;
+
+            instantiatedFoliage.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedFoliage);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+
+    }
+
+    void RocksPoissonDisc(PoissonDiscSampler rockSamples)
+    {
+        foreach (Vector2 sample in rockSamples.Samples())
+        {
+            GameObject randomRocks = GetRandomObject(rocks);
+
+            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+
+            instantiatedRock.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            instantiatedRock.transform.localScale = new Vector3(
+            Random.Range(minRockScale.x, maxRockScale.x),
+            Random.Range(minRockScale.y, maxRockScale.y),
+            Random.Range(minRockScale.z, maxRockScale.z));
+
+
+            instantiatedRock.tag = rockTag;
+
+            instantiatedRock.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedRock);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
     }
 
     void GroundCheck()
@@ -147,12 +255,12 @@ public class MapObjGen : MonoBehaviour
             {
                 if (Application.isEditor)
                 {
-                    Debug.Log("Trees destroyed in Editor.");
+                    Debug.Log("Object destroyed in Editor.");
                     DestroyImmediate(mapObject);
                 }
                 else
                 {
-                    Debug.Log("Trees destroyed in game.");
+                    Debug.Log("Object destroyed in game.");
                     Destroy(mapObject);
                 }
             }
