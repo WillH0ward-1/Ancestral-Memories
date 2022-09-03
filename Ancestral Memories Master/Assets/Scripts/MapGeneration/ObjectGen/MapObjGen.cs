@@ -246,14 +246,17 @@ public class MapObjGen : MonoBehaviour
         {
             ClearList();
 
-            foreach (Transform child in hierarchyRoot.transform)
+            while (hierarchyRoot.transform.childCount != 0)
             {
-                DestroyImmediate(child.gameObject);
-                if (hierarchyRoot.transform.childCount != 0)
+                foreach (Transform child in hierarchyRoot.transform)
                 {
-                    continue;
-                }
+                    DestroyImmediate(child.gameObject);
+                    if (hierarchyRoot.transform.childCount != 0)
+                    {
+                        continue;
+                    }
 
+                }
             }
 
         }
@@ -262,13 +265,16 @@ public class MapObjGen : MonoBehaviour
         {
             ClearList();
 
-            foreach (Transform child in hierarchyRoot.transform)
+            while (hierarchyRoot.transform.childCount != 0)
             {
-                Destroy(child.gameObject);
-                if (hierarchyRoot.transform.childCount != 0)
+                foreach (Transform child in hierarchyRoot.transform)
                 {
-                    continue;
+                    Destroy(child.gameObject);
+                    if (hierarchyRoot.transform.childCount != 0)
+                    {
+                        continue;
 
+                    }
                 }
             }
         }

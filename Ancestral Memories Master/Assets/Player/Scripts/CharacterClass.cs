@@ -93,7 +93,7 @@ public class CharacterClass : MonoBehaviour
 
     public PlayerWalk playerWalk;
 
-    [SerializeField] private GodRayControl god;
+    //[SerializeField] private GodRayControl god;
 
     public List<GameObject> activeAnimators = new List<GameObject>();
     public List<GameObject> inactiveAnimators = new List<GameObject>();
@@ -103,7 +103,7 @@ public class CharacterClass : MonoBehaviour
 
     public bool respawn;
 
-    public GodRayControl godRay;
+    //public GodRayControl godRay;
 
     public ControlAlpha alphaControl;
 
@@ -111,8 +111,6 @@ public class CharacterClass : MonoBehaviour
 
     private void Awake()
     {
-        SwitchAnimators();
-
         currentHealth = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
@@ -123,42 +121,37 @@ public class CharacterClass : MonoBehaviour
 
     }
 
+    void InitAnimators()
+    {
+        var humanState = alphaControl.humanObject;
+        var monkeyState = alphaControl.monkeyObject;
+
+
+        if (alphaControl.playerIsHuman == false) // If player is monkey
+        {
+            inactiveAnimators.Remove(humanState);
+            activeAnimators.Add(monkeyState);
+            inactiveAnimators.Add(humanState);
+            inactiveAnimators.Remove(monkeyState);
+
+        } else if (alphaControl.playerIsHuman == true){// If player is Human
+
+            inactiveAnimators.Remove(monkeyState);
+            activeAnimators.Add(humanState);
+            inactiveAnimators.Add(monkeyState);
+            inactiveAnimators.Remove(humanState);
+        }
+    }
+
+
     public void SwitchAnimators()
     {
+        InitAnimators();
+        AssignAnimators();
+        AssignInactiveAnimators();
 
-     //   AnimatorClipInfo[] CurrentClipInfo = activeAnimator.GetCurrentAnimatorClipInfo(0);
-
-        if (alphaControl.playerIsHuman == false) // If player is already monkey, it has to switch to human & vice versa.
-        {
-            inactiveAnimators.Remove(alphaControl.humanObject);
-            activeAnimators.Add(alphaControl.monkeyObject);
-
-            if (activeAnimators.Contains(alphaControl.humanObject))
-            {
-                activeAnimators.Remove(alphaControl.humanObject);
-                inactiveAnimators.Add(alphaControl.humanObject);
-            }
-
-            AssignAnimators();
-            AssignInactiveAnimators();
-        }
-
-        else if (alphaControl.playerIsHuman == true)
-        {
-            inactiveAnimators.Remove(alphaControl.monkeyObject);
-            activeAnimators.Add(alphaControl.humanObject);
-
-            if (activeAnimators.Contains(alphaControl.monkeyObject))
-            {
-                activeAnimators.Remove(alphaControl.monkeyObject);
-                inactiveAnimators.Add(alphaControl.monkeyObject);
-            }
-
-            AssignAnimators();
-            AssignInactiveAnimators();
-        }
-
-         void AssignAnimators()
+    }
+        void AssignAnimators()
         {
             foreach (GameObject g in activeAnimators)
             {
@@ -179,12 +172,12 @@ public class CharacterClass : MonoBehaviour
                 }
             }
         }
-    }
 
     [SerializeField] private float crossFadeLength;
 
     public void ChangeAnimationState(string newState)
     {
+        SwitchAnimators();
 
         float crossFadeLength = animationCrossFade;
 
@@ -208,7 +201,6 @@ public class CharacterClass : MonoBehaviour
     private void Update()
 
     {
-
         // DROWN
 
         if (underwaterCheck.isUnderwater == true && underwaterCheck.playerDrowning == true)
@@ -238,19 +230,20 @@ public class CharacterClass : MonoBehaviour
             if (playerHasDied == true)
             {
                 ChangeAnimationState(PLAYER_STARVE);
-
                 playerIsStarving = false;
                 playerHasStarved = true;
             }
         }
 
- 
+        /*
         if (currentEvolution <= 25)
         {
-            //monkeyMorph.playerIsMonkey = true;
-
+            alphaControl.playerIsHuman = false;
+        } else
+        {
+            alphaControl.playerIsHuman = true;
         }
-
+        */
 
         // UPDATE PLAYER STATS
 
@@ -258,7 +251,7 @@ public class CharacterClass : MonoBehaviour
 
         float faithMultiplier = 0.5f;
 
-        float evolutionMultiplier = 0.25f;
+        float evolutionMultiplier = 0.5f;
 
         // If multipliers set to negative, it should drop faster and vice versa for positive.
 
@@ -275,11 +268,16 @@ public class CharacterClass : MonoBehaviour
 
         if (currentHealth <= minHealth)
         {
-            currentHealth = minHealth;
-            SetHealth(0);
-            playerHasDied = true;
-            CheckForRevival();
+            KillPlayer();
         }
+    }
+
+    public void KillPlayer()
+    {
+        currentHealth = minHealth;
+        playerHasDied = true;
+        CheckForRevival();
+        StartCoroutine(CheckForRevival());
     }
 
     public void SetHealth(int value)
@@ -354,47 +352,41 @@ public class CharacterClass : MonoBehaviour
 
     }
 
-    public void CheckForRevival()
+    public IEnumerator CheckForRevival()
     {
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(animationLength);
+
         if (currentFaith < 50) // In order to revive, currentFaith needs to be > x. 
         {
             playerIsReviving = true;
-            PrepareRevive();
+            StartCoroutine(RevivePlayer());
         } else
         {
-            PrepareRespawn();
+            StartCoroutine(RespawnBuffer());
         }
     }
 
-    private void PrepareRespawn()
-    {
-        StartCoroutine(RespawnBuffer());
-    }
+    public IEnumerator RevivePlayer()
 
-    private void PrepareRevive()
-    {
-        StartCoroutine(GetReviveAnimationLength());
-    }
-
-    IEnumerator GetReviveAnimationLength()
-    {
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(animationLength);
-        RevivePlayer();
-    }
-
-    public IEnumerator ResetPlayer()
-    {
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(animationLength);
+    {   // REVIVE PLAYER - Complete Reset.
 
         playerHasDied = false;
-        godRay.godRay = false;
+        currentHealth = maxHealth;
+        currentHunger = maxHunger;
+        currentFaith = maxFaith;
+
+        ChangeAnimationState(PLAYER_REVIVING);
+
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(animationLength);
+
+        //StartCoroutine(god.TriggerGodRay());
+
+        //godRay.godRay = false;
         playerIsReviving = false;
 
         ChangeAnimationState(PLAYER_IDLE);
-
-        Debug.Log("Player Has Been Resurrected!");
     }
 
     public IEnumerator RespawnBuffer()
@@ -404,28 +396,6 @@ public class CharacterClass : MonoBehaviour
         respawn = true;
         ResetGame();
     }
-
-    private void RevivePlayer()
-    {
-        // REVIVE PLAYER - Complete Reset.
-
-        StartCoroutine(god.TriggerGodRay());
-
-        ChangeAnimationState(PLAYER_REVIVING);
-
-        StartCoroutine(ResumeGame());
-
-        currentHealth = maxHealth;
-        currentHunger = maxHunger;
-        currentFaith = maxFaith;
-    }
-
-    public IEnumerator ResumeGame()
-    {
-        StartCoroutine(ResetPlayer());
-        yield return null;
-    }
-
 
     public void ResetGame()
     {

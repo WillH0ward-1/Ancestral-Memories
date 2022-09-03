@@ -16,7 +16,8 @@ public class WaterBob : MonoBehaviour
 
     void Awake()
     {
-        startPos = transform.position;
+        startPos = new Vector3(0, -3, 0);
+        transform.position = startPos;
     }
 
     void Update()

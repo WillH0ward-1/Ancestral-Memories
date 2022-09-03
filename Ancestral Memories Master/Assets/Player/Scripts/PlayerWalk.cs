@@ -69,7 +69,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if(agent.isStopped == false && player.playerHasDied == false && player.playerIsReviving == false)
+            if(agent.isStopped == false && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
             {
                 StopAgent();
             }
@@ -93,6 +93,7 @@ public class PlayerWalk : MonoBehaviour
                 {
                     return;
                 }
+
                 else
                 {
 
