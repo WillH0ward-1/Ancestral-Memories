@@ -274,6 +274,7 @@ public class CharacterClass : MonoBehaviour
 
     public void KillPlayer()
     {
+
         currentHealth = minHealth;
         playerHasDied = true;
         CheckForRevival();

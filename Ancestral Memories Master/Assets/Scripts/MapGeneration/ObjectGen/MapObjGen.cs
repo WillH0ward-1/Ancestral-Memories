@@ -11,6 +11,8 @@ public class MapObjGen : MonoBehaviour
     public GameObject mapObject;
     public MeshData meshData;
 
+    public MeshSettings meshSettings;
+
     //private MeshFilter meshFilter;
     private Mesh mesh;
 
@@ -26,6 +28,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minRockScale;
     [SerializeField] Vector3 maxRockScale;
 
+    [SerializeField] Vector3 minMushroomScale;
+    [SerializeField] Vector3 maxMushroomScale;
+
     [SerializeField, Range(0, 1)] float rotateTowardsNormal;
 
     [SerializeField] Vector2 rotationRange;
@@ -36,15 +41,17 @@ public class MapObjGen : MonoBehaviour
     public GameObject[] grass;
     public GameObject[] foliage;
     public GameObject[] rocks;
+    public GameObject[] mushrooms;
 
-    [SerializeField] float sampleWidth = 1000;
+    [SerializeField] float sampleWidth = 0;
 
-    [SerializeField] float sampleHeight = 1000;
+    [SerializeField] float sampleHeight = 0;
 
     [SerializeField] float minimumTreeRadius = 70;
     [SerializeField] float minimumGrassRadius = 70;
     [SerializeField] float minimumFoliageRadius = 70;
     [SerializeField] float minimumRockRadius = 70;
+    [SerializeField] float minimumMushroomRadius = 70;
 
     [SerializeField] GameObject hierarchyRoot;
 
@@ -54,6 +61,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string grassTag = "Grass";
     private readonly string foliageTag = "Foliage";
     private readonly string rockTag = "Rocks";
+    private readonly string mushroomTag = "Mushrooms";
 
     [SerializeField] private float xPosition = -500;
     [SerializeField] private float yPosition = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
@@ -66,6 +74,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float yOffset;
 
     [SerializeField] private NavMeshObstacle navMeshObstacle;
+
+    [SerializeField] private NavMeshModifier navModifier;
+
 
 
     //public MeshSettings meshSettings;
@@ -85,7 +96,10 @@ public class MapObjGen : MonoBehaviour
 
     public void Generate()
     {
-        ResetOffset();
+        sampleWidth = meshSettings.meshWorldSize;
+        sampleHeight = meshSettings.meshWorldSize;
+
+        ResetPosOffset();
 
         //mapObjectList.Clear();
 
@@ -93,9 +107,11 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler grassSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumGrassRadius);
         PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
+        PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
 
         TreePoissonDisc(treeSampler);
         GrassPoissonDisc(grassSampler);
+        MushroomPoissonDisc(mushroomSampler);
         FoliagePoissonDisc(foliageSampler);
         RocksPoissonDisc(rockSampler);
 
@@ -119,6 +135,9 @@ public class MapObjGen : MonoBehaviour
 
 
             instantiatedTree.tag = treeTag;
+
+            int treeLayer = LayerMask.NameToLayer("Trees");
+            instantiatedTree.layer = treeLayer;
 
             instantiatedTree.transform.SetParent(hierarchyRoot.transform);
 
@@ -145,12 +164,18 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minGrassScale.y, maxGrassScale.y),
             Random.Range(minGrassScale.z, maxGrassScale.z));
 
-
             instantiatedGrass.tag = grassTag;
+
+            int grassLayer = LayerMask.NameToLayer("Grass");
+            instantiatedGrass.layer = grassLayer;
 
             instantiatedGrass.transform.SetParent(hierarchyRoot.transform);
 
+            instantiatedGrass.AddComponent<NavMeshModifier>();
+
             mapObjectList.Add(instantiatedGrass);
+
+//            navModifier.ignoreFromBuild = true;
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -173,8 +198,10 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minFoliageScale.y, maxFoliageScale.y),
             Random.Range(minFoliageScale.z, maxFoliageScale.z));
 
-
             instantiatedFoliage.tag = foliageTag;
+
+            int foliageLayer = LayerMask.NameToLayer("Foliage");
+            instantiatedFoliage.layer = foliageLayer;
 
             instantiatedFoliage.transform.SetParent(hierarchyRoot.transform);
 
@@ -204,6 +231,9 @@ public class MapObjGen : MonoBehaviour
 
             instantiatedRock.tag = rockTag;
 
+            int rockLayer = LayerMask.NameToLayer("Rocks");
+            instantiatedRock.layer = rockLayer;
+
             instantiatedRock.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(instantiatedRock);
@@ -211,6 +241,37 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
+    }
+
+    void MushroomPoissonDisc(PoissonDiscSampler mushroomSampler)
+    {
+        foreach (Vector2 sample in mushroomSampler.Samples())
+        {
+            GameObject randomTree = GetRandomObject(mushrooms);
+
+            GameObject instantiatedMushroom = Instantiate(randomTree, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+
+            instantiatedMushroom.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            instantiatedMushroom.transform.localScale = new Vector3(
+            Random.Range(minTreeScale.x, maxTreeScale.x),
+            Random.Range(minTreeScale.y, maxTreeScale.y),
+            Random.Range(minTreeScale.z, maxTreeScale.z));
+
+
+            instantiatedMushroom.tag = mushroomTag;
+
+            int mushRoomLayer = LayerMask.NameToLayer("Mushrooms");
+            instantiatedMushroom.layer = mushRoomLayer;
+
+            instantiatedMushroom.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedMushroom);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+
     }
 
     void GroundCheck()
@@ -235,11 +296,11 @@ public class MapObjGen : MonoBehaviour
 
             Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitWater, Mathf.Infinity))
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitWater, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
             {
 
                 var LayerWater = LayerMask.NameToLayer(waterTag);
-
+                
                 if (hitWater.transform.gameObject.layer == LayerWater)
                 {
                     Debug.Log("Water Ahoy!");
@@ -279,11 +340,22 @@ public class MapObjGen : MonoBehaviour
 
         AnchorToGround();
 
+        //Mesh mesh = GetComponent<MeshFilter>().mesh;
+        //Bounds bounds = mesh.bounds;
+
+    
         void AnchorToGround()
         {
+            //LayerMask groundMask = LayerMask.GetMask("Ground");
+
             foreach (GameObject mapObject in mapObjectList)
             {
-                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity))
+
+                int groundLayerIndex = LayerMask.NameToLayer("Ground");
+                int groundLayerMask = (1 << groundLayerIndex);
+
+                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+                    
                 {
 
                     float distance = hitFloor.distance;
@@ -309,19 +381,21 @@ public class MapObjGen : MonoBehaviour
 
             foreach (GameObject mapObject in mapObjectList)
             {
-                mapObject.AddComponent<MeshCollider>();
+                if (!mapObject.CompareTag(grassTag))
+                {
+                    mapObject.AddComponent<MeshCollider>();
 
-                navMeshObstacle = GetComponent<NavMeshObstacle>();
-                navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
+                    navMeshObstacle = GetComponent<NavMeshObstacle>();
+                    navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
 
-                navMeshObstacle.enabled = true;
-                //navMeshObstacle.carveOnlyStationary = true;
-                navMeshObstacle.carving = false;
+                    navMeshObstacle.enabled = true;
+                    //navMeshObstacle.carveOnlyStationary = true;
+                    navMeshObstacle.carving = false;
 
-                navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
-
+                    navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
+                }
+                continue;
             }
-
             Debug.Log("Colliders Generated!");
         }
     }
@@ -331,7 +405,7 @@ public class MapObjGen : MonoBehaviour
         mapObject.transform.position = new Vector3(xPosition, yPosition, zPosition);
     }
 
-    void ResetOffset()
+    void ResetPosOffset()
     {
         mapObject.transform.position = new Vector3(0, 0, 0);
     }
@@ -345,7 +419,7 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.RemoveAt(i);
         }
 
-        ResetOffset();
+        ResetPosOffset();
     }
 
     public void Clear()
