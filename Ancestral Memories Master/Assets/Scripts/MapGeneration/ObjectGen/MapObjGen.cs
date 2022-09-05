@@ -31,6 +31,12 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minMushroomScale;
     [SerializeField] Vector3 maxMushroomScale;
 
+    [SerializeField] Vector3 minFliesScale;
+    [SerializeField] Vector3 maxFliesScale;
+
+    [SerializeField] Vector3 minFishScale;
+    [SerializeField] Vector3 maxFishScale;
+
     [SerializeField, Range(0, 1)] float rotateTowardsNormal;
 
     [SerializeField] Vector2 rotationRange;
@@ -42,6 +48,8 @@ public class MapObjGen : MonoBehaviour
     public GameObject[] foliage;
     public GameObject[] rocks;
     public GameObject[] mushrooms;
+    public GameObject[] flies;
+    public GameObject[] fish ;
 
     [SerializeField] float sampleWidth = 0;
 
@@ -52,6 +60,8 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumFoliageRadius = 70;
     [SerializeField] float minimumRockRadius = 70;
     [SerializeField] float minimumMushroomRadius = 70;
+    [SerializeField] float minimumFliesRadius = 70;
+    [SerializeField] float minimumFishRadius = 70;
 
     [SerializeField] GameObject hierarchyRoot;
 
@@ -62,6 +72,8 @@ public class MapObjGen : MonoBehaviour
     private readonly string foliageTag = "Foliage";
     private readonly string rockTag = "Rocks";
     private readonly string mushroomTag = "Mushrooms";
+    private readonly string fliesTag = "Flies";
+    private readonly string fishTag = "Fish";
 
     [SerializeField] private float xPosition = -500;
     [SerializeField] private float yPosition = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
@@ -108,12 +120,17 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
+        PoissonDiscSampler fliesSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFliesRadius);
+        PoissonDiscSampler fishSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFishRadius);
 
         TreePoissonDisc(treeSampler);
         GrassPoissonDisc(grassSampler);
         MushroomPoissonDisc(mushroomSampler);
         FoliagePoissonDisc(foliageSampler);
         RocksPoissonDisc(rockSampler);
+
+        FliesPoissonDisc(fliesSampler);
+        FishPoissonDisc(fishSampler);
 
         GroundCheck();
     }
@@ -219,7 +236,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomRocks = GetRandomObject(rocks);
 
-            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, 10, sample.y), Quaternion.identity);
 
             instantiatedRock.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -274,6 +291,68 @@ public class MapObjGen : MonoBehaviour
 
     }
 
+    void FliesPoissonDisc(PoissonDiscSampler fliesSampler)
+    {
+        foreach (Vector2 sample in fliesSampler.Samples())
+        {
+            GameObject randomFlies = GetRandomObject(flies);
+
+            GameObject instantiatedFlies = Instantiate(randomFlies, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+
+            instantiatedFlies.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            instantiatedFlies.transform.localScale = new Vector3(
+            Random.Range(minFliesScale.x, maxFliesScale.x),
+            Random.Range(minFliesScale.y, maxFliesScale.y),
+            Random.Range(minFliesScale.z, maxFliesScale.z));
+
+
+            instantiatedFlies.tag = fliesTag;
+
+            int fliesLayer = LayerMask.NameToLayer("Flies");
+            instantiatedFlies.layer = fliesLayer;
+
+            instantiatedFlies.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedFlies);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+
+    }
+
+    void FishPoissonDisc(PoissonDiscSampler fishSampler)
+    {
+        foreach (Vector2 sample in fishSampler.Samples())
+        {
+            GameObject randomFish = GetRandomObject(fish);
+
+            GameObject instantiatedFish = Instantiate(randomFish, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+
+            instantiatedFish.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            instantiatedFish.transform.localScale = new Vector3(
+            Random.Range(minFliesScale.x, maxFliesScale.x),
+            Random.Range(minFliesScale.y, maxFliesScale.y),
+            Random.Range(minFliesScale.z, maxFliesScale.z));
+
+
+            instantiatedFish.tag = fishTag;
+
+            int fishLayer = LayerMask.NameToLayer("Fish");
+            instantiatedFish.layer = fishLayer;
+
+            instantiatedFish.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(instantiatedFish);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+
+    }
+
     void GroundCheck()
     {
         SetOffset();
@@ -300,13 +379,19 @@ public class MapObjGen : MonoBehaviour
             {
 
                 var LayerWater = LayerMask.NameToLayer(waterTag);
-                
-                if (hitWater.transform.gameObject.layer == LayerWater)
+                var LayerGround = LayerMask.NameToLayer(groundTag);
+
+                if (hitWater.transform.gameObject.layer == LayerWater && !mapObject.CompareTag(fishTag))
                 {
                     Debug.Log("Water Ahoy!");
                     DestroyObject();
                 }
-                else
+                else if (hitWater.transform.gameObject.layer == LayerGround && mapObject.CompareTag(fishTag))
+                {
+                    Debug.Log("Fish can't walk.");
+                    DestroyObject();
+                }
+                    else
                 {
                     continue;
                 }
@@ -381,7 +466,7 @@ public class MapObjGen : MonoBehaviour
 
             foreach (GameObject mapObject in mapObjectList)
             {
-                if (!mapObject.CompareTag(grassTag))
+                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag))
                 {
                     mapObject.AddComponent<MeshCollider>();
 
