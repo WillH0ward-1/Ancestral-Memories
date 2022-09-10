@@ -108,8 +108,8 @@ public class MapObjGen : MonoBehaviour
 
     public void Generate()
     {
-        sampleWidth = meshSettings.meshWorldSize;
-        sampleHeight = meshSettings.meshWorldSize;
+        //sampleWidth = meshSettings.meshWorldSize;
+        //sampleHeight = meshSettings.meshWorldSize;
 
         ResetPosOffset();
 

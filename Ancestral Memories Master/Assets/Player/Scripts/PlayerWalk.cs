@@ -116,7 +116,7 @@ public class PlayerWalk : MonoBehaviour
 
             agent.speed = speed;
 
-            animSpeed = speed / 11;
+            animSpeed = speed / 9;
 
             if (speed < runThreshold)
             {
