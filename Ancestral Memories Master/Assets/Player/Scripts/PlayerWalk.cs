@@ -29,8 +29,6 @@ public class PlayerWalk : MonoBehaviour
 
     const string groundTag = "Walkable";
 
-    [SerializeField] private float animSpeedRatio = 10;
-
     //public DirectedAgent agent;
 
     void Awake()
@@ -107,8 +105,6 @@ public class PlayerWalk : MonoBehaviour
             }
         }
 
-       
-
         void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
         {
            
@@ -120,7 +116,7 @@ public class PlayerWalk : MonoBehaviour
 
             agent.speed = speed;
 
-            animSpeed = speed / animSpeedRatio;
+            animSpeed = speed / 9;
 
             if (speed < runThreshold)
             {
