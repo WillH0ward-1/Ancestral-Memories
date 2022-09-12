@@ -111,6 +111,8 @@ public class CharacterClass : MonoBehaviour
 
     private void Awake()
     {
+        InitAnimators();
+
         currentHealth = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
@@ -129,24 +131,25 @@ public class CharacterClass : MonoBehaviour
 
         if (alphaControl.playerIsHuman == false) // If player is monkey
         {
-            inactiveAnimators.Remove(humanState);
+            activeAnimators.Remove(humanState);
             activeAnimators.Add(monkeyState);
-            inactiveAnimators.Add(humanState);
+
             inactiveAnimators.Remove(monkeyState);
+            inactiveAnimators.Add(humanState);
 
         } else if (alphaControl.playerIsHuman == true){// If player is Human
 
-            inactiveAnimators.Remove(monkeyState);
+            activeAnimators.Remove(monkeyState);
             activeAnimators.Add(humanState);
-            inactiveAnimators.Add(monkeyState);
+
             inactiveAnimators.Remove(humanState);
+            inactiveAnimators.Add(monkeyState);
         }
     }
 
 
     public void SwitchAnimators()
     {
-        InitAnimators();
         AssignAnimators();
         AssignInactiveAnimators();
 

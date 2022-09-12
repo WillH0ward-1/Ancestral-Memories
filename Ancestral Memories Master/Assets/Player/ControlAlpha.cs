@@ -133,6 +133,7 @@ public class ControlAlpha : MonoBehaviour
 
 
         float timeElapsed = 0;
+
         while (timeElapsed <= lerpDuration)
         {
 

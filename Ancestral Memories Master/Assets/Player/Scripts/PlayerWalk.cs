@@ -58,6 +58,9 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField]
     float distance = 0;
 
+    [SerializeField]
+    float animFactor = 9;
+
     void Update()
     {
 
@@ -116,7 +119,7 @@ public class PlayerWalk : MonoBehaviour
 
             agent.speed = speed;
 
-            animSpeed = speed / 9;
+            animSpeed = speed / animFactor;
 
             if (speed < runThreshold)
             {

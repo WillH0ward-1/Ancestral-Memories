@@ -7,62 +7,35 @@ using TMPro;
 public class TimeController : MonoBehaviour
 {
 
-    [SerializeField]
-    private TextMeshProUGUI timeText;
+    [SerializeField] private TextMeshProUGUI timeText;
 
-    [SerializeField]
-    private TextMeshProUGUI dayText;
+    [SerializeField] private TextMeshProUGUI dayText;
 
-    [SerializeField]
-    private Light sunLight;
+    [SerializeField] private Light sunLight;
 
-    // ========================================
+    [SerializeField] private float timeMultiplier;
 
-    [SerializeField]
-    private float timeMultiplier;
+    [SerializeField] private float startHour;
 
-    [SerializeField]
-    private float startHour;
+    [SerializeField] private float sunriseHour;
+    [SerializeField] private float sunsetHour;
 
-    [SerializeField]
-    private float sunriseHour;
+    [SerializeField] private Color dayAmbientLight;
+    [SerializeField] private Color nightAmbientLight;
 
-    [SerializeField]
-    private float sunsetHour;
+    [SerializeField] private AnimationCurve lightChangeCurve;
+    [SerializeField] private float maxSunLightIntensity;
 
-    // ========================================
-
-    [SerializeField]
-    private Color dayAmbientLight;
-
-    [SerializeField]
-    private Color nightAmbientLight;
-
-    [SerializeField]
-    private AnimationCurve lightChangeCurve;
-
-    [SerializeField]
-    private float maxSunLightIntensity;
-
-    [SerializeField]
-    private Light moonLight;
-
-    [SerializeField]
-    private float maxMoonLightIntensity;
-
-    // ========================================
+    [SerializeField] private Light moonLight;
+    [SerializeField] private float maxMoonLightIntensity;
 
     private DateTime currentTime;
-
     private int currentDay;
 
     private TimeSpan sunriseTime;
 
     private TimeSpan sunsetTime;
 
-    // ========================================
-
-    // Start is called before the first frame update
     void Start()
     {
         currentTime = DateTime.Now.Date + TimeSpan.FromHours(startHour);
@@ -75,7 +48,6 @@ public class TimeController : MonoBehaviour
         
     }
 
-    // Update is called once per frame
     void Update()
     {
         UpdateTimeOfDay();
@@ -92,8 +64,11 @@ public class TimeController : MonoBehaviour
             timeText.text = currentTime.ToString("HH:mm");
         }
 
-           // if then UpdateGameDay();
-        
+        if (currentTime.ToString() == "12:00") 
+        {
+            Debug.Log("it's 12 o'clock.");
+        }
+
     }
 
     private void UpdateGameDay()
