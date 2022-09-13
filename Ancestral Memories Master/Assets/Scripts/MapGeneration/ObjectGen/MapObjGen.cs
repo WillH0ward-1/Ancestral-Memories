@@ -499,18 +499,16 @@ public class MapObjGen : MonoBehaviour
 
     void ClearList()
     {
-        for (var i = 0; i < mapObjectList.Count; i++)
-        {
-            mapObjectList.RemoveAt(i);
-        }
-
         ResetPosOffset();
     }
 
     public void Clear()
     {
+        mapObjectList.Clear();
+
         if (Application.isEditor)
         {
+            
             ClearList();
 
             while (hierarchyRoot.transform.childCount != 0)

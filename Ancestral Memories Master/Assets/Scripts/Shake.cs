@@ -15,7 +15,13 @@ public class Shake : MonoBehaviour
         {
             start = false;
             StartCoroutine(Shaking());
+            TriggerSound();
         }
+    }
+
+    void TriggerSound()
+    {
+        FMODUnity.RuntimeManager.PlayOneShot("event:/LowWindRumble");
     }
 
     IEnumerator Shaking()
@@ -29,6 +35,7 @@ public class Shake : MonoBehaviour
             float strength = curve.Evaluate(elapsedTime / duration);
             transform.position = startPosition + Random.insideUnitSphere * strength;
             yield return null;
+           
         }
         transform.position = startPosition;
     }

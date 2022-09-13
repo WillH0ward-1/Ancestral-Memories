@@ -6,7 +6,7 @@ using UnityEngine;
 public class WaterBob : MonoBehaviour
 {
     [SerializeField]
-    Vector3 startPos;
+    private Vector3 startPos;
 
     [SerializeField]
     private float amplitude = 0.2f;
@@ -14,16 +14,24 @@ public class WaterBob : MonoBehaviour
     [SerializeField]
     private float period = 1f;
 
+    private Vector3 nullVector = new Vector3(0,0,0);
+
     void Awake()
     {
-        startPos = new Vector3(0, -3, 0);
         transform.position = startPos;
     }
 
     void Update()
     {
+        if (transform.position != nullVector)
+        {
+            return;
+        } else {
+
         float theta = Time.timeSinceLevelLoad / period;
         float distance = amplitude * Mathf.Sin(theta);
         transform.position = startPos + Vector3.up * distance;
+
+        }
     }
 }

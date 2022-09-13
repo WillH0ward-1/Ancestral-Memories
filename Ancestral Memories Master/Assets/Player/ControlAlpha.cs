@@ -98,9 +98,7 @@ public class ControlAlpha : MonoBehaviour
     {
         playerIsTransforming = true;
 
-        EnableRenderers(humanRenderer);
-        EnableRenderers(monkeyRenderer);
-
+       
         humanRenderers = humanObject.GetComponentsInChildren<Renderer>();
         monkeyRenderers = monkeyObject.GetComponentsInChildren<Renderer>();
 
@@ -142,11 +140,6 @@ public class ControlAlpha : MonoBehaviour
 
             timeElapsed += Time.deltaTime;
 
-            setHumanAlpha();
-            setMonkeyAlpha();
-
-            void setHumanAlpha()
-            {
                 foreach (Renderer renderer in humanRenderers)
                 {
                     foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
@@ -154,10 +147,7 @@ public class ControlAlpha : MonoBehaviour
                         material.SetFloat("_Alpha", humanLerpVal);
                     }
                 }
-            }
-
-            void setMonkeyAlpha()
-            {
+            
                 foreach (Renderer renderer in monkeyRenderers)
                 {
                     foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
@@ -165,7 +155,6 @@ public class ControlAlpha : MonoBehaviour
                         material.SetFloat("_Alpha", monkeyLerpVal);
                     }
                 }
-            }
         }
 
         if (timeElapsed >= lerpDuration)
