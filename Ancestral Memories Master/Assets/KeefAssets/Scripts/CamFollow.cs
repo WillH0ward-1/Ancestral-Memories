@@ -89,8 +89,8 @@ public class CamFollow : MonoBehaviour
     {
         if (cinematicActive == true)
         {
-            ZoomCamera.farClipPlane = 2000;
-            ZoomCamera.nearClipPlane = -2000;
+            ZoomCamera.farClipPlane = 5000;
+            ZoomCamera.nearClipPlane = -5000;
         }
 
         if (cinematicActive == false)

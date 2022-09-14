@@ -107,6 +107,8 @@ public class CharacterClass : MonoBehaviour
 
     public ControlAlpha alphaControl;
 
+    public Shake earthQuake;
+
     // FUNCTIONS ============================================================
 
     private void Awake()
@@ -340,6 +342,8 @@ public class CharacterClass : MonoBehaviour
 
         if (currentFaith <= minFaith)
         {
+            earthQuake.start = true;
+
             currentFaith = minFaith;
 
             playerIsFaithless = true;
@@ -351,6 +355,8 @@ public class CharacterClass : MonoBehaviour
 
         } else
         {
+            earthQuake.start = false;
+
             playerIsFaithless = false;
         }
 
