@@ -64,7 +64,7 @@ public class TimeController : MonoBehaviour
             timeText.text = currentTime.ToString("HH:mm");
         }
 
-        if (currentTime.ToString() == "12:00") 
+        if (timeText.ToString() == "12:00") 
         {
             Debug.Log("it's 12 o'clock.");
         }

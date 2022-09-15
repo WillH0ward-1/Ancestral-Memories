@@ -130,7 +130,7 @@ public class MapObjGen : MonoBehaviour
         RocksPoissonDisc(rockSampler);
 
         FliesPoissonDisc(fliesSampler);
-        FishPoissonDisc(fishSampler);
+        //FishPoissonDisc(fishSampler);
 
         GroundCheck();
     }
@@ -236,7 +236,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomRocks = GetRandomObject(rocks);
 
-            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, 10, sample.y), Quaternion.identity);
+            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
 
             instantiatedRock.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -321,7 +321,7 @@ public class MapObjGen : MonoBehaviour
         }
 
     }
-
+   /*
     void FishPoissonDisc(PoissonDiscSampler fishSampler)
     {
         foreach (Vector2 sample in fishSampler.Samples())
@@ -352,6 +352,7 @@ public class MapObjGen : MonoBehaviour
         }
 
     }
+   */
 
     void GroundCheck()
     {
@@ -475,9 +476,9 @@ public class MapObjGen : MonoBehaviour
 
                     navMeshObstacle.enabled = true;
                     //navMeshObstacle.carveOnlyStationary = true;
-                    navMeshObstacle.carving = false;
+                    navMeshObstacle.carving = true;
 
-                    navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
+                    //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
                 }
                 continue;
             }
