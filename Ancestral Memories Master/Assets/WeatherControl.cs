@@ -29,12 +29,15 @@ public class WeatherControl : MonoBehaviour
         instance = FMODUnity.RuntimeManager.CreateInstance(fmodEvent);
         instance.start();
 
+        /*
         StartCoroutine(WindStrength());
+        */
     }
 
     private float currentWindStrength = 0;
     private float targetWindStrength;
 
+    /*
     private IEnumerator WindStrength()
     {
         targetWindStrength = Random.Range(0, 1);
@@ -55,4 +58,5 @@ public class WeatherControl : MonoBehaviour
             StartCoroutine(WindStrength());
         }
     }
+    */
 }

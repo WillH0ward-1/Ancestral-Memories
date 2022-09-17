@@ -98,7 +98,7 @@
 	</object>
 	<object class="CommandSound" id="{1d73b06d-a75b-47a3-a271-4d9474476a65}">
 		<property name="start">
-			<value>0.5</value>
+			<value>8</value>
 		</property>
 		<property name="length">
 			<value>2</value>
@@ -178,6 +178,7 @@
 		<relationship name="effects">
 			<destination>{6df70401-8137-4e71-a6a9-7a9bf0ae6ceb}</destination>
 			<destination>{7299f45e-3e5f-434f-8421-02d000f737d9}</destination>
+			<destination>{86ddf294-a7e0-4495-a2d3-946581ebaf4c}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{72d7adbd-291f-4307-b8ce-4347e68b762c}" />
@@ -212,6 +213,11 @@
 		</property>
 		<property name="highGain">
 			<value>-12</value>
+		</property>
+	</object>
+	<object class="DistortionEffect" id="{86ddf294-a7e0-4495-a2d3-946581ebaf4c}">
+		<property name="level">
+			<value>0.344999999</value>
 		</property>
 	</object>
 	<object class="AutomationCurve" id="{f6890126-5ad9-4931-a04a-495042244678}">

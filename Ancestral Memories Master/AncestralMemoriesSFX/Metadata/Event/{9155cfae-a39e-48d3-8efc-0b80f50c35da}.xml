@@ -34,6 +34,9 @@
 		<relationship name="timeline">
 			<destination>{0de451db-1da9-45b3-be5f-e8bc612dace8}</destination>
 		</relationship>
+		<relationship name="banks">
+			<destination>{312af681-03fa-4f0a-97ac-af4d02c4f20c}</destination>
+		</relationship>
 	</object>
 	<object class="EventMixer" id="{8045f546-f37a-4f17-985a-733252a55757}">
 		<relationship name="masterBus">
@@ -42,7 +45,7 @@
 	</object>
 	<object class="MasterTrack" id="{91b95d2b-468e-4c57-8c4c-b04acae12992}">
 		<relationship name="automationTracks">
-			<destination>{3d930697-d425-4ec1-bd5f-b64fe81dfced}</destination>
+			<destination>{163e20f7-1c1b-44ea-8124-4469d12d32ac}</destination>
 		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{8212ec11-7f74-43d9-929e-cfcd6f5d1192}</destination>
@@ -106,7 +109,7 @@
 			<destination>{79568609-9ec7-4739-9f2f-a05de505bf5f}</destination>
 		</relationship>
 		<relationship name="modulators">
-			<destination>{c1e60d00-5748-46ee-bf79-d77c9ea278a4}</destination>
+			<destination>{40d072bc-1539-4574-8508-0ce5a35a0bd4}</destination>
 		</relationship>
 		<relationship name="effectChain">
 			<destination>{ba6d29e0-8237-46f5-adce-ffce27a1099e}</destination>
@@ -118,7 +121,7 @@
 			<destination>{8045f546-f37a-4f17-985a-733252a55757}</destination>
 		</relationship>
 	</object>
-	<object class="AutomationTrack" id="{3d930697-d425-4ec1-bd5f-b64fe81dfced}">
+	<object class="AutomationTrack" id="{163e20f7-1c1b-44ea-8124-4469d12d32ac}">
 		<relationship name="automator">
 			<destination>{79568609-9ec7-4739-9f2f-a05de505bf5f}</destination>
 		</relationship>
@@ -252,7 +255,7 @@
 			<destination>{bb088373-4bb9-4f82-a885-ae10e28a6c01}</destination>
 		</relationship>
 	</object>
-	<object class="ADSRModulator" id="{c1e60d00-5748-46ee-bf79-d77c9ea278a4}">
+	<object class="ADSRModulator" id="{40d072bc-1539-4574-8508-0ce5a35a0bd4}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>volume</value>
 		</property>
@@ -260,25 +263,16 @@
 			<value>-80</value>
 		</property>
 		<property name="attackTime">
-			<value>18000</value>
+			<value>1403.84741</value>
 		</property>
 		<property name="attackShape">
-			<value>-0.249299839</value>
+			<value>0.0662287921</value>
 		</property>
 		<property name="peakValue">
-			<value>-4.6222229</value>
+			<value>-0.577777863</value>
 		</property>
-		<property name="holdTime">
-			<value>448.717896</value>
-		</property>
-		<property name="decayTime">
-			<value>8442.30664</value>
-		</property>
-		<property name="decayShape">
-			<value>0.327316612</value>
-		</property>
-		<property name="sustainValue">
-			<value>-5.59999847</value>
+		<property name="releaseTime">
+			<value>326.923096</value>
 		</property>
 		<property name="finalValue">
 			<value>-80</value>
@@ -357,7 +351,7 @@
 			<value>0.035295509025493638</value>
 		</property>
 		<property name="value">
-			<value>-11</value>
+			<value>-5</value>
 		</property>
 		<property name="curveShape">
 			<value>1</value>
@@ -368,7 +362,7 @@
 			<value>18.671324274486135</value>
 		</property>
 		<property name="value">
-			<value>-80</value>
+			<value>-50</value>
 		</property>
 	</object>
 	<object class="LFOModulator" id="{aa05126a-b20e-4e78-a1e5-2d2050e928d4}">
