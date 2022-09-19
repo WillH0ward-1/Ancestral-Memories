@@ -15,7 +15,7 @@ public class CharacterClass : MonoBehaviour
 
     // ANIMATION STATES ==================================================
 
-    // These are string references to animations, triggered by various events. (See the Animator tab)
+    // These are string references for animations, triggered by various events. (See the Animator tab)
 
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
@@ -178,7 +178,7 @@ public class CharacterClass : MonoBehaviour
             }
         }
 
-    [SerializeField] private float crossFadeLength;
+    //private float crossFadeLength;
 
     public void ChangeAnimationState(string newState)
     {

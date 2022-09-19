@@ -11,7 +11,6 @@ public class Shake : MonoBehaviour
     public AnimationCurve curve;
     public float duration = 1f;
 
-    // Update is called once per frame
     private void Start()
     {
         instance = FMODUnity.RuntimeManager.CreateInstance("event:/Earthquake");
