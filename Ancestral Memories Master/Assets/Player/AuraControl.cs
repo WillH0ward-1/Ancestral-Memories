@@ -8,6 +8,9 @@ public class AuraControl : MonoBehaviour
 
     public Material auraMaterial;
 
+    [SerializeField]
+    private CharacterClass player;
+
     public int maxAura = 1;
     public int minAura = 0;
 
@@ -18,10 +21,8 @@ public class AuraControl : MonoBehaviour
 
     public float auraIntensity;
 
-    private void OnEnable() => faith.OnFaithChanged += faithChanged;
-    private void OnDisable() => faith.OnFaithChanged -= faithChanged;
-
-    public Faith faith;
+    private void OnEnable() => player.OnFaithChanged += faithChanged;
+    private void OnDisable() => player.OnFaithChanged -= faithChanged;
 
     // Start is called before the first frame update
     void Start()

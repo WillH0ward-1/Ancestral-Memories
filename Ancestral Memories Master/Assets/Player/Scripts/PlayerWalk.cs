@@ -16,11 +16,9 @@ public class PlayerWalk : MonoBehaviour
 
     //private Animator animator;
 
-    public Health player;
+    public CharacterClass player;
 
     public GameObject playerBase;
-
-    private AnimationManager animator;
 
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_WALK = "Player_walk";
@@ -125,13 +123,13 @@ public class PlayerWalk : MonoBehaviour
 
             if (speed < runThreshold)
             {
-                animator.changeState(PLAYER_WALK);
+                changeState(PLAYER_WALK);
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
             if (speed > runThreshold)
             {
-                animator.changeState(PLAYER_RUN);
+                changeState(PLAYER_RUN);
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
@@ -160,12 +158,24 @@ public class PlayerWalk : MonoBehaviour
 
         void StopAgent()
         {
-            animator.changeState(PLAYER_IDLE);
+            changeState(PLAYER_IDLE);
 
             agent.ResetPath();
 
             agent.isStopped = true;
             //Debug.Log("Player moving?" + agent.isStopped);
+        }
+
+        void changeState(string newState)
+        {
+            if (currentState == newState)
+            {
+                return;
+            }
+
+            currentState = newState;
+
+            player.ChangeAnimationState(newState);
         }
     }
 }

@@ -15,7 +15,8 @@ public class CheckIfUnderwater : MonoBehaviour
 
     public bool playerHasDrowned = false;
 
-    private Health player;
+    [SerializeField]
+    private CharacterClass player;
 
     void Update()
     {
