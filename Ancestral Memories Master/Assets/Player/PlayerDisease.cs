@@ -4,8 +4,14 @@ using UnityEngine;
 
 public class PlayerDisease : MonoBehaviour
 {
+    public bool playerIsDiseased = false;
 
-    public CharacterClass player;
+    private Health player;
+
+    private void Awake()
+    {
+        playerIsDiseased = false;
+    }
 
     public void ContractDisease()
     {
@@ -29,11 +35,11 @@ public class PlayerDisease : MonoBehaviour
                 diseaseSeverity = diseaseSeverities[diseaseIndex];
                 Debug.Log("Player has been infected with a " + diseaseSeverity + " disease!"); // Make so that there are stages. Mild, Severe, Fatal, Terminal
 
-                player.playerIsDiseased = true;
+                playerIsDiseased = true;
             }
         }
 
-        while (player.playerIsDiseased == true)
+        while (playerIsDiseased == true)
         {
             int diseaseMultiplier;
 
@@ -64,6 +70,6 @@ public class PlayerDisease : MonoBehaviour
     public void HealDisease()
     {
         Debug.Log("Player has miraculously recovered from disease!");
-        player.playerIsDiseased = false;
+        playerIsDiseased = false;
     }
 }
