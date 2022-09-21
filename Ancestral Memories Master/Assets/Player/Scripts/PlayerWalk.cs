@@ -64,7 +64,7 @@ public class PlayerWalk : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+        if (Input.GetMouseButton(0) && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
         {
             CastRayToGround();
         }
@@ -72,7 +72,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if(agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+            if(agent.isStopped == false && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
             {
                 StopAgent();
             }
