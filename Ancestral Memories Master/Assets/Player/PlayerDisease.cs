@@ -29,11 +29,11 @@ public class PlayerDisease : MonoBehaviour
                 diseaseSeverity = diseaseSeverities[diseaseIndex];
                 Debug.Log("Player has been infected with a " + diseaseSeverity + " disease!"); // Make so that there are stages. Mild, Severe, Fatal, Terminal
 
-                player.playerIsDiseased = true;
+                player.isDiseased = true;
             }
         }
 
-        while (player.playerIsDiseased == true)
+        while (player.isDiseased == true)
         {
             int diseaseMultiplier;
 
@@ -64,6 +64,6 @@ public class PlayerDisease : MonoBehaviour
     public void HealDisease()
     {
         Debug.Log("Player has miraculously recovered from disease!");
-        player.playerIsDiseased = false;
+        player.isDiseased = false;
     }
 }
