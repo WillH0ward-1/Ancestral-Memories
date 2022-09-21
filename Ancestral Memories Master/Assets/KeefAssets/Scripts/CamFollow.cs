@@ -39,7 +39,7 @@ public class CamFollow : MonoBehaviour
 
     public bool playerSpawning = true;
 
-    public CharacterClass player;
+    public Human player;
 
 
     // Update is called once per frame

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TriggerDisgust : MonoBehaviour
+public class TriggerDisgust : Human
 {
 
     public PlayerDisease playerDisease;
@@ -11,9 +11,11 @@ public class TriggerDisgust : MonoBehaviour
 
     public int diseaseChance;
 
-    private Faith faith;
-
     private AnimationManager animator;
+
+    private Human player;
+
+    [SerializeField] private Faith faith;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -23,7 +25,8 @@ public class TriggerDisgust : MonoBehaviour
         // Chance of getting disease
 
         diseaseChance = Random.Range(0, 100);
-            if(diseaseChance >= faith.currentFaith){
+            if(diseaseChance >= faith.GetFaith())
+        {
 
             playerDisease.ContractDisease();
 

@@ -43,7 +43,6 @@ public class TimeController : MonoBehaviour
         currentTime = DateTime.MinValue;
     }
 
-    [ExecuteInEditMode]
     void Start()
     {
         currentTime = DateTime.Now.Date + TimeSpan.FromHours(startHour);
@@ -53,7 +52,7 @@ public class TimeController : MonoBehaviour
         sunriseTime = TimeSpan.FromHours(sunriseHour);
         sunsetTime = TimeSpan.FromHours(sunsetHour);
 
-        
+        ResetTime();
     }
 
     void Update()

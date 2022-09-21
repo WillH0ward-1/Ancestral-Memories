@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class PlayerWalk : MonoBehaviour
+public class PlayerWalk : Human
 {
 
     public Camera cam;
@@ -16,7 +16,9 @@ public class PlayerWalk : MonoBehaviour
 
     //private Animator animator;
 
-    public Health player;
+    public Human player;
+
+    private Health health;
 
     public GameObject playerBase;
 
@@ -63,10 +65,12 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField]
     float animFactor = 9;
 
+    private bool playerHasDied = false;
+
     void Update()
     {
 
-        if (Input.GetMouseButton(0) && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
+        if (Input.GetMouseButton(0) && !health.IsDead() && cineCam.cinematicActive == false && !health.IsReviving())
         {
             CastRayToGround();
         }
@@ -74,7 +78,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if(agent.isStopped == false && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
+            if(agent.isStopped == false && !health.IsDead() && cineCam.cinematicActive == false && !health.IsReviving())
             {
                 StopAgent();
             }

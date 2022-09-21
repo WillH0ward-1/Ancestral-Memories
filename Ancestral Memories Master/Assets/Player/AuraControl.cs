@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AuraControl : MonoBehaviour
+public class AuraControl : Faith
 {
+
+    private Player player;
 
     public Material auraMaterial;
 
@@ -18,10 +20,8 @@ public class AuraControl : MonoBehaviour
 
     public float auraIntensity;
 
-    private void OnEnable() => faith.OnFaithChanged += faithChanged;
-    private void OnDisable() => faith.OnFaithChanged -= faithChanged;
-
-    public Faith faith;
+    private void OnEnable() => OnFaithChanged += faithChanged;
+    private void OnDisable() => OnFaithChanged -= faithChanged;
 
     // Start is called before the first frame update
     void Start()
