@@ -6,22 +6,27 @@ using UnityEngine;
 public class AuraControl : Faith
 {
 
-    private Player player;
+    [SerializeField] private Material auraMaterial;
 
-    public Material auraMaterial;
+    private int maxAura = 1;
+    private int minAura = 0;
 
-    public int maxAura = 1;
-    public int minAura = 0;
-
-    public Renderer[] auraRenderers = new Renderer[0];
+    [SerializeField] private Renderer[] auraRenderers = new Renderer[0];
 
     private float targetAuraVal = 1f;
     private float currentAuraVal = 1f;
 
     public float auraIntensity;
 
-    private void OnEnable() => OnFaithChanged += faithChanged;
-    private void OnDisable() => OnFaithChanged -= faithChanged;
+    private void OnEnable()
+    {
+        OnFaithChanged += FaithChanged;
+    }
+
+    private void OnDisable()
+    {
+        OnFaithChanged -= FaithChanged;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -45,7 +50,7 @@ public class AuraControl : Faith
 
     }
 
-    private void faithChanged(int faith, int maxFaith)
+    private void FaithChanged(int faith, int maxFaith)
     {
         targetAuraVal = (float)faith / maxFaith;
     }

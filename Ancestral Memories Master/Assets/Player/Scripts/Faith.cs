@@ -1,23 +1,22 @@
 using System;
 using UnityEngine;
 
-public class Faith : MonoBehaviour
+public class Faith : Human
 
 {
-    [SerializeField] private FaithBar faithBar;
 
-    [SerializeField] private float currentFaith;
+    [SerializeField] protected float currentFaith;
 
-    [SerializeField] private int minFaith = 0;
-    [SerializeField] private int maxFaith = 100;
+    [SerializeField] protected int minFaith = 0;
+    [SerializeField] protected int maxFaith = 100;
 
-    [SerializeField] private float faithMultiplier = 0.5f;
+    [SerializeField] protected float faithMultiplier = 0.5f;
 
-    [SerializeField] private bool isFaithless = false;
+    [SerializeField] protected bool isFaithless = false;
 
-    [SerializeField] private Shake earthQuake;
+    [SerializeField] protected Shake earthQuake;
 
-    private bool shouldRevive = true;
+    protected bool shouldRevive = true;
 
     // Update is called once per frame
 
@@ -49,7 +48,7 @@ public class Faith : MonoBehaviour
 
             OnFaithChanged?.Invoke((int)currentFaith, maxFaith);
 
-            faithBar.UpdateFaith(currentFaith / maxFaith);
+            faithBar.UpdateFaithBar(currentFaith / maxFaith);
 
             if (currentFaith <= minFaith)
             {

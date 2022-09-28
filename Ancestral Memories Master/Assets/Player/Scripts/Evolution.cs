@@ -2,12 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Evolution : MonoBehaviour
+public class Evolution : Human
 {
     private int maxEvolution = 100;
     private int minEvolution = 0;
-
-    public EvolutionBar evolutionBar;
 
     public float currentEvolution;
 

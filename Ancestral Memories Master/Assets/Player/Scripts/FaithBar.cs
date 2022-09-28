@@ -7,7 +7,7 @@ public class FaithBar : MonoBehaviour
 {
     public Image faithBar;
 
-    public void UpdateFaith(float fraction)
+    public  void UpdateFaithBar(float fraction)
     {
         faithBar.fillAmount = fraction;
     }

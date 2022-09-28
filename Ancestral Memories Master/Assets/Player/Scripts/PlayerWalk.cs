@@ -10,19 +10,11 @@ public class PlayerWalk : Human
 
     //private string groundTag = "Ground";
 
-    private string currentState;
-
     private NavMeshAgent agent;
 
     //private Animator animator;
 
-    public Human player;
-
-    private Health health;
-
     public GameObject playerBase;
-
-    private AnimationManager animator;
 
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_WALK = "Player_walk";
@@ -57,13 +49,13 @@ public class PlayerWalk : Human
     private float distanceRatios = 2;
 
     [SerializeField]
-    float distanceThreshold = 60;
+    private float distanceThreshold = 60;
 
     [SerializeField]
-    float distance = 0;
+    private float distance = 0;
 
     [SerializeField]
-    float animFactor = 9;
+    private float animFactor = 9;
 
     private bool playerHasDied = false;
 
@@ -129,13 +121,13 @@ public class PlayerWalk : Human
 
             if (speed < runThreshold)
             {
-                animator.changeState(PLAYER_WALK);
+                animManager.changeState(PLAYER_WALK);
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
             if (speed > runThreshold)
             {
-                animator.changeState(PLAYER_RUN);
+                animManager.changeState(PLAYER_RUN);
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
@@ -164,7 +156,7 @@ public class PlayerWalk : Human
 
         void StopAgent()
         {
-            animator.changeState(PLAYER_IDLE);
+            animManager.changeState(PLAYER_IDLE);
 
             agent.ResetPath();
 

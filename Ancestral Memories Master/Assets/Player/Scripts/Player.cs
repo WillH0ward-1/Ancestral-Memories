@@ -6,16 +6,24 @@ using UnityEngine.SceneManagement;
 
 public class Player : Human
 {
-    private int minStat = 0;
-    private int maxStat = 100;
 
-    [SerializeField] public bool killedByGod = false;
-
-    void Start()
+    void Awake()
     {
-        Human player = new Human();
+        Human player = new();
         Debug.Log(player);
 
+        health = gameObject.AddComponent<Health>();
+        faith = gameObject.AddComponent<Faith>();
+        hunger = gameObject.AddComponent<Hunger>();
+        evolution = gameObject.AddComponent<Evolution>();
+        animManager = gameObject.AddComponent<AnimationManager>();
+
+        healthBar = gameObject.AddComponent<HealthBar>();
+        faithBar = gameObject.AddComponent<FaithBar>();
+        hungerBar = gameObject.AddComponent<HungerBar>();
+        evolutionBar = gameObject.AddComponent<EvolutionBar>();
+
+        playerWalk = gameObject.AddComponent<PlayerWalk>();
     }
 
     void Update()

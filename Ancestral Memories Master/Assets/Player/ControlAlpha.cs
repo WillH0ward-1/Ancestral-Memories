@@ -6,7 +6,7 @@ using System.Collections;
 // CombineInstance stores the list of meshes.  These are combined
 // and assigned to the attached Mesh.
 
-public class ControlAlpha : MonoBehaviour
+public class ControlAlpha : Human
 {
 
     [SerializeField] private SkinnedMeshRenderer meshRenderer;
@@ -41,8 +41,6 @@ public class ControlAlpha : MonoBehaviour
     public bool playerIsHuman = false;
     public bool playerIsTransforming = false;
 
-    private AnimationManager animator;
-
     private void Awake()
     {
         playerIsHuman = false;
@@ -60,7 +58,7 @@ public class ControlAlpha : MonoBehaviour
                
                 playerIsHuman ^= true; // Invert boolean with 'xor'
 
-                animator.SwitchAnimators();
+                animManager.SwitchAnimators();
 
                 StartCoroutine(Fade());
                 StartCoroutine(StartBlendShape());

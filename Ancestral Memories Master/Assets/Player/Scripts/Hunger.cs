@@ -4,17 +4,11 @@ using UnityEngine;
 
 public class Hunger : Human
 {
-    public HungerBar playerHunger;
-
-    public int minHunger = 0;
-    public int maxHunger = 100;
 
     public float currentHunger;
 
-    public bool playerIsStarving = false;
-    public bool playerHasStarved = false;
-
-    private Health health;
+    public bool isStarving = false;
+    public bool hasStarved = false;
 
     const string PLAYER_STARVING = "Player_starving";
 
@@ -27,17 +21,17 @@ public class Hunger : Human
 
     private void Awake()
     {
-        currentHunger = maxHunger;
+        currentHunger = maxVal;
     }
 
     void Update()
     {
         float hungerMultipler = 0.5f;
-        GetHungry(0.1f * hungerMultipler);
+        GetHungry(0.1f * hungerMultipler, hungerBar);
 
         // DEAL STARVE DAMAGE
 
-        if (playerIsStarving == true && !health.IsDead())
+        if (isStarving && !health.IsDead())
         {
             Debug.Log("Starving!");
 
@@ -48,25 +42,30 @@ public class Hunger : Human
             if (health.IsDead())
             {
                 animManager.ChangeAnimationState(PLAYER_STARVE);
-                playerIsStarving = false;
-                playerHasStarved = true;
+                isStarving = false;
+                hasStarved = true;
             }
         }
     }
 
-    public void GetHungry(float hunger)
+    public void SetHunger(float value)
+    {
+        currentHunger = value;
+    }
+
+    public void GetHungry(float hunger, HungerBar hungerBar)
     {
 
         currentHunger -= hunger;
-        playerHunger.UpdateHunger(currentHunger / maxHunger);
+        hungerBar.UpdateHunger(currentHunger / maxVal);
 
-        if (currentHunger <= minHunger)
+        if (currentHunger <= minVal)
         {
-            playerIsStarving = true;
+            isStarving = true;
         }
         else
         {
-            playerIsStarving = false;
+            isStarving = false;
         }
     }
 }
