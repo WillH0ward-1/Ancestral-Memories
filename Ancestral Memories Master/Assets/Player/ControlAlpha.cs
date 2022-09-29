@@ -9,7 +9,11 @@ using System.Collections;
 public class ControlAlpha : MonoBehaviour
 {
 
+    [SerializeField] public CharacterClass player;
+
     [SerializeField] private SkinnedMeshRenderer meshRenderer;
+
+    private Material alphaShader;
 
     [SerializeField] public GameObject humanObject;
     [SerializeField] public GameObject monkeyObject;
@@ -41,8 +45,6 @@ public class ControlAlpha : MonoBehaviour
     public bool playerIsHuman = false;
     public bool playerIsTransforming = false;
 
-    private AnimationManager animator;
-
     private void Awake()
     {
         playerIsHuman = false;
@@ -60,7 +62,7 @@ public class ControlAlpha : MonoBehaviour
                
                 playerIsHuman ^= true; // Invert boolean with 'xor'
 
-                animator.SwitchAnimators();
+                player.SwitchAnimators();
 
                 StartCoroutine(Fade());
                 StartCoroutine(StartBlendShape());

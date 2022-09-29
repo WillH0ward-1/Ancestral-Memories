@@ -7,23 +7,23 @@ public class TriggerDisgust : MonoBehaviour
 
     public PlayerDisease playerDisease;
 
+    [SerializeField] private Animator animator;
+
+    CharacterClass player;
+
     const string PLAYER_DISGUSTED = "Player_disgusted";
 
     public int diseaseChance;
 
-    private Faith faith;
-
-    private AnimationManager animator;
-
     private void OnTriggerEnter(Collider other)
     {
 
-        animator.ChangeAnimationState(PLAYER_DISGUSTED);
+        player.ChangeAnimationState(PLAYER_DISGUSTED);
 
         // Chance of getting disease
 
         diseaseChance = Random.Range(0, 100);
-            if(diseaseChance >= faith.currentFaith){
+            if(diseaseChance >= player.currentFaith){
 
             playerDisease.ContractDisease();
 
