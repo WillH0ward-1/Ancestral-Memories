@@ -3,10 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GodRayControl : Human
-
+public class GodRayControl : MonoBehaviour
+ 
 {
      public Material godRayShader;
+
+     [SerializeField]
+     private CharacterClass player;
 
      [SerializeField] private float maxAura = 1f;
      [SerializeField] private float minAura = 0f;

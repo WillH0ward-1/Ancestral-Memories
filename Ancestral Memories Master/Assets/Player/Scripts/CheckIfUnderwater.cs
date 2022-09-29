@@ -9,13 +9,11 @@ public class CheckIfUnderwater : MonoBehaviour
     [SerializeField]
     private Animator animator;
 
-    [SerializeField] private Health health;
+    public bool isUnderwater = false;
 
-    [SerializeField] private bool isUnderwater = false;
+    public bool playerDrowning = false;
 
-    [SerializeField] private bool playerDrowning = false;
-
-    [SerializeField] private bool playerHasDrowned = false;
+    public bool playerHasDrowned = false;
 
     private Health player;
 
@@ -32,7 +30,7 @@ public class CheckIfUnderwater : MonoBehaviour
             {
                 isUnderwater = true;
 
-                if (playerDrowning == false && !health.IsDead())
+                if (playerDrowning == false && player.playerHasDied == false)
                 {
                     StartCoroutine(StartDrowning());
                 }
@@ -45,37 +43,6 @@ public class CheckIfUnderwater : MonoBehaviour
             isUnderwater = false;
 
         }
-    }
-
-    public bool IsUnderWater()
-    {
-        if (isUnderwater == true)
-        {
-            return true;
-        } else
-        {
-            return false;
-        }
-    }
-
-    public bool IsDrowning()
-    {
-        if (playerDrowning == true)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public void HasDrowned()
-    {
-        playerDrowning = false;
-        playerHasDrowned = true;
-
-        return;
     }
 
     IEnumerator StartDrowning()
