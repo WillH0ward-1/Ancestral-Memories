@@ -6,12 +6,22 @@ using UnityEngine.SceneManagement;
 public class Health : Human
 {
 
+    [SerializeField] private HealthBar health;
 
     [SerializeField] private float currentHealth;
 
+    [SerializeField] private int minVal = 0;
+    [SerializeField] private int maxVal = 100;
+
+    [SerializeField] private bool hasDied = false;
+
     [SerializeField] private bool isReviving = false;
 
+    [SerializeField] private Faith faith;
+
     [SerializeField] private AnimationManager animator;
+
+    [SerializeField] private Hunger hunger;
 
     [SerializeField] private AnimReferences animBank;
 
@@ -34,7 +44,7 @@ public class Health : Human
     {
 
         currentHealth -= damage;
-        healthBar.UpdateHealthBar((float)currentHealth / (float)maxVal);
+        health.UpdateHealth((float)currentHealth / (float)maxVal);
 
         if (currentHealth <= minVal)
         {
@@ -94,9 +104,8 @@ public class Health : Human
     {   // REVIVE PLAYER - Complete Reset.
 
         hasDied = false;
-
-        SetHealth(maxVal);
-        hunger.SetHunger(maxVal);
+        currentHealth = maxVal;
+        hunger.currentHunger = hunger.maxHunger;
         faith.SetFaith(maxVal);
 
         animator.ChangeAnimationState(animBank.PLAYER_REVIVING);

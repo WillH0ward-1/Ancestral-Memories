@@ -4,14 +4,20 @@ using UnityEngine;
 
 
 
-public class CheckIfUnderwater : Human
+public class CheckIfUnderwater : MonoBehaviour
 {
+    [SerializeField]
+    private Animator animator;
+
+    [SerializeField] private Health health;
 
     [SerializeField] private bool isUnderwater = false;
 
-    [SerializeField] private bool isDrowning = false;
+    [SerializeField] private bool playerDrowning = false;
 
-    [SerializeField] private bool hasDrowned = false;
+    [SerializeField] private bool playerHasDrowned = false;
+
+    private Health player;
 
     void Update()
     {
@@ -26,7 +32,7 @@ public class CheckIfUnderwater : Human
             {
                 isUnderwater = true;
 
-                if (isDrowning == false && !health.IsDead())
+                if (playerDrowning == false && !health.IsDead())
                 {
                     StartCoroutine(StartDrowning());
                 }
@@ -54,7 +60,7 @@ public class CheckIfUnderwater : Human
 
     public bool IsDrowning()
     {
-        if (isDrowning == true)
+        if (playerDrowning == true)
         {
             return true;
         }
@@ -66,8 +72,8 @@ public class CheckIfUnderwater : Human
 
     public void HasDrowned()
     {
-        isDrowning = false;
-        hasDrowned = true;
+        playerDrowning = false;
+        playerHasDrowned = true;
 
         return;
     }
@@ -78,7 +84,7 @@ public class CheckIfUnderwater : Human
 
         if (isUnderwater == true)
         {
-            isDrowning = true;
+            playerDrowning = true;
 
         } else if (isUnderwater == false)
         {

@@ -5,27 +5,15 @@ using UnityEngine;
 public class Human : MonoBehaviour
 {
 
-    [SerializeField] protected int minVal;
-    [SerializeField] protected int maxVal;
+    [SerializeField] private string characterName;
+    [SerializeField] private Health health;
+    [SerializeField] private Faith faith;
+    [SerializeField] private Hunger hunger;
+    [SerializeField] private Evolution evolution;
+    [SerializeField] private Range range;
+    [SerializeField] private bool hasDied = false;
 
-    [SerializeField] protected string characterName;
-
-    [SerializeField] protected Health health;
-    [SerializeField] protected Faith faith;
-    [SerializeField] protected Hunger hunger;
-    [SerializeField] protected Evolution evolution;
-
-    [SerializeField] protected HungerBar hungerBar;
-    [SerializeField] protected FaithBar faithBar;
-    [SerializeField] protected HealthBar healthBar;
-    [SerializeField] protected EvolutionBar evolutionBar;
-
-    [SerializeField] protected AnimationManager animManager;
-
-    [SerializeField] protected PlayerWalk playerWalk;
-
-    [SerializeField] protected bool hasDied = false;
-
+    // Start is called before the first frame update
     void Start()
     {
 

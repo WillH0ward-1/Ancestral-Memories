@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AnimationManager : ControlAlpha
+public class AnimationManager : MonoBehaviour
 {
     [SerializeField] private List<GameObject> activeAnimators = new List<GameObject>();
     [SerializeField] private List<GameObject> inactiveAnimators = new List<GameObject>();
+
+    private ControlAlpha alphaControl;
 
     [SerializeField] private float animationCrossFade = 2f;
 
@@ -26,11 +28,11 @@ public class AnimationManager : ControlAlpha
 
     void InitAnimators()
     {
-        var humanState = humanObject;
-        var monkeyState = monkeyObject;
+        var humanState = alphaControl.humanObject;
+        var monkeyState = alphaControl.monkeyObject;
 
 
-        if (playerIsHuman == false) // If player is monkey
+        if (alphaControl.playerIsHuman == false) // If player is monkey
         {
             activeAnimators.Remove(humanState);
             activeAnimators.Add(monkeyState);
@@ -39,7 +41,7 @@ public class AnimationManager : ControlAlpha
             inactiveAnimators.Add(humanState);
 
         }
-        else if (playerIsHuman == true)
+        else if (alphaControl.playerIsHuman == true)
         {// If player is Human
 
             activeAnimators.Remove(monkeyState);

@@ -7,7 +7,7 @@ public class HungerBar : MonoBehaviour
 {
     public Image hungerBar;
 
-    public  void UpdateHunger(float fraction)
+    public void UpdateHunger(float fraction)
     {
         hungerBar.fillAmount = fraction;
     }
