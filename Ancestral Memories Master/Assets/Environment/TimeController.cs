@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-//[ExecuteInEditMode]
-
 public class TimeController : MonoBehaviour
 {
 
@@ -38,12 +36,6 @@ public class TimeController : MonoBehaviour
 
     private TimeSpan sunsetTime;
 
-    void ResetTime()
-    {
-        currentTime = DateTime.MinValue;
-    }
-
-    [ExecuteInEditMode]
     void Start()
     {
         currentTime = DateTime.Now.Date + TimeSpan.FromHours(startHour);
@@ -72,10 +64,9 @@ public class TimeController : MonoBehaviour
             timeText.text = currentTime.ToString("HH:mm");
         }
 
-
-        if (timeText.text == "8:00")
+        if (timeText.ToString() == "12:00") 
         {
-            Debug.Log("it's " + timeText.text + " o'clock.");
+            Debug.Log("it's 12 o'clock.");
         }
 
     }
@@ -106,7 +97,6 @@ public class TimeController : MonoBehaviour
             }
             */
         }
-
         else
         {
             TimeSpan sunsetToSunriseDuration = CalculateTimeDifference(sunsetTime, sunriseTime);

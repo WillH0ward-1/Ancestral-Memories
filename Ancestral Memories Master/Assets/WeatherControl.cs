@@ -2,13 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class WeatherControl : MonoBehaviour
 {
-    const string WIND_LOOP = ("event:/Wind");
 
     private FMOD.Studio.EventInstance instance;
 
-    public FMODUnity.EventReference windEvent;
+    public FMODUnity.EventReference fmodEvent;
 
     [SerializeField]
     [Range(-0f, 1f)]
@@ -23,26 +23,19 @@ public class WeatherControl : MonoBehaviour
     public float windDuration = 0;
 
     public float retriggerBuffer = 1;
-
-    private float currentWindStrength = 0;
-    private float targetWindStrength;
-
     // Start is called before the first frame update
     void Start()
     {
-        StartFMODInstance(WIND_LOOP);
+        instance = FMODUnity.RuntimeManager.CreateInstance(fmodEvent);
+        instance.start();
 
         /*
         StartCoroutine(WindStrength());
         */
     }
 
-    private void StartFMODInstance(string instance)
-    {
-        FMOD.Studio.EventInstance sound = FMODUnity.RuntimeManager.CreateInstance(instance);
-        sound.start();
-    }
-
+    private float currentWindStrength = 0;
+    private float targetWindStrength;
 
     /*
     private IEnumerator WindStrength()
