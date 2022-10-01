@@ -31,7 +31,7 @@ public class CheckIfUnderwater : MonoBehaviour
             {
                 isUnderwater = true;
 
-                if (playerDrowning == false && player.playerHasDied == false)
+                if (playerDrowning == false && player.hasDied == false)
                 {
                     StartCoroutine(StartDrowning());
                 }

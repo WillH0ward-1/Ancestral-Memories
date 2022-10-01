@@ -16,14 +16,11 @@ public class CamFollow : MonoBehaviour
     [SerializeField]
     private Camera ZoomCamera;
 
-    [SerializeField]
-    private float maxZoom = 32;
+    [SerializeField] private float maxZoom = 32;
 
-    [SerializeField]
-    private float spawnZoom = 1000;
+    [SerializeField] private float spawnZoom = 1000;
 
-    [SerializeField]
-    private float minZoom = 6;
+    [SerializeField] private float minZoom = 6;
 
     public bool cinematicActive = false;
 

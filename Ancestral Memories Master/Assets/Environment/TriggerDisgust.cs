@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TriggerDisgust : MonoBehaviour
+public class TriggerDisgust : CharacterClass
 {
 
     public PlayerDisease playerDisease;
@@ -18,19 +18,20 @@ public class TriggerDisgust : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
 
-        player.ChangeAnimationState(PLAYER_DISGUSTED);
+        ChangeAnimationState(PLAYER_DISGUSTED);
 
         // Chance of getting disease
 
         diseaseChance = Random.Range(0, 100);
-            if(diseaseChance >= player.currentFaith){
+
+            if(diseaseChance >= currentFaith){
 
             playerDisease.ContractDisease();
 
         }         
     }
 
-    private void Update()
+    override public void Update()
     {
         diseaseChance = Random.Range(0, 100);
     }

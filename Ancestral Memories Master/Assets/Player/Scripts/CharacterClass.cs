@@ -17,20 +17,12 @@ public class CharacterClass : MonoBehaviour
 
     // These are string references for animations, triggered by various events. (See the Animator tab)
 
+    // Idle
+
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
     const string PLAYER_STARVINGCRAWL = "Player_starvingCrawl";
     const string PLAYER_STARVINGCRAWLCRITICAL = "Player_starvingCrawlCritical";
-
-    // Death
-
-    const string PLAYER_DEATHOLDAGE = "Player_deathOldAge";
-
-    const string PLAYER_STARVE = "Player_starve";
-    const string PLAYER_DROWN = "Player_drown";
-    const string PLAYER_POISONED = "Player_poisoned";
-    const string PLAYER_THUNDERSTRUCK = "Player_thunderStruck";
-    const string PLAYER_DEHYDRATIONDEATH = "Player_deathThirst";
 
     // Emotion
 
@@ -45,13 +37,25 @@ public class CharacterClass : MonoBehaviour
 
     const string PLAYER_DISEASED = "Player_diseased";
 
-    // Ressurection
 
+    // Death + Revival
+
+    const string PLAYER_DEATHOLDAGE = "Player_deathOldAge";
+
+    const string PLAYER_STARVE = "Player_starve";
+    const string PLAYER_DROWN = "Player_drown";
+    const string PLAYER_POISONED = "Player_poisoned";
+    const string PLAYER_THUNDERSTRUCK = "Player_thunderStruck";
+    const string PLAYER_DEHYDRATIONDEATH = "Player_deathThirst";
     const string PLAYER_REVIVING = "Player_revived";
 
     // PLAYER STATS =======================================================
 
-    private int playerAge = 24;
+    float evolutionThreshold = 25;
+
+    private string name = "";
+    private int age = 24;
+
     private int ageToDie = 0;
 
     private int maxHealth = 100;
@@ -66,40 +70,35 @@ public class CharacterClass : MonoBehaviour
     private int maxEvolution = 100;
     private int minEvolution = 0;
 
-    public HealthBar playerHealth;
-    public HungerBar playerHunger;
-    public FaithBar playerFaith;
+    public HealthBar healthBar;
+    public HungerBar hungerBar;
+    public FaithBar faithBar;
     public EvolutionBar evolutionBar;
 
-    public float currentHealth;
+    public float health;
     public float currentHunger;
     public float currentFaith;
-    public float currentEvolution;
+    public float evolution;
 
-    public bool playerIsStarving = false;
-    public bool playerHasStarved = false;
+    public bool starving = false;
+    public bool hasStarved = false;
 
-    public bool playerIsDiseased = false;
+    public bool isDiseased = false;
 
-    public bool playerIsFaithless = false;
-    public bool playerKilledByGod = false;
+    public bool isFaithless = false;
+    public bool killedByGod = false;
 
-    public bool playerHasDied = false;
-    public bool playerIsReviving = false;
-
-    private GameManagement gameManager;
+    public bool hasDied = false;
+    public bool isReviving = false;
 
     public CheckIfUnderwater underwaterCheck;
 
     public PlayerWalk playerWalk;
 
-    //[SerializeField] private GodRayControl god;
-
     public List<GameObject> activeAnimators = new List<GameObject>();
     public List<GameObject> inactiveAnimators = new List<GameObject>();
 
     [SerializeField] private float animationCrossFade = 2f;
-    //private AuraControl auraControl;
 
     public bool respawn;
 
@@ -111,21 +110,21 @@ public class CharacterClass : MonoBehaviour
 
     // FUNCTIONS ============================================================
 
-    private void Awake()
+    public virtual void Awake()
     {
+        name = "Jon";
+
         InitAnimators();
 
-        currentHealth = maxHealth;
+        health = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
-        currentEvolution = minEvolution;
+        evolution = minEvolution;
 
-        playerIsDiseased = false;
-
-
+        isDiseased = false;
     }
 
-    void InitAnimators()
+    public virtual void InitAnimators()
     {
         var humanState = alphaControl.humanObject;
         var monkeyState = alphaControl.monkeyObject;
@@ -150,37 +149,37 @@ public class CharacterClass : MonoBehaviour
     }
 
 
-    public void SwitchAnimators()
+    public virtual void SwitchAnimators()
     {
         AssignAnimators();
         AssignInactiveAnimators();
-
     }
-        void AssignAnimators()
-        {
-            foreach (GameObject g in activeAnimators)
-            {
-                foreach (Animator a in g.GetComponentsInChildren<Animator>())
-                {
-                    activeAnimator = a;
-                }
-            }
-        }
 
-         void AssignInactiveAnimators()
+    public virtual void AssignAnimators()
+    {
+        foreach (GameObject g in activeAnimators)
         {
-            foreach (GameObject g in inactiveAnimators)
+            foreach (Animator a in g.GetComponentsInChildren<Animator>())
             {
-                foreach (Animator a in g.GetComponentsInChildren<Animator>())
-                {
-                    inactiveAnimator = a;
-                }
+                activeAnimator = a;
             }
         }
+    }
+
+    public virtual void AssignInactiveAnimators()
+    {
+        foreach (GameObject g in inactiveAnimators)
+        {
+            foreach (Animator a in g.GetComponentsInChildren<Animator>())
+            {
+                inactiveAnimator = a;
+            }
+        }
+    }
 
     //private float crossFadeLength;
 
-    public void ChangeAnimationState(string newState)
+    public virtual void ChangeAnimationState(string newState)
     {
         SwitchAnimators();
 
@@ -197,24 +196,49 @@ public class CharacterClass : MonoBehaviour
         currentState = newState;
     }
 
-    public void AdjustAnimationSpeed(float newSpeed)
+    public virtual void AdjustAnimationSpeed(float newSpeed)
     {
         activeAnimator.speed = newSpeed;
         inactiveAnimator.speed = newSpeed;
     }
 
-    private void Update()
+    public virtual void Update()
 
     {
+
+        // DEAL STARVE DAMAGE
+
+        if (starving && !hasDied)
+        {
+            Debug.Log("Starving!");
+
+            //ChangeAnimationState(PLAYER_STARVING);
+
+            if (hasDied)
+            {
+                ChangeAnimationState(PLAYER_STARVE);
+                starving = false;
+                hasStarved = true;
+            }
+        }
+
+        if (evolution <= evolutionThreshold)
+        {
+            alphaControl.playerIsHuman = false;
+        } else
+        {
+            alphaControl.playerIsHuman = true;
+        }
+
         // DROWN
 
-        if (underwaterCheck.isUnderwater == true && underwaterCheck.playerDrowning == true)
+        if (underwaterCheck.isUnderwater && underwaterCheck.playerDrowning)
         {
             Debug.Log("Drowning!");
 
-            TakeDamage(1);
+            UpdateStats(1f, 0, 0, 0);
 
-            if (playerHasDied == true)
+            if (hasDied)
             {
                 ChangeAnimationState(PLAYER_DROWN);
                 underwaterCheck.playerDrowning = false;
@@ -222,167 +246,56 @@ public class CharacterClass : MonoBehaviour
             }
         }
 
-        // DEAL STARVE DAMAGE
+        // UPDATE PLAYER STATS 
 
-        if (playerIsStarving == true && playerHasDied == false)
-        {
-            Debug.Log("Starving!");
-
-            //ChangeAnimationState(PLAYER_STARVING);
-
-            TakeDamage(0.1f);
-
-            if (playerHasDied == true)
-            {
-                ChangeAnimationState(PLAYER_STARVE);
-                playerIsStarving = false;
-                playerHasStarved = true;
-            }
-        }
-
-        /*
-        if (currentEvolution <= 25)
-        {
-            alphaControl.playerIsHuman = false;
-        } else
-        {
-            alphaControl.playerIsHuman = true;
-        }
-        */
-
-        // UPDATE PLAYER STATS
-
-        float hungerMultipler = 0.5f;
-
-        float faithMultiplier = 0.5f;
-
-        float evolutionMultiplier = 0.5f;
-
-        // If multipliers set to negative, it should drop faster and vice versa for positive.
-
-        GetHungry(0.1f * hungerMultipler);
-        DepleteFaith(0.1f * faithMultiplier);
-        Evolve(0.1f * evolutionMultiplier);
+        UpdateStats(0, 0.1f, 0.1f, 0.1f);
     }
 
-    public void TakeDamage(float damage)
+    public virtual void SetHealth(int value)
     {
+        health = value;
 
-        currentHealth -= damage;
-        playerHealth.UpdateHealth((float)currentHealth / (float)maxHealth);
-
-        if (currentHealth <= minHealth)
+        if (health >= maxHealth)
         {
-            KillPlayer();
+            health = maxHealth;
         }
     }
 
-    public void KillPlayer()
+
+    public virtual void Kill()
     {
-
-        currentHealth = minHealth;
-        playerHasDied = true;
-        CheckForRevival();
-        StartCoroutine(CheckForRevival());
-    }
-
-    public void SetHealth(int value)
-    {
-        currentHealth = value;
-
-        if (currentHealth >= maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-
-    public void Evolve(float evolutionMultiplier)
-    {
-        currentEvolution += evolutionMultiplier;
-
-        if (currentEvolution >= maxEvolution)
-        {
-            currentEvolution = minEvolution; // reset evolution ( level up )
-            // Possibly get rid of evolution bar after transcending from Monkey, returning only if devolved by god.
-        }
+        health = minHealth;
+        hasDied = true;
+        StartCoroutine(CheckForRevive());
     }
 
     private void Devolve()
     {
-        currentEvolution = minEvolution;
+        evolution = minEvolution;
     }
 
 
-
-    public void GetHungry(float hunger)
-    {
-
-        currentHunger -= hunger;
-        playerHunger.UpdateHunger(currentHunger / maxHunger);
-
-        if (currentHunger <= minHunger)
-        {
-            playerIsStarving = true;
-        } else
-        {
-            playerIsStarving = false;
-        }
-    }
-
-    public event Action<int, int> OnFaithChanged;
-
-    public void DepleteFaith(float faith)
-    {
-
-        currentFaith -= faith;
-
-        OnFaithChanged?.Invoke((int)currentFaith, maxFaith);
-
-        playerFaith.UpdateFaith(currentFaith / maxFaith);
-
-        if (currentFaith <= minFaith)
-        {
-            earthQuake.start = true;
-
-            currentFaith = minFaith;
-
-            playerIsFaithless = true;
-
-            Debug.Log("Player is faithless!");
-
-            //  Trigger chance to be struck down by god / natural disasters
-            // Have a vocal cue + thunder rumble 'Heretic!'. First Testament style.
-
-        } else
-        {
-            earthQuake.start = false;
-
-            playerIsFaithless = false;
-        }
-
-    }
-
-    public IEnumerator CheckForRevival()
+    public virtual IEnumerator CheckForRevive()
     {
         float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSeconds(animationLength);
 
         if (currentFaith < 50) // In order to revive, currentFaith needs to be > x. 
         {
-            playerIsReviving = true;
-            StartCoroutine(RevivePlayer());
+            isReviving = true;
+            StartCoroutine(Revive()); // Start Revive
         } else
         {
-            StartCoroutine(RespawnBuffer());
+            StartCoroutine(RespawnBuffer()); // Start Respawn
         }
     }
 
-    public IEnumerator RevivePlayer()
+    public virtual IEnumerator Revive()
 
     {   // REVIVE PLAYER - Complete Reset.
 
-        playerHasDied = false;
-        currentHealth = maxHealth;
+        hasDied = false;
+        health = maxHealth;
         currentHunger = maxHunger;
         currentFaith = maxFaith;
 
@@ -394,12 +307,12 @@ public class CharacterClass : MonoBehaviour
         //StartCoroutine(god.TriggerGodRay());
 
         //godRay.godRay = false;
-        playerIsReviving = false;
+        isReviving = false;
 
         ChangeAnimationState(PLAYER_IDLE);
     }
 
-    public IEnumerator RespawnBuffer()
+    public virtual IEnumerator RespawnBuffer()
     {
         float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(1).length;
         yield return new WaitForSeconds(animationLength); // Wait for this many seconds before respawning. This may be an audio cue in future.
@@ -411,5 +324,64 @@ public class CharacterClass : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         print("Game Restarted.");
+    }
+
+
+    public virtual event Action<int, int> OnFaithChanged;
+
+    public virtual void UpdateStats(float healthDamage, float faithDamage, float hunger, float evolveMultiplier)
+    {
+
+        OnFaithChanged?.Invoke((int)currentFaith, maxFaith);
+
+        health -= healthDamage;
+        currentFaith -= faithDamage;
+        currentHunger -= hunger;
+        evolution += evolveMultiplier;
+
+        healthBar.UpdateHealth(health / maxHealth);
+        faithBar.UpdateFaith(currentFaith / maxFaith);
+        hungerBar.UpdateHunger(currentHunger / maxHunger);
+        evolutionBar.UpdateEvolution(evolution / maxEvolution);
+
+        if (health <= minHealth)
+        {
+            Kill();
+        }
+
+        if (currentHunger <= minHunger)
+        {
+            currentHunger = minHunger;
+            starving = true;
+        } else
+        {
+            starving = false;
+        }
+
+        if (evolution >= maxEvolution)
+        {
+            evolution = minEvolution; // reset evolution ( level up )
+        }
+
+        if (currentFaith <= minFaith)
+        {
+            currentFaith = minFaith;
+            isFaithless = true;
+
+            Debug.Log("Player is faithless!");
+
+            //earthQuake.start = true;
+
+            //  Trigger chance to be struck down by god / natural disasters
+            // vocal cue + thunder rumble 'Heretic!'. First Testament style.
+
+        }
+
+        else
+
+        {
+            earthQuake.start = false;
+            isFaithless = false;
+        }
     }
 }

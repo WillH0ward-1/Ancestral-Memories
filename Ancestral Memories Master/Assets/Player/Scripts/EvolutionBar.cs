@@ -7,7 +7,7 @@ public class EvolutionBar : MonoBehaviour
 {
     public Image evolutionBar;
 
-    public void UpdateHealth(float fraction)
+    public void UpdateEvolution(float fraction)
     {
         evolutionBar.fillAmount = fraction;
     }
