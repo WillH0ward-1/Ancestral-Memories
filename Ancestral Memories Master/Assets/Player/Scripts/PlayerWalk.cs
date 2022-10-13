@@ -27,6 +27,8 @@ public class PlayerWalk : MonoBehaviour
     const string PLAYER_CROUCH = "Player_crouch";
     const string PLAYER_SNEAK = "Player_sneak";
 
+    bool playerIsCrouched = false;
+
     const string groundTag = "Walkable";
 
     //public DirectedAgent agent;
@@ -64,7 +66,7 @@ public class PlayerWalk : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetMouseButton(0) && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
+        if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
         {
             CastRayToGround();
         }
@@ -72,7 +74,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if(agent.isStopped == false && player.playerHasDied == false && cineCam.cinematicActive == false && player.playerIsReviving == false)
+            if(agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
             {
                 StopAgent();
             }
@@ -123,13 +125,27 @@ public class PlayerWalk : MonoBehaviour
 
             if (speed < runThreshold)
             {
-                changeState(PLAYER_WALK);
+                if (playerIsCrouched)
+                {
+                    changeState(PLAYER_SNEAK);
+                }
+                else
+                {
+                    changeState(PLAYER_WALK);
+                }
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
             if (speed > runThreshold)
             {
-                changeState(PLAYER_RUN);
+                if (playerIsCrouched)
+                {
+                    return;
+                }
+                else
+                {
+                    changeState(PLAYER_RUN);
+                }
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
@@ -146,10 +162,11 @@ public class PlayerWalk : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
+                EnterSneakMode();
 
                 void EnterSneakMode()
                 {
-
+                    changeState(PLAYER_CROUCH);
                 }
             }
 
