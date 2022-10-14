@@ -11,10 +11,11 @@ public class MapObjGen : MonoBehaviour
     public GameObject mapObject;
     public MeshData meshData;
 
+    private Mesh mesh;
+
     public MeshSettings meshSettings;
 
     //private MeshFilter meshFilter;
-    private Mesh mesh;
 
     [SerializeField] Vector3 minTreeScale;
     [SerializeField] Vector3 maxTreeScale;
@@ -40,8 +41,6 @@ public class MapObjGen : MonoBehaviour
     [SerializeField, Range(0, 1)] float rotateTowardsNormal;
 
     [SerializeField] Vector2 rotationRange;
-
-    public List<GameObject> mapObjectList;
 
     public GameObject[] trees;
     public GameObject[] grass;
@@ -75,10 +74,6 @@ public class MapObjGen : MonoBehaviour
     private readonly string fliesTag = "Flies";
     private readonly string fishTag = "Fish";
 
-    [SerializeField] private float xPosition = -500;
-    [SerializeField] private float yPosition = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
-    [SerializeField] private float zPosition = -500;
-
     [SerializeField] float obstacleSizeX = 1;
     [SerializeField] float obstacleSizeY = 14;
     [SerializeField] float obstacleSizeZ = 1;
@@ -89,7 +84,15 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private NavMeshModifier navModifier;
 
+    [SerializeField] private float mapSizeX = 0;
+    [SerializeField] private float mapSizeY = 0;
+    [SerializeField] private float mapSizeZ = 0;
 
+    [SerializeField] private float xOffset = 0;
+    [SerializeField] private float yPos = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
+    [SerializeField] private float zOffset = 0;
+
+    public List<GameObject> mapObjectList;
 
     //public MeshSettings meshSettings;
 
@@ -103,7 +106,7 @@ public class MapObjGen : MonoBehaviour
 
     public GameObject GetRandomObject(GameObject[] mapElements)
     {
-        return mapElements[Random.Range(0, mapElements.Length - 1)];
+        return mapElements[Random.Range(0, mapElements.Length)];
     }
 
     public void Generate()
@@ -111,7 +114,15 @@ public class MapObjGen : MonoBehaviour
         //sampleWidth = meshSettings.meshWorldSize;
         //sampleHeight = meshSettings.meshWorldSize;
 
+       
+
         ResetPosOffset();
+
+        sampleWidth = meshSettings.meshWorldSize;
+        sampleHeight = meshSettings.meshWorldSize;
+
+        xOffset = -sampleWidth / 2;
+        zOffset = -sampleHeight / 2;
 
         //mapObjectList.Clear();
 
@@ -131,6 +142,9 @@ public class MapObjGen : MonoBehaviour
 
         FliesPoissonDisc(fliesSampler);
         //FishPoissonDisc(fishSampler);
+
+
+        SetOffset();
 
         GroundCheck();
     }
@@ -488,7 +502,7 @@ public class MapObjGen : MonoBehaviour
 
     void SetOffset()
     {
-        mapObject.transform.position = new Vector3(xPosition, yPosition, zPosition);
+        mapObject.transform.position = new Vector3(xOffset, yOffset, zOffset);
     }
 
     void ResetPosOffset()

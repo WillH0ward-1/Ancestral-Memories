@@ -129,9 +129,9 @@ public class CamFollow : MonoBehaviour
         AllowUserZoom();
     }
 
-    public void AllowUserZoom()
+    IEnumerator AllowUserZoom()
     {
-        if (!cinematicActive == true)
+        while (!cinematicActive == true)
         {
             if (ZoomCamera.orthographic)
             {
@@ -142,24 +142,27 @@ public class CamFollow : MonoBehaviour
                 ZoomCamera.fieldOfView -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Otherwise, use this (Perspective Camera).
             }
 
-            if (ZoomCamera.orthographicSize > maxZoom)
+            if (ZoomCamera.orthographicSize >= maxZoom)
             {
                 ZoomCamera.orthographicSize = maxZoom;
             }
 
-            if (ZoomCamera.orthographicSize < minZoom)
+            if (ZoomCamera.orthographicSize <= minZoom)
             {
                 ZoomCamera.orthographicSize = minZoom;
             }
+
+            continue;
         }
+
+        yield return null;
+
     }
 
     public void FixedUpdate()
     {
-
         if (MoveCamera == true)
         {
-
             // Smooth camera follow.
 
             Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + camFollowOffset.y, target.position.z + camFollowOffset.z);
