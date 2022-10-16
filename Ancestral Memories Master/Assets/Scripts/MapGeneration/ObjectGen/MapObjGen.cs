@@ -89,14 +89,24 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private float mapSizeZ = 0;
 
     [SerializeField] private float xOffset = 0;
-    [SerializeField] private float yPos = 10; // This determines how high the trees will raycast from, and thus where they will spawn relative to height.
+   
     [SerializeField] private float zOffset = 0;
+
+    [SerializeField] private float initY = 0;
 
     public List<GameObject> mapObjectList;
 
     //public MeshSettings meshSettings;
 
     // Start is called before the first frame update
+
+    void OnSceneGUI()
+    {
+        if (Event.current.type == EventType.Repaint)
+        {
+            SceneView.RepaintAll();
+        }
+    }
 
     private void Awake()
     {
@@ -113,8 +123,6 @@ public class MapObjGen : MonoBehaviour
     {
         //sampleWidth = meshSettings.meshWorldSize;
         //sampleHeight = meshSettings.meshWorldSize;
-
-       
 
         ResetPosOffset();
 
@@ -155,7 +163,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomTree = GetRandomObject(trees);
 
-            GameObject instantiatedTree = Instantiate(randomTree, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedTree = Instantiate(randomTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             instantiatedTree.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -186,7 +194,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomGrass = GetRandomObject(grass);
 
-            GameObject instantiatedGrass = Instantiate(randomGrass, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedGrass = Instantiate(randomGrass, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             instantiatedGrass.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -220,7 +228,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomFoliage = GetRandomObject(foliage);
 
-            GameObject instantiatedFoliage = Instantiate(randomFoliage, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedFoliage = Instantiate(randomFoliage, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             instantiatedFoliage.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -250,7 +258,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomRocks = GetRandomObject(rocks);
 
-            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             instantiatedRock.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -278,9 +286,9 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in mushroomSampler.Samples())
         {
-            GameObject randomTree = GetRandomObject(mushrooms);
+            GameObject rndomShroom = GetRandomObject(mushrooms);
 
-            GameObject instantiatedMushroom = Instantiate(randomTree, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedMushroom = Instantiate(rndomShroom, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             instantiatedMushroom.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -311,7 +319,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomFlies = GetRandomObject(flies);
 
-            GameObject instantiatedFlies = Instantiate(randomFlies, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
+            GameObject instantiatedFlies = Instantiate(randomFlies, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             instantiatedFlies.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -370,7 +378,6 @@ public class MapObjGen : MonoBehaviour
 
     void GroundCheck()
     {
-        SetOffset();
 
         foreach (GameObject mapObject in mapObjectList)
         {
@@ -461,7 +468,7 @@ public class MapObjGen : MonoBehaviour
                     float distance = hitFloor.distance;
 
                     float x = mapObject.transform.position.x;
-                    float y = mapObject.transform.position.y - distance + yOffset;
+                    float y = mapObject.transform.position.y - distance;
                     float z = mapObject.transform.position.z;
 
                     Vector3 newPosition = new Vector3(x, y, z);
@@ -478,7 +485,6 @@ public class MapObjGen : MonoBehaviour
 
         void AddColliders()
         {
-
             foreach (GameObject mapObject in mapObjectList)
             {
                 if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag))
@@ -502,15 +508,13 @@ public class MapObjGen : MonoBehaviour
 
     void SetOffset()
     {
-        mapObject.transform.position = new Vector3(xOffset, yOffset, zOffset);
+        mapObject.transform.position = new Vector3(xOffset, 0, zOffset);
     }
 
     void ResetPosOffset()
     {
         mapObject.transform.position = new Vector3(0, 0, 0);
     }
-
-    [SerializeField] private float newY;
 
     void ClearList()
     {

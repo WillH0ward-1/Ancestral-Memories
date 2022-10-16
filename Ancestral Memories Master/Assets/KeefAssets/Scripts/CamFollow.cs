@@ -18,7 +18,9 @@ public class CamFollow : MonoBehaviour
 
     [SerializeField] private float maxZoom = 32;
 
-    [SerializeField] private float spawnZoom = 1000;
+    [SerializeField] private float gameModeZoom = 32;
+
+    [SerializeField] private float spawnZoomDistance = 1000;
 
     [SerializeField] private float minZoom = 6;
 
@@ -38,6 +40,9 @@ public class CamFollow : MonoBehaviour
 
     public CharacterClass player;
 
+    string cutscene = ("");
+
+    float camCooldown = 0f;
 
     // Update is called once per frame
 
@@ -46,41 +51,21 @@ public class CamFollow : MonoBehaviour
 
         playerSpawning = true;
 
-        cinematicActive = true; // Level introduction.
+        cinematicActive = false; // Level introduction.
 
         gameStarted = true;
 
-        if (playerSpawning == true)
+        ZoomCamera.orthographicSize = spawnZoomDistance;
 
-        {
-            ZoomCamera.orthographicSize = spawnZoom;
-
-        } else
-        {
-            ZoomCamera.orthographicSize = maxZoom;
-        }
-
-        TriggerInterval();
+        ToSpawnZoom();
     }
 
-    public void TriggerInterval()
-
+    public void StartCinematic()
     {
-        StartCoroutine(Wait());
+        cinematicActive = true;
+        cutscene = ("spawn");
     }
 
-    IEnumerator Wait()
-    {
-        yield return new WaitForSeconds(4f); // wait for 'x' event to finish before ending cinematic mode.
-        cinematicActive = false;
-    }
-
-    public void SpawnZoom()
-    {
-        // Wait for game to load here
-        SetCamClipPlane();
-        ZoomIn();
-    }
 
     void SetCamClipPlane()
     {
@@ -97,35 +82,38 @@ public class CamFollow : MonoBehaviour
         }
     }
 
-    public void Update()
+    public void ToSpawnZoom()
     {
-        if (playerSpawning == true)
-        {
-            SpawnZoom();
-        }
-
-        if (cinematicActive == true)
-        {
-            // Activate Cinematic Mode
-
-            ZoomIn();
-
-        } else if (cinematicActive == false)
-        {
-            ZoomOut();
-            UserZoom();
-        }
+        SetCamClipPlane();
+        lerpDuration = 4f;
+        zoomDestination = minZoom;
+        camCooldown = 1f;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, camCooldown));
     }
 
-    public void UserZoom()
-
+    public void ToGameCamera()
     {
         StartCoroutine(UserZoomBuffer());
+        lerpDuration = 1f;
+        zoomDestination = gameModeZoom;
+        camCooldown = 1f;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, camCooldown));
     }
+
+    public void ToCutsceneZoom()
+    {
+        SetCamClipPlane();
+        lerpDuration = 1f;
+        zoomDestination = minZoom;
+        camCooldown = 1f;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, camCooldown));
+    }
+
 
     IEnumerator UserZoomBuffer()
     {
-        yield return new WaitForSeconds(4f); // buffer until player can take control of the scrollbar.
+        float zoomBuffer = 4f;
+        yield return new WaitForSeconds(zoomBuffer); // buffer until player can take control of the scrollbar.
         AllowUserZoom();
     }
 
@@ -170,54 +158,43 @@ public class CamFollow : MonoBehaviour
             transform.position = SmoothedPosition;
 
         }
-
     }
 
     // Camera 'zoom' into target.
 
-    public float currentZoomVal;
-    private float endZoomVal;
+    public float currentZoom;
+    private float zoomDestination;
 
     public float timeElapsed;
     public float lerpDuration = 5;
 
-    IEnumerator LerpToZoom()
+
+    IEnumerator Zoom(float lerpDuration, float zoomDestination, float camCooldown)
+
     {
-        currentZoomVal = ZoomCamera.orthographicSize;
-
-        if (cinematicActive == true)
-
-        {
-            endZoomVal = minZoom;
-
-        } else if (cinematicActive == false)
-
-        {
-            endZoomVal = maxZoom;
-        } 
+        currentZoom = ZoomCamera.orthographicSize;
 
         float timeElapsed = 0;
 
         while (timeElapsed < lerpDuration)
 
         {
-            ZoomCamera.orthographicSize = Mathf.Lerp(currentZoomVal, endZoomVal, timeElapsed / lerpDuration);
+            ZoomCamera.orthographicSize = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
             timeElapsed += Time.deltaTime;
 
             yield return null;
-        } 
+
+            StartCoroutine(ZoomFinish(camCooldown));
+
+
+        }
     }
 
-    public void ZoomIn()
-
+    IEnumerator ZoomFinish(float duration)
     {
-        StartCoroutine(LerpToZoom());
-    }
+        yield return new WaitForSeconds(duration);
 
-    public void ZoomOut()
-
-    {
-        StartCoroutine(LerpToZoom());
+        ToGameCamera();
     }
 }
 

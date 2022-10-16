@@ -9,6 +9,9 @@ using TMPro;
 public class TimeController : MonoBehaviour
 {
 
+
+    public Material skyMaterial;
+
     [SerializeField] private TextMeshProUGUI timeText;
 
     [SerializeField] private TextMeshProUGUI dayText;
