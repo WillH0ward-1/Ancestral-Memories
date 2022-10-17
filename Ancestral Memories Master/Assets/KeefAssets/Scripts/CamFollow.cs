@@ -60,13 +60,6 @@ public class CamFollow : MonoBehaviour
         ToSpawnZoom();
     }
 
-    public void StartCinematic()
-    {
-        cinematicActive = true;
-        cutscene = ("spawn");
-    }
-
-
     void SetCamClipPlane()
     {
         if (cinematicActive == true)
@@ -184,13 +177,13 @@ public class CamFollow : MonoBehaviour
 
             yield return null;
 
-            StartCoroutine(ZoomFinish(camCooldown));
+            StartCoroutine(ZoomCooldown(camCooldown));
 
 
         }
     }
 
-    IEnumerator ZoomFinish(float duration)
+    IEnumerator ZoomCooldown(float duration)
     {
         yield return new WaitForSeconds(duration);
 
