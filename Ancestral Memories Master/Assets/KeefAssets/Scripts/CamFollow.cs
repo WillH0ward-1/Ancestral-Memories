@@ -68,7 +68,7 @@ public class CamFollow : MonoBehaviour
             ZoomCamera.nearClipPlane = -5000;
         }
 
-        if (cinematicActive == false)
+        else if (cinematicActive == false)
         {
             ZoomCamera.farClipPlane = 300;
             ZoomCamera.nearClipPlane = -300;
@@ -77,6 +77,7 @@ public class CamFollow : MonoBehaviour
 
     public void ToSpawnZoom()
     {
+        cinematicActive = true; // Level introduction.
         SetCamClipPlane();
         lerpDuration = 4f;
         zoomDestination = minZoom;
@@ -86,6 +87,7 @@ public class CamFollow : MonoBehaviour
 
     public void ToGameCamera()
     {
+        cinematicActive = false; // Level introduction.
         StartCoroutine(UserZoomBuffer());
         lerpDuration = 1f;
         zoomDestination = gameModeZoom;
@@ -95,6 +97,7 @@ public class CamFollow : MonoBehaviour
 
     public void ToCutsceneZoom()
     {
+        cinematicActive = true; // Level introduction.
         SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = minZoom;
@@ -108,6 +111,7 @@ public class CamFollow : MonoBehaviour
         float zoomBuffer = 4f;
         yield return new WaitForSeconds(zoomBuffer); // buffer until player can take control of the scrollbar.
         AllowUserZoom();
+        yield break;
     }
 
     IEnumerator AllowUserZoom()
@@ -177,17 +181,20 @@ public class CamFollow : MonoBehaviour
 
             yield return null;
 
-            StartCoroutine(ZoomCooldown(camCooldown));
-
-
+        }
+        if (timeElapsed >= lerpDuration)
+        {
+            StartCoroutine(ZoomCooldown());
         }
     }
 
-    IEnumerator ZoomCooldown(float duration)
+    IEnumerator ZoomCooldown()
     {
+        float duration = 1f;
         yield return new WaitForSeconds(duration);
 
         ToGameCamera();
+        yield break;
     }
 }
 
