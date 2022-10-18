@@ -44,6 +44,7 @@ public class CamFollow : MonoBehaviour
 
     float camCooldown = 0f;
 
+
     // Update is called once per frame
 
     public void Start()
@@ -75,8 +76,10 @@ public class CamFollow : MonoBehaviour
         }
     }
 
+
     public void ToSpawnZoom()
     {
+        StartCoroutine(RotateCamera());
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
         lerpDuration = 4f;
@@ -105,6 +108,70 @@ public class CamFollow : MonoBehaviour
         StartCoroutine(Zoom(lerpDuration, zoomDestination, camCooldown));
     }
 
+    [SerializeField] private float rotationSpeedMultiplier = 1f;
+    [SerializeField] float rotationDuration = 1;
+
+    IEnumerator RotateCamera()
+    {
+        while (cinematicActive)
+        {
+
+            float currentRotation = ZoomCamera.transform.eulerAngles.y;
+            float endRotation = currentRotation + 360.0f;
+
+            float timeElapsed = 0;
+
+            while (timeElapsed < rotationDuration)
+
+            {
+                timeElapsed += Time.deltaTime;
+
+                float yRotation = Mathf.Lerp(currentRotation, endRotation, timeElapsed / rotationDuration * rotationSpeedMultiplier) % 360.0f;
+
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, yRotation,
+                transform.eulerAngles.z);
+
+                yield return null;
+
+            }
+
+        } if (!cinematicActive)
+        {
+            ResetRotation();
+            yield break;
+        }
+       
+    }
+
+    IEnumerator ResetRotation()
+    {
+        float lerpDuration = 5f;
+
+        float x = 15f;
+        float y = 306f;
+        float z = 0f;
+
+        Quaternion rotationDestination = Quaternion.Euler(x, y, z);
+
+        Quaternion currentRotation = ZoomCamera.transform.rotation;
+
+        float timeElapsed = 0;
+
+        while (timeElapsed < lerpDuration)
+
+        {
+            ZoomCamera.transform.rotation = Quaternion.Lerp(currentRotation, rotationDestination, timeElapsed / lerpDuration);
+            timeElapsed += Time.deltaTime;
+
+            yield return null;
+
+        }
+
+        if (timeElapsed >= lerpDuration)
+        {
+            yield break;
+        }
+    }
 
     IEnumerator UserZoomBuffer()
     {
@@ -146,6 +213,7 @@ public class CamFollow : MonoBehaviour
 
     public void FixedUpdate()
     {
+
         if (MoveCamera == true)
         {
             // Smooth camera follow.

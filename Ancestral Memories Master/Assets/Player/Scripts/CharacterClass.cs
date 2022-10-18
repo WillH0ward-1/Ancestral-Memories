@@ -195,7 +195,7 @@ public class CharacterClass : MonoBehaviour
 
         currentState = newState;
     }
-
+    
     public virtual void AdjustAnimationSpeed(float newSpeed)
     {
         activeAnimator.speed = newSpeed;
