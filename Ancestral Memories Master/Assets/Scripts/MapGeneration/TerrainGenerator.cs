@@ -78,11 +78,12 @@ public class TerrainGenerator : MonoBehaviour {
 		{
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
-
+			tmp.AddComponent<CorruptionControl>();
 		}
 	}
 
 	void Update() {
+
 		viewerPosition = new Vector2 (viewer.position.x, viewer.position.z);
 
 		if (viewerPosition != viewerPositionOld) {
