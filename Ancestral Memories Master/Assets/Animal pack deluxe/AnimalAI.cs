@@ -182,10 +182,6 @@ public class AnimalAI : MonoBehaviour
                     {
                         agent.SetDestination(runTo);
                     }
-                    else
-                    {
-                        player = null;
-                    }
                 }
 
                 //Temporarily switch to Idle if the Agent stopped

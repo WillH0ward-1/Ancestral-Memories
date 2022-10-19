@@ -8,14 +8,54 @@ public class MapObjGen : MonoBehaviour
 {
     //public int density;
 
-    public GameObject mapObject;
-    public MeshData meshData;
+    [Header("Map Object Generator")]
+    [Header("========================================================================================================================")]
 
-    private Mesh mesh;
+    [Header("Terrain Mesh Data")]
+    [Space(10)]
 
-    public MeshSettings meshSettings;
+    [SerializeField] private MeshData meshData;
+    [SerializeField] private MeshSettings meshSettings;
+    [SerializeField] private GameObject mapObject;
+    [SerializeField] private GameObject hierarchyRoot;
+
+    [SerializeField] private float sampleWidth = 0;
+    [SerializeField] private float sampleHeight = 0;
 
     //private MeshFilter meshFilter;
+
+    [Header("========================================================================================================================")]
+    [Header("Spawnable Objects")]
+    [Space(10)]
+
+    [SerializeField] private GameObject[] trees;
+    [SerializeField] private GameObject[] grass;
+    [SerializeField] private GameObject[] foliage;
+    [SerializeField] private GameObject[] rocks;
+    [SerializeField] private GameObject[] mushrooms;
+    [SerializeField] private GameObject[] flies;
+    [SerializeField] private GameObject[] fish;
+    [SerializeField] private GameObject[] animals;
+
+    [Header("========================================================================================================================")]
+    [Header("Positioning")]
+    [Space(10)]
+
+    [SerializeField] float yOffset;
+
+    [SerializeField] private float mapSizeX = 0;
+    [SerializeField] private float mapSizeY = 0;
+    [SerializeField] private float mapSizeZ = 0;
+
+    [SerializeField] private float xOffset = 0;
+
+    [SerializeField] private float zOffset = 0;
+
+    [SerializeField] private float initY = 0;
+
+    [Header("========================================================================================================================")]
+    [Header("Object Scaling")]
+    [Space(10)]
 
     [SerializeField] Vector3 minTreeScale;
     [SerializeField] Vector3 maxTreeScale;
@@ -38,21 +78,18 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minFishScale;
     [SerializeField] Vector3 maxFishScale;
 
-    [SerializeField, Range(0, 1)] float rotateTowardsNormal;
+    [Header("========================================================================================================================")]
 
+    [Header("Object Rotation")]
+    [Space(10)]
+
+    [SerializeField, Range(0, 1)] float rotateTowardsNormal;
     [SerializeField] Vector2 rotationRange;
 
-    public GameObject[] trees;
-    public GameObject[] grass;
-    public GameObject[] foliage;
-    public GameObject[] rocks;
-    public GameObject[] mushrooms;
-    public GameObject[] flies;
-    public GameObject[] fish ;
+    [Header("========================================================================================================================")]
 
-    [SerializeField] float sampleWidth = 0;
-
-    [SerializeField] float sampleHeight = 0;
+    [Header("Density")]
+    [Space(10)]
 
     [SerializeField] float minimumTreeRadius = 70;
     [SerializeField] float minimumGrassRadius = 70;
@@ -61,8 +98,22 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumMushroomRadius = 70;
     [SerializeField] float minimumFliesRadius = 70;
     [SerializeField] float minimumFishRadius = 70;
+    [SerializeField] float minimumAnimalRadius = 70;
 
-    [SerializeField] GameObject hierarchyRoot;
+    [Header("========================================================================================================================")]
+
+    [Header("Navmesh")]
+    [Space(10)]
+
+    [SerializeField] private NavMeshObstacle navMeshObstacle;
+
+    [SerializeField] private NavMeshModifier navModifier;
+
+    [SerializeField] float obstacleSizeX = 1;
+    [SerializeField] float obstacleSizeY = 14;
+    [SerializeField] float obstacleSizeZ = 1;
+
+    [Header("========================================================================================================================")]
 
     private readonly string treeTag = "Trees";
     private readonly string waterTag = "Water";
@@ -70,31 +121,17 @@ public class MapObjGen : MonoBehaviour
     private readonly string grassTag = "Grass";
     private readonly string foliageTag = "Foliage";
     private readonly string rockTag = "Rocks";
-    private readonly string mushroomTag = "Mushrooms";
     private readonly string fliesTag = "Flies";
     private readonly string fishTag = "Fish";
+    private readonly string animalTag = "Animal";
 
-    [SerializeField] float obstacleSizeX = 1;
-    [SerializeField] float obstacleSizeY = 14;
-    [SerializeField] float obstacleSizeZ = 1;
+    [Header("========================================================================================================================")]
 
-    [SerializeField] float yOffset;
-
-    [SerializeField] private NavMeshObstacle navMeshObstacle;
-
-    [SerializeField] private NavMeshModifier navModifier;
-
-    [SerializeField] private float mapSizeX = 0;
-    [SerializeField] private float mapSizeY = 0;
-    [SerializeField] private float mapSizeZ = 0;
-
-    [SerializeField] private float xOffset = 0;
-   
-    [SerializeField] private float zOffset = 0;
-
-    [SerializeField] private float initY = 0;
+    [Header("Generated Objects")]
+    [Space(10)]
 
     public List<GameObject> mapObjectList;
+
 
     //public MeshSettings meshSettings;
 
@@ -138,26 +175,49 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler grassSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumGrassRadius);
         PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
-        PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
         PoissonDiscSampler fliesSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFliesRadius);
-        PoissonDiscSampler fishSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFishRadius);
+        PoissonDiscSampler  animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
 
         TreePoissonDisc(treeSampler);
         GrassPoissonDisc(grassSampler);
-        MushroomPoissonDisc(mushroomSampler);
         FoliagePoissonDisc(foliageSampler);
         RocksPoissonDisc(rockSampler);
-
         FliesPoissonDisc(fliesSampler);
-        //FishPoissonDisc(fishSampler);
-
+        AnimalPoissonDisc(animalSampler);
 
         SetOffset();
 
         GroundCheck();
     }
 
-    void TreePoissonDisc(PoissonDiscSampler treeSampler)
+    void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
+
+    {
+        foreach (Vector2 sample in animalSampler.Samples())
+        {
+            GameObject randomAnimal = GetRandomObject(animals);
+
+            GameObject animalInstance = Instantiate(randomAnimal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            animalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            animalInstance.tag = animalTag;
+
+            int animalsLayer = LayerMask.NameToLayer("Animals");
+            animalInstance.layer = animalsLayer;
+
+            animalInstance.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(animalInstance);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+
+    }
+
+
+        void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
         foreach (Vector2 sample in treeSampler.Samples())
         {
@@ -282,37 +342,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    void MushroomPoissonDisc(PoissonDiscSampler mushroomSampler)
-    {
-        foreach (Vector2 sample in mushroomSampler.Samples())
-        {
-            GameObject rndomShroom = GetRandomObject(mushrooms);
-
-            GameObject instantiatedMushroom = Instantiate(rndomShroom, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
-
-            instantiatedMushroom.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-
-            instantiatedMushroom.transform.localScale = new Vector3(
-            Random.Range(minTreeScale.x, maxTreeScale.x),
-            Random.Range(minTreeScale.y, maxTreeScale.y),
-            Random.Range(minTreeScale.z, maxTreeScale.z));
-
-
-            instantiatedMushroom.tag = mushroomTag;
-
-            int mushRoomLayer = LayerMask.NameToLayer("Mushrooms");
-            instantiatedMushroom.layer = mushRoomLayer;
-
-            instantiatedMushroom.transform.SetParent(hierarchyRoot.transform);
-
-            mapObjectList.Add(instantiatedMushroom);
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
-        }
-
-    }
-
     void FliesPoissonDisc(PoissonDiscSampler fliesSampler)
     {
         foreach (Vector2 sample in fliesSampler.Samples())
@@ -343,38 +372,6 @@ public class MapObjGen : MonoBehaviour
         }
 
     }
-   /*
-    void FishPoissonDisc(PoissonDiscSampler fishSampler)
-    {
-        foreach (Vector2 sample in fishSampler.Samples())
-        {
-            GameObject randomFish = GetRandomObject(fish);
-
-            GameObject instantiatedFish = Instantiate(randomFish, new Vector3(sample.x, 0, sample.y), Quaternion.identity);
-
-            instantiatedFish.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-
-            instantiatedFish.transform.localScale = new Vector3(
-            Random.Range(minFliesScale.x, maxFliesScale.x),
-            Random.Range(minFliesScale.y, maxFliesScale.y),
-            Random.Range(minFliesScale.z, maxFliesScale.z));
-
-
-            instantiatedFish.tag = fishTag;
-
-            int fishLayer = LayerMask.NameToLayer("Fish");
-            instantiatedFish.layer = fishLayer;
-
-            instantiatedFish.transform.SetParent(hierarchyRoot.transform);
-
-            mapObjectList.Add(instantiatedFish);
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
-        }
-
-    }
-   */
 
     void GroundCheck()
     {
