@@ -8,45 +8,58 @@ public class CorruptionControl : MonoBehaviour
 
     private Material corruptionMaterial;
 
-    private CharacterClass player;
+    string playerTag = "Player";
 
-    public int maxKarma = 1;
-    public int minKarma = 0;
+    public int minCorruption = 1;
+    public int maxCorruption = 0;
 
-    Renderer auraRenderer;
+    Renderer meshRenderer;
+
     public Renderer[] auraRenderers = new Renderer[0];
 
-    private float targetKarma = 1f;
-    private float currentKarmaVal = 1f;
+    private float targetCorruption = 1f;
+    private float currentCorruption = 1f;
 
     public float corruptionIntensity;
 
-    private void OnEnable() => player.OnFaithChanged += KarmaModify;
-    private void OnDisable() => player.OnFaithChanged -= KarmaModify;
+    [SerializeField] private CharacterClass characterClass;
 
     // Start is called before the first frame update
     void Start()
     {
+        GameObject player = GameObject.FindGameObjectWithTag(playerTag);
+        characterClass = player.GetComponent<CharacterClass>();
+
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        auraRenderer = GetComponent<SkinnedMeshRenderer>();
+        meshRenderer = GetComponent<MeshRenderer>();
+
+        if (!meshRenderer)
+        {
+            meshRenderer = GetComponent<SkinnedMeshRenderer>();
+        } else
+        {
+            Debug.LogError("Mesh Renderer not recognised.");
+        }
+
         corruptionMaterial = GetComponent<Renderer>().material;
 
         corruptionIntensity = corruptionMaterial.GetFloat("_Corruption");
-        corruptionIntensity = maxKarma;
+        corruptionIntensity = maxCorruption;
 
     }
+
+    private void OnEnable() => characterClass.OnFaithChanged -= Corruption;
+    private void OnDisable() => characterClass.OnFaithChanged += Corruption;
 
     // Update is called once per frame
     void Update()
     {
-        currentKarmaVal = Mathf.Lerp(currentKarmaVal, targetKarma, 2f * Time.deltaTime);
-
-        auraRenderer.material.SetFloat("_AuraIntensity", currentKarmaVal);
-
+        currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, 2f * Time.deltaTime);
+        meshRenderer.material.SetFloat("_Corruption", currentCorruption);
     }
 
-    private void KarmaModify(int faith, int maxFaith)
+    private void Corruption(int corruption, int maxCorruption)
     {
-        targetKarma = (float)faith / maxFaith;
+        targetCorruption = (float)corruption / maxCorruption;
     }
 }
