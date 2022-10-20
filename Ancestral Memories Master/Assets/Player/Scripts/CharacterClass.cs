@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class CharacterClass : MonoBehaviour
+public class CharacterClass : MonoBehaviour, IStats
 {
 
     private Animator activeAnimator;
@@ -58,17 +58,8 @@ public class CharacterClass : MonoBehaviour
 
     private int ageToDie = 0;
 
-    private int maxHealth = 100;
-    private int minHealth = 0;
-
-    private int maxHunger = 100;
-    private int minHunger = 0;
-
-    private int maxFaith = 100;
-    private int minFaith = 0;
-
-    private int maxEvolution = 100;
-    private int minEvolution = 0;
+    private int maxStat = 100;
+    private int minStat = 0;
 
     public HealthBar healthBar;
     public HungerBar hungerBar;
@@ -76,8 +67,8 @@ public class CharacterClass : MonoBehaviour
     public EvolutionBar evolutionBar;
 
     public float health;
-    public float currentHunger;
-    public float currentFaith;
+    public float hunger;
+    public float faith;
     public float evolution;
 
     public bool starving = false;
@@ -116,10 +107,10 @@ public class CharacterClass : MonoBehaviour
 
         InitAnimators();
 
-        health = maxHealth;
-        currentHunger = maxHunger;
-        currentFaith = maxFaith;
-        evolution = minEvolution;
+        health = maxStat;
+        hunger = maxStat;
+        faith = maxStat;
+        evolution = minStat;
 
         isDiseased = false;
     }
@@ -179,7 +170,7 @@ public class CharacterClass : MonoBehaviour
 
     //private float crossFadeLength;
 
-    public virtual void ChangeAnimationState(string newState)
+    public void ChangeAnimationState(string newState)
     {
         SwitchAnimators();
 
@@ -195,8 +186,8 @@ public class CharacterClass : MonoBehaviour
 
         currentState = newState;
     }
-    
-    public virtual void AdjustAnimationSpeed(float newSpeed)
+
+    private void AdjustAnimationSpeed(float newSpeed)
     {
         activeAnimator.speed = newSpeed;
         inactiveAnimator.speed = newSpeed;
@@ -236,8 +227,6 @@ public class CharacterClass : MonoBehaviour
         {
             Debug.Log("Drowning!");
 
-            UpdateStats(1f, 0, 0, 0);
-
             if (hasDied)
             {
                 ChangeAnimationState(PLAYER_DROWN);
@@ -247,40 +236,37 @@ public class CharacterClass : MonoBehaviour
         }
 
         // UPDATE PLAYER STATS 
-
-        UpdateStats(0, 0.1f, 0.1f, 0.1f);
     }
 
     public virtual void SetHealth(int value)
     {
         health = value;
 
-        if (health >= maxHealth)
+        if (health >= maxStat)
         {
-            health = maxHealth;
+            health = maxStat;
         }
     }
 
-
-    public virtual void Kill()
+    private void Kill()
     {
-        health = minHealth;
+        health = minStat;
         hasDied = true;
         StartCoroutine(CheckForRevive());
     }
 
     private void Devolve()
     {
-        evolution = minEvolution;
+        evolution = minStat;
     }
 
 
-    public virtual IEnumerator CheckForRevive()
+    private IEnumerator CheckForRevive()
     {
         float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSeconds(animationLength);
 
-        if (currentFaith < 50) // In order to revive, currentFaith needs to be > x. 
+        if (faith < 50) // In order to revive, currentFaith needs to be > x. 
         {
             isReviving = true;
             StartCoroutine(Revive()); // Start Revive
@@ -295,9 +281,9 @@ public class CharacterClass : MonoBehaviour
     {   // REVIVE PLAYER - Complete Reset.
 
         hasDied = false;
-        health = maxHealth;
-        currentHunger = maxHunger;
-        currentFaith = maxFaith;
+        health = maxStat;
+        hunger = maxStat;
+        faith = maxStat;
 
         ChangeAnimationState(PLAYER_REVIVING);
 
@@ -329,59 +315,136 @@ public class CharacterClass : MonoBehaviour
 
     public virtual event Action<int, int> OnFaithChanged;
 
-    public virtual void UpdateStats(float healthDamage, float faithDamage, float hunger, float evolveMultiplier)
+    public virtual void DepleteFaith(float faithDamage)
     {
+        OnFaithChanged?.Invoke((int)faith, maxStat);
 
-        OnFaithChanged?.Invoke((int)currentFaith, maxFaith);
+        faith -= faithDamage;
+        faithBar.UpdateFaith(faith / maxStat);
 
-        health -= healthDamage;
-        currentFaith -= faithDamage;
-        currentHunger -= hunger;
-        evolution += evolveMultiplier;
-
-        healthBar.UpdateHealth(health / maxHealth);
-        faithBar.UpdateFaith(currentFaith / maxFaith);
-        hungerBar.UpdateHunger(currentHunger / maxHunger);
-        evolutionBar.UpdateEvolution(evolution / maxEvolution);
-
-        if (health <= minHealth)
+        if (faith <= minStat)
         {
-            Kill();
-        }
-
-        if (currentHunger <= minHunger)
-        {
-            currentHunger = minHunger;
-            starving = true;
-        } else
-        {
-            starving = false;
-        }
-
-        if (evolution >= maxEvolution)
-        {
-            evolution = minEvolution; // reset evolution ( level up )
-        }
-
-        if (currentFaith <= minFaith)
-        {
-            currentFaith = minFaith;
+            faith = minStat;
             isFaithless = true;
 
-            Debug.Log("Player is faithless!");
-
+            Debug.Log("Player is faithless!");             
             //earthQuake.start = true;
-
-            //  Trigger chance to be struck down by god / natural disasters
-            // vocal cue + thunder rumble 'Heretic!'. First Testament style.
-
-        }
-
-        else
+        } else
 
         {
             earthQuake.start = false;
             isFaithless = false;
         }
+    }
+
+    public virtual void TakeDamage(float damage)
+    {
+        health -= damage;
+        healthBar.UpdateHealth(health / maxStat);
+
+        if (health <= minStat)
+        {
+            Kill();
+        }
+    }
+
+    public virtual void Heal(float healFactor)
+    {
+        health += healFactor;
+        healthBar.UpdateHealth(health / maxStat);
+
+        if (health >= maxStat)
+        {
+            health = maxStat;
+        }
+    }
+
+    public virtual void Hunger(float hungerFactor)
+    {
+        hunger -= hungerFactor;
+        hungerBar.UpdateHunger(this.hunger / maxStat);
+
+        if (hunger <= minStat)
+        {
+            Kill();
+        }
+
+        if (hunger <= minStat)
+        {
+            hunger = minStat;
+            starving = true;
+        }
+        else
+        {
+            starving = false;
+        }
+    }
+
+    public virtual void Evolve(float evolutionFactor)
+    {
+        evolution += evolutionFactor;
+        evolutionBar.UpdateEvolution(evolution / maxStat);
+
+        if (evolution >= maxStat)
+        {
+            evolution = minStat; // reset evolution ( level up )
+        }
+    }
+
+    public virtual void ContractDisease()
+    {
+        int diseaseIndex = diseaseSeverities.Length - 1;
+
+        // Factor in current health, faith, age etc...
+        NotifyOfDisease(diseaseIndex);
+
+    }
+
+    private void NotifyOfDisease(int diseaseIndex)
+    {
+
+        for (int i = 0; i < diseaseSeverities.Length; i++)
+        {
+            diseaseSeverity = diseaseSeverities[diseaseIndex];
+            Debug.Log("Player has been infected with a " + diseaseSeverity + " disease!"); // Make so that there are stages. Mild, Severe, Fatal, Terminal
+
+            isDiseased = true;
+        }
+    }
+
+    string[] diseaseSeverities = { "mild", "severe", "fatal", "terminal" };
+    string diseaseSeverity = "";
+
+
+    int diseaseMultiplier;
+
+    private void DiseaseSeverity()
+    {
+        if (diseaseSeverity == "mild")
+        {
+            diseaseMultiplier = 2;
+            TakeDamage(0.00005f * diseaseMultiplier);
+        }
+        if (diseaseSeverity == "severe")
+        {
+            diseaseMultiplier = 3;
+            TakeDamage(0.0005f * diseaseMultiplier);
+        }
+        if (diseaseSeverity == "fatal")
+        {
+            diseaseMultiplier = 4;
+            TakeDamage(0.005f * diseaseMultiplier);
+        }
+        if (diseaseSeverity == "terminal")
+        {
+            diseaseMultiplier = 5;
+            TakeDamage(0.05f * diseaseMultiplier);
+        }
+    }
+
+    public void HealDisease()
+    {
+        Debug.Log("Player has miraculously recovered from" + diseaseSeverity + "disease!");
+        isDiseased = false;
     }
 }

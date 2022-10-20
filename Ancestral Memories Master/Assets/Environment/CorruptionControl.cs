@@ -13,6 +13,7 @@ public class CorruptionControl : MonoBehaviour
     public int maxKarma = 1;
     public int minKarma = 0;
 
+    Renderer auraRenderer;
     public Renderer[] auraRenderers = new Renderer[0];
 
     private float targetKarma = 1f;
@@ -27,7 +28,8 @@ public class CorruptionControl : MonoBehaviour
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        Material corruptionMaterial = GetComponent<Renderer>().material;
+        auraRenderer = GetComponent<SkinnedMeshRenderer>();
+        corruptionMaterial = GetComponent<Renderer>().material;
 
         corruptionIntensity = corruptionMaterial.GetFloat("_Corruption");
         corruptionIntensity = maxKarma;
@@ -39,10 +41,7 @@ public class CorruptionControl : MonoBehaviour
     {
         currentKarmaVal = Mathf.Lerp(currentKarmaVal, targetKarma, 2f * Time.deltaTime);
 
-        foreach (Renderer renderer in auraRenderers)
-        {
-            renderer.material.SetFloat("_AuraIntensity", currentKarmaVal);
-        }
+        auraRenderer.material.SetFloat("_AuraIntensity", currentKarmaVal);
 
     }
 

@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface ITakeDamage 
+public interface IStats 
 {
 
-    void HealDamage(float healthHealed);
-
+    void Heal(float healFactor);
+    void SetHealth(int value);
     void TakeDamage(float damageTaken);
-
-    void Death();
-
+    void DepleteFaith(float faithModifer);
+    void Evolve(float evolution);
+    void ContractDisease();
 
 }
