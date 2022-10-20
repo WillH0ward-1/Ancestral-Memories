@@ -38,22 +38,6 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] animals;
 
     [Header("========================================================================================================================")]
-    [Header("Positioning")]
-    [Space(10)]
-
-    [SerializeField] float yOffset;
-
-    [SerializeField] private float mapSizeX = 0;
-    [SerializeField] private float mapSizeY = 0;
-    [SerializeField] private float mapSizeZ = 0;
-
-    [SerializeField] private float xOffset = 0;
-
-    [SerializeField] private float zOffset = 0;
-
-    [SerializeField] private float initY = 0;
-
-    [Header("========================================================================================================================")]
     [Header("Object Scaling")]
     [Space(10)]
 
@@ -126,6 +110,22 @@ public class MapObjGen : MonoBehaviour
     private readonly string animalTag = "Animal";
 
     [Header("========================================================================================================================")]
+
+    [Header("========================================================================================================================")]
+    [Header("Positioning")]
+    [Space(10)]
+
+    [SerializeField] float yOffset;
+
+    [SerializeField] private float mapSizeX = 0;
+    [SerializeField] private float mapSizeY = 0;
+    [SerializeField] private float mapSizeZ = 0;
+
+    [SerializeField] private float xOffset = 0;
+
+    [SerializeField] private float zOffset = 0;
+
+    [SerializeField] private float initY = 0;
 
     [Header("Generated Objects")]
     [Space(10)]
@@ -459,10 +459,35 @@ public class MapObjGen : MonoBehaviour
                 int groundLayerMask = (1 << groundLayerIndex);
 
                 if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
-                    
+
                 {
 
                     float distance = hitFloor.distance;
+
+                    float x = mapObject.transform.position.x;
+                    float y = mapObject.transform.position.y - distance;
+                    float z = mapObject.transform.position.z;
+
+                    Vector3 newPosition = new Vector3(x, y, z);
+
+                    mapObject.transform.position = newPosition;
+
+                    //Debug.Log("Clamped to Ground!");
+                    //Debug.Log("Distance: " + distance);
+                }
+            }
+
+            foreach (GameObject mapObject in mapObjectList)
+            {
+
+                int groundLayerIndex = LayerMask.NameToLayer("Ground");
+                int groundLayerMask = (1 << groundLayerIndex);
+
+                if (Physics.Raycast(mapObject.transform.position, Vector3.up, out RaycastHit hitSky, Mathf.Infinity, groundLayerMask))
+
+                {
+
+                    float distance = hitSky.distance;
 
                     float x = mapObject.transform.position.x;
                     float y = mapObject.transform.position.y - distance;
@@ -484,7 +509,7 @@ public class MapObjGen : MonoBehaviour
         {
             foreach (GameObject mapObject in mapObjectList)
             {
-                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag))
+                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag))
                 {
                     mapObject.AddComponent<MeshCollider>();
 

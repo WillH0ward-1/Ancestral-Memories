@@ -173,7 +173,6 @@ public class ControlAlpha : MonoBehaviour
 
     IEnumerator StartBlendShape()
     {
-
         SetTargetBlendShape();
 
         void SetTargetBlendShape()
