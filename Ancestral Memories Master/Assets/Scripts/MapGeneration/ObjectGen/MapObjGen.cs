@@ -394,26 +394,27 @@ public class MapObjGen : MonoBehaviour
 
             Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitWater, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit down, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
             {
 
-                var LayerWater = LayerMask.NameToLayer(waterTag);
-                var LayerGround = LayerMask.NameToLayer(groundTag);
+                    var LayerWater = LayerMask.NameToLayer(waterTag);
+                    var LayerGround = LayerMask.NameToLayer(groundTag);
 
-                if (hitWater.transform.gameObject.layer == LayerWater && !mapObject.CompareTag(fishTag))
-                {
-                    Debug.Log("Water Ahoy!");
-                    DestroyObject();
-                }
-                else if (hitWater.transform.gameObject.layer == LayerGround && mapObject.CompareTag(fishTag))
-                {
-                    Debug.Log("Fish can't walk.");
-                    DestroyObject();
-                }
+                    if (down.transform.gameObject.layer == LayerWater)
+                    {
+                        Debug.Log("Water Ahoy!");
+                        DestroyObject();
+                    }
+                    else if (down.transform.gameObject.layer == LayerGround)
+                    {
+                        Debug.Log("Fish can't walk.");
+                        DestroyObject();
+                    }
                     else
-                {
-                    continue;
-                }
+                    {
+                        continue;
+                    }
+                
             }
 
             void DestroyObject()
@@ -483,11 +484,10 @@ public class MapObjGen : MonoBehaviour
                 int groundLayerIndex = LayerMask.NameToLayer("Ground");
                 int groundLayerMask = (1 << groundLayerIndex);
 
-                if (Physics.Raycast(mapObject.transform.position, Vector3.up, out RaycastHit hitSky, Mathf.Infinity, groundLayerMask))
-
+                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
                 {
 
-                    float distance = hitSky.distance;
+                    float distance = hitFloor.distance;
 
                     float x = mapObject.transform.position.x;
                     float y = mapObject.transform.position.y - distance;
@@ -530,12 +530,12 @@ public class MapObjGen : MonoBehaviour
 
     void SetOffset()
     {
-        mapObject.transform.position = new Vector3(xOffset, 0, zOffset);
+        mapObject.transform.position = new Vector3(xOffset, initY, zOffset);
     }
 
     void ResetPosOffset()
     {
-        mapObject.transform.position = new Vector3(0, 0, 0);
+        mapObject.transform.position = new Vector3(0, initY, 0);
     }
 
     void ClearList()

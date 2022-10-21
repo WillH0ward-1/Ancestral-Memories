@@ -14,7 +14,10 @@ public class CamFollow : MonoBehaviour
     private float defaultCamZoom = 35;
 
     [SerializeField]
-    private Camera ZoomCamera;
+    private Camera MainCam;
+
+    [SerializeField]
+    private RPCamera RPCam;
 
     [SerializeField] private float maxZoom = 32;
 
@@ -44,11 +47,21 @@ public class CamFollow : MonoBehaviour
 
     float camCooldown = 0f;
 
+    bool useMainCam = true;
 
     // Update is called once per frame
 
     public void Start()
     {
+
+        MainCam = GetComponent<Camera>();
+        RPCam = GetComponent<RPCamera>();
+
+
+        useMainCam = true;
+        SwitchCams();
+
+        RPCam.perspective = 0;
 
         playerSpawning = true;
 
@@ -56,26 +69,50 @@ public class CamFollow : MonoBehaviour
 
         gameStarted = true;
 
-        ZoomCamera.orthographicSize = spawnZoomDistance;
+        MainCam.orthographicSize = spawnZoomDistance;
 
         ToSpawnZoom();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            useMainCam ^= true;
+            SwitchCams();
+        }
+    }
+
+    public void SwitchCams()
+    {
+        if (useMainCam)
+        {
+            RPCam.enabled = false;
+
+            currentZoom = MainCam.orthographicSize;
+        }
+        else
+        {
+            RPCam.enabled = true;
+
+            currentZoom = RPCam.perspective;
+        }
     }
 
     void SetCamClipPlane()
     {
         if (cinematicActive == true)
         {
-            ZoomCamera.farClipPlane = 5000;
-            ZoomCamera.nearClipPlane = -5000;
+            MainCam.farClipPlane = 5000;
+            MainCam.nearClipPlane = -5000;
         }
 
         else if (cinematicActive == false)
         {
-            ZoomCamera.farClipPlane = 300;
-            ZoomCamera.nearClipPlane = -300;
+            MainCam.farClipPlane = 300;
+            MainCam.nearClipPlane = -300;
         }
     }
-
 
     public void ToSpawnZoom()
     {
@@ -116,7 +153,7 @@ public class CamFollow : MonoBehaviour
         while (cinematicActive)
         {
 
-            float currentRotation = ZoomCamera.transform.eulerAngles.y;
+            float currentRotation = MainCam.transform.eulerAngles.y;
             float endRotation = currentRotation + 360.0f;
 
             float timeElapsed = 0;
@@ -153,14 +190,14 @@ public class CamFollow : MonoBehaviour
 
         Quaternion rotationDestination = Quaternion.Euler(x, y, z);
 
-        Quaternion currentRotation = ZoomCamera.transform.rotation;
+        Quaternion currentRotation = MainCam.transform.rotation;
 
         float timeElapsed = 0;
 
         while (timeElapsed < lerpDuration)
 
         {
-            ZoomCamera.transform.rotation = Quaternion.Lerp(currentRotation, rotationDestination, timeElapsed / lerpDuration);
+            MainCam.transform.rotation = Quaternion.Lerp(currentRotation, rotationDestination, timeElapsed / lerpDuration);
             timeElapsed += Time.deltaTime;
 
             yield return null;
@@ -185,23 +222,23 @@ public class CamFollow : MonoBehaviour
     {
         while (!cinematicActive == true)
         {
-            if (ZoomCamera.orthographic)
+            if (MainCam.orthographic)
             {
-                ZoomCamera.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Use this when using Orthographic Camera.
+                MainCam.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Use this when using Orthographic Camera.
             }
             else
             {
-                ZoomCamera.fieldOfView -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Otherwise, use this (Perspective Camera).
+                MainCam.fieldOfView -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Otherwise, use this (Perspective Camera).
             }
 
-            if (ZoomCamera.orthographicSize >= maxZoom)
+            if (MainCam.orthographicSize >= maxZoom)
             {
-                ZoomCamera.orthographicSize = maxZoom;
+                MainCam.orthographicSize = maxZoom;
             }
 
-            if (ZoomCamera.orthographicSize <= minZoom)
+            if (MainCam.orthographicSize <= minZoom)
             {
-                ZoomCamera.orthographicSize = minZoom;
+                MainCam.orthographicSize = minZoom;
             }
 
             continue;
@@ -232,19 +269,25 @@ public class CamFollow : MonoBehaviour
 
     public float timeElapsed;
     public float lerpDuration = 5;
-
+ 
 
     IEnumerator Zoom(float lerpDuration, float zoomDestination, float camCooldown)
 
     {
-        currentZoom = ZoomCamera.orthographicSize;
 
         float timeElapsed = 0;
 
         while (timeElapsed < lerpDuration)
 
         {
-            ZoomCamera.orthographicSize = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
+            if (useMainCam)
+            {
+                MainCam.orthographicSize = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
+            } else
+            {
+                RPCam.perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
+            }
+
             timeElapsed += Time.deltaTime;
 
             yield return null;
@@ -264,6 +307,7 @@ public class CamFollow : MonoBehaviour
         ToGameCamera();
         yield break;
     }
+
 }
 
 
