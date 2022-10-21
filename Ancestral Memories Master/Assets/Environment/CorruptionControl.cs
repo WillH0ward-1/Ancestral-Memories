@@ -18,7 +18,9 @@ public class CorruptionControl : MonoBehaviour
     public Renderer[] auraRenderers = new Renderer[0];
 
     private float targetCorruption = 1f;
-    private float currentCorruption = 1f;
+    private float currentCorruption = 0f;
+
+    private float corruptionMultiplier = 1f;
 
     public float corruptionIntensity;
 
@@ -54,7 +56,7 @@ public class CorruptionControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, 2f * Time.deltaTime);
+        currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, corruptionMultiplier * Time.deltaTime);
         meshRenderer.material.SetFloat("_Corruption", currentCorruption);
     }
 
