@@ -20,6 +20,9 @@ public class PlayerWalk : MonoBehaviour
 
     public GameObject playerBase;
 
+
+    private Vector3 RPCamOffset;
+
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_WALK = "Player_walk";
     const string PLAYER_JOG = "Player_jog";
@@ -31,6 +34,7 @@ public class PlayerWalk : MonoBehaviour
 
     const string groundTag = "Walkable";
 
+    public RPCamera rpCam;
     //public DirectedAgent agent;
 
     void Awake()

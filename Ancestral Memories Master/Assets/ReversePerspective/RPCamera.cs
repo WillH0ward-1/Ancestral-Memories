@@ -11,16 +11,16 @@ public class RPCamera : MonoBehaviour {
 	[Range(-10.0f, 10.0f)]
     public float perspective = 0.0f;
 
-	[SerializeField] private Camera camera;
+	[SerializeField] public Camera rpCam;
 
 	private float m_m00;
 	private float m_m11;
 
     void Reset()
     {
-        camera = GetComponent<Camera>();
-        if (!camera.orthographic) {
-            camera.orthographic = true;
+        rpCam = GetComponent<Camera>();
+        if (!rpCam.orthographic) {
+            rpCam.orthographic = true;
         }
 
 		UpdateProjection(true);
@@ -28,8 +28,9 @@ public class RPCamera : MonoBehaviour {
 
     void Start()
     {
-        camera = GetComponent<Camera>();
-        if (!camera.orthographic) {
+        rpCam = GetComponent<Camera>();
+
+        if (!rpCam.orthographic) {
             throw new System.Exception("Camera projection should be orthographic");
         }
 
@@ -38,7 +39,7 @@ public class RPCamera : MonoBehaviour {
 
 	void OnValidate() // to not set projection on each Update
 	{
-		camera = GetComponent<Camera>();
+		rpCam = GetComponent<Camera>();
 
 		UpdateProjection(true);
 	}
@@ -53,7 +54,7 @@ public class RPCamera : MonoBehaviour {
 
 		Matrix4x4 matrix = GetProjectionMatrix(-perspective * 0.01f, -distance); // convert 'perspective' from percent
 
-        camera.projectionMatrix = matrix;
+        rpCam.projectionMatrix = matrix;
     }
 
 	private float GetCameraDistance() {
@@ -66,8 +67,8 @@ public class RPCamera : MonoBehaviour {
 
 	private void PrepareProjection()
 	{
-		m_m00 = 1f / camera.orthographicSize / camera.aspect;
-		m_m11 = 1f / camera.orthographicSize;
+		m_m00 = 1f / rpCam.orthographicSize / rpCam.aspect;
+		m_m11 = 1f / rpCam.orthographicSize;
 	}
 
 	private Matrix4x4 GetProjectionMatrix(float p, float d)
@@ -104,12 +105,13 @@ public class RPCamera : MonoBehaviour {
 
 		float d = GetCameraDistance();  
 		float p = perspective * 0.01f;
-		float s = camera.orthographicSize;
-		float n = camera.nearClipPlane;
-		float f = camera.farClipPlane;
-		float a = camera.aspect;
+		float s = rpCam.orthographicSize;
+		float n = rpCam.nearClipPlane;
+		float f = rpCam.farClipPlane;
+		float a = rpCam.aspect;
 		float nx = s * (1.0f + p * (n-d));
 		float fx = s * (1.0f + p * (f-d));
+
 		var points = new [] {
 			new Vector3( nx, nx/a, n),
 			new Vector3(-nx, nx/a, n),
@@ -124,6 +126,7 @@ public class RPCamera : MonoBehaviour {
 			new Vector3( -s, -s/a, d),
 			new Vector3(  s, -s/a, d),
 		};
+
 		var lines = new [] {
 			0,1, 1,2, 2,3, 3,0,
 			0,4, 1,5, 2,6, 3,7,
