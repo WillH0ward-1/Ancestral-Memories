@@ -391,30 +391,47 @@ public class MapObjGen : MonoBehaviour
                 }
             }
             */
-
-            Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
+            var LayerWater = LayerMask.NameToLayer(waterTag);
+            var LayerGround = LayerMask.NameToLayer(groundTag);
 
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit down, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
             {
 
-                    var LayerWater = LayerMask.NameToLayer(waterTag);
-                    var LayerGround = LayerMask.NameToLayer(groundTag);
+                Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-                    if (down.transform.gameObject.layer == LayerWater)
-                    {
-                        Debug.Log("Water Ahoy!");
-                        DestroyObject();
-                    }
-                    else if (down.transform.gameObject.layer == LayerGround)
-                    {
-                        Debug.Log("Fish can't walk.");
-                        DestroyObject();
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                
+                if (down.transform.gameObject.layer == LayerWater)
+                {
+                    Debug.Log("Water Ahoy!");
+                    DestroyObject();
+                }
+
+                if (down.transform.gameObject.layer == LayerGround)
+                {
+                    Debug.Log("Fish can't walk.");
+                    DestroyObject();
+                }
+
+                if (down.collider == null)
+                {
+                    DestroyObject();
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            if (Physics.Raycast(mapObject.transform.position, Vector3.up, out RaycastHit up, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
+            {
+                if (up.transform.gameObject.layer == LayerWater)
+                {
+                    DestroyObject();
+                }
+
+                if (up.transform.gameObject.layer == LayerWater && up.transform.gameObject.layer == LayerGround)
+                {
+                    DestroyObject();
+                }
             }
 
             void DestroyObject()

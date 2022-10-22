@@ -79,6 +79,7 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 			tmp.AddComponent<CorruptionControl>();
+			tmp.AddComponent<LerpTerrain>();
 		}
 	}
 

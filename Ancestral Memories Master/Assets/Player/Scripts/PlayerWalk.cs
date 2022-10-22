@@ -88,15 +88,11 @@ public class PlayerWalk : MonoBehaviour
         {
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-            int rangeLayerIndex = LayerMask.NameToLayer("Range");
-            int rangeLayerMask = (1 << rangeLayerIndex);
-
             int groundLayerIndex = LayerMask.NameToLayer("Ground");
             int groundLayerMask = (1 << groundLayerIndex);
 
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayerMask))
             {
-
                 //Vector3 screenPointToGround = ray.origin + ray.direction * 100;
                 Vector3 playerPosition = playerBase.transform.position;
 
@@ -110,25 +106,28 @@ public class PlayerWalk : MonoBehaviour
                 else
                 {
 
-                    MoveAgent(hit.point, distance);
+                    MoveAgent(hit.point, distance, playerPosition);
                     //Debug.DrawLine(ray.origin, screenPointToGround, Color.blue);
                     //Debug.DrawLine(screenPointToGround, playerPosition, Color.red);
 
                 }
-                
             }
         }
 
-        void MoveAgent(Vector3 hitPoint, float distance)
+        void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
         {
            
-            speed = distance / distanceRatios;
+            speed = cursorDistance / distanceRatios;
+
+            //speed = Mathf.Clamp(speed, 0, 20);
+
+            agent.destination = hitPoint;
 
             agent.speed = speed;
 
             animSpeed = speed / animFactor;
 
-            if (speed <= runThreshold)
+            if (speed < runThreshold)
             {
                 if (playerIsCrouched)
                 {
@@ -138,33 +137,32 @@ public class PlayerWalk : MonoBehaviour
                 {
                     changeState(PLAYER_WALK);
                 }
-
-                agent.destination = hitPoint;
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
-            if (speed >= runThreshold)
+            if (speed > runThreshold)
             {
                 if (playerIsCrouched)
                 {
                     return;
                 }
-
                 else
-
                 {
                     changeState(PLAYER_RUN);
                 }
-
                 //player.AdjustAnimationSpeed(animSpeed);
             }
 
-            Debug.Log("Cursor Distance:" + distance);
+            Debug.Log("Cursor Distance:" + cursorDistance);
             Debug.Log("Speed:" + agent.speed);
 
             agent.isStopped = false;
 
-            agent.acceleration = 1000;
+            //Debug.Log("Player moving?" + agent.isStopped);
+
+            //agent.acceleration = x;
+            //float runThreshold = cursorDistance / 2;
+            //player.ChangeAnimationState(PLAYER_WALK);
 
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
@@ -186,7 +184,6 @@ public class PlayerWalk : MonoBehaviour
             agent.ResetPath();
 
             agent.isStopped = true;
-
             //Debug.Log("Player moving?" + agent.isStopped);
         }
 

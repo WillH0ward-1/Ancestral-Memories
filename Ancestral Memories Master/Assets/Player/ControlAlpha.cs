@@ -63,7 +63,7 @@ public class ControlAlpha : MonoBehaviour
         {
             if (!playerIsTransforming) {
 
-                playerIsHuman = !playerIsHuman; // Invert boolean with 'xor'
+                playerIsHuman = !playerIsHuman; 
 
                 player.SwitchAnimators();
 

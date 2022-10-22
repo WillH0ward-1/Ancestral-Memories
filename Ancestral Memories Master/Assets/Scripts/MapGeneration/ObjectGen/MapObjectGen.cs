@@ -103,6 +103,7 @@ public class MapObjectGen : MonoBehaviour
         SetOffset();
 
         GroundCheck();
+        AnchorToGround();
     }
 
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
@@ -138,6 +139,61 @@ public class MapObjectGen : MonoBehaviour
     }
 
 
+    void AnchorToGround()
+    {
+        //LayerMask groundMask = LayerMask.GetMask("Ground");
+
+        foreach (GameObject mapObject in mapObjectList)
+        {
+
+            int groundLayerIndex = LayerMask.NameToLayer("Ground");
+            int groundLayerMask = (1 << groundLayerIndex);
+
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+
+            {
+
+                float distance = hitFloor.distance;
+
+                float x = mapObject.transform.position.x;
+                float y = mapObject.transform.position.y - distance + yOffset;
+                float z = mapObject.transform.position.z;
+
+                Vector3 newPosition = new Vector3(x, y, z);
+
+                mapObject.transform.position = newPosition;
+
+                //Debug.Log("Clamped to Ground!");
+                //Debug.Log("Distance: " + distance);
+            }
+        }
+
+        AddColliders();
+    }
+
+    void AddColliders()
+    {
+
+        foreach (GameObject mapObject in mapObjectList)
+        {
+            if (!mapObject.CompareTag("Grass") && !mapObject.CompareTag("Flies"))
+            {
+                mapObject.AddComponent<MeshCollider>();
+
+                //navMeshObstacle = GetComponent<NavMeshObstacle>();
+                //navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
+
+                //navMeshObstacle.enabled = true;
+                //navMeshObstacle.carveOnlyStationary = true;
+                //navMeshObstacle.carving = true;
+
+                //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
+            }
+            continue;
+        }
+        Debug.Log("Colliders Generated!");
+    }
+
     void GroundCheck()
     {
         SetOffset();
@@ -158,44 +214,50 @@ public class MapObjectGen : MonoBehaviour
             }
             */
 
-            Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
+        Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitWater, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
+
+            var LayerWater = LayerMask.NameToLayer(waterTag);
+            var LayerGround = LayerMask.NameToLayer(groundTag);
+
+            int waterLayerMask = (1 << LayerWater);
+            int groundLayerMask = (1 << LayerGround);
+
+            Ray ray;
+
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, Mathf.Infinity, waterLayerMask))
             {
-
-                var LayerWater = LayerMask.NameToLayer(waterTag);
-                var LayerGround = LayerMask.NameToLayer(groundTag);
-
-                if (hitWater.transform.gameObject.layer == LayerWater && !mapObject.CompareTag("Fish"))
-                {
-                    Debug.Log("Water Ahoy!");
-                    DestroyObject();
-                }
-                else if (hitWater.transform.gameObject.layer == LayerGround && mapObject.CompareTag("Fish"))
-                {
-                    Debug.Log("Fish can't walk.");
-                    DestroyObject();
-                }
-                else
-                {
-                    continue;
-                }
+                Debug.Log("Water Ahoy!");
+                DestroyObject();
             }
-
-            void DestroyObject()
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, Mathf.Infinity, groundLayerMask))
             {
-                if (Application.isEditor)
-                {
-                    Debug.Log("Object destroyed in Editor.");
-                    DestroyImmediate(mapObject);
-                }
-                else
-                {
-                    Debug.Log("Object destroyed in game.");
-                    Destroy(mapObject);
-                }
+                Debug.Log("Fish can't walk.");
+                DestroyObject();
+            }
+            else
+            {
+                continue;
             }
         }
+
+            void DestroyObject()
+        {
+            if (Application.isEditor)
+            {
+                Debug.Log("Object destroyed in Editor.");
+                DestroyImmediate(mapObject);
+            }
+            else
+            {
+                Debug.Log("Object destroyed in game.");
+                Destroy(mapObject);
+            }
+        }
+
+
+        
+
 
         ListCleanup();
 
@@ -206,67 +268,6 @@ public class MapObjectGen : MonoBehaviour
                 if (mapObjectList[i] == null)
                     mapObjectList.RemoveAt(i);
             }
-        }
-
-        AnchorToGround();
-
-        //Mesh mesh = GetComponent<MeshFilter>().mesh;
-        //Bounds bounds = mesh.bounds;
-
-
-        void AnchorToGround()
-        {
-            //LayerMask groundMask = LayerMask.GetMask("Ground");
-
-            foreach (GameObject mapObject in mapObjectList)
-            {
-
-                int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                int groundLayerMask = (1 << groundLayerIndex);
-
-                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
-
-                {
-
-                    float distance = hitFloor.distance;
-
-                    float x = mapObject.transform.position.x;
-                    float y = mapObject.transform.position.y - distance + yOffset;
-                    float z = mapObject.transform.position.z;
-
-                    Vector3 newPosition = new Vector3(x, y, z);
-
-                    mapObject.transform.position = newPosition;
-
-                    //Debug.Log("Clamped to Ground!");
-                    //Debug.Log("Distance: " + distance);
-                }
-            }
-
-            AddColliders();
-        }
-
-        void AddColliders()
-        {
-
-            foreach (GameObject mapObject in mapObjectList)
-            {
-                if (!mapObject.CompareTag("Grass") && !mapObject.CompareTag("Flies"))
-                {
-                    mapObject.AddComponent<MeshCollider>();
-
-                    //navMeshObstacle = GetComponent<NavMeshObstacle>();
-                    //navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
-
-                    //navMeshObstacle.enabled = true;
-                    //navMeshObstacle.carveOnlyStationary = true;
-                    //navMeshObstacle.carving = true;
-
-                    //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
-                }
-                continue;
-            }
-            Debug.Log("Colliders Generated!");
         }
     }
 

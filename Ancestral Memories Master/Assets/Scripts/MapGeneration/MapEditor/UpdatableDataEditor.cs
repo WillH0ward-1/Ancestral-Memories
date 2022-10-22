@@ -17,7 +17,7 @@ public class UpdatableDataEditor : Editor {
 			data.NotifyOfUpdatedValues ();
 			EditorUtility.SetDirty (target);
 
-			terrain.surface.BuildNavMesh();
+			//terrain.surface.BuildNavMesh();
 		}
 	}
 	

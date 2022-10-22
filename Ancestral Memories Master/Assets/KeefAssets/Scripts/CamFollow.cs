@@ -14,6 +14,8 @@ public class CamFollow : MonoBehaviour
 
     [SerializeField] private float gameModeZoom = 0;
 
+    [SerializeField] private float cutSceneZoom = 0;
+
     [SerializeField] private float spawnZoomDistance = -6;
 
     [SerializeField] private float minZoom = 6;
@@ -107,7 +109,7 @@ public class CamFollow : MonoBehaviour
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
         lerpDuration = 1f;
-        zoomDestination = minZoom;
+        zoomDestination = cutSceneZoom;
         camCooldown = 1f;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
