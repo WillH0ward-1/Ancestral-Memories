@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CamFollow : RPCamera
+public class CamFollow : MonoBehaviour
 {
 
     public Transform target;
@@ -40,12 +40,21 @@ public class CamFollow : RPCamera
 
     bool useMainCam = true;
 
+    public RPCamera rpCamera;
+
     // Update is called once per frame
 
-    public void Start()
-    { 
+    void Update()
+    {
 
-        perspective = spawnZoomDistance;
+        rpCamera.UpdateProjection(true);
+        
+    }
+
+    public void Start()
+    {
+
+        rpCamera.perspective = spawnZoomDistance;
 
         playerSpawning = true;
 
@@ -61,14 +70,14 @@ public class CamFollow : RPCamera
     {
         if (cinematicActive == true)
         {
-            rpCam.farClipPlane = 5000;
+            rpCamera.rpCam.farClipPlane = 5000;
             GetComponent<Camera>().nearClipPlane = -5000;
         }
 
         else if (cinematicActive == false)
         {
-            rpCam.farClipPlane = 300;
-            rpCam.nearClipPlane = -300;
+            rpCamera.rpCam.farClipPlane = 300;
+            rpCamera.rpCam.nearClipPlane = -300;
         }
     }
 
@@ -111,7 +120,7 @@ public class CamFollow : RPCamera
         while (cinematicActive)
         {
 
-            float currentRotation = rpCam.transform.eulerAngles.y;
+            float currentRotation = rpCamera.rpCam.transform.eulerAngles.y;
             float endRotation = currentRotation + 360.0f;
 
             float timeElapsed = 0;
@@ -148,7 +157,7 @@ public class CamFollow : RPCamera
 
         Quaternion rotationDestination = Quaternion.Euler(x, y, z);
 
-        Quaternion currentRotation = rpCam.transform.rotation;
+        Quaternion currentRotation = rpCamera.rpCam.transform.rotation;
 
         float timeElapsed = 0;
 
@@ -241,9 +250,9 @@ public class CamFollow : RPCamera
 
         {
 
-            currentZoom = perspective;
+            currentZoom = rpCamera.perspective;
 
-            perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
+            rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
 
             timeElapsed += Time.deltaTime;
 

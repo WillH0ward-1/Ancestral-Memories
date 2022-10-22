@@ -11,7 +11,9 @@ public class RPCamera : MonoBehaviour {
 	[Range(-10.0f, 10.0f)]
     public float perspective = 0.0f;
 
-	[SerializeField] public Camera rpCam;
+	public float distance;
+
+	public Camera rpCam;
 
 	private float m_m00;
 	private float m_m11;
@@ -71,7 +73,7 @@ public class RPCamera : MonoBehaviour {
 		m_m11 = 1f / rpCam.orthographicSize;
 	}
 
-	private Matrix4x4 GetProjectionMatrix(float p, float d)
+	private Matrix4x4 GetProjectionMatrix(float perspective, float distance)
 	{
 		//  sx   0    0      0
 		//  0   sy    0      0
@@ -89,8 +91,8 @@ public class RPCamera : MonoBehaviour {
 		var m = new Matrix4x4();
 		m.m00 =  m_m00;
 		m.m11 =  m_m11;
-		m.m22 = -0.000001f; m.m23 = p;
-		m.m32 =  p;         m.m33 = 1.0f - d * p;
+		m.m22 = -0.000001f; m.m23 = perspective;
+		m.m32 =  perspective;         m.m33 = 1.0f - distance * perspective;
 
 		return m;
 	}
