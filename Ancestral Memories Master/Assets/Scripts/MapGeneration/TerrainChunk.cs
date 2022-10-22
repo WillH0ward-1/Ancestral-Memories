@@ -74,7 +74,9 @@ public class TerrainChunk {
 		this.heightMap = (HeightMap)heightMapObject;
 		heightMapReceived = true;
 
-		UpdateTerrainChunk ();
+		UpdateTerrainChunk();
+		UpdateCollisionMesh();
+
 	}
 
 	Vector2 viewerPosition {

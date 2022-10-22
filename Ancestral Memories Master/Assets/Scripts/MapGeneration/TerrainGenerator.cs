@@ -80,6 +80,7 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.layer = 8; // 'Ground' Layer
 			tmp.AddComponent<CorruptionControl>();
 			tmp.AddComponent<LerpTerrain>();
+
 		}
 	}
 

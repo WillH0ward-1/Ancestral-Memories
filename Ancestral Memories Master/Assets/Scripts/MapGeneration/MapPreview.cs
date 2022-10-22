@@ -19,13 +19,9 @@ public class MapPreview : MonoBehaviour {
 
 	private TerrainGenerator terrain;
 
-
 	[Range(0,MeshSettings.numSupportedLODs-1)]
 	public int editorPreviewLOD;
 	public bool autoUpdate;
-
-
-
 
 	public void DrawMapInEditor() {
 		textureData.ApplyToMaterial (terrainMaterial);
@@ -52,10 +48,15 @@ public class MapPreview : MonoBehaviour {
 	public void DrawMesh(MeshData meshData) {
 
         meshFilter.sharedMesh = meshData.CreateMesh();
+
+		meshFilter.GetComponent<MeshCollider>().sharedMesh = null;
+		meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.mesh;
+
 		textureRender.gameObject.SetActive (false);
 		meshFilter.gameObject.SetActive (true);
 
-        //meshFilter.gameObject.tag = "Walkable";
+		//MeshCollider meshc = gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
+		//meshFilter.gameObject.tag = "Walkable";
 		//terrain.surface.BuildNavMesh();
 	}
 
