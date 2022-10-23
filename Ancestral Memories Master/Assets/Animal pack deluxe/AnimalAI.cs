@@ -96,6 +96,7 @@ public class AnimalAI : MonoBehaviour
 
                     //Keep last 5 Idle positions for future reference
                     previousIdlePoints.Add(transform.position);
+
                     if (previousIdlePoints.Count > 5)
                     {
                         previousIdlePoints.RemoveAt(0);
