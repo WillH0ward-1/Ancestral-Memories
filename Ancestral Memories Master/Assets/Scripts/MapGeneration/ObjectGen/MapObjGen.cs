@@ -357,10 +357,7 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minTreeScale.z, maxTreeScale.z));
 
 
-            mushroomInstance.tag = treeTag;
-
-            int treeLayer = LayerMask.NameToLayer("Trees");
-            mushroomInstance.layer = treeLayer;
+            mushroomInstance.tag = mushroomTag;
 
             mushroomInstance.transform.SetParent(hierarchyRoot.transform);
 
@@ -400,6 +397,9 @@ public class MapObjGen : MonoBehaviour
             //WaterCheck();
         }
     }
+
+    private string spawnTag = "Spawn";
+
 
     void GroundCheck()
     {

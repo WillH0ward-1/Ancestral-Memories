@@ -27,9 +27,13 @@ public class CorruptionControl : MonoBehaviour
     [SerializeField] private CharacterClass characterClass;
 
     // Start is called before the first frame update
+
     void Start()
     {
+        corruptionIntensity = minCorruption;
+
         GameObject player = GameObject.FindGameObjectWithTag(playerTag);
+
         characterClass = player.GetComponent<CharacterClass>();
 
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
@@ -46,7 +50,7 @@ public class CorruptionControl : MonoBehaviour
         corruptionMaterial = GetComponent<Renderer>().material;
 
         corruptionIntensity = corruptionMaterial.GetFloat("_Corruption");
-        corruptionIntensity = maxCorruption;
+
 
     }
 

@@ -29,6 +29,7 @@ public class TerrainChunk {
 	Transform viewer;
 
 	public TerrainChunk(Vector2 coord, HeightMapSettings heightMapSettings, MeshSettings meshSettings, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Transform viewer, Material material) {
+
 		this.coord = coord;
 		this.detailLevels = detailLevels;
 		this.colliderLODIndex = colliderLODIndex;
@@ -42,13 +43,16 @@ public class TerrainChunk {
 
 
 		meshObject = new GameObject("Terrain Chunk");
+
 		meshRenderer = meshObject.AddComponent<MeshRenderer>();
 		meshFilter = meshObject.AddComponent<MeshFilter>();
 		meshCollider = meshObject.AddComponent<MeshCollider>();
+
 		meshRenderer.material = material;
 
 		meshObject.transform.position = new Vector3(position.x,0,position.y);
 		meshObject.transform.parent = parent;
+
 		SetVisible(false);
 
 		lodMeshes = new LODMesh[detailLevels.Length];
@@ -75,7 +79,7 @@ public class TerrainChunk {
 		heightMapReceived = true;
 
 		UpdateTerrainChunk();
-		UpdateCollisionMesh();
+		//UpdateCollisionMesh();
 
 	}
 
@@ -87,7 +91,9 @@ public class TerrainChunk {
 
 
 	public void UpdateTerrainChunk() {
+
 		if (heightMapReceived) {
+
 			float viewerDstFromNearestEdge = Mathf.Sqrt (bounds.SqrDistance (viewerPosition));
 
 			bool wasVisible = IsVisible ();

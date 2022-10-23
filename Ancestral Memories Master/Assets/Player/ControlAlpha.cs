@@ -50,7 +50,7 @@ public class ControlAlpha : MonoBehaviour
         humanRenderers = humanObject.GetComponentsInChildren<Renderer>();
         monkeyRenderers = monkeyObject.GetComponentsInChildren<Renderer>();
 
-        playerIsHuman = false;
+        playerIsHuman = true;
         playerIsTransforming = false;
         //blendShapeDuration = lerpDuration;
         CheckRenderers();
