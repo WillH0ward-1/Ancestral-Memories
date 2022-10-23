@@ -108,6 +108,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string fliesTag = "Flies";
     private readonly string fishTag = "Fish";
     private readonly string animalTag = "Animal";
+    private readonly string mushroomTag = "Mushroom";
 
     [Header("========================================================================================================================")]
 
@@ -177,6 +178,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
         PoissonDiscSampler fliesSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFliesRadius);
         PoissonDiscSampler  animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
+        PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
 
         TreePoissonDisc(treeSampler);
         GrassPoissonDisc(grassSampler);
@@ -184,6 +186,7 @@ public class MapObjGen : MonoBehaviour
         RocksPoissonDisc(rockSampler);
         FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
+        MushroomPoissonDisc(mushroomSampler);
 
         SetOffset();
 
@@ -213,39 +216,37 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
-
     }
 
 
-        void TreePoissonDisc(PoissonDiscSampler treeSampler)
+    void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
         foreach (Vector2 sample in treeSampler.Samples())
         {
             GameObject randomTree = GetRandomObject(trees);
 
-            GameObject instantiatedTree = Instantiate(randomTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            GameObject treeInstance = Instantiate(randomTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            instantiatedTree.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            instantiatedTree.transform.localScale = new Vector3(
+            treeInstance.transform.localScale = new Vector3(
             Random.Range(minTreeScale.x, maxTreeScale.x),
             Random.Range(minTreeScale.y, maxTreeScale.y),
             Random.Range(minTreeScale.z, maxTreeScale.z));
 
 
-            instantiatedTree.tag = treeTag;
+            treeInstance.tag = treeTag;
 
             int treeLayer = LayerMask.NameToLayer("Trees");
-            instantiatedTree.layer = treeLayer;
+            treeInstance.layer = treeLayer;
 
-            instantiatedTree.transform.SetParent(hierarchyRoot.transform);
+            treeInstance.transform.SetParent(hierarchyRoot.transform);
 
-            mapObjectList.Add(instantiatedTree);
+            mapObjectList.Add(treeInstance);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
-
     }
 
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)
@@ -254,32 +255,31 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomGrass = GetRandomObject(grass);
 
-            GameObject instantiatedGrass = Instantiate(randomGrass, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            GameObject grassInstance = Instantiate(randomGrass, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            instantiatedGrass.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            grassInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            instantiatedGrass.transform.localScale = new Vector3(
+            grassInstance.transform.localScale = new Vector3(
             Random.Range(minGrassScale.x, maxGrassScale.x),
             Random.Range(minGrassScale.y, maxGrassScale.y),
             Random.Range(minGrassScale.z, maxGrassScale.z));
 
-            instantiatedGrass.tag = grassTag;
+            grassInstance.tag = grassTag;
 
             int grassLayer = LayerMask.NameToLayer("Grass");
-            instantiatedGrass.layer = grassLayer;
+            grassInstance.layer = grassLayer;
 
-            instantiatedGrass.transform.SetParent(hierarchyRoot.transform);
+            grassInstance.transform.SetParent(hierarchyRoot.transform);
 
-            instantiatedGrass.AddComponent<NavMeshModifier>();
+            grassInstance.AddComponent<NavMeshModifier>();
 
-            mapObjectList.Add(instantiatedGrass);
+            mapObjectList.Add(grassInstance);
 
 //            navModifier.ignoreFromBuild = true;
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
-
     }
 
     void FoliagePoissonDisc(PoissonDiscSampler foliageSamples)
@@ -288,28 +288,27 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomFoliage = GetRandomObject(foliage);
 
-            GameObject instantiatedFoliage = Instantiate(randomFoliage, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            GameObject foliageInstance = Instantiate(randomFoliage, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            instantiatedFoliage.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            foliageInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            instantiatedFoliage.transform.localScale = new Vector3(
+            foliageInstance.transform.localScale = new Vector3(
             Random.Range(minFoliageScale.x, maxFoliageScale.x),
             Random.Range(minFoliageScale.y, maxFoliageScale.y),
             Random.Range(minFoliageScale.z, maxFoliageScale.z));
 
-            instantiatedFoliage.tag = foliageTag;
+            foliageInstance.tag = foliageTag;
 
             int foliageLayer = LayerMask.NameToLayer("Foliage");
-            instantiatedFoliage.layer = foliageLayer;
+            foliageInstance.layer = foliageLayer;
 
-            instantiatedFoliage.transform.SetParent(hierarchyRoot.transform);
+            foliageInstance.transform.SetParent(hierarchyRoot.transform);
 
-            mapObjectList.Add(instantiatedFoliage);
+            mapObjectList.Add(foliageInstance);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
-
     }
 
     void RocksPoissonDisc(PoissonDiscSampler rockSamples)
@@ -318,24 +317,54 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomRocks = GetRandomObject(rocks);
 
-            GameObject instantiatedRock = Instantiate(randomRocks, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            instantiatedRock.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            rockInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            instantiatedRock.transform.localScale = new Vector3(
+            rockInstance.transform.localScale = new Vector3(
             Random.Range(minRockScale.x, maxRockScale.x),
             Random.Range(minRockScale.y, maxRockScale.y),
             Random.Range(minRockScale.z, maxRockScale.z));
 
 
-            instantiatedRock.tag = rockTag;
+            rockInstance.tag = rockTag;
 
             int rockLayer = LayerMask.NameToLayer("Rocks");
-            instantiatedRock.layer = rockLayer;
+            rockInstance.layer = rockLayer;
 
-            instantiatedRock.transform.SetParent(hierarchyRoot.transform);
+            rockInstance.transform.SetParent(hierarchyRoot.transform);
 
-            mapObjectList.Add(instantiatedRock);
+            mapObjectList.Add(rockInstance);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+    }
+
+    void MushroomPoissonDisc(PoissonDiscSampler mushroomSampler)
+    {
+        foreach (Vector2 sample in mushroomSampler.Samples())
+        {
+            GameObject randomMushroom = GetRandomObject(mushrooms);
+
+            GameObject mushroomInstance = Instantiate(randomMushroom, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            mushroomInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            mushroomInstance.transform.localScale = new Vector3(
+            Random.Range(minTreeScale.x, maxTreeScale.x),
+            Random.Range(minTreeScale.y, maxTreeScale.y),
+            Random.Range(minTreeScale.z, maxTreeScale.z));
+
+
+            mushroomInstance.tag = treeTag;
+
+            int treeLayer = LayerMask.NameToLayer("Trees");
+            mushroomInstance.layer = treeLayer;
+
+            mushroomInstance.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(mushroomInstance);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -348,55 +377,37 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomFlies = GetRandomObject(flies);
 
-            GameObject instantiatedFlies = Instantiate(randomFlies, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            GameObject fliesInstance = Instantiate(randomFlies, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            instantiatedFlies.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            fliesInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            instantiatedFlies.transform.localScale = new Vector3(
+            fliesInstance.transform.localScale = new Vector3(
             Random.Range(minFliesScale.x, maxFliesScale.x),
             Random.Range(minFliesScale.y, maxFliesScale.y),
             Random.Range(minFliesScale.z, maxFliesScale.z));
 
 
-            instantiatedFlies.tag = fliesTag;
+            fliesInstance.tag = fliesTag;
 
             int fliesLayer = LayerMask.NameToLayer("Flies");
-            instantiatedFlies.layer = fliesLayer;
+            fliesInstance.layer = fliesLayer;
 
-            instantiatedFlies.transform.SetParent(hierarchyRoot.transform);
+            fliesInstance.transform.SetParent(hierarchyRoot.transform);
 
-            mapObjectList.Add(instantiatedFlies);
+            mapObjectList.Add(fliesInstance);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
-
     }
 
     void GroundCheck()
     {
-
         foreach (GameObject mapObject in mapObjectList)
         {
-            /*
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitGround, Mathf.Infinity, LayerMask.GetMask("Ground")))
-            {
-                Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
-
-                var LayerGround = LayerMask.NameToLayer(groundTag);
-
-                if (hitGround.transform.gameObject.layer == LayerGround)
-                {
-                    ;
-                }
-            }
-            */
-            var LayerWater = LayerMask.NameToLayer(waterTag);
-            var LayerGround = LayerMask.NameToLayer(groundTag);
 
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
             {
-
                 Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
                 if (downHit.collider.CompareTag(waterTag))
@@ -410,8 +421,6 @@ public class MapObjGen : MonoBehaviour
                     DestroyObject();
                 }
             }
-
-
 
             void DestroyObject()
             {
@@ -505,7 +514,7 @@ public class MapObjGen : MonoBehaviour
         {
             foreach (GameObject mapObject in mapObjectList)
             {
-                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag))
+                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
                 {
                     mapObject.AddComponent<MeshCollider>();
 
@@ -513,8 +522,21 @@ public class MapObjGen : MonoBehaviour
                     navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
 
                     navMeshObstacle.enabled = true;
-                    //navMeshObstacle.carveOnlyStationary = true;
+                    navMeshObstacle.center = new Vector3(0, 0, 0);
+                    ;
+                    navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
+
+                    if (mapObject.CompareTag(rockTag)) {
+                        navMeshObstacle.radius = 0.5f;
+                    }
+
+                    if (mapObject.CompareTag(treeTag))
+                    {
+                        navMeshObstacle.radius = 0.2f;
+                    }
+
                     navMeshObstacle.carving = true;
+                    //navMeshObstacle.carveOnlyStationary = true;
 
                     //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
                 }
