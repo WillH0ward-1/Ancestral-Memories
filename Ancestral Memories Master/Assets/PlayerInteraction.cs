@@ -4,24 +4,26 @@ using System.Collections;
 public class PlayerInteraction : MonoBehaviour
 {
 
-    [SerializeField] private Camera cam;
-
-    Ray ray;
+    public Camera cam;
 
     void Update()
     {
-        ray = cam.ScreenPointToRay(Input.mousePosition);
+
+        int playerLevelIndex = LayerMask.NameToLayer("Player");
+        int playerMask = (1 << playerLevelIndex);
+
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
         if (Input.GetMouseButtonDown(1))
         {
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.transform.CompareTag("Player"))
                 {
                     Debug.Log("Pressed Player");
                 }
+               
             }
         }
-
     }    
 }
