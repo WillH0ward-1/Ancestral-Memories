@@ -5,6 +5,7 @@ public class PlayerInteraction : MonoBehaviour
 {
 
     public Camera cam;
+    private readonly string playerTag = "Player";
 
     void Update()
     {
@@ -18,9 +19,9 @@ public class PlayerInteraction : MonoBehaviour
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
-                if (hit.transform.CompareTag("Player"))
+                if (hit.collider.CompareTag(playerTag))
                 {
-                    Debug.Log("Pressed Player");
+                    Debug.Log(hit.collider.tag + "pressed.");
                 }
                
             }
