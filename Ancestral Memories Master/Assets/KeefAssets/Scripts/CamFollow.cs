@@ -4,45 +4,39 @@ using UnityEngine;
 
 public class CamFollow : MonoBehaviour
 {
+    public CharacterClass player;
 
     public Transform target;
+
+    private bool MoveCamera = true;
 
     public float ScrollSpeed = 0.125f;
     public float SmoothSpeed = 0.125f;
 
-    [SerializeField] private float maxZoom = 4;
-
-    [SerializeField] private float gameModeZoom = 0;
-
-    [SerializeField] private float cutSceneZoom = 0;
-
-    [SerializeField] private float spawnZoomDistance = -6;
-
-    [SerializeField] private float minZoom = 6;
+    [SerializeField] private Vector3 camFollowOffset;
 
     public bool cinematicActive = false;
 
-    public Vector3 camFollowOffset;
+    [SerializeField] private float maxZoom = 4;
+    [SerializeField] private float gameModeZoom = 0;
+    [SerializeField] private float cutSceneZoom = 0;
+    [SerializeField] private float psychedelicZoom = -1;
+    [SerializeField] private float spawnZoom = -6;
+    [SerializeField] private float minZoom = 6;
 
-    public bool MoveCamera = true;
+    [SerializeField] private bool SpawnCam = false;
+    [SerializeField] private bool GameCam = false;
+    [SerializeField] private bool CutsceneCam = false;
+    [SerializeField] private bool PsychedelicCam = false;
 
-    public float cineZoomMultiplier = 0.125f;
-
-    private float camLerp;
-
-    public bool playerSpawning = true;
-
-    public CharacterClass player;
+    [SerializeField] private bool playerSpawning = false;
 
     [SerializeField] private float InitPerspective = 4;
 
     string cutscene = ("");
 
-    float camCooldown = 0f;
+    public RPCamera rpCamera; 
 
-    bool useMainCam = true;
-
-    public RPCamera rpCamera;
 
     // Update is called once per frame
 
@@ -50,19 +44,15 @@ public class CamFollow : MonoBehaviour
     {
 
         rpCamera.UpdateProjection(true);
-        
+
+        //DebugChangeCam();
     }
 
     public void Start()
     {
-
-        rpCamera.perspective = spawnZoomDistance;
+        rpCamera.perspective = spawnZoom;
 
         playerSpawning = true;
-
-        cinematicActive = false; // Level introduction.
-
-        //MainCam.orthographicSize = spawnZoomDistance;
 
         ToSpawnZoom();
     }
@@ -83,6 +73,37 @@ public class CamFollow : MonoBehaviour
         }
     }
 
+    /*
+     * WIP switch cams for debugging/editing.
+     * 
+    public void DebugChangeCam()
+    {
+        if (SpawnCam)
+        {
+            StopAllCoroutines();
+            ToSpawnZoom();
+        }
+        if (GameCam)
+        {
+            StopAllCoroutines();
+            ToGameZoom();
+        }
+        if (CutsceneCam)
+        {
+            StopAllCoroutines();
+            ToCutsceneZoom();
+        }
+        if (PsychedelicCam)
+        {
+            StopAllCoroutines();
+            ToPsychedelicZoom();
+        } else
+        {
+            return;
+        }
+    }
+    */
+
     public void ToSpawnZoom()
     {
         //StartCoroutine(RotateCamera());
@@ -90,17 +111,15 @@ public class CamFollow : MonoBehaviour
         SetCamClipPlane();
         lerpDuration = 4f;
         zoomDestination = minZoom;
-        camCooldown = 1f;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
-    public void ToGameCamera()
+    public void ToGameZoom()
     {
         cinematicActive = false; // Level introduction.
         //StartCoroutine(UserZoomBuffer());
         lerpDuration = 1f;
         zoomDestination = gameModeZoom;
-        camCooldown = 1f;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
@@ -110,7 +129,15 @@ public class CamFollow : MonoBehaviour
         SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = cutSceneZoom;
-        camCooldown = 1f;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+    }
+
+    public void ToPsychedelicZoom()
+    {
+    //    cinematicActive = true; // Level introduction.
+        SetCamClipPlane();
+        lerpDuration = 10f;
+        zoomDestination = cutSceneZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
@@ -272,7 +299,7 @@ public class CamFollow : MonoBehaviour
         float duration = 1f;
         yield return new WaitForSeconds(duration);
 
-        ToGameCamera();
+        ToGameZoom();
         yield break;
     }
 

@@ -105,6 +105,9 @@
 		<property name="name">
 			<value>Monkey Phonemes</value>
 		</property>
+		<relationship name="modulators">
+			<destination>{0a9588f5-8cd1-4b85-a0bd-b0c70543ba75}</destination>
+		</relationship>
 		<relationship name="sounds">
 			<destination>{22808d69-61fc-4fb8-a9f4-d6ff02a3a450}</destination>
 			<destination>{45e199f4-589a-4f53-82a1-31870ef8e5af}</destination>
@@ -183,6 +186,14 @@
 	</object>
 	<object class="MixerBusPanner" id="{ea065849-18b9-4a5c-86ac-50f416de1efc}" />
 	<object class="MixerBusFader" id="{b40ddd94-6766-45d0-986d-07d9a08fce5b}" />
+	<object class="RandomizerModulator" id="{0a9588f5-8cd1-4b85-a0bd-b0c70543ba75}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>9</value>
+		</property>
+	</object>
 	<object class="SingleSound" id="{22808d69-61fc-4fb8-a9f4-d6ff02a3a450}">
 		<relationship name="audioFile">
 			<destination>{a42fb93e-83f2-44e3-9d1e-c39fc0e921d9}</destination>

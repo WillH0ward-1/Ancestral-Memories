@@ -2,17 +2,183 @@
 [LOG] Manager::init                            : maxchannels = 256 studioflags = 00000006 flags 00000000 extradriverdata 0x0.
 [LOG] SystemI::init                            : Initialize version=20208 (126901), maxchannels=256, flags=0x00020000
 [LOG] SystemI::setOutputInternal               : Setting output to 'FMOD Core Audio Output'
-[LOG] OutputCoreAudio::init                    : Output running 2 channels at 48000Hz sample rate.
+[LOG] OutputCoreAudio::init                    : Output running 2 channels at 44100Hz sample rate.
 [LOG] OutputCoreAudio::init                    : Maximum hardware read size: 512 samples, Software buffer size: 512 samples, Number of software buffers: 4.
+[LOG] SystemI::init                            : Output requires a sample rate of 44100Hz, resampling will occur.
 [LOG] Thread::initThread                       : Init FMOD stream thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFB, Stack Size: 98304, Semaphore: No, Sleep Time: 10, Looping: Yes.
 [LOG] Thread::initThread                       : Init FMOD mixer thread. Affinity: 0x4000000000000001, Priority: 0xFFFF7FFA, Stack Size: 81920, Semaphore: Yes, Sleep Time: 0, Looping: Yes.
-[LOG] AsyncManager::init                       : manager 0x7fa05898f208 isAsync 0 updatePeriod 0.02
+[LOG] AsyncManager::init                       : manager 0x7fb5f8901208 isAsync 0 updatePeriod 0.02
 [LOG] AsyncManager::init                       : done
 [LOG] PlaybackSystem::init                     : 
 [LOG] Thread::initThread                       : Init FMOD Studio sample load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
 [LOG] PlaybackSystem::init                     : done
 [LOG] Thread::initThread                       : Init FMOD Studio bank load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
 [LOG] Manager::init                            : done.
+[LOG] Manager::readBank                        : fileversion = 135, compatVersion = 132 (oldest = 44, newest = 142)
+[LOG] Manager::readBank                        : fileversion = 135, compatVersion = 132 (oldest = 44, newest = 142)
+[LOG] Manager::readBank                        : fileversion = 135, compatVersion = 132 (oldest = 44, newest = 142)
+[LOG] PlaybackSystem::acquireMasterBus         : Setting master channel group format to 6
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5bed27a08
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5ba01bc08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5ba01bc08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5ba01bc08
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5adae0608
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5adae0608
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5adae0608
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5fa1d5208
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5fa1d5208
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5fa1d5208
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5bf08a808
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5bf08a808
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5bf08a808
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5afdd2008
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5afdd2008
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5afdd2008
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5ccc97a08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5ccc97a08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5ccc97a08
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5fcab5e08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5fcab5e08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5fcab5e08
+[WRN] ObjectLookup::get                        : Lookup failed for EventModel: {8843388a-3e55-4cb3-8ef9-e3f031aeec53}
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5c84fc008
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5c84fc008
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5c84fc008
+[WRN] ObjectLookup::get                        : Lookup failed for EventModel: {8843388a-3e55-4cb3-8ef9-e3f031aeec53}
+[WRN] ObjectLookup::get                        : Lookup failed for EventModel: {8843388a-3e55-4cb3-8ef9-e3f031aeec53}
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5bee8ee08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5bee8ee08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5bee8ee08
+[WRN] ObjectLookup::get                        : Lookup failed for EventModel: {8843388a-3e55-4cb3-8ef9-e3f031aeec53}
+[WRN] ObjectLookup::get                        : Lookup failed for EventModel: {8843388a-3e55-4cb3-8ef9-e3f031aeec53}
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5f88bea08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5f88bea08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5f88bea08
+[WRN] ObjectLookup::get                        : Lookup failed for EventModel: {8843388a-3e55-4cb3-8ef9-e3f031aeec53}
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5aa5d2008
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5aa5d2008
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5aa5d2008
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5a9c43c08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5a9c43c08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5a9c43c08
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5bee8ee08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5bee8ee08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5bee8ee08
+[LOG] Thread::initThread                       : Init FMOD profiler thread (recv). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] Thread::initThread                       : Init FMOD profiler thread (send). Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 131072, Semaphore: No, Sleep Time: 0, Looping: No.
+[LOG] LiveUpdate::clientConnected              : client = 0x7fb5becf8c08
+[LOG] LiveUpdate::readPacket                   : Recieved init packet from client 0x7fb5becf8c08
+[WRN] LiveUpdate::readPacket                   : Received init message with incorrect API version: theirs = 0x00020109, ours = 0x00020208
+[LOG] ProfileClient::recvThreadLoopFunction    : Socket disconnected
+[LOG] ProfileClient::markForDead               : Closing client connection
+[LOG] Thread::callback                         : FMOD profiler thread (recv) finished.
+[LOG] Thread::callback                         : FMOD profiler thread (send) finished.
+[LOG] LiveUpdate::clientDisconnected           : client = 0x7fb5becf8c08
+[LOG] Thread::callback                         : FMOD Studio update thread finished.
+[LOG] Thread::callback                         : FMOD Studio bank load thread finished.
+[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
+[LOG] Thread::callback                         : FMOD Studio sample load thread finished.
+[LOG] LiveUpdate::release                      : 
+[LOG] LiveUpdate::reset                        : Reset connection (reason Disconnected)
+[LOG] Thread::callback                         : FMOD stream thread finished.
+[LOG] Thread::callback                         : FMOD mixer thread finished.
+[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
+[LOG] SystemI::close                           : Closed.
 [LOG] Thread::callback                         : FMOD Studio bank load thread finished.
 [LOG] Thread::callback                         : FMOD Studio sample load thread finished.
 [LOG] LiveUpdate::release                      : 

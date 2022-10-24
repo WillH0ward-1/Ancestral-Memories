@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
+using FMODUnity;
+using FMOD.Studio;
 
 public class PlayerWalk : MonoBehaviour
 {
@@ -199,6 +201,7 @@ public class PlayerWalk : MonoBehaviour
             player.ChangeAnimationState(newState);
         }
     }
+
 }
         
     

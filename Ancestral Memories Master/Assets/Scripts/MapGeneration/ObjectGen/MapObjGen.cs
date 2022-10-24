@@ -108,7 +108,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string fliesTag = "Flies";
     private readonly string fishTag = "Fish";
     private readonly string animalTag = "Animal";
-    private readonly string mushroomTag = "Mushroom";
+    private readonly string mushroomTag = "Mushrooms";
 
     [Header("========================================================================================================================")]
 

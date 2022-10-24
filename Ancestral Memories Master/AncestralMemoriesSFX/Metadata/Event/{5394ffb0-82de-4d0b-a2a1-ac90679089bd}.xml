@@ -152,7 +152,10 @@
 			<value>68</value>
 		</property>
 		<property name="volume">
-			<value>10</value>
+			<value>3</value>
+		</property>
+		<property name="pitch">
+			<value>-24</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{1f304a46-9fd4-4372-9038-36268e73852d}</destination>
@@ -219,6 +222,7 @@
 			<destination>{59912a51-da89-4ca2-8731-da238e1a03f4}</destination>
 			<destination>{30f53b4f-871a-4fbc-99e8-03ee8060724b}</destination>
 			<destination>{68aefa04-166a-42dd-8705-0006fbdfbf93}</destination>
+			<destination>{64fbfd7f-dd78-4f67-9a4f-40227195e960}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{8a596c72-dfef-45f5-b559-4d4eab800503}" />
@@ -276,19 +280,19 @@
 	<object class="MixerBusFader" id="{30f53b4f-871a-4fbc-99e8-03ee8060724b}" />
 	<object class="ThreeEQEffect" id="{68aefa04-166a-42dd-8705-0006fbdfbf93}">
 		<property name="lowGain">
-			<value>-10</value>
+			<value>-22.5</value>
 		</property>
 		<property name="highGain">
-			<value>5.5</value>
+			<value>10</value>
 		</property>
 		<property name="lowCrossover">
-			<value>620</value>
+			<value>160</value>
 		</property>
 		<property name="highCrossover">
-			<value>9000</value>
+			<value>22000</value>
 		</property>
 		<property name="crossoverSlope">
-			<value>0</value>
+			<value>2</value>
 		</property>
 		<relationship name="automators">
 			<destination>{90633341-e67f-4a8d-8c24-f2d7d09e3af0}</destination>
@@ -297,6 +301,11 @@
 			<destination>{526ba9e3-2c63-43f8-a385-5e2954d36ca1}</destination>
 			<destination>{016218e1-c1bd-4905-a983-8e6493267d8e}</destination>
 		</relationship>
+	</object>
+	<object class="DistortionEffect" id="{64fbfd7f-dd78-4f67-9a4f-40227195e960}">
+		<property name="level">
+			<value>0.209999993</value>
+		</property>
 	</object>
 	<object class="AutomationPoint" id="{adfd4a4d-2529-4b8e-9885-4cc1a9e40de8}">
 		<property name="position">

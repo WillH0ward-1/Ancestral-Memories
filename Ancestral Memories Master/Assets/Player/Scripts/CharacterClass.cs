@@ -194,11 +194,7 @@ public class CharacterClass : MonoBehaviour, IStats
     }
 
     public virtual void Update()
-
     {
-
-        // DEAL STARVE DAMAGE
-
         if (starving && !hasDied)
         {
             Debug.Log("Starving!");
