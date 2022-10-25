@@ -23,9 +23,11 @@ public class PoissonDiscVolume
 
 			for (int i = 0; i < numSamplesBeforeRejection; i++)
 			{
-				float angle = Random.value * Mathf.PI * 2;
-				Vector3 dir = new Vector3(Mathf.Sin(angle), Mathf.Cos(angle));
+
+				Vector3 dir = Random.onUnitSphere;
+
 				Vector3 candidate = spawnCentre + dir * Random.Range(radius, 2 * radius);
+
 				if (IsValid(candidate, sampleRegionSize, cellSize, radius, points, grid))
 				{
 					points.Add(candidate);
@@ -61,7 +63,7 @@ public class PoissonDiscVolume
 			int searchEndY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
 
 			int searchStartZ = Mathf.Max(0, cellZ - 2);
-			int searchEndZ = Mathf.Min(cellZ + 2, grid.GetLength(1) - 0);
+			int searchEndZ = Mathf.Min(cellZ + 2, grid.GetLength(0) - 1);
 
 			for (int x = searchStartX; x <= searchEndX; x++)
 			{

@@ -57,11 +57,11 @@ public class GenerateApples : MonoBehaviour
 
         // Volume instance has sample points & grid information (grid size & unit length).
 
-        Mesh r = GetComponent<MeshFilter>().sharedMesh;
+        Renderer r = GetComponent<Renderer>();
 
         sampleWidth = r.bounds.size.x;
-        sampleHeight = r.bounds.size.z;
-        sampleVolume = r.bounds.size.y;
+        sampleHeight = r.bounds.size.y;
+        sampleVolume = r.bounds.size.z;
 
         regionSize = new Vector3(sampleWidth, sampleHeight, sampleVolume);
 
@@ -92,12 +92,59 @@ public class GenerateApples : MonoBehaviour
 
             appleInstance.transform.SetParent(hierarchyRoot.transform);
 
+            
             appleList.Add(appleInstance);
-
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
-        
+
+        DeleteStrayApples();
+
+    }
+
+    [SerializeField] private Vector3 center = Vector3.one;
+    [SerializeField] private float radius = 2;
+
+    void DeleteStrayApples()
+    {
+        foreach (GameObject apple in appleList)
+        {
+
+            Collider[] hitColliders = Physics.OverlapSphere(apple.transform.position, radius);
+
+            foreach (var hitCollider in hitColliders)
+            {
+                if (!hitCollider.CompareTag("TreeTrunk"))
+                {
+                    DestroyObject();
+                }
+            }
+
+            void DestroyObject()
+            {
+                if (Application.isEditor)
+                {
+                    Debug.Log("Object destroyed in Editor.");
+                    DestroyImmediate(apple);
+                }
+                else
+                {
+                    Debug.Log("Object destroyed in game.");
+                    Destroy(apple);
+                }
+            }
+        }
+
+        ListCleanup();
+
+        void ListCleanup()
+        {
+            for (var i = appleList.Count - 1; i > -1; i--)
+            {
+                if (appleList[i] == null)
+                    appleList.RemoveAt(i);
+            }
+        }
     }
 
     void TriggerAppleFall()
