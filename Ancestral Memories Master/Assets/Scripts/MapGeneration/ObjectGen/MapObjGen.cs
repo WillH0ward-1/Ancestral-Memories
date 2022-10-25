@@ -1,4 +1,3 @@
-   using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -113,6 +112,7 @@ public class MapObjGen : MonoBehaviour
     [Header("========================================================================================================================")]
 
     [Header("========================================================================================================================")]
+
     [Header("Positioning")]
     [Space(10)]
 
@@ -133,11 +133,6 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> mapObjectList;
 
-
-    //public MeshSettings meshSettings;
-
-    // Start is called before the first frame update
-
     void OnSceneGUI()
     {
         if (Event.current.type == EventType.Repaint)
@@ -152,7 +147,7 @@ public class MapObjGen : MonoBehaviour
         Generate();
     }
 
-    public GameObject GetRandomObject(GameObject[] mapElements)
+    public GameObject GetRandomMapObject(GameObject[] mapElements)
     {
         return mapElements[Random.Range(0, mapElements.Length)];
     }
@@ -198,7 +193,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in animalSampler.Samples())
         {
-            GameObject randomAnimal = GetRandomObject(animals);
+            GameObject randomAnimal = GetRandomMapObject(animals);
 
             GameObject animalInstance = Instantiate(randomAnimal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -223,7 +218,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in treeSampler.Samples())
         {
-            GameObject randomTree = GetRandomObject(trees);
+            GameObject randomTree = GetRandomMapObject(trees);
 
             GameObject treeInstance = Instantiate(randomTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -253,7 +248,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in grassSampler.Samples())
         {
-            GameObject randomGrass = GetRandomObject(grass);
+            GameObject randomGrass = GetRandomMapObject(grass);
 
             GameObject grassInstance = Instantiate(randomGrass, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -286,7 +281,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in foliageSamples.Samples())
         {
-            GameObject randomFoliage = GetRandomObject(foliage);
+            GameObject randomFoliage = GetRandomMapObject(foliage);
 
             GameObject foliageInstance = Instantiate(randomFoliage, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -315,7 +310,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in rockSamples.Samples())
         {
-            GameObject randomRocks = GetRandomObject(rocks);
+            GameObject randomRocks = GetRandomMapObject(rocks);
 
             GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -345,7 +340,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in mushroomSampler.Samples())
         {
-            GameObject randomMushroom = GetRandomObject(mushrooms);
+            GameObject randomMushroom = GetRandomMapObject(mushrooms);
 
             GameObject mushroomInstance = Instantiate(randomMushroom, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -372,7 +367,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in fliesSampler.Samples())
         {
-            GameObject randomFlies = GetRandomObject(flies);
+            GameObject randomFlies = GetRandomMapObject(flies);
 
             GameObject fliesInstance = Instantiate(randomFlies, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
@@ -556,19 +551,14 @@ public class MapObjGen : MonoBehaviour
         mapObject.transform.position = new Vector3(0, initY, 0);
     }
 
-    void ClearList()
-    {
-        ResetPosOffset();
-    }
-
     public void Clear()
     {
         mapObjectList.Clear();
 
         if (Application.isEditor)
         {
-            
-            ClearList();
+
+            ResetPosOffset();
 
             while (hierarchyRoot.transform.childCount != 0)
             {
@@ -587,7 +577,7 @@ public class MapObjGen : MonoBehaviour
         else
 
         {
-            ClearList();
+            ResetPosOffset();
 
             while (hierarchyRoot.transform.childCount != 0)
             {
