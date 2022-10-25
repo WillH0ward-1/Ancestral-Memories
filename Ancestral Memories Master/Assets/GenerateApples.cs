@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GenerateApples : MonoBehaviour
 {
-    [SerializeField] private Transform hierarchyRoot;
+    [SerializeField] private GameObject hierarchyRoot;
 
     [SerializeField] private float sampleWidth = 0;
     [SerializeField] private float sampleHeight = 0;
@@ -29,22 +29,14 @@ public class GenerateApples : MonoBehaviour
     [SerializeField, Range(0, 1)] float rotateTowardsNormal;
     [SerializeField] Vector2 rotationRange;
 
+    [SerializeField] private float xOffset;
+    [SerializeField] private float zOffset;
     // Start is called before the first frame update
 
     private void Awake()
     {
         Clear();
         Generate();
-    }
-    void Start()
-    {
-        hierarchyRoot = transform.Find("AppleList");
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     public GameObject GetRandomMapObject(GameObject[] mapElements)
@@ -54,6 +46,7 @@ public class GenerateApples : MonoBehaviour
 
     public void Generate()
     {
+        ResetPosOffset();
 
         // Volume instance has sample points & grid information (grid size & unit length).
 
@@ -63,11 +56,19 @@ public class GenerateApples : MonoBehaviour
         sampleHeight = r.bounds.size.y;
         sampleVolume = r.bounds.size.z;
 
+        xOffset = -sampleWidth / 2;
+        zOffset = -sampleVolume / 2;
+
         regionSize = new Vector3(sampleWidth, sampleHeight, sampleVolume);
 
         points = PoissonDiscVolume.GeneratePoints(minimumAppleRadius, regionSize, tries);
         ApplePoissonDisc();
+
+        SetOffset();
+
+        DeleteStrayApples();
     }
+
 
     void ApplePoissonDisc()
     {
@@ -98,23 +99,25 @@ public class GenerateApples : MonoBehaviour
             //WaterCheck();
         }
 
-        DeleteStrayApples();
-
     }
 
     [SerializeField] private Vector3 center = Vector3.one;
     [SerializeField] private float radius = 2;
 
+    
+
     void DeleteStrayApples()
     {
+        Collider[] hitColliders;
+
         foreach (GameObject apple in appleList)
         {
 
-            Collider[] hitColliders = Physics.OverlapSphere(apple.transform.position, radius);
+            hitColliders = Physics.OverlapSphere(apple.transform.position, radius);
 
             foreach (var hitCollider in hitColliders)
             {
-                if (!hitCollider.CompareTag("TreeTrunk"))
+                if (!hitCollider.CompareTag("TreeTrunk") || !hitCollider.CompareTag("Trees"))
                 {
                     DestroyObject();
                 }
@@ -153,6 +156,16 @@ public class GenerateApples : MonoBehaviour
         {
             apple.GetComponent<Rigidbody>().useGravity = false;
         }
+    }
+
+    void SetOffset()
+    {
+        hierarchyRoot.transform.position = new Vector3(xOffset, 0, zOffset);
+    }
+
+    void ResetPosOffset()
+    {
+        hierarchyRoot.transform.position = new Vector3(0, 0, 0);
     }
 
     public void Clear()
