@@ -32,7 +32,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	int chunksVisibleInViewDst;
 
-	private readonly string terrainChunkName = "Terrain Chunk";
+	private string terrainChunkName = "Terrain Chunk";
 
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
 	List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();

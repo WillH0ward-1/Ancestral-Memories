@@ -47,7 +47,7 @@ public class MapPreview : MonoBehaviour {
 
 	public void DrawMesh(MeshData meshData) {
 
-        meshFilter.mesh = meshData.CreateMesh();
+        meshFilter.sharedMesh = meshData.CreateMesh();
 
 		meshFilter.GetComponent<MeshCollider>().sharedMesh = null;
 		meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.sharedMesh;

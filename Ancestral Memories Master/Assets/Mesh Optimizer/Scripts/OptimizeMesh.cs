@@ -35,11 +35,13 @@ public class OptimizeMesh : MonoBehaviour
     void Start()
     {
         _renderer = GetComponent<MeshFilter>();
-
         if (!GetComponent<MeshFilter>())
         {
             GetComponentInChildren<MeshFilter>();
-        } 
+        } else
+        {
+            Debug.LogError("MeshFilter not found. Cannot optimize geometry.");
+        }
         _mesh = _renderer.sharedMesh;
     }
         /*
