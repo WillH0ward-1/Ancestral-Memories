@@ -1,0 +1,34 @@
+{
+    "name": "PlayerWalk",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "3d09e41c-a480-4aba-9379-0b9793cd6255",
+            "actions": [
+                {
+                    "name": "StartMoving",
+                    "type": "Button",
+                    "id": "c0db55cd-2b00-45c2-98df-5297e9138144",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "fb8af69b-ae8e-4400-871d-c89be7cd9fed",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Hold",
+                    "processors": "",
+                    "groups": "",
+                    "action": "StartMoving",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

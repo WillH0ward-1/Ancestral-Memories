@@ -39,14 +39,6 @@ public class CorruptionControl : MonoBehaviour
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
         meshRenderer = GetComponent<MeshRenderer>();
 
-        if (!meshRenderer)
-        {
-            meshRenderer = GetComponent<SkinnedMeshRenderer>();
-        } else
-        {
-            Debug.LogError("Mesh Renderer not recognised.");
-        }
-
         corruptionMaterial = GetComponent<Renderer>().material;
 
         corruptionIntensity = corruptionMaterial.GetFloat("_Corruption");

@@ -110,7 +110,7 @@ public class CharacterClass : MonoBehaviour, IStats
         health = maxStat;
         hunger = maxStat;
         faith = maxStat;
-        evolution = minStat;
+        evolution = maxStat;
 
         isDiseased = false;
     }
@@ -211,11 +211,8 @@ public class CharacterClass : MonoBehaviour, IStats
 
         if (evolution <= evolutionThreshold)
         {
-            alphaControl.playerIsHuman = false;
-        } else
-        {
-            alphaControl.playerIsHuman = true;
-        }
+            alphaControl.Transform();
+        } 
 
         // DROWN
 

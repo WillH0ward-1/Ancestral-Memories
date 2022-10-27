@@ -57,22 +57,20 @@ public class ControlAlpha : MonoBehaviour
 
     }
 
-    void Update()
+    public void Transform()
     {
-        if (Input.GetKeyDown("space"))
-        {
-            if (!playerIsTransforming) {
+        if (!playerIsTransforming) {
 
-                playerIsHuman = !playerIsHuman; 
+            playerIsHuman = !playerIsHuman; 
 
-                player.SwitchAnimators();
+            player.SwitchAnimators();
 
-                StartCoroutine(Fade());
-                StartCoroutine(StartBlendShape());
+            StartCoroutine(Fade());
+            StartCoroutine(StartBlendShape());
 
-                //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
-            }
+            //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
         }
+        
     }
 
     void CheckRenderers()

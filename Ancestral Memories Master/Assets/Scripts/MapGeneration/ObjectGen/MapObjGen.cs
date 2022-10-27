@@ -407,7 +407,7 @@ public class MapObjGen : MonoBehaviour
 
                 if (downHit.collider.CompareTag(waterTag))
                 {
-                    Debug.Log("Water Ahoy!");
+//                    Debug.Log("Water Ahoy!");
                     DestroyObject();
                 }
 
@@ -421,12 +421,12 @@ public class MapObjGen : MonoBehaviour
             {
                 if (Application.isEditor)
                 {
-                    Debug.Log("Object destroyed in Editor.");
+        //            Debug.Log("Object destroyed in Editor.");
                     DestroyImmediate(mapObject);
                 }
                 else
                 {
-                    Debug.Log("Object destroyed in game.");
+       //             Debug.Log("Object destroyed in game.");
                     Destroy(mapObject);
                 }
             }
@@ -537,7 +537,7 @@ public class MapObjGen : MonoBehaviour
                 }
                 continue;
             }
-            Debug.Log("Colliders Generated!");
+          //  Debug.Log("Colliders Generated!");
         }
     }
 
