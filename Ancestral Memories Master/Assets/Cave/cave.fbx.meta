@@ -1,9 +1,14 @@
 fileFormatVersion: 2
-guid: 11f41dcd04c404ccbb2b8e3335d5205e
+guid: 768c1827b479941028783764556a2364
 ModelImporter:
   serializedVersion: 22102
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cave
+    second: {fileID: 2100000, guid: ee5abbd6f580b4fb2a51451d187eb81e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -32,11 +37,11 @@ ModelImporter:
     extraExposedTransformPaths: []
     extraUserProperties: []
     clipAnimations: []
-    isReadable: 0
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
-    meshCompression: 0
+    meshCompression: 3
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1

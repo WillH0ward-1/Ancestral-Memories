@@ -9,18 +9,16 @@ public class PlayerInteraction : MonoBehaviour
     public GameObject lastHit;
     [SerializeField] private Camera cam;
 
+    public RadialMenu radialMenu;
+
     Ray ray;
 
-    private void Awake()
-    {
-
-    }
 
     void Update()
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
         {
 
             lastHit = hit.transform.gameObject;
@@ -29,6 +27,7 @@ public class PlayerInteraction : MonoBehaviour
             {
                 if (lastHit.CompareTag("Player"))
                 {
+                    radialMenu.Open();
                     Debug.Log("Player Selected");
                 }
             }

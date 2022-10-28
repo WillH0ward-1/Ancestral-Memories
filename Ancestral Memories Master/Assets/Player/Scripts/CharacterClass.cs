@@ -360,6 +360,12 @@ public class CharacterClass : MonoBehaviour, IStats
         hunger -= hungerFactor;
         hungerBar.UpdateHunger(this.hunger / maxStat);
 
+
+        if (hunger <= minStat)
+        {
+            ChangeAnimationState(PLAYER_STARVINGIDLE);
+        }
+
         if (hunger <= minStat)
         {
             Kill();
