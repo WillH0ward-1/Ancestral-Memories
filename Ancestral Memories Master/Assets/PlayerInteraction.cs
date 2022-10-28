@@ -3,30 +3,36 @@ using System.Collections;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    public Camera cam;
 
-    string playerTag = "Player";
+    [SerializeField] private LayerMask layer;
+    public Vector3 collision = Vector3.zero;
+    public GameObject lastHit;
+    [SerializeField] private Camera cam;
 
     Ray ray;
 
-    
+    private void Awake()
+    {
 
-    void FixedUpdate()
+    }
+
+    void Update()
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        int playerLevelIndex = LayerMask.NameToLayer("Player");
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
+        {
 
-        int playerMask = LayerMask.GetMask("Player");
+            lastHit = hit.transform.gameObject;
 
-        if (Input.GetMouseButtonDown(1)) {
-
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Input.GetMouseButtonDown(1))
             {
-                if (hit.collider.CompareTag(playerTag)){
-                    print("We hit: " + hit.transform.gameObject.tag);
+                if (lastHit.CompareTag("Player"))
+                {
+                    Debug.Log("Player Selected");
                 }
             }
         }
-    }    
+    }
+
 }

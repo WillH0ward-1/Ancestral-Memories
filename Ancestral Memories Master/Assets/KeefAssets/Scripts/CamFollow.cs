@@ -35,7 +35,8 @@ public class CamFollow : MonoBehaviour
 
     string cutscene = ("");
 
-    public RPCamera rpCamera; 
+    public RPCamera rpCamera;
+    public Camera hiddenCam;
 
 
     // Update is called once per frame
@@ -52,8 +53,6 @@ public class CamFollow : MonoBehaviour
     {
         rpCamera.perspective = spawnZoom;
 
-        playerSpawning = true;
-
         ToSpawnZoom();
     }
 
@@ -63,7 +62,7 @@ public class CamFollow : MonoBehaviour
         if (cinematicActive == true)
         {
             rpCamera.rpCam.farClipPlane = 5000;
-            GetComponent<Camera>().nearClipPlane = -5000;
+            rpCamera.rpCam.nearClipPlane = -5000;
         }
 
         else if (cinematicActive == false)
@@ -106,6 +105,7 @@ public class CamFollow : MonoBehaviour
 
     public void ToSpawnZoom()
     {
+        playerSpawning = true;
         //StartCoroutine(RotateCamera());
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
@@ -300,6 +300,10 @@ public class CamFollow : MonoBehaviour
         yield return new WaitForSeconds(duration);
 
         ToGameZoom();
+        if (playerSpawning)
+        {
+            playerSpawning = false;
+        }
         yield break;
     }
 
