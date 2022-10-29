@@ -13,6 +13,7 @@ public class Interactable : MonoBehaviour
         public Color color;
         public Sprite sprite;
         public string title;
+        //public float alpha = 1f;
     }
 
     [SerializeField] private LayerMask layer;
@@ -38,9 +39,10 @@ public class Interactable : MonoBehaviour
                 if (lastHit.CompareTag("Player"))
                 {
                     Debug.Log("Player Selected");
-                    RadialMenuSpawner.menuInstance.SpawnMenu();
+                    RadialMenuSpawner.menuInstance.SpawnMenu(this);
                 }
             }
+
         }
     }
 

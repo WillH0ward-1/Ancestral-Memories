@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RadialMenu : MonoBehaviour
 {
@@ -8,12 +9,38 @@ public class RadialMenu : MonoBehaviour
     public RadialButton buttonPrefab;
     public RadialButton selected;
 
-    private void Start()
-    {
-        RadialButton newButton = Instantiate(buttonPrefab) as RadialButton;
-        newButton.transform.SetParent(transform, false); // false = worldposition
+    //Color colour;
 
-        newButton.transform.localPosition = new Vector3(0f, 100f, 0f);
+    public void SpawnButtons(Interactable obj)
+    {
+        for (int i = 0; i < obj.options.Length; i++)
+        {
+            RadialButton newButton = Instantiate(buttonPrefab);
+            newButton.transform.SetParent(transform, false); // false = use worldposition
+
+            float theta = (2 * Mathf.PI / obj.options.Length) * i;
+            float xPos = Mathf.Sin(theta);
+            float yPos = Mathf.Cos(theta);
+
+            newButton.transform.localPosition = new Vector3(xPos, yPos, 0f) * 100f;
+
+            //newButton.transform.localPosition = new Vector3(0f, 100f, 0f);
+
+            // colour = newButton.circle.color;
+            //Color colourIndex = obj.options[i].color;
+            // colour = colourIndex;
+            //colour.a = colourIndex.a;
+            newButton.circle.color = obj.options[i].color;
+            newButton.icon.sprite = obj.options[i].sprite;
+            newButton.title = obj.options[i].title;
+        } 
     }
 
+    private void Update()
+    {
+        if (Input.GetMouseButtonUp(1))
+        {
+            Destroy(gameObject);
+        }
+    }
 }
