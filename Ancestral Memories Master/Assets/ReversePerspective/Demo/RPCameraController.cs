@@ -16,9 +16,7 @@ public class RPCameraController : MonoBehaviour
 		
 	}
 
-
 	void Update() {
-
 
 		bool prepareProjection = true;
 		bool updateProjection  = true;

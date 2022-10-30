@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
-
     public Action[] options;
 
     [System.Serializable]
@@ -13,6 +12,7 @@ public class Interactable : MonoBehaviour
         public Color color;
         public Sprite sprite;
         public string title;
+        //public Animation animation;
         //public float alpha = 1f;
     }
 
@@ -32,12 +32,15 @@ public class Interactable : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
         {
 
-            lastHit = hit.transform.gameObject;
+            GameObject lastHit = hit.transform.gameObject;
 
             if (Input.GetMouseButtonDown(1))
             {
+                radialMenu.hitObject = lastHit;
+
                 if (lastHit.CompareTag("Player"))
                 {
+
                     Debug.Log("Player Selected");
                     RadialMenuSpawner.menuInstance.SpawnMenu(this);
                 }

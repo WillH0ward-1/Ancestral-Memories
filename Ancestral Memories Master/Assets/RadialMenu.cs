@@ -9,7 +9,7 @@ public class RadialMenu : MonoBehaviour
     public RadialButton buttonPrefab;
     public RadialButton selected;
 
-    //Color colour;
+    public GameObject hitObject;
 
     public void SpawnButtons(Interactable obj)
     {
@@ -30,16 +30,38 @@ public class RadialMenu : MonoBehaviour
             //Color colourIndex = obj.options[i].color;
             // colour = colourIndex;
             //colour.a = colourIndex.a;
+
             newButton.circle.color = obj.options[i].color;
             newButton.icon.sprite = obj.options[i].sprite;
             newButton.title = obj.options[i].title;
-        } 
+            newButton.myMenu = this;
+        }
+
     }
+    
 
     private void Update()
     {
+
         if (Input.GetMouseButtonUp(1))
         {
+            if (selected) // PASS SELECTED HERE - trigger events
+            {
+                switch (selected.title)
+                {
+                    case "Pray":
+                        StartCoroutine(hitObject.GetComponent<CharacterBehaviours>().PrayerAnimation());
+                        break;
+                    case "Look":
+                        break;
+                    case "Reflect":
+                        break;
+                    case "Dance":
+                        break;
+                }
+                print(selected.title);
+            }
+
             Destroy(gameObject);
         }
     }

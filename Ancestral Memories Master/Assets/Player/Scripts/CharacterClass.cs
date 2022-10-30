@@ -7,9 +7,9 @@ using UnityEngine.SceneManagement;
 public class CharacterClass : MonoBehaviour, IStats
 {
 
-    private Animator activeAnimator;
+    [System.NonSerialized] public Animator activeAnimator;
 
-    private Animator inactiveAnimator;
+    [System.NonSerialized] public Animator inactiveAnimator;
 
     private string currentState;
 
@@ -23,15 +23,6 @@ public class CharacterClass : MonoBehaviour, IStats
     const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
     const string PLAYER_STARVINGCRAWL = "Player_starvingCrawl";
     const string PLAYER_STARVINGCRAWLCRITICAL = "Player_starvingCrawlCritical";
-
-    // Emotion
-
-    const string PLAYER_CURIOUS = "Player_curious";
-    const string PLAYER_CELEBRATE = "Player_celebrate";
-    const string PLAYER_SAD = "Player_sad";
-    const string PLAYER_STARVING = "Player_starving";
-    const string PLAYER_RAGE = "Player_rage";
-    const string PLAYER_SCARED = "Player_scared";
 
     // Ailments
 
@@ -89,7 +80,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public List<GameObject> activeAnimators = new List<GameObject>();
     public List<GameObject> inactiveAnimators = new List<GameObject>();
 
-    [SerializeField] private float animationCrossFade = 2f;
+    public float animationCrossFade = 2f;
 
     public bool respawn;
 
@@ -140,7 +131,7 @@ public class CharacterClass : MonoBehaviour, IStats
     }
 
 
-    public virtual void SwitchAnimators()
+    public virtual void SetupAnimators()
     {
         AssignAnimators();
         AssignInactiveAnimators();
@@ -172,7 +163,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public void ChangeAnimationState(string newState)
     {
-        SwitchAnimators();
+        SetupAnimators();
 
         float crossFadeLength = animationCrossFade;
 
@@ -185,7 +176,10 @@ public class CharacterClass : MonoBehaviour, IStats
         inactiveAnimator.CrossFadeInFixedTime(newState, crossFadeLength);
 
         currentState = newState;
+      
     }
+
+
 
     private void AdjustAnimationSpeed(float newSpeed)
     {
@@ -416,7 +410,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
     string[] diseaseSeverities = { "mild", "severe", "fatal", "terminal" };
     string diseaseSeverity = "";
-
 
     int diseaseMultiplier;
 

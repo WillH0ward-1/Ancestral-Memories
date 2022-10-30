@@ -5,25 +5,17 @@ using FMOD.Studio;
 
 public class PlayerWalk : MonoBehaviour
 {
+    public RPCamera rpCam;
 
     public Camera cam;
-
     public CamFollow cineCam;
-
-    //private string groundTag = "Ground";
-
-    private string currentState;
 
     private NavMeshAgent agent;
 
-    //private Animator animator;
-
     public CharacterClass player;
+    public GameObject playerObject;
 
-    public GameObject playerBase;
-
-
-    private Vector3 RPCamOffset;
+    private string currentState;
 
     const string PLAYER_IDLE = "Player_idle";
     const string PLAYER_WALK = "Player_walk";
@@ -34,10 +26,16 @@ public class PlayerWalk : MonoBehaviour
 
     bool playerIsCrouched = false;
 
-    const string groundTag = "Walkable";
+    [SerializeField] private float walkThreshold = 0;
+    [SerializeField] private float runThreshold = 25;
+    [SerializeField] private float speed = 0;
+    [SerializeField] private float animSpeed = 0;
+    [SerializeField] private float distanceRatios = 2;
+    [SerializeField] float distanceThreshold = 60;
+    [SerializeField] float distance = 0;
+    [SerializeField] float animFactor = 9;
 
-    public RPCamera rpCam;
-    //public DirectedAgent agent;
+    public CharacterBehaviours behaviours;
 
     void Awake()
     {
@@ -45,161 +43,133 @@ public class PlayerWalk : MonoBehaviour
         agent.isStopped = true;
     }
 
-    [SerializeField]
-    private float walkThreshold = 0;
-
-    [SerializeField]
-    private float runThreshold = 25;
-
-    [SerializeField]
-    private float speed = 0;
-
-    [SerializeField]
-    private float animSpeed = 0;
-
-    [SerializeField]
-    private float distanceRatios = 2;
-
-    [SerializeField]
-    float distanceThreshold = 60;
-
-    [SerializeField]
-    float distance = 0;
-
-    [SerializeField]
-    float animFactor = 9;
-
     void Update()
     {
-
-        if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+        if (!behaviours.behaviourIsActive)
         {
-            CastRayToGround();
-        }
-        
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            if(agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+            if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
             {
-                StopAgent();
+                CastRayToGround();
             }
-        }
 
-        void CastRayToGround()
-        {
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-            int groundLayerIndex = LayerMask.NameToLayer("Ground");
-            int groundLayerMask = (1 << groundLayerIndex);
-
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayerMask))
+            if (Input.GetMouseButtonUp(0))
             {
-                //Vector3 screenPointToGround = ray.origin + ray.direction * 100;
-                Vector3 playerPosition = playerBase.transform.position;
+                if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+                {
+                    StopAgent();
+                }
+            }
 
-                distance = Vector3.Distance(playerPosition, hit.point);
+            void CastRayToGround()
+            {
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-                if (distance >= distanceThreshold)
+                int groundLayerIndex = LayerMask.NameToLayer("Ground");
+                int groundLayerMask = (1 << groundLayerIndex);
+
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayerMask))
+                {
+                    Vector3 playerPosition = playerObject.transform.position;
+
+                    distance = Vector3.Distance(playerPosition, hit.point);
+
+                    if (distance >= distanceThreshold)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        MoveAgent(hit.point, distance, playerPosition);
+                    }
+                }
+            }
+
+            void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
+            {
+                speed = cursorDistance / distanceRatios;
+                agent.destination = hitPoint;
+                agent.speed = speed;
+                animSpeed = speed / animFactor;
+
+                if (speed < runThreshold)
+                {
+                    if (playerIsCrouched)
+                    {
+                        changeState(PLAYER_SNEAK);
+                    }
+                    else
+                    {
+                        changeState(PLAYER_WALK);
+                    }
+
+                    //player.AdjustAnimationSpeed(animSpeed);
+                }
+
+                if (speed > runThreshold)
+                {
+                    if (playerIsCrouched)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        changeState(PLAYER_RUN);
+                    }
+
+                    //player.AdjustAnimationSpeed(animSpeed);
+                }
+
+                Debug.Log("Cursor Distance:" + cursorDistance);
+                Debug.Log("Speed:" + agent.speed);
+
+                agent.isStopped = false;
+                agent.acceleration = 10000;
+
+                //float runThreshold = cursorDistance / 2;
+
+                if (Input.GetKeyDown(KeyCode.LeftShift))
+                {
+                    EnterSneakMode();
+
+                    void EnterSneakMode()
+                    {
+                        changeState(PLAYER_CROUCH);
+                    }
+                }
+            }
+
+            void StopAgent()
+            {
+                changeState(PLAYER_IDLE);
+
+                agent.ResetPath();
+
+                agent.isStopped = true;
+                //Debug.Log("Player moving?" + agent.isStopped);
+            }
+
+            void changeState(string newState)
+            {
+                if (currentState == newState)
                 {
                     return;
                 }
 
-                else
-                {
+                currentState = newState;
 
-                    MoveAgent(hit.point, distance, playerPosition);
-                    //Debug.DrawLine(ray.origin, screenPointToGround, Color.blue);
-                    //Debug.DrawLine(screenPointToGround, playerPosition, Color.red);
-
-                }
+                player.ChangeAnimationState(newState);
             }
-        }
-
-        void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
+        } else
         {
-           
-            speed = cursorDistance / distanceRatios;
-
-            //speed = Mathf.Clamp(speed, 0, 20);
-
-            agent.destination = hitPoint;
-
-            agent.speed = speed;
-
-            animSpeed = speed / animFactor;
-
-            if (speed < runThreshold)
-            {
-                if (playerIsCrouched)
-                {
-                    changeState(PLAYER_SNEAK);
-                }
-                else
-                {
-                    changeState(PLAYER_WALK);
-                }
-                //player.AdjustAnimationSpeed(animSpeed);
-            }
-
-            if (speed > runThreshold)
-            {
-                if (playerIsCrouched)
-                {
-                    return;
-                }
-                else
-                {
-                    changeState(PLAYER_RUN);
-                }
-                //player.AdjustAnimationSpeed(animSpeed);
-            }
-
-            Debug.Log("Cursor Distance:" + cursorDistance);
-            Debug.Log("Speed:" + agent.speed);
-
-            agent.isStopped = false;
-
-            //Debug.Log("Player moving?" + agent.isStopped);
-
-            //agent.acceleration = x;
-            //float runThreshold = cursorDistance / 2;
-            //player.ChangeAnimationState(PLAYER_WALK);
-
-            if (Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                EnterSneakMode();
-
-                void EnterSneakMode()
-                {
-                    changeState(PLAYER_CROUCH);
-                }
-            }
-
-            
+            return;
         }
+    }
 
-        void StopAgent()
-        {
-            changeState(PLAYER_IDLE);
-
-            agent.ResetPath();
-
-            agent.isStopped = true;
-            //Debug.Log("Player moving?" + agent.isStopped);
-        }
-
-        void changeState(string newState)
-        {
-            if (currentState == newState)
-            {
-                return;
-            }
-
-            currentState = newState;
-
-            player.ChangeAnimationState(newState);
-        }
+    public void StopAgentOverride()
+    {
+        agent.ResetPath();
+        agent.isStopped = true;
     }
 
 }
