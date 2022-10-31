@@ -65,7 +65,7 @@ public class ControlAlpha : MonoBehaviour
 
                 playerIsHuman = !playerIsHuman; 
 
-                player.SetupAnimators();
+                player.Assign();
 
                 StartCoroutine(Fade());
                 StartCoroutine(StartBlendShape());

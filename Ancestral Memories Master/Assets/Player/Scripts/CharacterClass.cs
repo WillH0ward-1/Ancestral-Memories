@@ -109,32 +109,24 @@ public class CharacterClass : MonoBehaviour, IStats
     public virtual void InitAnimators()
     {
         var humanState = alphaControl.humanObject;
-        var monkeyState = alphaControl.monkeyObject;
-
+        var apeState = alphaControl.monkeyObject;
 
         if (alphaControl.playerIsHuman == false) // If player is monkey
         {
             activeAnimators.Remove(humanState);
-            activeAnimators.Add(monkeyState);
+            activeAnimators.Add(apeState);
 
-            inactiveAnimators.Remove(monkeyState);
+            inactiveAnimators.Remove(apeState);
             inactiveAnimators.Add(humanState);
 
         } else if (alphaControl.playerIsHuman == true){// If player is Human
 
-            activeAnimators.Remove(monkeyState);
+            activeAnimators.Remove(apeState);
             activeAnimators.Add(humanState);
 
             inactiveAnimators.Remove(humanState);
-            inactiveAnimators.Add(monkeyState);
+            inactiveAnimators.Add(apeState);
         }
-    }
-
-
-    public virtual void SetupAnimators()
-    {
-        AssignAnimators();
-        AssignInactiveAnimators();
     }
 
     public virtual void AssignAnimators()
@@ -159,11 +151,9 @@ public class CharacterClass : MonoBehaviour, IStats
         }
     }
 
-    //private float crossFadeLength;
-
     public void ChangeAnimationState(string newState)
     {
-        SetupAnimators();
+        Assign();
 
         float crossFadeLength = animationCrossFade;
 
@@ -176,10 +166,13 @@ public class CharacterClass : MonoBehaviour, IStats
         inactiveAnimator.CrossFadeInFixedTime(newState, crossFadeLength);
 
         currentState = newState;
-      
     }
 
-
+    public virtual void Assign()
+    {
+        AssignAnimators();
+        AssignInactiveAnimators();
+    }
 
     private void AdjustAnimationSpeed(float newSpeed)
     {
@@ -290,7 +283,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual IEnumerator RespawnBuffer()
     {
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(1).length;
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSeconds(animationLength); // Wait for this many seconds before respawning. This may be an audio cue in future.
         respawn = true;
         ResetGame();

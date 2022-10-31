@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class RadialMenu : MonoBehaviour
+public class RadialMenu : IBehaviours
 {
 
     public RadialButton buttonPrefab;
     public RadialButton selected;
 
     public GameObject hitObject;
+    public GameObject player;
 
     public void SpawnButtons(Interactable obj)
     {
@@ -50,13 +51,18 @@ public class RadialMenu : MonoBehaviour
                 switch (selected.title)
                 {
                     case "Pray":
-                        StartCoroutine(hitObject.GetComponent<CharacterBehaviours>().PrayerAnimation());
+                        Pray(player);
                         break;
                     case "Look":
                         break;
                     case "Reflect":
                         break;
                     case "Dance":
+                        break;
+                    case "Harvest":
+                        StartCoroutine(player.GetComponent<CharacterBehaviours>().HarvestAnimation());
+                        break;
+                    case "Heal":
                         break;
                 }
                 print(selected.title);
@@ -65,4 +71,6 @@ public class RadialMenu : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    
 }

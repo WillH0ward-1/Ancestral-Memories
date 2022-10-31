@@ -22,7 +22,7 @@ public class TriggerDisgust : MonoBehaviour
 
         diseaseChance = Random.Range(0, 100);
 
-            if(diseaseChance >= player.faith)
+        if(diseaseChance >= player.faith)
         {
 
             player.ContractDisease();

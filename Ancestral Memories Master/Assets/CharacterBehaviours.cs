@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,8 +7,9 @@ public class CharacterBehaviours : MonoBehaviour
 {
 
     public PlayerWalk playerWalk;
-    public CharacterClass player;
+    public Player player;
 
+    private string currentState;
     public bool behaviourIsActive = false;
 
     // Idle
@@ -24,52 +26,71 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_SCARED = "Player_scared";
 
     // PRAYER
+
     const string PLAYER_STARTPRAYER = "Player_PrayerStart";
     const string PLAYER_PRAYERLOOP = "Player_PrayerLoop";
     const string PLAYER_ENDPRAYER = "Player_PrayerEnd";
+
+    private float animationLength;
 
     private void Awake()
     {
         
     }
 
+    private void OverrideAgent()
+    {
+        playerWalk.StopAgentOverride();
+    }
+
     public IEnumerator PrayerAnimation()
     {
+        OverrideAgent();
+
         behaviourIsActive = true;
-        playerWalk.StopAgentOverride();
-        player.ChangeAnimationState(PLAYER_STARTPRAYER);
-        float animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(1).length;
+
+        changeState(PLAYER_STARTPRAYER);
+
+        float animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+
+        yield return new WaitForEndOfFrame();
+
         yield return new WaitForSeconds(animationLength);
 
-        player.ChangeAnimationState(PLAYER_PRAYERLOOP);
+        Debug.Log("Hello");
 
-        StartCoroutine(WaitForActionBreak());
+        changeState(PLAYER_PRAYERLOOP);
 
-        if (!behaviourIsActive)
-        {
-            player.ChangeAnimationState(PLAYER_ENDPRAYER);
-
-            yield return new WaitForSeconds(animationLength);
-
-            player.ChangeAnimationState(PLAYER_IDLE);
-
-            yield return null;
-        }
-
-        yield return null;
-    }
-
-    private IEnumerator WaitForActionBreak()
-    {
         Debug.Log("Click to exit this action.");
+   
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));       
 
-        if (Input.GetKeyDown(0))
-        {
-            behaviourIsActive = false;
-        }
+        player.ChangeAnimationState(PLAYER_ENDPRAYER);
 
-        yield return null;
+        yield return new WaitForSeconds(animationLength);
+
+        changeState(PLAYER_IDLE);
+
+        behaviourIsActive = false;
+
+        yield break;
+       
     }
 
+    void changeState(string newState)
+    {
+        if (currentState == newState)
+        {
+            return;
+        }
 
+        currentState = newState;
+
+        player.ChangeAnimationState(newState);
+    }
+
+    public IEnumerator HarvestAnimation()
+    {
+        yield return null;
+    }
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    public GameObject player;
     public Action[] options;
 
     [System.Serializable]
@@ -33,19 +34,16 @@ public class Interactable : MonoBehaviour
         {
 
             GameObject lastHit = hit.transform.gameObject;
-
+           
             if (Input.GetMouseButtonDown(1))
             {
+                radialMenu.player = player;
                 radialMenu.hitObject = lastHit;
 
-                if (lastHit.CompareTag("Player"))
-                {
+                RadialMenuSpawner.menuInstance.SpawnMenu(this);
 
-                    Debug.Log("Player Selected");
-                    RadialMenuSpawner.menuInstance.SpawnMenu(this);
-                }
+                Debug.Log(lastHit + "selected");
             }
-
         }
     }
 
