@@ -553,21 +553,28 @@ public class MapObjGen : MonoBehaviour
     }
 
     private Interactable interactable;
+    private string layerstring;
 
     void AddInteractivity()
     {
         foreach (GameObject mapObject in mapObjectList)
         {
-            interactable = mapObject.AddComponent<Interactable>();
 
-            interactable.player = player;
-            interactable.cam = cam;
-            interactable.radialMenu = radialMenu;
-            interactable.layer = LayerMask.NameToLayer(mapObject.layer.ToString());
+                interactable = mapObject.GetComponent<Interactable>();
 
+                interactable.player = player;
+                interactable.cam = cam;
+                interactable.radialMenu = radialMenu;
+
+                if (mapObject.CompareTag(treeTag)){
+                    interactable.layer.value = LayerMask.GetMask("Trees");
+            } 
+
+            
+            /*
             if (mapObject.CompareTag(treeTag)){
 
-                interactable.options[0].title = new string("Heal");
+                interactable.options[0].title = "Heal";
                 interactable.options[0].color = new Color(91, 189, 255, 1);
                 interactable.options[0].sprite = Resources.Load("Menu/Icons/Pray") as Sprite;
 
@@ -575,7 +582,7 @@ public class MapObjGen : MonoBehaviour
                 interactable.options[1].color = new Color(154, 189, 255, 1);
                 interactable.options[1].sprite = Resources.Load("Menu/Icons/Harvest") as Sprite;
             }
-
+            */
             
         }
     }
