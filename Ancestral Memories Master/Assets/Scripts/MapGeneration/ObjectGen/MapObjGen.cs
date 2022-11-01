@@ -128,6 +128,14 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private float initY = 0;
 
+    public GameObject player;
+
+    public RadialMenu radialMenu;
+
+    public Camera cam;
+
+    //public Interactable treeInteraction;
+
     [Header("Generated Objects")]
     [Space(10)]
 
@@ -213,7 +221,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
         foreach (Vector2 sample in treeSampler.Samples())
@@ -238,6 +245,7 @@ public class MapObjGen : MonoBehaviour
             treeInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(treeInstance);
+            
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -509,6 +517,7 @@ public class MapObjGen : MonoBehaviour
         {
             foreach (GameObject mapObject in mapObjectList)
             {
+
                 if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
                 {
                     mapObject.AddComponent<MeshCollider>();
@@ -538,6 +547,36 @@ public class MapObjGen : MonoBehaviour
                 continue;
             }
             Debug.Log("Colliders Generated!");
+
+            AddInteractivity();
+        }
+    }
+
+    private Interactable interactable;
+
+    void AddInteractivity()
+    {
+        foreach (GameObject mapObject in mapObjectList)
+        {
+            interactable = mapObject.AddComponent<Interactable>();
+
+            interactable.player = player;
+            interactable.cam = cam;
+            interactable.radialMenu = radialMenu;
+            interactable.layer = LayerMask.NameToLayer(mapObject.layer.ToString());
+
+            if (mapObject.CompareTag(treeTag)){
+
+                interactable.options[0].title = new string("Heal");
+                interactable.options[0].color = new Color(91, 189, 255, 1);
+                interactable.options[0].sprite = Resources.Load("Menu/Icons/Pray") as Sprite;
+
+                interactable.options[1].title = new string("Harvest");
+                interactable.options[1].color = new Color(154, 189, 255, 1);
+                interactable.options[1].sprite = Resources.Load("Menu/Icons/Harvest") as Sprite;
+            }
+
+            
         }
     }
 

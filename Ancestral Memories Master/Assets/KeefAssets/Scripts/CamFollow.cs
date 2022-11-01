@@ -38,7 +38,10 @@ public class CamFollow : MonoBehaviour
     public RPCamera rpCamera;
     public Camera hiddenCam;
 
+    public bool RotateAroundPlayer = false; // Enable after psychedelic ingestion
+    public float RotationSpeed = 5f;
 
+    public Vector3 cameraOffset;
     // Update is called once per frame
 
     void Update()
@@ -49,11 +52,18 @@ public class CamFollow : MonoBehaviour
         //DebugChangeCam();
     }
 
+    float SmoothFactor = 0.25f;
+
+
     public void Start()
     {
+        RotateAroundPlayer = false;
+
         rpCamera.perspective = spawnZoom;
 
         ToSpawnZoom();
+
+        cameraOffset = new Vector3(12, 2.5f, -8);
     }
 
 
@@ -144,68 +154,6 @@ public class CamFollow : MonoBehaviour
     [SerializeField] private float rotationSpeedMultiplier = 1f;
     [SerializeField] float rotationDuration = 1;
 
-    IEnumerator RotateCamera()
-    {
-        while (cinematicActive)
-        {
-
-            float currentRotation = rpCamera.rpCam.transform.eulerAngles.y;
-            float endRotation = currentRotation + 360.0f;
-
-            float timeElapsed = 0;
-
-            while (timeElapsed < rotationDuration)
-
-            {
-                timeElapsed += Time.deltaTime;
-
-                float yRotation = Mathf.Lerp(currentRotation, endRotation, timeElapsed / rotationDuration * rotationSpeedMultiplier) % 360.0f;
-
-                transform.eulerAngles = new Vector3(transform.eulerAngles.x, yRotation,
-                transform.eulerAngles.z);
-
-                yield return null;
-
-            }
-
-        } if (!cinematicActive)
-        {
-            //ResetRotation();
-            yield break;
-        }
-       
-    }
-
-    IEnumerator ResetRotation()
-    {
-        float lerpDuration = 5f;
-
-        float x = 15f;
-        float y = 306f;
-        float z = 0f;
-
-        Quaternion rotationDestination = Quaternion.Euler(x, y, z);
-
-        Quaternion currentRotation = rpCamera.rpCam.transform.rotation;
-
-        float timeElapsed = 0;
-
-        while (timeElapsed < lerpDuration)
-
-        {
-            GetComponent<Camera>().transform.rotation = Quaternion.Lerp(currentRotation, rotationDestination, timeElapsed / lerpDuration);
-            timeElapsed += Time.deltaTime;
-
-            yield return null;
-
-        }
-
-        if (timeElapsed >= lerpDuration)
-        {
-            yield break;
-        }
-    }
-
     IEnumerator UserZoomBuffer()
     {
         float zoomBuffer = 4f;
@@ -249,7 +197,7 @@ public class CamFollow : MonoBehaviour
     public void FixedUpdate()
     {
 
-        if (MoveCamera == true)
+        if (MoveCamera)
         {
             // Smooth camera follow.
 
@@ -258,6 +206,29 @@ public class CamFollow : MonoBehaviour
             transform.position = SmoothedPosition;
 
         }
+
+        if (RotateAroundPlayer)
+        {
+            Quaternion camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * RotationSpeed, Vector3.up);
+            cameraOffset = camTurnAngle * cameraOffset;
+
+            Vector3 newPos = player.transform.position + cameraOffset;
+
+            transform.position = Vector3.Slerp(transform.position, newPos, SmoothFactor);
+            transform.LookAt(player.transform.position);
+        }
+
+
+
+    }
+
+    public float turnSpeed = 4.0f;
+
+    private Vector3 offset;
+
+    void Awake()
+    {
+        offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
     }
 
     // Camera 'zoom' into target.

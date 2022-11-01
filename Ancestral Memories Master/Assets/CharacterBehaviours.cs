@@ -54,10 +54,7 @@ public class CharacterBehaviours : MonoBehaviour
         float animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
         yield return new WaitForEndOfFrame();
-
         yield return new WaitForSeconds(animationLength);
-
-        Debug.Log("Hello");
 
         changeState(PLAYER_PRAYERLOOP);
 

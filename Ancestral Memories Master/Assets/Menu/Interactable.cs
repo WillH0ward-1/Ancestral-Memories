@@ -17,10 +17,10 @@ public class Interactable : MonoBehaviour
         //public float alpha = 1f;
     }
 
-    [SerializeField] private LayerMask layer;
+    public LayerMask layer;
     public Vector3 collision = Vector3.zero;
     public GameObject lastHit;
-    [SerializeField] private Camera cam;
+    public Camera cam;
 
     public RadialMenu radialMenu;
 
@@ -30,19 +30,25 @@ public class Interactable : MonoBehaviour
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
+        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
         {
-
-            GameObject lastHit = hit.transform.gameObject;
-           
-            if (Input.GetMouseButtonDown(1))
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
-                radialMenu.player = player;
-                radialMenu.hitObject = lastHit;
+                GameObject lastHit = hit.transform.gameObject;
 
-                RadialMenuSpawner.menuInstance.SpawnMenu(this);
+                if (Input.GetMouseButtonDown(1))
+                {
+                    radialMenu.player = player;
+                    radialMenu.hitObject = lastHit;
 
-                Debug.Log(lastHit + "selected");
+                    RadialMenuSpawner.menuInstance.SpawnMenu(this);
+
+                    Debug.Log(lastHit + "selected");
+                }
+            }
+            else
+            {
+                return;
             }
         }
     }

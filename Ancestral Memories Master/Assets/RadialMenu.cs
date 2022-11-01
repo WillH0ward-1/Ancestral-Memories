@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class RadialMenu : IBehaviours
+public class RadialMenu : MonoBehaviour
 {
 
     public RadialButton buttonPrefab;
@@ -11,6 +11,9 @@ public class RadialMenu : IBehaviours
 
     public GameObject hitObject;
     public GameObject player;
+
+    public List<RadialButton> buttons;
+    
 
     public void SpawnButtons(Interactable obj)
     {
@@ -36,41 +39,77 @@ public class RadialMenu : IBehaviours
             newButton.icon.sprite = obj.options[i].sprite;
             newButton.title = obj.options[i].title;
             newButton.myMenu = this;
+
+            buttons.Add(newButton);
         }
 
     }
-    
 
     private void Update()
     {
-
-        if (Input.GetMouseButtonUp(1))
+        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
         {
-            if (selected) // PASS SELECTED HERE - trigger events
+            if (Input.GetMouseButtonUp(1))
             {
-                switch (selected.title)
+                if (selected) {
+
+                    switch (selected.title)
+                    {
+                        case "Pray":
+                            Pray();
+                            break;
+                        case "Look":
+                            break;
+                        case "Reflect":
+                            break;
+                        case "Dance":
+                            break;
+                        case "Harvest":
+                            Harvest();
+                            break;
+                        case "Heal":
+                            break;
+                    }
+
+                    print(selected.title);
+
+                    StartCoroutine(DestroyBuffer());
+
+                } else if (!selected)
                 {
-                    case "Pray":
-                        Pray(player);
-                        break;
-                    case "Look":
-                        break;
-                    case "Reflect":
-                        break;
-                    case "Dance":
-                        break;
-                    case "Harvest":
-                        StartCoroutine(player.GetComponent<CharacterBehaviours>().HarvestAnimation());
-                        break;
-                    case "Heal":
-                        break;
+                    Destroy(gameObject);
                 }
-                print(selected.title);
             }
 
-            Destroy(gameObject);
+        } else
+        {
+            HideButtons();
+            return;
         }
     }
 
-    
+    public void HideButtons()
+    {
+        foreach (RadialButton b in buttons)
+        {
+            b.gameObject.SetActive(false);
+        }
+    }
+
+    public IEnumerator DestroyBuffer()
+    {
+        yield return new WaitUntil(() => player.GetComponent<CharacterBehaviours>().behaviourIsActive == false);
+        Destroy(gameObject);
+        yield break;
+    }
+
+    public void Pray()
+    {
+        StartCoroutine(player.GetComponent<CharacterBehaviours>().PrayerAnimation());
+    }
+
+    public void Harvest()
+    {
+        StartCoroutine(player.GetComponent<CharacterBehaviours>().HarvestAnimation());
+    }
 }
