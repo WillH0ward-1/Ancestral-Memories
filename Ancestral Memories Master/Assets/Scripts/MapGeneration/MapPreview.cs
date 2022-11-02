@@ -45,7 +45,20 @@ public class MapPreview : MonoBehaviour {
 		meshFilter.gameObject.SetActive (false);
 	}
 
+
 	public void DrawMesh(MeshData meshData) {
+
+		//Mesh meshType;
+
+		/*
+		if (Application.isEditor)
+        {
+			meshType = meshFilter.sharedMesh;
+        } else
+        {
+			meshType = meshFilter.mesh;
+        }
+		*/
 
         meshFilter.sharedMesh = meshData.CreateMesh();
 

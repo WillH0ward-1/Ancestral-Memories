@@ -40,7 +40,8 @@ public class RPCamera : MonoBehaviour {
 		UpdateProjection(true);
     }
 
-	void OnValidate() // to not set projection on each Update
+
+    void OnValidate() // to not set projection on each Update
 	{
 		rpCam = GetComponent<Camera>();
 

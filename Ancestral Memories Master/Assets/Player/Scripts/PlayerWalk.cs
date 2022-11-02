@@ -12,7 +12,7 @@ public class PlayerWalk : MonoBehaviour
     public Camera cam;
     public CamFollow cineCam;
 
-    private NavMeshAgent agent;
+    public NavMeshAgent agent;
 
     public CharacterClass player;
     public GameObject playerObject;
@@ -41,6 +41,7 @@ public class PlayerWalk : MonoBehaviour
 
     void Awake()
     {
+        agent.stoppingDistance = 0;
         agent = GetComponent<NavMeshAgent>();
         agent.isStopped = true;
     }
@@ -112,13 +113,13 @@ public class PlayerWalk : MonoBehaviour
 
                     if (speed > runThreshold)
                     {
-                        if (playerIsCrouched)
+                        if (!playerIsCrouched)
                         {
-                            return;
+                            changeState(PLAYER_RUN);
                         }
                         else
                         {
-                            changeState(PLAYER_RUN);
+                            changeState(PLAYER_SNEAK);
                         }
 
                         //player.AdjustAnimationSpeed(animSpeed);
@@ -143,33 +144,81 @@ public class PlayerWalk : MonoBehaviour
                     }
                 }
 
-                void StopAgent()
+            }
+        }
+        return;
+
+    }
+
+    public bool walkingToObject = false;
+    public bool cancelWalkToward = false;
+    public float stoppingDistance;
+    public bool reachedDestination = false;
+
+    public IEnumerator WalkToObject(Vector3 agentDestination)
+    {
+        reachedDestination = false;
+        cancelWalkToward = false;
+        walkingToObject = true;
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            cancelWalkToward = true;
+            walkingToObject = false;
+            stoppingDistance = agent.stoppingDistance;
+            agent.stoppingDistance = 0;
+            yield break;
+        }
+
+        speed = 12;
+        agent.destination = agentDestination;
+
+        agent.speed = speed;
+        agent.isStopped = false;
+
+        changeState(PLAYER_WALK);
+
+        if (!agent.pathPending)
+        {
+            if (agent.remainingDistance <= agent.stoppingDistance)
+            {
+                if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                 {
-                    changeState(PLAYER_IDLE);
+                    reachedDestination = true;
 
-                    agent.ResetPath();
-
-                    agent.isStopped = true;
-                    //Debug.Log("Player moving?" + agent.isStopped);
-                }
-
-                void changeState(string newState)
-                {
-                    if (currentState == newState)
-                    {
-                        return;
-                    }
-
-                    currentState = newState;
-
-                    player.ChangeAnimationState(newState);
+                    agent.transform.LookAt(agentDestination);
+                    agent.stoppingDistance = 0;
+                    Debug.Log("Arrived.");
+                   
+                    walkingToObject = false;
+                    yield break;
                 }
             }
         }
-        else
+
+        yield break;
+    }
+
+    public void StopAgent()
+    {
+        changeState(PLAYER_IDLE);
+
+        agent.ResetPath();
+
+        agent.isStopped = true;
+        //Debug.Log("Player moving?" + agent.isStopped);
+    }
+
+    public void changeState(string newState)
+    {
+        if (currentState == newState)
         {
             return;
         }
+
+        currentState = newState;
+
+        player.ChangeAnimationState(newState);
     }
 
     public void StopAgentOverride()

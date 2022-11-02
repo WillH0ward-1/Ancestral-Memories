@@ -9,8 +9,6 @@ public class CheckIfUnderwater : MonoBehaviour
 
     [SerializeField] private CharacterClass player;
 
-    [SerializeField] private Animator animator;
-
     public bool isUnderwater = false;
 
     public bool playerDrowning = false;

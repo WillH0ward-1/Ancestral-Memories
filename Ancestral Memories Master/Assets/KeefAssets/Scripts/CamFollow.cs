@@ -44,6 +44,7 @@ public class CamFollow : MonoBehaviour
     public Vector3 cameraOffset;
     // Update is called once per frame
 
+    [ExecuteInEditMode]
     void Update()
     {
 
@@ -66,19 +67,18 @@ public class CamFollow : MonoBehaviour
         cameraOffset = new Vector3(12, 2.5f, -8);
     }
 
-
     void SetCamClipPlane()
     {
         if (cinematicActive == true)
         {
             rpCamera.rpCam.farClipPlane = 5000;
-            rpCamera.rpCam.nearClipPlane = -5000;
+            rpCamera.rpCam.nearClipPlane = -65;
         }
 
         else if (cinematicActive == false)
         {
             rpCamera.rpCam.farClipPlane = 300;
-            rpCamera.rpCam.nearClipPlane = -300;
+            rpCamera.rpCam.nearClipPlane = -65;
         }
     }
 
@@ -128,6 +128,7 @@ public class CamFollow : MonoBehaviour
     {
         cinematicActive = false; // Level introduction.
         //StartCoroutine(UserZoomBuffer());
+        SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = gameModeZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
@@ -271,6 +272,7 @@ public class CamFollow : MonoBehaviour
         yield return new WaitForSeconds(duration);
 
         ToGameZoom();
+
         if (playerSpawning)
         {
             playerSpawning = false;

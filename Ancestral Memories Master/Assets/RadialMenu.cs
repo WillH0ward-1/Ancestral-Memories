@@ -12,8 +12,10 @@ public class RadialMenu : MonoBehaviour
     public GameObject hitObject;
     public GameObject player;
 
+    public PlayerWalk playerWalk;
+
     public List<RadialButton> buttons;
-    
+
 
     public void SpawnButtons(Interactable obj)
     {
@@ -51,9 +53,13 @@ public class RadialMenu : MonoBehaviour
         {
             if (Input.GetMouseButtonUp(1))
             {
-                if (selected) {
+                if (selected)
+                {
+                    WalkToward();
 
-                    switch (selected.title)
+                    var behaviour = selected.title;
+
+                    switch (behaviour)
                     {
                         case "Pray":
                             Pray();
@@ -69,22 +75,23 @@ public class RadialMenu : MonoBehaviour
                             break;
                         case "Heal":
                             break;
+                        default:
+                            break;
                     }
+
+                    HideButtons();
 
                     print(selected.title);
 
                     StartCoroutine(DestroyBuffer());
 
-                } else if (!selected)
+                }
+                else if (!selected)
                 {
                     Destroy(gameObject);
                 }
             }
 
-        } else
-        {
-            HideButtons();
-            return;
         }
     }
 
@@ -96,20 +103,36 @@ public class RadialMenu : MonoBehaviour
         }
     }
 
-    public IEnumerator DestroyBuffer()
+    public void WalkToward()
     {
-        yield return new WaitUntil(() => player.GetComponent<CharacterBehaviours>().behaviourIsActive == false);
-        Destroy(gameObject);
-        yield break;
+        StartCoroutine(player.GetComponent<PlayerWalk>().WalkToObject(hitObject.transform.position));
     }
 
     public void Pray()
     {
-        StartCoroutine(player.GetComponent<CharacterBehaviours>().PrayerAnimation());
+        player.GetComponent<PlayerWalk>().agent.stoppingDistance = 25f;
+        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
+        {
+            StartCoroutine(player.GetComponent<CharacterBehaviours>().PrayerAnimation());
+        } return;
     }
 
     public void Harvest()
     {
+        playerWalk.agent.stoppingDistance = 5f;
         StartCoroutine(player.GetComponent<CharacterBehaviours>().HarvestAnimation());
+    }
+
+    public IEnumerator DestroyBuffer()
+    {
+        var playerWalk = player.GetComponent<PlayerWalk>();
+
+        yield return new WaitUntil(() => playerWalk.reachedDestination == true);
+        {
+            yield return new WaitUntil(() => player.GetComponent<CharacterBehaviours>().behaviourIsActive == false);
+
+            Destroy(gameObject);
+            yield break;
+        }
     }
 }

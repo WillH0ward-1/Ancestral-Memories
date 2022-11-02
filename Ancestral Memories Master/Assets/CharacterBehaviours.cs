@@ -34,29 +34,26 @@ public class CharacterBehaviours : MonoBehaviour
     private float animationLength;
 
     private void Awake()
+
     {
-        
+
     }
 
-    private void OverrideAgent()
-    {
-        playerWalk.StopAgentOverride();
-    }
 
     public IEnumerator PrayerAnimation()
     {
-        OverrideAgent();
+        yield return new WaitUntil(() => player.GetComponent<PlayerWalk>().reachedDestination == true);
 
         behaviourIsActive = true;
 
-        changeState(PLAYER_STARTPRAYER);
+        ChangeState(PLAYER_STARTPRAYER);
 
         float animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
         yield return new WaitForEndOfFrame();
         yield return new WaitForSeconds(animationLength);
 
-        changeState(PLAYER_PRAYERLOOP);
+        ChangeState(PLAYER_PRAYERLOOP);
 
         Debug.Log("Click to exit this action.");
    
@@ -66,7 +63,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield return new WaitForSeconds(animationLength);
 
-        changeState(PLAYER_IDLE);
+        ChangeState(PLAYER_IDLE);
 
         behaviourIsActive = false;
 
@@ -74,7 +71,7 @@ public class CharacterBehaviours : MonoBehaviour
        
     }
 
-    void changeState(string newState)
+    void ChangeState(string newState)
     {
         if (currentState == newState)
         {

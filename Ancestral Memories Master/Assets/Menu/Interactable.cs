@@ -22,8 +22,9 @@ public class Interactable : MonoBehaviour
     public GameObject lastHit;
     public Camera cam;
 
+    public PlayerWalk playerWalk;
     public RadialMenu radialMenu;
-
+    
     Ray ray;
 
     void Update()
@@ -38,14 +39,16 @@ public class Interactable : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(1))
                 {
+                    radialMenu.playerWalk = playerWalk;
                     radialMenu.player = player;
                     radialMenu.hitObject = lastHit;
-
+        
                     RadialMenuSpawner.menuInstance.SpawnMenu(this);
-
+                  
                     Debug.Log(lastHit + "selected");
                 }
             }
+
             else
             {
                 return;
