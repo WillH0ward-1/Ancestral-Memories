@@ -60,13 +60,14 @@ public class MapPreview : MonoBehaviour {
         }
 		*/
 
-        meshFilter.sharedMesh = meshData.CreateMesh();
 
-		meshFilter.GetComponent<MeshCollider>().sharedMesh = null;
+		//meshFilter.sharedMesh = meshData.CreateMesh();
+
+		meshFilter.gameObject.SetActive(true);
 		meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.sharedMesh;
 
 		textureRender.gameObject.SetActive (false);
-		meshFilter.gameObject.SetActive (true);
+
 
 		//MeshCollider meshc = gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
 		//meshFilter.gameObject.tag = "Walkable";

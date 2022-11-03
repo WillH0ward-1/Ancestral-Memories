@@ -62,8 +62,6 @@ public class RadialMenu : MonoBehaviour
             {
                 if (selected)
                 {
-                    WalkToward();
-
                     switch (selected.title)
                     {
                         case "Pray":
@@ -85,8 +83,6 @@ public class RadialMenu : MonoBehaviour
                     print(selected.title);
                     HideButtons();
                     StartCoroutine(DestroyBuffer());
-
-                    
 
                 }
 
@@ -117,13 +113,7 @@ public class RadialMenu : MonoBehaviour
     {
         player.GetComponent<PlayerWalk>().agent.stoppingDistance = 25f;
 
-        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
-        {
-            StartCoroutine(behaviours.PrayerAnimation());
-        } else
-        {
-            return;
-        }
+        StartCoroutine(behaviours.PrayerAnimation());
     }
 
     public void Harvest()

@@ -44,7 +44,7 @@ public class CamFollow : MonoBehaviour
     public Vector3 cameraOffset;
     // Update is called once per frame
 
-    [ExecuteInEditMode]
+    //[ExecuteInEditMode]
     void Update()
     {
 
@@ -118,7 +118,7 @@ public class CamFollow : MonoBehaviour
         playerSpawning = true;
         //StartCoroutine(RotateCamera());
         cinematicActive = true; // Level introduction.
-        SetCamClipPlane();
+        //SetCamClipPlane();
         lerpDuration = 4f;
         zoomDestination = minZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
@@ -128,7 +128,7 @@ public class CamFollow : MonoBehaviour
     {
         cinematicActive = false; // Level introduction.
         //StartCoroutine(UserZoomBuffer());
-        SetCamClipPlane();
+       // SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = gameModeZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
@@ -137,7 +137,7 @@ public class CamFollow : MonoBehaviour
     public void ToCutsceneZoom()
     {
         cinematicActive = true; // Level introduction.
-        SetCamClipPlane();
+       // SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = cutSceneZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
@@ -146,7 +146,7 @@ public class CamFollow : MonoBehaviour
     public void ToPsychedelicZoom()
     {
     //    cinematicActive = true; // Level introduction.
-        SetCamClipPlane();
+        //SetCamClipPlane();
         lerpDuration = 10f;
         zoomDestination = cutSceneZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
