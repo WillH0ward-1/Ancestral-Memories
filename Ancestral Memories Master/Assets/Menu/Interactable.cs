@@ -32,11 +32,6 @@ public class Interactable : MonoBehaviour
         cam = player.GetComponent<Player>().interactableCam;
     }
 
-    private void FixedUpdate()
-    {
-
-    }
-
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(1))
@@ -49,8 +44,6 @@ public class Interactable : MonoBehaviour
 
             Debug.Log(lastHit + "selected");
         }
-
-
     }
 
 }

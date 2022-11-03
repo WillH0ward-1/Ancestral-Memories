@@ -78,6 +78,8 @@ public class RadialMenu : MonoBehaviour
                             break;
                         case "Heal":
                             break;
+                        case "Plant Seed":
+                            break;
                     }
 
                     print(selected.title);

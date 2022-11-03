@@ -32,7 +32,11 @@ public class TerrainGenerator : MonoBehaviour {
 
 	int chunksVisibleInViewDst;
 
+	public Player player;
+	public Camera interactCam;
 	private string terrainChunkName = "Terrain Chunk";
+	public Interactable interactable;
+	public RadialMenu radialMenu;
 
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
 	List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
@@ -79,7 +83,8 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 			tmp.AddComponent<CorruptionControl>();
-			tmp.AddComponent<LerpTerrain>();
+
+		    interactable = tmp.AddComponent<Interactable>();
 
 		}
 	}

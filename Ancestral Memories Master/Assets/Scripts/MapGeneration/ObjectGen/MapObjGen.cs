@@ -518,9 +518,10 @@ public class MapObjGen : MonoBehaviour
             foreach (GameObject mapObject in mapObjectList)
             {
 
-                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
+                if (mapObject.CompareTag(treeTag))
                 {
                     var meshCollider = mapObject.AddComponent<MeshCollider>();
+
                     meshCollider.convex = true;
                     meshCollider.isTrigger = true;
 
