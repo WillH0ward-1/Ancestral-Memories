@@ -33,12 +33,6 @@ public class CharacterBehaviours : MonoBehaviour
 
     private float animationLength;
 
-    private void Awake()
-
-    {
-
-    }
-
 
     public IEnumerator PrayerAnimation()
     {

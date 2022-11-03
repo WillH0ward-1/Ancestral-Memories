@@ -27,6 +27,11 @@ public class Interactable : MonoBehaviour
     
     Ray ray;
 
+    private void Start()
+    {
+         cam = player.GetComponent<Player>().interactableCam;
+    }
+
     void Update()
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -42,18 +47,13 @@ public class Interactable : MonoBehaviour
                     radialMenu.playerWalk = playerWalk;
                     radialMenu.player = player;
                     radialMenu.hitObject = lastHit;
-        
+                    
                     RadialMenuSpawner.menuInstance.SpawnMenu(this);
                   
                     Debug.Log(lastHit + "selected");
                 }
             }
-
-            else
-            {
-                return;
-            }
-        }
+        } 
     }
 
 }

@@ -150,29 +150,22 @@ public class PlayerWalk : MonoBehaviour
 
     }
 
-    public bool walkingToObject = false;
-    public bool cancelWalkToward = false;
-    public float stoppingDistance;
-    public bool reachedDestination = false;
+    public bool reachedDestination;
+    public float stoppingDistanceRef;
 
     public IEnumerator WalkToObject(Vector3 agentDestination)
     {
         reachedDestination = false;
-        cancelWalkToward = false;
-        walkingToObject = true;
 
         if (Input.GetMouseButtonDown(0))
         {
-            cancelWalkToward = true;
-            walkingToObject = false;
-            stoppingDistance = agent.stoppingDistance;
+            stoppingDistanceRef = agent.stoppingDistance;
             agent.stoppingDistance = 0;
             yield break;
         }
 
         speed = 12;
         agent.destination = agentDestination;
-
         agent.speed = speed;
         agent.isStopped = false;
 
@@ -190,7 +183,6 @@ public class PlayerWalk : MonoBehaviour
                     agent.stoppingDistance = 0;
                     Debug.Log("Arrived.");
                    
-                    walkingToObject = false;
                     yield break;
                 }
             }
