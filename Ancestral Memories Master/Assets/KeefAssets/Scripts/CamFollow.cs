@@ -44,7 +44,7 @@ public class CamFollow : MonoBehaviour
     public Vector3 cameraOffset;
     // Update is called once per frame
 
-    //[ExecuteInEditMode]
+    [ExecuteInEditMode]
     void Update()
     {
 
