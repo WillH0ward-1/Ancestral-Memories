@@ -28,6 +28,8 @@ public class TerrainGenerator : MonoBehaviour {
 
 	public GameObject mapObject;
 
+	public Vector3 offset;
+
 	float meshWorldSize;
 
 	int chunksVisibleInViewDst;

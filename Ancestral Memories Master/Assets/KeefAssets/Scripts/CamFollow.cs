@@ -38,7 +38,7 @@ public class CamFollow : MonoBehaviour
     public RPCamera rpCamera;
     public Camera hiddenCam;
 
-    public bool RotateAroundPlayer = false; // Enable after psychedelic ingestion
+    public bool RotateAroundPlayer = false; 
     public float RotationSpeed = 5f;
 
     public Vector3 cameraOffset;

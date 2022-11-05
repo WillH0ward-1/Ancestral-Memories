@@ -413,7 +413,7 @@ public class MapObjGen : MonoBehaviour
             {
                 Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-                if (downHit.collider.CompareTag(waterTag))
+                if (downHit.collider.CompareTag(waterTag) || downHit.collider.CompareTag("SpawnArea"))
                 {
                     Debug.Log("Water Ahoy!");
                     DestroyObject();
@@ -520,12 +520,11 @@ public class MapObjGen : MonoBehaviour
 
                 if (mapObject.CompareTag(treeTag))
                 {
-                    var meshCollider = mapObject.AddComponent<MeshCollider>();
+                    //var meshCollider = mapObject.AddComponent<MeshCollider>();
 
-                    meshCollider.convex = true;
-                    meshCollider.isTrigger = true;
+                    //meshCollider.convex = true;
+                    //meshCollider.isTrigger = true;
 
-                    navMeshObstacle = GetComponent<NavMeshObstacle>();
                     navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
 
                     navMeshObstacle.enabled = true;
@@ -533,7 +532,9 @@ public class MapObjGen : MonoBehaviour
                     navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
 
                     if (mapObject.CompareTag(rockTag)) {
-                        navMeshObstacle.radius = 0.5f;
+                        navMeshObstacle.enabled = true;
+                        navMeshObstacle.center = new Vector3(0, 0, 0);
+                        navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
                     }
 
                     if (mapObject.CompareTag(treeTag))
@@ -570,7 +571,7 @@ public class MapObjGen : MonoBehaviour
 
                 if (mapObject.CompareTag(treeTag)){
                     interactable.layer.value = LayerMask.GetMask("Trees");
-            } 
+                 } 
 
             
             /*
