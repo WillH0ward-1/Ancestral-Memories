@@ -9,8 +9,12 @@ public class CharacterBehaviours : MonoBehaviour
     public PlayerWalk playerWalk;
     public Player player;
 
+    public EnterRoom teleport;
+
     private string currentState;
     public bool behaviourIsActive = false;
+
+    const string PLAYER_WALK = "Player_walk";
 
     // Idle
 
@@ -33,6 +37,23 @@ public class CharacterBehaviours : MonoBehaviour
 
     private float animationLength;
 
+
+    public IEnumerator WalkIntoRoom(Transform walkToward)
+    {
+        behaviourIsActive = true;
+
+        playerWalk.StartCoroutine(playerWalk.WalkToObject(walkToward.position));
+    
+        playerWalk.agent.speed = 12;
+
+        ChangeState(PLAYER_WALK);
+
+        yield return new WaitUntil(() => playerWalk.reachedDestination == true);
+
+        teleport.StartCoroutine(teleport.Teleport(walkToward));
+
+        yield break;
+    }
 
     public IEnumerator PrayerAnimation()
     {

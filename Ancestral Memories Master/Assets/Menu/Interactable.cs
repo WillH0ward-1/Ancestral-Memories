@@ -19,7 +19,7 @@ public class Interactable : MonoBehaviour
 
     public LayerMask layer;
     public Vector3 collision = Vector3.zero;
-    public GameObject lastHit;
+    //public GameObject lastHit;
     public Camera cam;
 
     public PlayerWalk playerWalk;
@@ -27,50 +27,67 @@ public class Interactable : MonoBehaviour
 
     Ray ray;
 
-    private void Start()
+    private void Awake()
     {
         cam = player.GetComponent<Player>().interactableCam;
+        radialMenu.playerWalk = player.GetComponent<PlayerWalk>();
+        radialMenu.player = player;
     }
 
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(1))
         {
-            radialMenu.playerWalk = playerWalk;
-            radialMenu.player = player;
-            radialMenu.hitObject = lastHit;
 
             RadialMenuSpawner.menuInstance.SpawnMenu(this);
 
-            Debug.Log(lastHit + "selected");
         }
     }
 
 }
-    /*
-    void Update()
+/*
+ * 
+ * Method 1:
+
+void OnMouseOver()
+{
+    if (Input.GetMouseButtonDown(1))
     {
-        ray = cam.ScreenPointToRay(Input.mousePosition);
+        radialMenu.playerWalk = playerWalk;
+        radialMenu.player = player;
+        radialMenu.hitObject = lastHit;
 
-        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
-        {
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
-            {
-                GameObject lastHit = hit.transform.gameObject;
+        RadialMenuSpawner.menuInstance.SpawnMenu(this);
 
-                if (Input.GetMouseButtonDown(1))
-                {
-                    radialMenu.playerWalk = playerWalk;
-                    radialMenu.player = player;
-                    radialMenu.hitObject = lastHit;
-                    
-                    RadialMenuSpawner.menuInstance.SpawnMenu(this);
-                  
-                    Debug.Log(lastHit + "selected");
-                }
-            }
-        } 
+        Debug.Log(lastHit + "selected");
     }
+}
+
+ * Method 2:
+ * 
+void Update()
+{
+    ray = cam.ScreenPointToRay(Input.mousePosition);
+
+    if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
+    {
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
+        {
+            GameObject lastHit = hit.transform.gameObject;
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                radialMenu.playerWalk = playerWalk;
+                radialMenu.player = player;
+                radialMenu.hitObject = lastHit;
+
+                RadialMenuSpawner.menuInstance.SpawnMenu(this);
+
+                Debug.Log(lastHit + "selected");
+            }
+        }
+    } 
+}
 
 }
-    */
+*/

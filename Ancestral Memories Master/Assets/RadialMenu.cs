@@ -87,15 +87,14 @@ public class RadialMenu : MonoBehaviour
                     StartCoroutine(DestroyBuffer());
 
                 }
-
                 else if (!selected)
                 {
                     Destroy(gameObject);
                     return;
                 }
-               
             }
-        }
+
+        } 
     }
 
     public void HideButtons()

@@ -61,7 +61,7 @@ public class MapPreview : MonoBehaviour {
 		*/
 
 
-		//meshFilter.sharedMesh = meshData.CreateMesh();
+		meshFilter.sharedMesh = meshData.CreateMesh();
 
 		meshFilter.gameObject.SetActive(true);
 		meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.sharedMesh;

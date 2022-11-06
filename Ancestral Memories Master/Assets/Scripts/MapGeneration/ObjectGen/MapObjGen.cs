@@ -413,7 +413,7 @@ public class MapObjGen : MonoBehaviour
             {
                 Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-                if (downHit.collider.CompareTag(waterTag) || downHit.collider.CompareTag("SpawnArea"))
+                if (downHit.collider.CompareTag(waterTag) || downHit.collider.CompareTag("SpawnArea") || downHit.collider.CompareTag("Rocks"))
                 {
                     Debug.Log("Water Ahoy!");
                     DestroyObject();
