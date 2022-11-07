@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    public GameObject player;
     public Action[] options;
 
     [System.Serializable]
@@ -19,36 +20,31 @@ public class Interactable : MonoBehaviour
     public LayerMask layer;
     public Vector3 collision = Vector3.zero;
     //public GameObject lastHit;
-
     public Camera cam;
-    public GameObject player;
+
     public PlayerWalk playerWalk;
     public RadialMenu radialMenu;
 
-    public CharacterBehaviours behaviour;
-
     Ray ray;
 
-    private void Start()
+    private void Awake()
     {
-        behaviour = player.GetComponent<CharacterBehaviours>();
+        cam = player.GetComponent<Player>().interactableCam;
+        radialMenu.playerWalk = player.GetComponent<PlayerWalk>();
+        radialMenu.player = player;
     }
 
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(1) && !behaviour.behaviourIsActive)
+        if (Input.GetMouseButtonDown(1))
         {
-
 
             RadialMenuSpawner.menuInstance.SpawnMenu(this);
 
-
-
         }
     }
+
 }
-
-
 /*
  * 
  * Method 1:

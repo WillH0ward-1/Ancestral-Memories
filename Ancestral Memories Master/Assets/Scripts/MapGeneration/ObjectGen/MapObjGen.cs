@@ -180,7 +180,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
         PoissonDiscSampler fliesSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFliesRadius);
-        PoissonDiscSampler animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
+        PoissonDiscSampler  animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
 
         TreePoissonDisc(treeSampler);
@@ -245,7 +245,7 @@ public class MapObjGen : MonoBehaviour
             treeInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(treeInstance);
-
+            
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -278,7 +278,7 @@ public class MapObjGen : MonoBehaviour
 
             mapObjectList.Add(grassInstance);
 
-            //            navModifier.ignoreFromBuild = true;
+//            navModifier.ignoreFromBuild = true;
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -413,12 +413,11 @@ public class MapObjGen : MonoBehaviour
             {
                 Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
-                if (downHit.collider.CompareTag(waterTag) || downHit.collider.CompareTag("SpawnArea"))
-                    if (downHit.collider.CompareTag(waterTag) || downHit.collider.CompareTag("SpawnArea") || downHit.collider.CompareTag("Rocks"))
-                    {
-                        Debug.Log("Water Ahoy!");
-                        DestroyObject();
-                    }
+                if (downHit.collider.CompareTag(waterTag) || downHit.collider.CompareTag("SpawnArea") || downHit.collider.CompareTag("Rocks"))
+                {
+                    Debug.Log("Water Ahoy!");
+                    DestroyObject();
+                }
 
                 if (downHit.collider == null)
                 {
@@ -457,7 +456,7 @@ public class MapObjGen : MonoBehaviour
         //Mesh mesh = GetComponent<MeshFilter>().mesh;
         //Bounds bounds = mesh.bounds;
 
-
+    
         void AnchorToGround()
         {
             //LayerMask groundMask = LayerMask.GetMask("Ground");
@@ -532,8 +531,7 @@ public class MapObjGen : MonoBehaviour
                     navMeshObstacle.center = new Vector3(0, 0, 0);
                     navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
 
-                    if (mapObject.CompareTag(rockTag))
-                    {
+                    if (mapObject.CompareTag(rockTag)) {
                         navMeshObstacle.enabled = true;
                         navMeshObstacle.center = new Vector3(0, 0, 0);
                         navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
@@ -565,18 +563,18 @@ public class MapObjGen : MonoBehaviour
         foreach (GameObject mapObject in mapObjectList)
         {
 
-            interactable = mapObject.GetComponent<Interactable>();
-            interactable.playerWalk = player.GetComponent<PlayerWalk>();
-            interactable.player = player;
-            interactable.cam = cam;
-            interactable.radialMenu = radialMenu;
+                interactable = mapObject.GetComponent<Interactable>();
 
-            if (mapObject.CompareTag(treeTag))
-            {
-                interactable.layer.value = LayerMask.GetMask("Trees");
-            }
+                interactable.player = player;
+                interactable.playerWalk = player.GetComponent<PlayerWalk>();
+                interactable.cam = cam;
+                interactable.radialMenu = radialMenu;
 
+                if (mapObject.CompareTag(treeTag)){
+                    interactable.layer.value = LayerMask.GetMask("Trees");
+                 } 
 
+            
             /*
             if (mapObject.CompareTag(treeTag)){
 
@@ -589,7 +587,7 @@ public class MapObjGen : MonoBehaviour
                 interactable.options[1].sprite = Resources.Load("Menu/Icons/Harvest") as Sprite;
             }
             */
-
+            
         }
     }
 
@@ -647,4 +645,6 @@ public class MapObjGen : MonoBehaviour
     }
 }
 
-// Update is called once per frame
+    // Update is called once per frame
+
+
