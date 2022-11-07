@@ -566,6 +566,7 @@ public class MapObjGen : MonoBehaviour
                 interactable = mapObject.GetComponent<Interactable>();
 
                 interactable.player = player;
+                interactable.playerWalk = player.GetComponent<PlayerWalk>();
                 interactable.cam = cam;
                 interactable.radialMenu = radialMenu;
 
