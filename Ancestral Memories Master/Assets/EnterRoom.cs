@@ -7,20 +7,13 @@ public class EnterRoom : MonoBehaviour
     public CharacterBehaviours behaviours;
 
     public PlayerWalk playerWalk;
-    [SerializeField] private Transform teleporter;
+    [SerializeField] private Transform destination;
+    [SerializeField] private Transform walkOutOfRoomTarget;
     [SerializeField] private GameObject player;
-    [SerializeField] private Transform walkIndoorTransform;
+
 
     [SerializeField] private Camera currentCam;
     [SerializeField] private Camera newCam;
-
-    private void OnTriggerEnter(Collider other)
-    {
-        Debug.Log(other + "Entered!");
-        behaviours.StartCoroutine(behaviours.WalkIntoRoom(walkIndoorTransform));
-        
-        //SwitchCam();
-    }
 
     private void SwitchCam()
     {
@@ -28,10 +21,11 @@ public class EnterRoom : MonoBehaviour
         newCam.enabled = true;
     }
 
-    public IEnumerator Teleport(Transform walkTowardRoom)
+    public IEnumerator Teleport(Vector3 destination)
     {
         yield return new WaitForSeconds(1);
-        player.transform.position = new Vector3(teleporter.position.x, teleporter.position.y, teleporter.position.z);
-        player.transform.LookAt(walkTowardRoom);
+        player.transform.position = destination;
+        player.transform.LookAt(walkOutOfRoomTarget);
+        StartCoroutine(behaviours.WalkIntoRoom());
     }
 }

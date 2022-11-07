@@ -36,21 +36,29 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_ENDPRAYER = "Player_PrayerEnd";
 
     private float animationLength;
+    public bool isOutside = true;
+    public Transform outsideDestination;
+    public Transform insideDestination;
 
+    private Transform destination;
 
-    public IEnumerator WalkIntoRoom(Transform walkToward)
+    public IEnumerator WalkIntoRoom()
     {
+        if (isOutside)
+        {
+            destination = insideDestination;
+        } else if (!isOutside)
+        {
+            destination = outsideDestination;
+        }
+
         behaviourIsActive = true;
 
-        playerWalk.StartCoroutine(playerWalk.WalkToObject(walkToward.position));
-    
-        playerWalk.agent.speed = 12;
-
-        ChangeState(PLAYER_WALK);
+        playerWalk.StartCoroutine(playerWalk.WalkToObject(destination.position));
 
         yield return new WaitUntil(() => playerWalk.reachedDestination == true);
 
-        teleport.StartCoroutine(teleport.Teleport(walkToward));
+        teleport.StartCoroutine(teleport.Teleport(destination.position));
 
         yield break;
     }

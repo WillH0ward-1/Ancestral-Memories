@@ -7,14 +7,12 @@ public class RadialMenu : MonoBehaviour
 {
 
     public RadialButton buttonPrefab;
-    public RadialButton selected;
+    [System.NonSerialized] public RadialButton selected;
 
     public PlayerWalk playerWalk;
     public GameObject player;
-    public GameObject hitObject;
 
-    private CharacterBehaviours behaviours;
-
+    public CharacterBehaviours behaviours;
     public List<RadialButton> buttons;
 
 
@@ -48,12 +46,6 @@ public class RadialMenu : MonoBehaviour
 
     }
 
-    private void Start()
-    {
-        behaviours = player.GetComponent<CharacterBehaviours>();
-        playerWalk = player.GetComponent<PlayerWalk>();
-    }
-
     private void Update()
     {
         if (!behaviours.behaviourIsActive)
@@ -80,21 +72,27 @@ public class RadialMenu : MonoBehaviour
                             break;
                         case "Plant Seed":
                             break;
+                        case "Enter":
+                            EnterRoom();
+                            break;
                     }
 
-                    print(selected.title);
                     HideButtons();
+                    print(selected.title);
                     StartCoroutine(DestroyBuffer());
 
                 }
-                else if (!selected)
+                else
                 {
                     Destroy(gameObject);
-                    return;
                 }
             }
-
         } 
+    }
+
+    public void EnterRoom()
+    {
+        behaviours.StartCoroutine(behaviours.WalkIntoRoom());
     }
 
     public void HideButtons()
@@ -105,15 +103,14 @@ public class RadialMenu : MonoBehaviour
         }
     }
 
-    public void WalkToward()
-    {
-        StartCoroutine(playerWalk.WalkToObject(hitObject.transform.position));
-    }
+    //  public void WalkToward()
+    // {
+    //     StartCoroutine(playerWalk.WalkToObject());
+    // }
 
     public void Pray()
     {
         player.GetComponent<PlayerWalk>().agent.stoppingDistance = 25f;
-
         StartCoroutine(behaviours.PrayerAnimation());
     }
 

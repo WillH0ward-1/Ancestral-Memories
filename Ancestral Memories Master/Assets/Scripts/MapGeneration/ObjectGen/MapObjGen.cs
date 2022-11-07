@@ -510,7 +510,7 @@ public class MapObjGen : MonoBehaviour
                 }
             }
 
-            AddColliders();
+            //AddColliders();
         }
 
         void AddColliders()
@@ -563,30 +563,19 @@ public class MapObjGen : MonoBehaviour
         foreach (GameObject mapObject in mapObjectList)
         {
 
-                interactable = mapObject.GetComponent<Interactable>();
+            if (mapObject.GetComponent<Interactable>() == null)
+            {
+                interactable = mapObject.GetComponentInChildren<Interactable>();
 
                 interactable.player = player;
+                interactable.behaviours = player.GetComponent<CharacterBehaviours>();
+                interactable.playerWalk = player.GetComponent<PlayerWalk>();
                 interactable.cam = cam;
                 interactable.radialMenu = radialMenu;
 
-                if (mapObject.CompareTag(treeTag)){
-                    interactable.layer.value = LayerMask.GetMask("Trees");
-                 } 
-
-            
-            /*
-            if (mapObject.CompareTag(treeTag)){
-
-                interactable.options[0].title = "Heal";
-                interactable.options[0].color = new Color(91, 189, 255, 1);
-                interactable.options[0].sprite = Resources.Load("Menu/Icons/Pray") as Sprite;
-
-                interactable.options[1].title = new string("Harvest");
-                interactable.options[1].color = new Color(154, 189, 255, 1);
-                interactable.options[1].sprite = Resources.Load("Menu/Icons/Harvest") as Sprite;
             }
-            */
-            
+
+            break;
         }
     }
 

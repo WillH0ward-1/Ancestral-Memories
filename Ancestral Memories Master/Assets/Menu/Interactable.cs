@@ -25,22 +25,29 @@ public class Interactable : MonoBehaviour
     public PlayerWalk playerWalk;
     public RadialMenu radialMenu;
 
+    public CharacterBehaviours behaviours;
+
     Ray ray;
 
-    private void Awake()
+    private void Start()
     {
-        cam = player.GetComponent<Player>().interactableCam;
-        radialMenu.playerWalk = player.GetComponent<PlayerWalk>();
-        radialMenu.player = player;
+        //cam = player.GetComponent<Player>().interactableCam;
+        //radialMenu.playerWalk = player.GetComponent<PlayerWalk>();
+        //radialMenu.player = player;
+       // radialMenu.behaviours = behaviours;
     }
 
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(1))
         {
-
-            RadialMenuSpawner.menuInstance.SpawnMenu(this);
-
+            if (!behaviours.behaviourIsActive)
+            {
+                if (Input.GetMouseButtonDown(1))
+                {
+                    RadialMenuSpawner.menuInstance.SpawnMenu(this);
+                }
+            }
         }
     }
 

@@ -15,7 +15,7 @@ public class TerrainGenerator : MonoBehaviour {
 	public MeshSettings meshSettings;
 	public HeightMapSettings heightMapSettings;
 	public TextureData textureSettings;
-
+	private PlayerWalk playerWalk;
 	public NavMeshSurface surface;
 
 	//public NavMeshPrefabInstance navMeshSurface;
@@ -34,7 +34,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	int chunksVisibleInViewDst;
 
-	public Player player;
+	public GameObject player;
 	public Camera interactCam;
 	private string terrainChunkName = "Terrain Chunk";
 	public Interactable interactable;
@@ -85,8 +85,13 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 			tmp.AddComponent<CorruptionControl>();
-
 		    interactable = tmp.AddComponent<Interactable>();
+
+			interactable.player = player;
+			interactable.cam = interactCam;
+			interactable.radialMenu = radialMenu;
+			interactable.playerWalk = playerWalk;
+
 
 		}
 	}
