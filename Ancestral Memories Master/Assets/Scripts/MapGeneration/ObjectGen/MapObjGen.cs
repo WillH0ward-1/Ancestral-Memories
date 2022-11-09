@@ -134,6 +134,7 @@ public class MapObjGen : MonoBehaviour
 
     public Camera cam;
 
+
     //public Interactable treeInteraction;
 
     [Header("Generated Objects")]
@@ -548,7 +549,7 @@ public class MapObjGen : MonoBehaviour
             }
             Debug.Log("Colliders Generated!");
 
-            AddInteractivity();
+            //AddInteractivity();
         }
     }
 
@@ -560,15 +561,8 @@ public class MapObjGen : MonoBehaviour
         foreach (GameObject mapObject in mapObjectList)
         {
 
-                interactable = mapObject.GetComponent<Interactable>();
 
-                interactable.player = player;
-                interactable.cam = cam;
-                interactable.radialMenu = radialMenu;
-
-                if (mapObject.CompareTag(treeTag)){
-                    interactable.layer.value = LayerMask.GetMask("Trees");
-            } 
+         
 
             
             /*

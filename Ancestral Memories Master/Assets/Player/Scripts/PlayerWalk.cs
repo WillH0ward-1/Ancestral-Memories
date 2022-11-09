@@ -153,12 +153,16 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination;
     public float stoppingDistanceRef;
 
-    public IEnumerator WalkToObject(Vector3 agentDestination)
+    public IEnumerator WalkToObject(Vector3 agentDestination, RadialMenu radialMenu)
     {
+        behaviours.behaviourIsActive = true;
+
         reachedDestination = false;
 
         if (Input.GetMouseButtonDown(0))
         {
+            reachedDestination = false;
+            behaviours.behaviourIsActive = false;
             stoppingDistanceRef = agent.stoppingDistance;
             agent.stoppingDistance = 0;
             yield break;
@@ -182,13 +186,12 @@ public class PlayerWalk : MonoBehaviour
                     agent.transform.LookAt(agentDestination);
                     agent.stoppingDistance = 0;
                     Debug.Log("Arrived.");
-                   
+                    radialMenu.StartCoroutine(radialMenu.ChooseBehaviour(radialMenu.selected));
+
                     yield break;
                 }
             }
         }
-
-        yield break;
     }
 
     public void StopAgent()

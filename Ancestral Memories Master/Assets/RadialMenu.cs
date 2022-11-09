@@ -11,14 +11,14 @@ public class RadialMenu : MonoBehaviour
 
     public PlayerWalk playerWalk;
     public GameObject player;
-    public GameObject hitObject;
 
     private CharacterBehaviours behaviours;
 
     public List<RadialButton> buttons;
 
+    public GameObject hitObject;
 
-    public void SpawnButtons(Interactable obj)
+    public void SpawnButtons(Interactable obj, GameObject lastHit)
     {
         for (int i = 0; i < obj.options.Length; i++)
         {
@@ -46,6 +46,8 @@ public class RadialMenu : MonoBehaviour
             buttons.Add(newButton);
         }
 
+        hitObject = lastHit;
+
     }
 
     private void Start()
@@ -56,37 +58,14 @@ public class RadialMenu : MonoBehaviour
 
     private void Update()
     {
-        if (!behaviours.behaviourIsActive)
-        {
             if (Input.GetMouseButtonUp(1))
             {
                 if (selected)
                 {
-                    WalkToward();
+                    WalkToward(hitObject.transform.position, this);
 
-                    switch (selected.title)
-                    {
-                        case "Pray":
-                            Pray();
-                            break;
-                        case "Look":
-                            break;
-                        case "Reflect":
-                            break;
-                        case "Dance":
-                            break;
-                        case "Harvest":
-                            Harvest();
-                            break;
-                        case "Heal":
-                            break;
-                    }
-
-                    print(selected.title);
                     HideButtons();
                     StartCoroutine(DestroyBuffer());
-
-                    
 
                 }
 
@@ -95,28 +74,57 @@ public class RadialMenu : MonoBehaviour
                     Destroy(gameObject);
                     return;
                 }
-               
             }
+
+    }
+
+    public IEnumerator ChooseBehaviour(RadialButton selected)
+    {
+        switch (selected.title)
+        {
+            case "Pray":
+                Pray();
+                break;
+            case "Look":
+                Look();
+                break;
+            case "Reflect":
+                Reflect();
+                break;
+            case "Dance":
+                break;
+            case "Harvest":
+                Harvest();
+                break;
+            case "Heal":
+                break;
         }
+
+        print(selected.title);
+
+        yield break;
     }
 
     public void HideButtons()
     {
-        foreach (RadialButton b in buttons)
+        foreach (RadialButton button in buttons)
         {
-            b.gameObject.SetActive(false);
+            button.gameObject.SetActive(false);
         }
     }
 
-    public void WalkToward()
+    public void WalkToward(Vector3 hitDestination, RadialMenu radialMenu)
     {
-        StartCoroutine(playerWalk.WalkToObject(hitObject.transform.position));
+        StartCoroutine(playerWalk.WalkToObject(hitDestination, radialMenu));
+    }
+
+    void SetStopDistance()
+    {
+        player.GetComponent<PlayerWalk>().agent.stoppingDistance = 25f;
     }
 
     public void Pray()
     {
-        player.GetComponent<PlayerWalk>().agent.stoppingDistance = 25f;
-
         if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
         {
             StartCoroutine(behaviours.PrayerAnimation());
@@ -126,10 +134,19 @@ public class RadialMenu : MonoBehaviour
         }
     }
 
+    public void Look()
+    {
+
+    }
+
     public void Harvest()
     {
         playerWalk.agent.stoppingDistance = 5f;
         StartCoroutine(behaviours.HarvestAnimation());
+    }
+    public void Reflect()
+    {
+
     }
 
     public IEnumerator DestroyBuffer()
