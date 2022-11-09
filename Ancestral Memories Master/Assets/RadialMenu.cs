@@ -54,105 +54,59 @@ public class RadialMenu : MonoBehaviour
     {
         behaviours = player.GetComponent<CharacterBehaviours>();
         playerWalk = player.GetComponent<PlayerWalk>();
+
+ 
     }
+
+    public bool walkingToward = false;
 
     private void Update()
     {
-            if (Input.GetMouseButtonUp(1))
+        if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive)
+        {
+            if (selected)
             {
-                if (selected)
+                Debug.Log("Selected!");
+
+                HideButtons();
+                StartCoroutine(DestroyBuffer());
+
+                if (!walkingToward)
                 {
-                    WalkToward(hitObject.transform.position, this);
-
-                    HideButtons();
-                    StartCoroutine(DestroyBuffer());
-
-                }
-
-                else if (!selected)
-                {
-                    Destroy(gameObject);
+                    behaviours.WalkToward(hitObject.transform.position, this);
+                    walkingToward = true;
                     return;
                 }
             }
 
-    }
+            else if (!selected)
+            {
+                Debug.Log("Not Selected!");
 
-    public IEnumerator ChooseBehaviour(RadialButton selected)
-    {
-        switch (selected.title)
-        {
-            case "Pray":
-                Pray();
-                break;
-            case "Look":
-                Look();
-                break;
-            case "Reflect":
-                Reflect();
-                break;
-            case "Dance":
-                break;
-            case "Harvest":
-                Harvest();
-                break;
-            case "Heal":
-                break;
+                Destroy(gameObject);
+                return;
+            }
+            
         }
-
-        print(selected.title);
-
-        yield break;
     }
 
     public void HideButtons()
     {
         foreach (RadialButton button in buttons)
         {
-            button.gameObject.SetActive(false);
+            //button.gameObject.SetActive(false);
+            button.icon.enabled = false;
+           
+            Image image = button.GetComponent<Image>();
+            image.enabled = false;
+            
         }
-    }
-
-    public void WalkToward(Vector3 hitDestination, RadialMenu radialMenu)
-    {
-        StartCoroutine(playerWalk.WalkToObject(hitDestination, radialMenu));
-    }
-
-    void SetStopDistance()
-    {
-        player.GetComponent<PlayerWalk>().agent.stoppingDistance = 25f;
-    }
-
-    public void Pray()
-    {
-        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
-        {
-            StartCoroutine(behaviours.PrayerAnimation());
-        } else
-        {
-            return;
-        }
-    }
-
-    public void Look()
-    {
-
-    }
-
-    public void Harvest()
-    {
-        playerWalk.agent.stoppingDistance = 5f;
-        StartCoroutine(behaviours.HarvestAnimation());
-    }
-    public void Reflect()
-    {
-
     }
 
     public IEnumerator DestroyBuffer()
     {
 
-        yield return new WaitUntil(() => behaviours.behaviourIsActive == false);
+        yield return new WaitUntil(() => playerWalk.reachedDestination);
 
         Destroy(gameObject);
         yield break;

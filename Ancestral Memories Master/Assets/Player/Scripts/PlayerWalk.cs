@@ -41,157 +41,174 @@ public class PlayerWalk : MonoBehaviour
 
     void Awake()
     {
-        agent.stoppingDistance = 0;
+        agent.stoppingDistance = defaultStoppingDistance;
         agent = GetComponent<NavMeshAgent>();
         agent.isStopped = true;
     }
 
     void Update()
     {
-        if (!Input.GetMouseButton(1))
+        if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive)
         {
-            if (!behaviours.behaviourIsActive)
+            if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
             {
-                if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
-                {
-                    CastRayToGround();
-                }
-
-
-                if (Input.GetMouseButtonUp(0))
-                {
-                    if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
-                    {
-                        StopAgent();
-                    }
-                }
-
-                void CastRayToGround()
-                {
-                    Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-
-                    int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                    int groundLayerMask = (1 << groundLayerIndex);
-
-                    if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayerMask))
-                    {
-                        Vector3 playerPosition = playerObject.transform.position;
-
-                        distance = Vector3.Distance(playerPosition, hit.point);
-
-                        if (distance >= distanceThreshold)
-                        {
-                            return;
-                        }
-                        else
-                        {
-                            MoveAgent(hit.point, distance, playerPosition);
-                        }
-                    }
-                }
-
-                void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
-                {
-                    speed = cursorDistance / distanceRatios;
-                    agent.destination = hitPoint;
-                    agent.speed = speed;
-                    animSpeed = speed / animFactor;
-
-                    if (speed < runThreshold)
-                    {
-                        if (playerIsCrouched)
-                        {
-                            changeState(PLAYER_SNEAK);
-                        }
-                        else
-                        {
-                            changeState(PLAYER_WALK);
-                        }
-
-                        //player.AdjustAnimationSpeed(animSpeed);
-                    }
-
-                    if (speed > runThreshold)
-                    {
-                        if (!playerIsCrouched)
-                        {
-                            changeState(PLAYER_RUN);
-                        }
-                        else
-                        {
-                            changeState(PLAYER_SNEAK);
-                        }
-
-                        //player.AdjustAnimationSpeed(animSpeed);
-                    }
-
-                    Debug.Log("Cursor Distance:" + cursorDistance);
-                    Debug.Log("Speed:" + agent.speed);
-
-                    agent.isStopped = false;
-                    agent.acceleration = 10000;
-
-                    //float runThreshold = cursorDistance / 2;
-
-                    if (Input.GetKeyDown(KeyCode.LeftShift))
-                    {
-                        EnterSneakMode();
-
-                        void EnterSneakMode()
-                        {
-                            changeState(PLAYER_CROUCH);
-                        }
-                    }
-                }
-
+                CastRayToGround();
             }
+
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+                {
+                    StopAgent();
+                }
+            }
+
+            void CastRayToGround()
+            {
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+                int groundLayerIndex = LayerMask.NameToLayer("Ground");
+                int groundLayerMask = (1 << groundLayerIndex);
+
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayerMask))
+                {
+                    Vector3 playerPosition = playerObject.transform.position;
+
+                    distance = Vector3.Distance(playerPosition, hit.point);
+
+                    if (distance >= distanceThreshold)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        MoveAgent(hit.point, distance, playerPosition);
+                    }
+                }
+            }
+
+            void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
+            {
+                speed = cursorDistance / distanceRatios;
+                agent.destination = hitPoint;
+                agent.speed = speed;
+                animSpeed = speed / animFactor;
+
+                if (speed < runThreshold)
+                {
+                    if (playerIsCrouched)
+                    {
+                        changeState(PLAYER_SNEAK);
+                    }
+                    else
+                    {
+                        changeState(PLAYER_WALK);
+                    }
+
+                    //player.AdjustAnimationSpeed(animSpeed);
+                }
+
+                if (speed > runThreshold)
+                {
+                    if (!playerIsCrouched)
+                    {
+                        changeState(PLAYER_RUN);
+                    }
+                    else
+                    {
+                        changeState(PLAYER_SNEAK);
+                    }
+
+                    //player.AdjustAnimationSpeed(animSpeed);
+                }
+
+                Debug.Log("Cursor Distance:" + cursorDistance);
+                Debug.Log("Speed:" + agent.speed);
+
+                agent.isStopped = false;
+                agent.acceleration = 10000;
+
+                //float runThreshold = cursorDistance / 2;
+
+                if (Input.GetKeyDown(KeyCode.LeftShift))
+                {
+                    EnterSneakMode();
+
+                    void EnterSneakMode()
+                    {
+                        changeState(PLAYER_CROUCH);
+                    }
+                }
+            }
+            
         }
         return;
-
     }
 
-    public bool reachedDestination;
-    public float stoppingDistanceRef;
+    float defaultStoppingDistance = 0f;
+    public float stoppingDistance;
+    public bool reachedDestination = false;
+    public float closeDistance = 5.0f;
 
     public IEnumerator WalkToObject(Vector3 agentDestination, RadialMenu radialMenu)
     {
-        behaviours.behaviourIsActive = true;
-
+        stoppingDistance = 10f;
+        agent.stoppingDistance = stoppingDistance;
         reachedDestination = false;
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            reachedDestination = false;
-            behaviours.behaviourIsActive = false;
-            stoppingDistanceRef = agent.stoppingDistance;
-            agent.stoppingDistance = 0;
-            yield break;
-        }
+        Debug.Log("StoppingDist: " + stoppingDistance);
+
+        changeState(PLAYER_WALK);
 
         speed = 12;
         agent.destination = agentDestination;
         agent.speed = speed;
         agent.isStopped = false;
 
-        changeState(PLAYER_WALK);
-
-        if (!agent.pathPending)
+        if (Input.GetMouseButtonDown(0))
         {
-            if (agent.remainingDistance <= agent.stoppingDistance)
+            Debug.Log("Behaviour cancelled!");
+
+            reachedDestination = true;
+            agent.stoppingDistance = defaultStoppingDistance;
+            radialMenu.walkingToward = false;
+
+            Debug.Log("StoppingDist: " + stoppingDistance);
+
+
+            yield break;
+        }
+
+        if (pathComplete())
+        {
+
+            changeState(PLAYER_IDLE);
+
+            reachedDestination = true;
+
+            agent.transform.LookAt(agentDestination);
+            agent.stoppingDistance = defaultStoppingDistance;
+            Debug.Log("Arrived.");
+            radialMenu.walkingToward = false;
+
+            behaviours.StartCoroutine(behaviours.ChooseBehaviour(radialMenu.selected));
+            yield break;
+
+        }           
+    }
+
+    bool pathComplete()
+    {
+        if (Vector3.Distance(agent.destination, agent.transform.position) <= agent.stoppingDistance)
+        {
+            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
             {
-                if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-                {
-                    reachedDestination = true;
-
-                    agent.transform.LookAt(agentDestination);
-                    agent.stoppingDistance = 0;
-                    Debug.Log("Arrived.");
-                    radialMenu.StartCoroutine(radialMenu.ChooseBehaviour(radialMenu.selected));
-
-                    yield break;
-                }
+                return true;
             }
         }
+
+        return false;
     }
 
     public void StopAgent()

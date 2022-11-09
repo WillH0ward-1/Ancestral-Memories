@@ -24,6 +24,8 @@ public class InteractCamera : MonoBehaviour
         radialMenu.playerWalk = playerWalk;
         radialMenu.hitObject = lastHit;
 
+       
+
     }
 
     void Update()
@@ -39,7 +41,6 @@ public class InteractCamera : MonoBehaviour
                 if (Input.GetMouseButtonDown(1))
                 {
                     Interactable interactable = hit.collider.gameObject.GetComponent<Interactable>();
-
                     interactable.SpawnMenu(lastHit);
 
                     Debug.Log(lastHit + "selected");

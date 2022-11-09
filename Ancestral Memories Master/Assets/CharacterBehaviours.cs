@@ -33,10 +33,43 @@ public class CharacterBehaviours : MonoBehaviour
 
     private float animationLength;
 
-
-    public IEnumerator PrayerAnimation()
+    public IEnumerator ChooseBehaviour(RadialButton selected)
     {
-        yield return new WaitUntil(() => player.GetComponent<PlayerWalk>().reachedDestination == true);
+        switch (selected.title)
+        {
+            case "Pray":
+                StartCoroutine(Pray());
+                break;
+            case "Look":
+                //Look();
+                break;
+            case "Reflect":
+                //Reflect();
+                break;
+            case "Dance":
+                break;
+            case "Harvest":
+                //Harvest();
+                break;
+            case "Heal":
+                break;
+            default:
+                Debug.Log("No such behaviour.");
+                break;
+        }
+
+        print(selected.title);
+
+        yield break;
+    }
+
+    public void WalkToward(Vector3 hitDestination, RadialMenu radialMenu)
+    {
+        StartCoroutine(playerWalk.WalkToObject(hitDestination, radialMenu));
+    }
+
+    public IEnumerator Pray()
+    {
 
         behaviourIsActive = true;
 
@@ -62,7 +95,6 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = false;
 
         yield break;
-       
     }
 
     void ChangeState(string newState)
