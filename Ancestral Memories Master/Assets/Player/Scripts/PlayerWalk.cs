@@ -157,8 +157,6 @@ public class PlayerWalk : MonoBehaviour
 
     public IEnumerator WalkToObject(Vector3 agentDestination, string selected)
     {
-        Debug.Log("BOI" + selected);
-
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, agentDestination, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CamFollow : MonoBehaviour
+public class CamControl : MonoBehaviour
 {
     public CharacterClass player;
+    private CharacterBehaviours behaviours;
 
     public Transform target;
 
@@ -17,12 +18,14 @@ public class CamFollow : MonoBehaviour
 
     public bool cinematicActive = false;
 
+    [SerializeField] private float minZoom = 6;
     [SerializeField] private float maxZoom = 4;
+
+    [SerializeField] private float initZoom = -6;
     [SerializeField] private float gameModeZoom = 0;
+    [SerializeField] private float actionZoom = 10;
     [SerializeField] private float cutSceneZoom = 0;
     [SerializeField] private float psychedelicZoom = -1;
-    [SerializeField] private float spawnZoom = -6;
-    [SerializeField] private float minZoom = 6;
 
     [SerializeField] private bool SpawnCam = false;
     [SerializeField] private bool GameCam = false;
@@ -32,6 +35,7 @@ public class CamFollow : MonoBehaviour
     [SerializeField] private bool playerSpawning = false;
 
     [SerializeField] private float InitPerspective = 4;
+
 
     string cutscene = ("");
 
@@ -60,7 +64,7 @@ public class CamFollow : MonoBehaviour
     {
         RotateAroundPlayer = false;
 
-        rpCamera.perspective = spawnZoom;
+        rpCamera.perspective = initZoom;
 
         ToSpawnZoom();
 
@@ -124,6 +128,16 @@ public class CamFollow : MonoBehaviour
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
+    public void ToActionZoom()
+    {
+        cinematicActive = true; // Level introduction.
+        //StartCoroutine(UserZoomBuffer());
+        SetCamClipPlane();
+        lerpDuration = 3f;
+        zoomDestination = actionZoom;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+    }
+
     public void ToGameZoom()
     {
         cinematicActive = false; // Level introduction.
@@ -145,7 +159,7 @@ public class CamFollow : MonoBehaviour
 
     public void ToPsychedelicZoom()
     {
-    //    cinematicActive = true; // Level introduction.
+        //    cinematicActive = true; // Level introduction.
         SetCamClipPlane();
         lerpDuration = 10f;
         zoomDestination = cutSceneZoom;
@@ -197,7 +211,6 @@ public class CamFollow : MonoBehaviour
 
     public void FixedUpdate()
     {
-
         if (MoveCamera)
         {
             // Smooth camera follow.
@@ -219,8 +232,6 @@ public class CamFollow : MonoBehaviour
             transform.LookAt(player.transform.position);
         }
 
-
-
     }
 
     public float turnSpeed = 4.0f;
@@ -229,6 +240,7 @@ public class CamFollow : MonoBehaviour
 
     void Awake()
     {
+        behaviours = player.GetComponent<CharacterBehaviours>();
         offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
     }
 
@@ -242,27 +254,27 @@ public class CamFollow : MonoBehaviour
  
 
     IEnumerator Zoom(float lerpDuration, float zoomDestination)
-
     {
-
         float timeElapsed = 0;
-
         while (timeElapsed < lerpDuration)
 
         {
-
             currentZoom = rpCamera.perspective;
-
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
-
             timeElapsed += Time.deltaTime;
 
             yield return null;
-
         }
         if (timeElapsed >= lerpDuration)
         {
-            StartCoroutine(ZoomCooldown());
+            if (behaviours.behaviourIsActive)
+            {
+                yield return new WaitUntil(() => !behaviours.behaviourIsActive);
+                StartCoroutine(ZoomCooldown());
+            } else
+            {
+                StartCoroutine(ZoomCooldown());
+            }
         }
     }
 

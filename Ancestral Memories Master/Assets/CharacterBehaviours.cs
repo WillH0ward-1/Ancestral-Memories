@@ -72,8 +72,6 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Pray()
     {
-        cinematicCam.ToActionZoom();
-
         behaviourIsActive = true;
 
         ChangeState(PLAYER_STARTPRAYER);
@@ -82,6 +80,8 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
         yield return new WaitForSeconds(animationLength);
+
+        cinematicCam.ToActionZoom();
 
         ChangeState(PLAYER_PRAYERLOOP);
 
