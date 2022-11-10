@@ -12,7 +12,7 @@ public class RadialMenu : MonoBehaviour
     public PlayerWalk playerWalk;
     public GameObject player;
 
-    private CharacterBehaviours behaviours;
+    public CharacterBehaviours behaviours;
 
     public List<RadialButton> buttons;
 
@@ -50,19 +50,11 @@ public class RadialMenu : MonoBehaviour
 
     }
 
-    private void Start()
-    {
-        behaviours = player.GetComponent<CharacterBehaviours>();
-        playerWalk = player.GetComponent<PlayerWalk>();
-
- 
-    }
-
     public bool walkingToward = false;
 
     private void Update()
     {
-        if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive)
+        if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive && !walkingToward)
         {
             if (selected)
             {
@@ -71,12 +63,10 @@ public class RadialMenu : MonoBehaviour
                 HideButtons();
                 StartCoroutine(DestroyBuffer());
 
-                if (!walkingToward)
-                {
-                    behaviours.WalkToward(hitObject.transform.position, this);
-                    walkingToward = true;
-                    return;
-                }
+                behaviours.WalkToward(hitObject.transform.position, this);
+                walkingToward = true;
+                return;
+                
             }
 
             else if (!selected)
@@ -106,8 +96,7 @@ public class RadialMenu : MonoBehaviour
     public IEnumerator DestroyBuffer()
     {
 
-        yield return new WaitUntil(() => playerWalk.reachedDestination);
-
+        yield return new WaitUntil(() => playerWalk.reachedDestination && !behaviours.behaviourIsActive);
         Destroy(gameObject);
         yield break;
         

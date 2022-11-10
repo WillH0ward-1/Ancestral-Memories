@@ -151,10 +151,19 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
 
+    Vector3 lastPosition;
+
+    [SerializeField] private GameObject destinationGizmo;
+
     public IEnumerator WalkToObject(Vector3 agentDestination, RadialMenu radialMenu)
     {
-        stoppingDistance = 10f;
-        agent.stoppingDistance = stoppingDistance;
+        Debug.Log("BOI" + radialMenu.selected);
+
+        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, agentDestination, Quaternion.identity);
+        DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
+
+        //stoppingDistance = 10f;
+        //agent.stoppingDistance = stoppingDistance;
         reachedDestination = false;
 
         Debug.Log("StoppingDist: " + stoppingDistance);
@@ -168,47 +177,34 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
+
             Debug.Log("Behaviour cancelled!");
 
             reachedDestination = true;
-            agent.stoppingDistance = defaultStoppingDistance;
             radialMenu.walkingToward = false;
+            agent.stoppingDistance = defaultStoppingDistance;
 
-            Debug.Log("StoppingDist: " + stoppingDistance);
-
+            Destroy(destinationGizmoInstance);
 
             yield break;
         }
 
-        if (pathComplete())
-        {
+        yield return new WaitUntil(() => trigger.hitDestination);
 
-            changeState(PLAYER_IDLE);
+        StopAgent();
 
-            reachedDestination = true;
+        Destroy(destinationGizmoInstance);
 
-            agent.transform.LookAt(agentDestination);
-            agent.stoppingDistance = defaultStoppingDistance;
-            Debug.Log("Arrived.");
-            radialMenu.walkingToward = false;
+        reachedDestination = true;
+        radialMenu.walkingToward = false;
 
-            behaviours.StartCoroutine(behaviours.ChooseBehaviour(radialMenu.selected));
-            yield break;
+        agent.stoppingDistance = defaultStoppingDistance;
+        Debug.Log("Arrived.");
+        agent.transform.LookAt(agentDestination);
 
-        }           
-    }
+        behaviours.StartCoroutine(behaviours.ChooseBehaviour(radialMenu.selected));
+        yield break;
 
-    bool pathComplete()
-    {
-        if (Vector3.Distance(agent.destination, agent.transform.position) <= agent.stoppingDistance)
-        {
-            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public void StopAgent()

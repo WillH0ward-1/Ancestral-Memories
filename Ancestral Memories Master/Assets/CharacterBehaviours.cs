@@ -70,7 +70,6 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Pray()
     {
-
         behaviourIsActive = true;
 
         ChangeState(PLAYER_STARTPRAYER);

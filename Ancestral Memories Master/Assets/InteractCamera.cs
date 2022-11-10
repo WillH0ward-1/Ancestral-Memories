@@ -13,6 +13,7 @@ public class InteractCamera : MonoBehaviour
 
     public PlayerWalk playerWalk;
     public RadialMenu radialMenu;
+    public CharacterBehaviours behaviour;
 
     Ray ray;
 
@@ -23,8 +24,7 @@ public class InteractCamera : MonoBehaviour
         radialMenu.player = player;
         radialMenu.playerWalk = playerWalk;
         radialMenu.hitObject = lastHit;
-
-       
+        radialMenu.behaviours = behaviour;
 
     }
 
@@ -32,7 +32,7 @@ public class InteractCamera : MonoBehaviour
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (!player.GetComponent<CharacterBehaviours>().behaviourIsActive)
+        if (!Input.GetMouseButtonDown(0) || !player.GetComponent<CharacterBehaviours>().behaviourIsActive)
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
