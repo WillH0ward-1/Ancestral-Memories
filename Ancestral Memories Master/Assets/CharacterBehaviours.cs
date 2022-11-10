@@ -55,6 +55,9 @@ public class CharacterBehaviours : MonoBehaviour
                 break;
             case "Heal":
                 break;
+            case "Eat":
+                break;
+            //Look();
             default:
                 Debug.Log("No such behaviour.");
                 break;

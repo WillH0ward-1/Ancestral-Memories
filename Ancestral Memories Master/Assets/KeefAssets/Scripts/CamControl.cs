@@ -43,19 +43,11 @@ public class CamControl : MonoBehaviour
     public Camera hiddenCam;
 
     public bool RotateAroundPlayer = false; // Enable after psychedelic ingestion
-    public float RotationSpeed = 5f;
+    public float RotationSpeed = 1f;
 
     public Vector3 cameraOffset;
     // Update is called once per frame
 
-    [ExecuteInEditMode]
-    void Update()
-    {
-
-        rpCamera.UpdateProjection(true);
-
-        //DebugChangeCam();
-    }
 
     float SmoothFactor = 0.25f;
 
@@ -69,6 +61,15 @@ public class CamControl : MonoBehaviour
         ToSpawnZoom();
 
         cameraOffset = new Vector3(12, 2.5f, -8);
+    }
+
+    [ExecuteInEditMode]
+    void Update()
+    {
+
+        rpCamera.UpdateProjection(true);
+
+        //DebugChangeCam();
     }
 
     void SetCamClipPlane()
@@ -131,16 +132,18 @@ public class CamControl : MonoBehaviour
     public void ToActionZoom()
     {
         cinematicActive = true; // Level introduction.
+        StartCoroutine(RotateAround());
         //StartCoroutine(UserZoomBuffer());
         SetCamClipPlane();
-        lerpDuration = 3f;
+        lerpDuration = 8f;
         zoomDestination = actionZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
     public void ToGameZoom()
     {
-        cinematicActive = false; // Level introduction.
+        //RotateAroundPlayer = true;
+        cinematicActive = false; 
         //StartCoroutine(UserZoomBuffer());
         SetCamClipPlane();
         lerpDuration = 1f;
@@ -150,7 +153,7 @@ public class CamControl : MonoBehaviour
 
     public void ToCutsceneZoom()
     {
-        cinematicActive = true; // Level introduction.
+        cinematicActive = true; 
         SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = cutSceneZoom;
@@ -159,9 +162,9 @@ public class CamControl : MonoBehaviour
 
     public void ToPsychedelicZoom()
     {
-        //    cinematicActive = true; // Level introduction.
+        cinematicActive = true; 
         SetCamClipPlane();
-        lerpDuration = 10f;
+        lerpDuration = 60f;
         zoomDestination = cutSceneZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
@@ -175,6 +178,22 @@ public class CamControl : MonoBehaviour
         yield return new WaitForSeconds(zoomBuffer); // buffer until player can take control of the scrollbar.
         //AllowUserZoom();
         yield break;
+    }
+
+    private IEnumerator RotateAround()
+    {
+        if (cinematicActive)
+        {
+            Quaternion camTurnAngle = Quaternion.AngleAxis(Time.deltaTime * RotationSpeed, Vector3.up);
+            cameraOffset = camTurnAngle * cameraOffset;
+
+            Vector3 newPos = player.transform.position + cameraOffset;
+
+            transform.position = Vector3.Slerp(transform.position, newPos, SmoothFactor);
+            transform.LookAt(player.transform.position);
+        }
+        yield break;
+        
     }
     /*
 
@@ -221,16 +240,7 @@ public class CamControl : MonoBehaviour
 
         }
 
-        if (RotateAroundPlayer)
-        {
-            Quaternion camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * RotationSpeed, Vector3.up);
-            cameraOffset = camTurnAngle * cameraOffset;
-
-            Vector3 newPos = player.transform.position + cameraOffset;
-
-            transform.position = Vector3.Slerp(transform.position, newPos, SmoothFactor);
-            transform.LookAt(player.transform.position);
-        }
+        //Input.GetAxis("Mouse ScrollWheel")
 
     }
 
@@ -283,6 +293,7 @@ public class CamControl : MonoBehaviour
         float duration = 1f;
         yield return new WaitForSeconds(duration);
 
+        StopCoroutine(RotateAround());
         ToGameZoom();
 
         if (playerSpawning)
