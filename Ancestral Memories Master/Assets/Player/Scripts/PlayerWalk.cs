@@ -10,7 +10,7 @@ public class PlayerWalk : MonoBehaviour
     public RPCamera rpCam;
 
     public Camera cam;
-    public CamFollow cineCam;
+    public CamControl cineCam;
 
     public NavMeshAgent agent;
 

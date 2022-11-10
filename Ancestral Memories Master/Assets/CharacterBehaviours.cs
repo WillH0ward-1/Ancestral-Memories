@@ -9,6 +9,8 @@ public class CharacterBehaviours : MonoBehaviour
     public PlayerWalk playerWalk;
     public Player player;
 
+    public CamControl cinematicCam;
+
     private string currentState;
     public bool behaviourIsActive = false;
 
@@ -70,6 +72,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Pray()
     {
+        cinematicCam.ToActionZoom();
+
         behaviourIsActive = true;
 
         ChangeState(PLAYER_STARTPRAYER);
@@ -88,6 +92,8 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_ENDPRAYER);
 
         yield return new WaitForSeconds(animationLength);
+
+        cinematicCam.ToGameZoom();
 
         ChangeState(PLAYER_IDLE);
 
