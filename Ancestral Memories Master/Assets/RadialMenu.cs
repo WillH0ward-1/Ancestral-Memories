@@ -63,8 +63,8 @@ public class RadialMenu : MonoBehaviour
                 HideButtons();
                 StartCoroutine(DestroyBuffer());
 
-                behaviours.WalkToward(hitObject.transform.position, this);
-                walkingToward = true;
+                behaviours.WalkToward(hitObject.transform.position, selected.title);
+
                 return;
                 
             }

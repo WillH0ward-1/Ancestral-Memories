@@ -155,9 +155,9 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToObject(Vector3 agentDestination, RadialMenu radialMenu)
+    public IEnumerator WalkToObject(Vector3 agentDestination, string selected)
     {
-        Debug.Log("BOI" + radialMenu.selected);
+        Debug.Log("BOI" + selected);
 
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, agentDestination, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
@@ -177,11 +177,9 @@ public class PlayerWalk : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-
             Debug.Log("Behaviour cancelled!");
 
             reachedDestination = true;
-            radialMenu.walkingToward = false;
             agent.stoppingDistance = defaultStoppingDistance;
 
             Destroy(destinationGizmoInstance);
@@ -196,13 +194,13 @@ public class PlayerWalk : MonoBehaviour
         Destroy(destinationGizmoInstance);
 
         reachedDestination = true;
-        radialMenu.walkingToward = false;
+
 
         agent.stoppingDistance = defaultStoppingDistance;
         Debug.Log("Arrived.");
         agent.transform.LookAt(agentDestination);
 
-        behaviours.StartCoroutine(behaviours.ChooseBehaviour(radialMenu.selected));
+        behaviours.ChooseBehaviour(selected);
         yield break;
 
     }

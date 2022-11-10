@@ -33,9 +33,9 @@ public class CharacterBehaviours : MonoBehaviour
 
     private float animationLength;
 
-    public IEnumerator ChooseBehaviour(RadialButton selected)
+    public void ChooseBehaviour(string selected)
     {
-        switch (selected.title)
+        switch (selected)
         {
             case "Pray":
                 StartCoroutine(Pray());
@@ -58,14 +58,14 @@ public class CharacterBehaviours : MonoBehaviour
                 break;
         }
 
-        print(selected.title);
+        print(selected);
 
-        yield break;
+        return;
     }
 
-    public void WalkToward(Vector3 hitDestination, RadialMenu radialMenu)
+    public void WalkToward(Vector3 hitDestination, string selected)
     {
-        StartCoroutine(playerWalk.WalkToObject(hitDestination, radialMenu));
+        StartCoroutine(playerWalk.WalkToObject(hitDestination, selected));
     }
 
     public IEnumerator Pray()
