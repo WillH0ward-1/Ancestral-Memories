@@ -147,19 +147,20 @@ public class CharacterBehaviours : MonoBehaviour
 
         ChangeState(PLAYER_EAT);
 
+        behaviourIsActive = false;
+
         if (DetectIfPsychedelic())
         {
             isPsychdelicMode = true;
             cinematicCam.ToPsychedelicZoom();
-        } else
+        } else if (!DetectIfPsychedelic())
         {
             isPsychdelicMode = false;
             cinematicCam.ToGameZoom();
         }
 
-        behaviourIsActive = false;
-        
         yield break;
+
     }
 
     public bool isPsychdelicMode = false;

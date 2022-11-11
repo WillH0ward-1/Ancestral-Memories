@@ -161,10 +161,10 @@ public class CamControl : MonoBehaviour
 
     public void ToPsychedelicZoom()
     {
-        cinematicActive = true; 
+        cinematicActive = false; 
         SetCamClipPlane();
-        lerpDuration = 3f;
-        zoomDestination = cutSceneZoom;
+        lerpDuration = 60000f;
+        zoomDestination = psychedelicZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
@@ -265,6 +265,17 @@ public class CamControl : MonoBehaviour
 
     IEnumerator Zoom(float lerpDuration, float zoomDestination)
     {
+        float zoomMultiplier = 0;
+
+        while (behaviours.isPsychdelicMode && Input.GetMouseButton(0))
+        {
+            zoomMultiplier = 2;
+            rpCamera.perspective /= zoomMultiplier;
+            yield return null;
+        } else
+        {
+            zoomMultiplier = lerpDuration;
+        }
 
         float timeElapsed = 0;
         while (timeElapsed < lerpDuration)
