@@ -29,9 +29,10 @@ public class CharacterBehaviours : MonoBehaviour
 
     // PRAYER
 
-    const string PLAYER_STARTPRAYER = "Player_PrayerStart";
-    const string PLAYER_PRAYERLOOP = "Player_PrayerLoop";
-    const string PLAYER_ENDPRAYER = "Player_PrayerEnd";
+    const string PLAYER_PRAYER_START = "Player_PrayerStart";
+    const string PLAYER_PRAYER_LOOP = "Player_PrayerLoop";
+    const string PLAYER_PRAYER_END = "Player_PrayerEnd";
+
 
     private float animationLength;
 
@@ -77,30 +78,23 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_STARTPRAYER);
+        ChangeState(PLAYER_PRAYER_START);
 
         float animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
-        yield return new WaitForEndOfFrame();
-        yield return new WaitForSeconds(animationLength);
+        ChangeState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToActionZoom();
 
-        ChangeState(PLAYER_PRAYERLOOP);
-
         Debug.Log("Click to exit this action.");
    
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));       
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        player.ChangeAnimationState(PLAYER_ENDPRAYER);
-
-        yield return new WaitForSeconds(animationLength);
-
-        cinematicCam.ToGameZoom();
-
-        ChangeState(PLAYER_IDLE);
+        ChangeState(PLAYER_PRAYER_END);
 
         behaviourIsActive = false;
+
+        cinematicCam.ToGameZoom();
 
         yield break;
     }

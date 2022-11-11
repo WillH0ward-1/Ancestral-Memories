@@ -160,18 +160,6 @@ public class PlayerWalk : MonoBehaviour
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, agentDestination, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 
-        //stoppingDistance = 10f;
-        //agent.stoppingDistance = stoppingDistance;
-        reachedDestination = false;
-
-        Debug.Log("StoppingDist: " + stoppingDistance);
-
-        changeState(PLAYER_WALK);
-
-        speed = 12;
-        agent.destination = agentDestination;
-        agent.speed = speed;
-        agent.isStopped = false;
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -184,6 +172,20 @@ public class PlayerWalk : MonoBehaviour
 
             yield break;
         }
+
+        //stoppingDistance = 10f;
+        //agent.stoppingDistance = stoppingDistance;
+
+        reachedDestination = false;
+
+        Debug.Log("StoppingDist: " + stoppingDistance);
+
+        changeState(PLAYER_WALK);
+
+        speed = 12;
+        agent.destination = agentDestination;
+        agent.speed = speed;
+        agent.isStopped = false;
 
         yield return new WaitUntil(() => trigger.hitDestination);
 

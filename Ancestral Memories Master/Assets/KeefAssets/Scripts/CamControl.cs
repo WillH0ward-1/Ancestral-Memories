@@ -18,26 +18,23 @@ public class CamControl : MonoBehaviour
 
     public bool cinematicActive = false;
 
-    [SerializeField] private float minZoom = 6;
-    [SerializeField] private float maxZoom = 4;
 
-    [SerializeField] private float initZoom = -6;
+
+    [SerializeField] private float spawnZoom = 0;
+    [SerializeField] private float initZoom = 0;
     [SerializeField] private float gameModeZoom = 0;
-    [SerializeField] private float actionZoom = 10;
+    [SerializeField] private float actionZoom = 0;
     [SerializeField] private float cutSceneZoom = 0;
-    [SerializeField] private float psychedelicZoom = -1;
+    [SerializeField] private float psychedelicZoom = 0;
 
     [SerializeField] private bool SpawnCam = false;
     [SerializeField] private bool GameCam = false;
     [SerializeField] private bool CutsceneCam = false;
     [SerializeField] private bool PsychedelicCam = false;
 
-    [SerializeField] private bool playerSpawning = false;
+    [SerializeField] private bool isSpawning = false;
 
-    [SerializeField] private float InitPerspective = 4;
-
-
-    string cutscene = ("");
+    //string cutscene = ("");
 
     public RPCamera rpCamera;
     public Camera hiddenCam;
@@ -118,24 +115,26 @@ public class CamControl : MonoBehaviour
     }
     */
 
+    public float lerpDuration = 0f;
+
     public void ToSpawnZoom()
     {
-        playerSpawning = true;
+        isSpawning = true;
         //StartCoroutine(RotateCamera());
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
-        lerpDuration = 4f;
-        zoomDestination = minZoom;
+        lerpDuration = 1f;
+        zoomDestination = spawnZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
 
     public void ToActionZoom()
     {
         cinematicActive = true; // Level introduction.
-        StartCoroutine(RotateAround());
+        //StartCoroutine(RotateAround());
         //StartCoroutine(UserZoomBuffer());
         SetCamClipPlane();
-        lerpDuration = 8f;
+        lerpDuration = 1f;
         zoomDestination = actionZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
@@ -164,7 +163,7 @@ public class CamControl : MonoBehaviour
     {
         cinematicActive = true; 
         SetCamClipPlane();
-        lerpDuration = 60f;
+        lerpDuration = 600f;
         zoomDestination = cutSceneZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }
@@ -248,6 +247,8 @@ public class CamControl : MonoBehaviour
 
     private Vector3 offset;
 
+    bool camZoomComplete = false;
+
     void Awake()
     {
         behaviours = player.GetComponent<CharacterBehaviours>();
@@ -260,11 +261,11 @@ public class CamControl : MonoBehaviour
     private float zoomDestination = 0f;
 
     public float timeElapsed;
-    public float lerpDuration = 5;
  
 
     IEnumerator Zoom(float lerpDuration, float zoomDestination)
     {
+
         float timeElapsed = 0;
         while (timeElapsed < lerpDuration)
 
@@ -275,31 +276,28 @@ public class CamControl : MonoBehaviour
 
             yield return null;
         }
+
         if (timeElapsed >= lerpDuration)
         {
-            if (behaviours.behaviourIsActive)
+
+            if (isSpawning)
             {
-                yield return new WaitUntil(() => !behaviours.behaviourIsActive);
-                StartCoroutine(ZoomCooldown());
-            } else
-            {
-                StartCoroutine(ZoomCooldown());
+                ToGameZoom();
+                isSpawning = false;
+                yield break;
             }
-        }
+
+        } 
+
     }
 
-    IEnumerator ZoomCooldown()
+    private IEnumerator ZoomCooldown()
     {
         float duration = 1f;
         yield return new WaitForSeconds(duration);
 
-        StopCoroutine(RotateAround());
         ToGameZoom();
 
-        if (playerSpawning)
-        {
-            playerSpawning = false;
-        }
         yield break;
     }
 
