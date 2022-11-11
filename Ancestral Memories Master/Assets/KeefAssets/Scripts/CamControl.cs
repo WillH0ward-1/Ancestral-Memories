@@ -71,13 +71,19 @@ public class CamControl : MonoBehaviour
 
     void SetCamClipPlane()
     {
+        if (behaviours.isPsychdelicMode == true)
+        {
+            rpCamera.rpCam.farClipPlane = 5000;
+            rpCamera.rpCam.nearClipPlane = -500;
+        }
+
         if (cinematicActive == true)
         {
             rpCamera.rpCam.farClipPlane = 5000;
             rpCamera.rpCam.nearClipPlane = -65;
         }
 
-        else if (cinematicActive == false)
+        else if (cinematicActive == false && !behaviours.isPsychdelicMode)
         {
             rpCamera.rpCam.farClipPlane = 300;
             rpCamera.rpCam.nearClipPlane = -65;
@@ -265,25 +271,21 @@ public class CamControl : MonoBehaviour
 
     IEnumerator Zoom(float lerpDuration, float zoomDestination)
     {
-        float zoomMultiplier = 0;
-
-        while (behaviours.isPsychdelicMode && Input.GetMouseButton(0))
-        {
-            zoomMultiplier = 2;
-            rpCamera.perspective /= zoomMultiplier;
-            yield return null;
-        } else
-        {
-            zoomMultiplier = lerpDuration;
-        }
+        float zoomMultiplier = 1;
 
         float timeElapsed = 0;
         while (timeElapsed < lerpDuration)
 
         {
+            if (behaviours.isPsychdelicMode && Input.GetMouseButton(0))
+            {
+                zoomMultiplier = 3;
+ 
+            } 
+
             currentZoom = rpCamera.perspective;
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
-            timeElapsed += Time.deltaTime;
+            timeElapsed += Time.deltaTime * zoomMultiplier;
 
             yield return null;
         }
