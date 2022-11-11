@@ -163,7 +163,7 @@ public class CamControl : MonoBehaviour
     {
         cinematicActive = true; 
         SetCamClipPlane();
-        lerpDuration = 600f;
+        lerpDuration = 3f;
         zoomDestination = cutSceneZoom;
         StartCoroutine(Zoom(lerpDuration, zoomDestination));
     }

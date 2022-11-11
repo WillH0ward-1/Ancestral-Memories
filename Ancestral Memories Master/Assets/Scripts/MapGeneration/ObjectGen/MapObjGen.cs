@@ -356,9 +356,9 @@ public class MapObjGen : MonoBehaviour
             mushroomInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
             mushroomInstance.transform.localScale = new Vector3(
-            Random.Range(minTreeScale.x, maxTreeScale.x),
-            Random.Range(minTreeScale.y, maxTreeScale.y),
-            Random.Range(minTreeScale.z, maxTreeScale.z));
+            Random.Range(minMushroomScale.x, maxMushroomScale.x),
+            Random.Range(minMushroomScale.y, maxMushroomScale.y),
+            Random.Range(minMushroomScale.z, maxMushroomScale.z));
 
 
             mushroomInstance.tag = mushroomTag;

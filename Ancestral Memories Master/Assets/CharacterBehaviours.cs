@@ -38,6 +38,10 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_DANCE_02 = "Player_Dance_02";
     const string PLAYER_DANCE_03 = "Player_Dance_03";
 
+    const string PLAYER_PICKUP = "Player_PickUp";
+    const string PLAYER_EAT = "Player_Eat";
+
+    const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
 
     private float animationLength;
@@ -58,12 +62,13 @@ public class CharacterBehaviours : MonoBehaviour
             case "Dance":
                 StartCoroutine(Dance(GetRandomAnimation()));
                 break;
-            case "Harvest":
-                //Harvest();
+            case "HarvestTree":
+                StartCoroutine(HarvestTree());
                 break;
             case "Heal":
                 break;
             case "Eat":
+                StartCoroutine(PickMushroom());
                 break;
             //Look();
             default:
@@ -77,9 +82,9 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
 
-    public void WalkToward(Vector3 hitDestination, string selected)
+    public void WalkToward(GameObject hitObject, Vector3 hitDestination, string selected)
     {
-        StartCoroutine(playerWalk.WalkToObject(hitDestination, selected));
+        StartCoroutine(playerWalk.WalkToObject(hitObject, hitDestination, selected));
     }
 
     public IEnumerator Pray()
@@ -118,7 +123,65 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         ChangeState(randomDanceAnim);
+        cinematicCam.ToActionZoom();
 
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        ChangeState(PLAYER_IDLE);
+
+        behaviourIsActive = false;
+        cinematicCam.ToGameZoom();
+        yield break;
+    }
+
+    public IEnumerator PickMushroom()
+    {
+        behaviourIsActive = true;
+
+        ChangeState(PLAYER_PICKUP);
+        cinematicCam.ToActionZoom();
+
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        ChangeState(PLAYER_EAT);
+
+        if (DetectIfPsychedelic())
+        {
+            isPsychdelicMode = true;
+            cinematicCam.ToPsychedelicZoom();
+        } else
+        {
+            isPsychdelicMode = false;
+            cinematicCam.ToGameZoom();
+        }
+
+        behaviourIsActive = false;
+        
+        yield break;
+    }
+
+    public bool isPsychdelicMode = false;
+
+    bool DetectIfPsychedelic()
+    {
+        int chance = Random.Range(0, 100);
+
+        if (chance <= 85)
+        {
+            return true;
+        } else
+        {
+            return false;
+        }
+    }
+
+    public IEnumerator HarvestTree()
+    {
+        behaviourIsActive = true;
+
+        ChangeState(PLAYER_HARVEST_TREE);
         cinematicCam.ToActionZoom();
 
         Debug.Log("Click to exit this action.");
@@ -143,8 +206,4 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(newState);
     }
 
-    public IEnumerator HarvestAnimation()
-    {
-        yield return null;
-    }
 }

@@ -40,7 +40,8 @@ public class InteractCamera : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(1))
                 {
-                    Interactable interactable = hit.collider.gameObject.GetComponent<Interactable>();
+                    Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
+
                     interactable.SpawnMenu(lastHit);
 
                     Debug.Log(lastHit + "selected");

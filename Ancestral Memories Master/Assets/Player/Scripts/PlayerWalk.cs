@@ -155,9 +155,21 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToObject(Vector3 agentDestination, string selected)
+    public IEnumerator WalkToObject(GameObject hitObject, Vector3 agentDestination, string selected)
     {
+
+        Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+
+        destinationGizmo.transform.localScale = sizeCalculated;
+
+        if (selected == "HarvestTree")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 8;
+        }
+
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, agentDestination, Quaternion.identity);
+
+
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 
 
