@@ -151,15 +151,15 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
 
+    public bool isEnteringRoom = false;
+
     Vector3 lastPosition;
 
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToObject(GameObject hitObject, Vector3 agentDestination, string selected)
+    public IEnumerator WalkToward(GameObject hitObject, string selected)
     {
-
         Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-
         destinationGizmo.transform.localScale = sizeCalculated;
 
         if (selected == "HarvestTree")
@@ -167,13 +167,10 @@ public class PlayerWalk : MonoBehaviour
             destinationGizmo.transform.localScale = sizeCalculated / 8;
         }
 
-        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, agentDestination, Quaternion.identity);
-
-
+        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, hitObject.transform.position, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 
-
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !isEnteringRoom)
         {
             Debug.Log("Behaviour cancelled!");
 
@@ -185,21 +182,21 @@ public class PlayerWalk : MonoBehaviour
             yield break;
         }
 
-        //stoppingDistance = 10f;
-        //agent.stoppingDistance = stoppingDistance;
-
         reachedDestination = false;
-
-        Debug.Log("StoppingDist: " + stoppingDistance);
 
         changeState(PLAYER_WALK);
 
         speed = 12;
-        agent.destination = agentDestination;
+        agent.destination = hitObject.transform.position;
         agent.speed = speed;
         agent.isStopped = false;
 
         yield return new WaitUntil(() => trigger.hitDestination);
+
+        if (isEnteringRoom)
+        {
+            AreaManager.te
+        }
 
         StopAgent();
 
@@ -210,7 +207,7 @@ public class PlayerWalk : MonoBehaviour
 
         agent.stoppingDistance = defaultStoppingDistance;
         Debug.Log("Arrived.");
-        agent.transform.LookAt(agentDestination);
+        agent.transform.LookAt(hitObject.transform.position);
 
         behaviours.ChooseBehaviour(selected);
         yield break;

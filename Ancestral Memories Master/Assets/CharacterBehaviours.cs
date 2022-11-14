@@ -82,9 +82,9 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
 
-    public void WalkToward(GameObject hitObject, Vector3 hitDestination, string selected)
+    public void WalkToward(GameObject hitObject, string selected)
     {
-        StartCoroutine(playerWalk.WalkToObject(hitObject, hitDestination, selected));
+        StartCoroutine(playerWalk.WalkToward(hitObject, selected));
     }
 
     public IEnumerator Pray()
