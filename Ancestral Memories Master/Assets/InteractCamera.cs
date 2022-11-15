@@ -15,6 +15,8 @@ public class InteractCamera : MonoBehaviour
     public RadialMenu radialMenu;
     public CharacterBehaviours behaviour;
 
+    public AreaManager areaManager;
+
     Ray ray;
 
     private void Start()
@@ -25,6 +27,7 @@ public class InteractCamera : MonoBehaviour
         radialMenu.playerWalk = playerWalk;
         radialMenu.hitObject = lastHit;
         radialMenu.behaviours = behaviour;
+        radialMenu.areaManager = areaManager;
 
     }
 

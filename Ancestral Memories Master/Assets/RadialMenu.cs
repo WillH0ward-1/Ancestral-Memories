@@ -18,6 +18,8 @@ public class RadialMenu : MonoBehaviour
 
     public GameObject hitObject;
 
+    public AreaManager areaManager;
+
     public void SpawnButtons(Interactable obj, GameObject lastHit)
     {
         for (int i = 0; i < obj.options.Length; i++)
@@ -58,14 +60,26 @@ public class RadialMenu : MonoBehaviour
         {
             if (selected)
             {
+
                 Debug.Log("Selected!");
 
                 HideButtons();
-                StartCoroutine(DestroyBuffer());
 
-                behaviours.WalkToward(hitObject, hitObject.transform.position, selected.title);
 
-                return;
+                if (hitObject.CompareTag("Portal"))
+                {
+                    //StartCoroutine(PortalDestroyBuffer());
+                    behaviours.WalkToPortal(hitObject);
+
+                    return;
+                }
+                else
+                {
+                    StartCoroutine(DestroyBuffer());
+                    behaviours.WalkToward(hitObject, selected.title);
+
+                    return;
+                }
                 
             }
 
@@ -100,5 +114,15 @@ public class RadialMenu : MonoBehaviour
         Destroy(gameObject);
         yield break;
         
+    }
+
+
+    public IEnumerator PortalDestroyBuffer()
+    {
+
+        yield return new WaitUntil(() => playerWalk.reachedDestination && !areaManager.traversing);
+        Destroy(gameObject);
+        yield break;
+
     }
 }

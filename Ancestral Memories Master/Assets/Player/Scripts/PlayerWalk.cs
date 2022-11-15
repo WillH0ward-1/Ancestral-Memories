@@ -4,6 +4,7 @@ using FMODUnity;
 using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class PlayerWalk : MonoBehaviour
 {
@@ -39,16 +40,19 @@ public class PlayerWalk : MonoBehaviour
 
     public CharacterBehaviours behaviours;
 
+    public AreaManager areaManager;
+
     void Awake()
     {
         agent.stoppingDistance = defaultStoppingDistance;
         agent = GetComponent<NavMeshAgent>();
         agent.isStopped = true;
+
     }
 
     void Update()
     {
-        if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive)
+        if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
         {
             if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
             {
@@ -151,14 +155,15 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
 
-    public bool isEnteringRoom = false;
-
     Vector3 lastPosition;
 
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToward(GameObject hitObject, string selected)
+    public IEnumerator WalkToward(GameObject hitObject, string selected, GameObject portal, GameObject newArea)
     {
+
+        Transform targetPortal = portal.transform;
+
         Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
         destinationGizmo.transform.localScale = sizeCalculated;
 
@@ -170,7 +175,7 @@ public class PlayerWalk : MonoBehaviour
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, hitObject.transform.position, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 
-        if (Input.GetMouseButtonDown(0) && !isEnteringRoom)
+        if (Input.GetMouseButtonDown(0) && !areaManager.isEnteringRoom)
         {
             Debug.Log("Behaviour cancelled!");
 
@@ -193,25 +198,40 @@ public class PlayerWalk : MonoBehaviour
 
         yield return new WaitUntil(() => trigger.hitDestination);
 
-        if (isEnteringRoom)
+        Transform newAreaTransform = newArea.transform;
+
+        if (areaManager.isEnteringRoom)
         {
-            AreaManager.te
+            StartCoroutine(areaManager.Teleport(agent.transform.gameObject, newArea.transform));
+
+            yield return new WaitUntil(() => !areaManager.traversing);
+
+            yield break;
         }
 
-        StopAgent();
+        else
+        {
 
-        Destroy(destinationGizmoInstance);
+            StopAgent();
 
-        reachedDestination = true;
+            Destroy(destinationGizmoInstance);
+
+            reachedDestination = true;
 
 
-        agent.stoppingDistance = defaultStoppingDistance;
-        Debug.Log("Arrived.");
-        agent.transform.LookAt(hitObject.transform.position);
+            agent.stoppingDistance = defaultStoppingDistance;
+            Debug.Log("Arrived.");
+            agent.transform.LookAt(hitObject.transform.position);
 
-        behaviours.ChooseBehaviour(selected);
-        yield break;
+            behaviours.ChooseBehaviour(selected);
+            yield break;
+        }
 
+    }
+
+    private void StartCoroutine(object v)
+    {
+        throw new NotImplementedException();
     }
 
     public void StopAgent()

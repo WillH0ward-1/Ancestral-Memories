@@ -46,6 +46,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     private float animationLength;
 
+    public AreaManager areaManager;
+
     public void ChooseBehaviour(string selected)
     {
         switch (selected)
@@ -60,7 +62,7 @@ public class CharacterBehaviours : MonoBehaviour
                 //Reflect();
                 break;
             case "Dance":
-                StartCoroutine(Dance(GetRandomAnimation()));
+                StartCoroutine(Dance(GetRandomAnimation(danceAnimClips)));
                 break;
             case "HarvestTree":
                 StartCoroutine(HarvestTree());
@@ -84,7 +86,12 @@ public class CharacterBehaviours : MonoBehaviour
 
     public void WalkToward(GameObject hitObject, string selected)
     {
-        StartCoroutine(playerWalk.WalkToward(hitObject, selected));
+        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null));
+    }
+
+    public void WalkToPortal(GameObject hitObject)
+    {
+        StartCoroutine(areaManager.EnterPortal(hitObject));
     }
 
     public IEnumerator Pray()
@@ -108,9 +115,9 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
-    public virtual string GetRandomAnimation()
+    public virtual string GetRandomAnimation(string[] animClips)
     {
-        string randomAnimation = danceAnimClips[Random.Range(0, danceAnimClips.Length - 1)];
+        string randomAnimation = animClips[Random.Range(0, animClips.Length - 1)];
 
         animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
