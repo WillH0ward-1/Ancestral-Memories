@@ -81,6 +81,8 @@ public class PlayerWalk : MonoBehaviour
 
                     distance = Vector3.Distance(playerPosition, hit.point);
 
+                    Debug.Log(distance);
+
                     if (distance >= distanceThreshold)
                     {
                         return;
@@ -207,7 +209,7 @@ public class PlayerWalk : MonoBehaviour
             {
                 StartCoroutine(areaManager.Teleport(agent, teleportTarget));
             }
-            else
+            else if (!areaManager.isEntering)
             {
                 Debug.Log("EnteredRoom.");
                 StopAgent();

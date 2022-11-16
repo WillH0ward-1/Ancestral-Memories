@@ -47,7 +47,6 @@ public class AreaManager : MonoBehaviour
     public IEnumerator EnterPortal(GameObject interactedPortal)
     {
         traversing = true;
-
         isEntering = true;
 
         GameObject enterPortal = FindGameObjectInChildWithTag(interactedPortal, "Portal");
@@ -57,7 +56,7 @@ public class AreaManager : MonoBehaviour
 
         StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform));
 
-        yield return new WaitUntil(() => !traversing);
+        yield return new WaitUntil(() => !isEntering);
 
         yield break;
     }
@@ -67,10 +66,6 @@ public class AreaManager : MonoBehaviour
         isEntering = false;
 
         StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null));
-
-        yield return new WaitUntil(() => playerWalk.reachedDestination);
-
-        traversing = false;
 
         yield return new WaitUntil(() => !traversing);
 
