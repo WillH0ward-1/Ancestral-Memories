@@ -466,7 +466,7 @@ public class MapObjGen : MonoBehaviour
             {
 
                 int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                int groundLayerMask = (1 << groundLayerIndex);
+                int groundLayerMask = (1 << groundLayerIndex); 
 
                 if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
 
@@ -511,7 +511,45 @@ public class MapObjGen : MonoBehaviour
                 }
             }
 
-            AddColliders();
+            //AddColliders();
+
+            DestroyDeadZones();
+        }
+
+        void DestroyDeadZones()
+        {
+            foreach (GameObject mapObject in mapObjectList)
+            {
+
+                int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
+                int deadZoneLayerMask = (1 << deadZoneLayerIndex);
+
+                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+                {
+                    if (hitFloor.collider.CompareTag("DeadZone"))
+                    {
+                        Debug.Log("Water Ahoy!");
+                        DestroyObject();
+                    }
+
+                    //Debug.Log("Clamped to Ground!");
+                    //Debug.Log("Distance: " + distance);
+                }
+
+                void DestroyObject()
+                {
+                    if (Application.isEditor)
+                    {
+                        Debug.Log("Object destroyed in Editor.");
+                        DestroyImmediate(mapObject);
+                    }
+                    else
+                    {
+                        Debug.Log("Object destroyed in game.");
+                        Destroy(mapObject);
+                    }
+                }
+            }
         }
 
         void AddColliders()
@@ -550,34 +588,6 @@ public class MapObjGen : MonoBehaviour
             Debug.Log("Colliders Generated!");
 
             //AddInteractivity();
-        }
-    }
-
-    private Interactable interactable;
-    private string layerstring;
-
-    void AddInteractivity()
-    {
-        foreach (GameObject mapObject in mapObjectList)
-        {
-
-
-         
-
-            
-            /*
-            if (mapObject.CompareTag(treeTag)){
-
-                interactable.options[0].title = "Heal";
-                interactable.options[0].color = new Color(91, 189, 255, 1);
-                interactable.options[0].sprite = Resources.Load("Menu/Icons/Pray") as Sprite;
-
-                interactable.options[1].title = new string("Harvest");
-                interactable.options[1].color = new Color(154, 189, 255, 1);
-                interactable.options[1].sprite = Resources.Load("Menu/Icons/Harvest") as Sprite;
-            }
-            */
-            
         }
     }
 

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class AreaManager : MonoBehaviour
 {
@@ -19,80 +20,60 @@ public class AreaManager : MonoBehaviour
 
     private GameObject room;
 
-    public bool isEnteringRoom = false;
-    public bool isExitingRoom = false;
-
     public bool traversing = false;
 
     private void Start()
     {
+        traversing = false;
         currentRoom = Room.Outside;
     }
-    private void SwitchCam()
+
+    public IEnumerator Teleport(NavMeshAgent traveller, Transform targetDestination)
     {
-        currentCam.enabled = false;
-        newCam.enabled = true;
-    }
 
-    public IEnumerator Teleport(GameObject traveller, Transform target)
-    {
-        traveller.transform.position = target.transform.position;
+        Portal portal = targetDestination.GetComponentInChildren<Portal>();
 
-        yield return new WaitForSeconds(3f);
+        traveller.Warp(portal.enterPortal.transform.position);
 
-        StartCoroutine(ExitPortal(target.gameObject));
+        StartCoroutine(ExitPortal(portal));
 
         yield return new WaitUntil(() => !traversing);
 
-        yield return null;
+        yield break;
     }
 
-    private void Update()
-    {
-        if (isEnteringRoom || isExitingRoom)
-        {
-            traversing = true;
-        } else
-        {
-            traversing = false;
-        }
-    }
+    public bool isEntering = false;
 
     public IEnumerator EnterPortal(GameObject interactedPortal)
     {
+        traversing = true;
+
+        isEntering = true;
+
         GameObject enterPortal = FindGameObjectInChildWithTag(interactedPortal, "Portal");
         Portal portal = enterPortal.GetComponent<Portal>();
 
-        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", enterPortal, null));
+        Transform newDestination = portal.destination;
 
-        while (traversing)
-        {
-            isEnteringRoom = true;
-            isExitingRoom = false;
+        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform));
 
-            yield return null;
-        }
+        yield return new WaitUntil(() => !traversing);
 
-        if (!traversing)
-        {
-            yield break;
-        }
+        yield break;
     }
 
-    public IEnumerator ExitPortal(GameObject newAreaPortal)
+    public IEnumerator ExitPortal(Portal portal)
     {
-        while (traversing)
-        {
-            GameObject exitPortal = FindGameObjectInChildWithTag(newAreaPortal, "ExitPortal");
+        isEntering = false;
 
-            Portal portal = exitPortal.GetComponent<Portal>();
+        StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null));
 
-            isExitingRoom = true;
-            isEnteringRoom = false;
+        yield return new WaitUntil(() => playerWalk.reachedDestination);
 
-            StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", exitPortal, null));
-            yield return null;
-        }
+        traversing = false;
+
+        yield return new WaitUntil(() => !traversing);
+
         yield break;
     }
 

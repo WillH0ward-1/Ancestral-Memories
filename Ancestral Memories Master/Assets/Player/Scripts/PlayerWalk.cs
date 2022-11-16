@@ -145,8 +145,8 @@ public class PlayerWalk : MonoBehaviour
                     }
                 }
             }
-            
         }
+
         return;
     }
 
@@ -159,10 +159,8 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToward(GameObject hitObject, string selected, GameObject portal, GameObject newArea)
+    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget)
     {
-
-        Transform targetPortal = portal.transform;
 
         Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
         destinationGizmo.transform.localScale = sizeCalculated;
@@ -175,7 +173,7 @@ public class PlayerWalk : MonoBehaviour
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, hitObject.transform.position, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 
-        if (Input.GetMouseButtonDown(0) && !areaManager.isEnteringRoom)
+        if (Input.GetMouseButtonDown(0) && !areaManager.traversing)
         {
             Debug.Log("Behaviour cancelled!");
 
@@ -198,17 +196,26 @@ public class PlayerWalk : MonoBehaviour
 
         yield return new WaitUntil(() => trigger.hitDestination);
 
-        Transform newAreaTransform = newArea.transform;
-
-        if (areaManager.isEnteringRoom)
+        if (areaManager.traversing)
         {
-            StartCoroutine(areaManager.Teleport(agent.transform.gameObject, newArea.transform));
+            reachedDestination = true;
 
-            yield return new WaitUntil(() => !areaManager.traversing);
+            agent.stoppingDistance = defaultStoppingDistance;
+            Debug.Log("ToTeleport.");
 
-            yield break;
+            if (areaManager.isEntering)
+            {
+                StartCoroutine(areaManager.Teleport(agent, teleportTarget));
+            }
+            else
+            {
+                Debug.Log("EnteredRoom.");
+                StopAgent();
+                Destroy(destinationGizmoInstance);
+                areaManager.traversing = false;
+                yield break;
+            }
         }
-
         else
         {
 
@@ -218,20 +225,14 @@ public class PlayerWalk : MonoBehaviour
 
             reachedDestination = true;
 
-
             agent.stoppingDistance = defaultStoppingDistance;
             Debug.Log("Arrived.");
             agent.transform.LookAt(hitObject.transform.position);
 
-            behaviours.ChooseBehaviour(selected);
+            behaviours.ChooseBehaviour(selected, null);
             yield break;
         }
 
-    }
-
-    private void StartCoroutine(object v)
-    {
-        throw new NotImplementedException();
     }
 
     public void StopAgent()

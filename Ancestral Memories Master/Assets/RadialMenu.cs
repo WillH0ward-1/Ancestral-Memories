@@ -22,6 +22,8 @@ public class RadialMenu : MonoBehaviour
 
     public void SpawnButtons(Interactable obj, GameObject lastHit)
     {
+        hitObject = lastHit;
+
         for (int i = 0; i < obj.options.Length; i++)
         {
             RadialButton newButton = Instantiate(buttonPrefab);
@@ -48,8 +50,6 @@ public class RadialMenu : MonoBehaviour
             buttons.Add(newButton);
         }
 
-        hitObject = lastHit;
-
     }
 
     public bool walkingToward = false;
@@ -65,12 +65,10 @@ public class RadialMenu : MonoBehaviour
 
                 HideButtons();
 
-
-                if (hitObject.CompareTag("Portal"))
+                if (selected.title == "Enter")
                 {
-                    //StartCoroutine(PortalDestroyBuffer());
-                    behaviours.WalkToPortal(hitObject);
-
+                    StartCoroutine(PortalDestroyBuffer());
+                    StartCoroutine(areaManager.EnterPortal(hitObject));
                     return;
                 }
                 else
@@ -120,7 +118,7 @@ public class RadialMenu : MonoBehaviour
     public IEnumerator PortalDestroyBuffer()
     {
 
-        yield return new WaitUntil(() => playerWalk.reachedDestination && !areaManager.traversing);
+        yield return new WaitUntil(() => !areaManager.traversing);
         Destroy(gameObject);
         yield break;
 

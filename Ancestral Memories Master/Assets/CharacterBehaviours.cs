@@ -48,7 +48,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     public AreaManager areaManager;
 
-    public void ChooseBehaviour(string selected)
+    public void ChooseBehaviour(string selected, GameObject hitObject)
     {
         switch (selected)
         {
@@ -72,6 +72,9 @@ public class CharacterBehaviours : MonoBehaviour
             case "Eat":
                 StartCoroutine(PickMushroom());
                 break;
+            case "Enter":
+                StartCoroutine(areaManager.EnterPortal(hitObject));
+                break;
             //Look();
             default:
                 Debug.Log("No such behaviour.");
@@ -86,12 +89,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     public void WalkToward(GameObject hitObject, string selected)
     {
-        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null));
-    }
-
-    public void WalkToPortal(GameObject hitObject)
-    {
-        StartCoroutine(areaManager.EnterPortal(hitObject));
+        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null));
     }
 
     public IEnumerator Pray()
