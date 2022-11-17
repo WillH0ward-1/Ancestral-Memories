@@ -57,6 +57,7 @@ public class CamControl : MonoBehaviour
 
 
     float SmoothFactor = 0.25f;
+    private Vector3 offset;
 
 
     public void Start()
@@ -286,12 +287,6 @@ public class CamControl : MonoBehaviour
 
     public float turnSpeed = 4.0f;
 
-    private Vector3 offset;
-
-    bool camZoomComplete = false;
-
-    // Camera 'zoom' into target.
-
     public float currentZoom = 0f;
     public float currentOrthoZoom = 0f;
 
@@ -302,7 +297,6 @@ public class CamControl : MonoBehaviour
 
     IEnumerator Zoom(float lerpDuration, float zoomDestination, float orthoDestination)
     {
-      
 
         float zoomMultiplier = 1;
 
@@ -343,29 +337,24 @@ public class CamControl : MonoBehaviour
 
     }
 
-    public GameObject targetPostion;
-
-    public IEnumerator FlipCam(GameObject target, float duration)
+    public IEnumerator FlipCam()
     {
+        Vector3 targetRotation = new(cam.transform.rotation.x, -cam.transform.rotation.y + 80f, cam.transform.rotation.z);
+
         float timeElapsed = 0;
 
-        while (timeElapsed < duration)
-        {
-            cam.transform.position = Vector3.Lerp(cam.transform.position, target.transform.position, timeElapsed / duration);
+        cam.transform.position = Vector3.Lerp(cam.transform.position, player.transform.position, timeElapsed / lerpDuration) ;
 
-            cam.transform.LookAt(player.transform);
+
+        while (timeElapsed < lerpDuration)
+        {
+            cam.transform.position = Vector3.Lerp(transform.rotation.eulerAngles, targetRotation, timeElapsed * Time.deltaTime);
 
             timeElapsed += Time.deltaTime;
 
             yield return null;
         }
-
-        if (timeElapsed > duration)
-        {
-            yield break;
-        }
-
-     
+   
 
     }
 

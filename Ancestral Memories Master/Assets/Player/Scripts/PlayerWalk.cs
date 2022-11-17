@@ -27,6 +27,10 @@ public class PlayerWalk : MonoBehaviour
     const string PLAYER_CROUCH = "Player_crouch";
     const string PLAYER_SNEAK = "Player_sneak";
 
+    const string PLAYER_DRUNKIDLE = "Player_drunkIdle";
+    const string PLAYER_DRUNKWALK = "Player_drunkWalk";
+    const string PLAYER_DRUNKRUN = "Player_drunkRun";
+
     bool playerIsCrouched = false;
 
     [SerializeField] private float walkThreshold = 0;
@@ -109,7 +113,14 @@ public class PlayerWalk : MonoBehaviour
                     }
                     else
                     {
-                        changeState(PLAYER_WALK);
+                        if (!behaviours.isPsychdelicMode)
+                        {
+                            changeState(PLAYER_WALK);
+                        }
+                        else if (behaviours.isPsychdelicMode)
+                        {
+                            changeState(PLAYER_DRUNKWALK);
+                        }
                     }
 
                     //player.AdjustAnimationSpeed(animSpeed);
@@ -119,15 +130,23 @@ public class PlayerWalk : MonoBehaviour
                 {
                     if (!playerIsCrouched)
                     {
-                        changeState(PLAYER_RUN);
+                        if (!behaviours.isPsychdelicMode)
+                        {
+                            changeState(PLAYER_RUN);
+                        } else if (behaviours.isPsychdelicMode)
+                        {
+                            changeState(PLAYER_DRUNKRUN);
+                        }
                     }
                     else
                     {
                         changeState(PLAYER_SNEAK);
                     }
 
-                    //player.AdjustAnimationSpeed(animSpeed);
+        
                 }
+
+                player.AdjustAnimationSpeed(animSpeed);
 
                 Debug.Log("Cursor Distance:" + cursorDistance);
                 Debug.Log("Speed:" + agent.speed);
@@ -238,7 +257,13 @@ public class PlayerWalk : MonoBehaviour
 
     public void StopAgent()
     {
-        changeState(PLAYER_IDLE);
+        if (!behaviours.isPsychdelicMode)
+        {
+            changeState(PLAYER_IDLE);
+        } else if (behaviours.isPsychdelicMode)
+        {
+            changeState(PLAYER_DRUNKIDLE);
+        }
 
         agent.ResetPath();
 

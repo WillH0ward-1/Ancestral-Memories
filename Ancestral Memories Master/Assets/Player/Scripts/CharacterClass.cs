@@ -174,7 +174,7 @@ public class CharacterClass : MonoBehaviour, IStats
         AssignInactiveAnimators();
     }
 
-    private void AdjustAnimationSpeed(float newSpeed)
+    public void AdjustAnimationSpeed(float newSpeed)
     {
         activeAnimator.speed = newSpeed;
         inactiveAnimator.speed = newSpeed;

@@ -152,8 +152,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         ChangeState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-
-        cinematicCam.FlipCam(player.gameObject, 4f);
+        StartCoroutine(cinematicCam.FlipCam());
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
