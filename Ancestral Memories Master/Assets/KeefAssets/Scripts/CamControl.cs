@@ -7,9 +7,9 @@ public class CamControl : MonoBehaviour
     public CharacterClass player;
     private CharacterBehaviours behaviours;
 
-    public Transform target;
+    private Transform camTarget;
 
-    private bool MoveCamera = true;
+    private bool camFollowTarget = true;
 
     public float ScrollSpeed = 0.125f;
     public float SmoothSpeed = 0.125f;
@@ -27,6 +27,15 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float cutSceneZoom = 0;
     [SerializeField] private float psychedelicZoom = 0;
 
+
+    [SerializeField] private float spawnOrtho = 0;
+    [SerializeField] private float initOrtho = 0;
+    [SerializeField] private float gameModeOrtho = 0;
+    [SerializeField] private float actionOrtho = 0;
+    [SerializeField] private float cutSceneOrtho = 0;
+    [SerializeField] private float psychedelicOrtho = 0;
+
+
     [SerializeField] private bool SpawnCam = false;
     [SerializeField] private bool GameCam = false;
     [SerializeField] private bool CutsceneCam = false;
@@ -37,9 +46,10 @@ public class CamControl : MonoBehaviour
     //string cutscene = ("");
 
     public RPCamera rpCamera;
-    public Camera hiddenCam;
+    private Camera cam;
+    public Camera movementCam;
 
-    public bool RotateAroundPlayer = false; // Enable after psychedelic ingestion
+    public bool camRotateAround = false; // Enable after psychedelic ingestion
     public float RotationSpeed = 1f;
 
     public Vector3 cameraOffset;
@@ -51,13 +61,24 @@ public class CamControl : MonoBehaviour
 
     public void Start()
     {
-        RotateAroundPlayer = false;
+        camFollowTarget = true;
+        camRotateAround = false;
 
         rpCamera.perspective = initZoom;
+        cam.orthographicSize = initOrtho;
+
+        camTarget = player.transform;
 
         ToSpawnZoom();
 
         cameraOffset = new Vector3(12, 2.5f, -8);
+    }
+
+    void Awake()
+    {
+        cam = GetComponent<Camera>();
+        behaviours = player.GetComponent<CharacterBehaviours>();
+        offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
     }
 
     [ExecuteInEditMode]
@@ -65,7 +86,6 @@ public class CamControl : MonoBehaviour
     {
 
         rpCamera.UpdateProjection(true);
-
         //DebugChangeCam();
     }
 
@@ -129,9 +149,10 @@ public class CamControl : MonoBehaviour
         //StartCoroutine(RotateCamera());
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
-        lerpDuration = 1f;
+        lerpDuration = 4f;
         zoomDestination = spawnZoom;
-        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+        orthoDestination = spawnOrtho;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
     public void ToActionZoom()
@@ -142,18 +163,21 @@ public class CamControl : MonoBehaviour
         SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = actionZoom;
-        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+        orthoDestination = actionOrtho;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
     public void ToGameZoom()
     {
         //RotateAroundPlayer = true;
-        cinematicActive = false; 
+        cinematicActive = false;
         //StartCoroutine(UserZoomBuffer());
+        camTarget = player.transform;
         SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = gameModeZoom;
-        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+        orthoDestination = gameModeOrtho;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
     public void ToCutsceneZoom()
@@ -162,7 +186,8 @@ public class CamControl : MonoBehaviour
         SetCamClipPlane();
         lerpDuration = 1f;
         zoomDestination = cutSceneZoom;
-        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+        orthoDestination = cutSceneOrtho;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
     public void ToPsychedelicZoom()
@@ -171,7 +196,21 @@ public class CamControl : MonoBehaviour
         SetCamClipPlane();
         lerpDuration = 60000f;
         zoomDestination = psychedelicZoom;
-        StartCoroutine(Zoom(lerpDuration, zoomDestination));
+        orthoDestination = psychedelicOrtho;
+
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
+    }
+
+    public void EnterRoomZoom(GameObject interactedPortal)
+    {
+        camTarget = interactedPortal.transform;
+        cinematicActive = false;
+        SetCamClipPlane();
+        lerpDuration = 1f;
+        zoomDestination = 9;
+        orthoDestination = 1;
+
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
     [SerializeField] private float rotationSpeedMultiplier = 1f;
@@ -198,7 +237,6 @@ public class CamControl : MonoBehaviour
             transform.LookAt(player.transform.position);
         }
         yield break;
-        
     }
     /*
 
@@ -235,18 +273,15 @@ public class CamControl : MonoBehaviour
 
     public void FixedUpdate()
     {
-        if (MoveCamera)
+        if (camFollowTarget)
         {
-            // Smooth camera follow.
-
-            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + camFollowOffset.y, target.position.z + camFollowOffset.z);
+            // Smooth camera follow
+            Vector3 desiredPosition = new Vector3(camTarget.position.x, camTarget.position.y + camFollowOffset.y, camTarget.position.z + camFollowOffset.z);
             Vector3 SmoothedPosition = Vector3.Lerp(transform.position, desiredPosition, SmoothSpeed);
             transform.position = SmoothedPosition;
 
         }
-
-        //Input.GetAxis("Mouse ScrollWheel")
-
+        return;
     }
 
     public float turnSpeed = 4.0f;
@@ -255,22 +290,20 @@ public class CamControl : MonoBehaviour
 
     bool camZoomComplete = false;
 
-    void Awake()
-    {
-        behaviours = player.GetComponent<CharacterBehaviours>();
-        offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
-    }
-
     // Camera 'zoom' into target.
 
     public float currentZoom = 0f;
+    public float currentOrthoZoom = 0f;
+
     private float zoomDestination = 0f;
+    private float orthoDestination = 0f;
 
     public float timeElapsed;
- 
 
-    IEnumerator Zoom(float lerpDuration, float zoomDestination)
+    IEnumerator Zoom(float lerpDuration, float zoomDestination, float orthoDestination)
     {
+      
+
         float zoomMultiplier = 1;
 
         float timeElapsed = 0;
@@ -279,12 +312,18 @@ public class CamControl : MonoBehaviour
         {
             if (behaviours.isPsychdelicMode && Input.GetMouseButton(0))
             {
-                zoomMultiplier = 3;
+                zoomMultiplier = 0.1f;
  
-            } 
+            }
+
+            currentOrthoZoom = cam.orthographicSize;
+            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthoDestination, timeElapsed / lerpDuration);
+
+            float perspectiveDelay = 2;
 
             currentZoom = rpCamera.perspective;
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
+ 
             timeElapsed += Time.deltaTime * zoomMultiplier;
 
             yield return null;
@@ -303,6 +342,35 @@ public class CamControl : MonoBehaviour
         } 
 
     }
+
+    public GameObject targetPostion;
+
+    public IEnumerator FlipCam(GameObject target, float duration)
+    {
+        float timeElapsed = 0;
+
+        while (timeElapsed < duration)
+        {
+            cam.transform.position = Vector3.Lerp(cam.transform.position, target.transform.position, timeElapsed / duration);
+
+            cam.transform.LookAt(player.transform);
+
+            timeElapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        if (timeElapsed > duration)
+        {
+            yield break;
+        }
+
+     
+
+    }
+
+
+    public AreaManager area;
 
     private IEnumerator ZoomCooldown()
     {

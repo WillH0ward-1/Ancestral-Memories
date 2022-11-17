@@ -4,76 +4,107 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GodRayControl : MonoBehaviour
- 
+
 {
-     public Material godRayShader;
 
-     [SerializeField]
-     private CharacterClass player;
+    [SerializeField]
+    private CharacterClass player;
 
-     [SerializeField] private float maxAura = 1f;
-     [SerializeField] private float minAura = 0f;
 
-     public Renderer[] auraRenderers = new Renderer[0];
+    public bool godRay = false;
 
-     private float auraIntensity;
+    [SerializeField] private GameObject godRayPrefab;
 
-     public bool godRay = false;
+    [SerializeField] private float duration = 1f;
+    [SerializeField] private float godRayDuration;
 
-     [SerializeField] private float lerpDuration = 1;
+    [SerializeField] private float minIntensity;
+    [SerializeField] private float maxIntensity;
 
-     // Start is called before the first frame update
-     void Start()
-     {
-         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-         godRay = false;
-         auraIntensity = godRayShader.GetFloat("_AuraIntensity");
+    [SerializeField] private float yOffset = 0f;
 
-     }
+    private CharacterBehaviours characterBehaviours;
 
-     public IEnumerator TriggerGodRay()
-     {
-         auraIntensity = minAura;
+    Material godRayMat;
 
-         float lerpAura = Mathf.Lerp(minAura, maxAura, Time.deltaTime / lerpDuration);
-         float timeElapsed = 0;
+    private void Awake()
+    {
+        characterBehaviours = player.GetComponent<CharacterBehaviours>();
+    }
+    public void StartGodRay(Transform target, bool manuallyCease)
+    {
+        StartCoroutine(GodRay(target, manuallyCease));
+    }
 
-         while (timeElapsed <= lerpDuration)
-         {
-             foreach (Renderer renderer in auraRenderers)
-             {
-                 renderer.material.SetFloat("_AuraIntensity", lerpAura);
-             }
-         }
+    public IEnumerator GodRay(Transform target, bool manuallyCease)
+    {
+        Debug.Log("GodRay!");
 
-         if (timeElapsed >= lerpDuration)
-         {
-             StartCoroutine(RemoveGodRay());
-             yield return null;
-         }
-     }
+        GameObject godRay = Instantiate(godRayPrefab, target.transform.position, Quaternion.identity, target.transform);
 
-     IEnumerator RemoveGodRay()
-     {
-         auraIntensity = minAura;
+        Renderer renderer = godRay.GetComponent<Renderer>();
+        godRayMat = renderer.material;
 
-         float lerpAura = Mathf.Lerp(maxAura, minAura, Time.deltaTime / lerpDuration);
-         float timeElapsed = 0;
+        godRay.transform.position = new Vector3(target.position.x, target.position.y + yOffset, target.position.z);
 
-         while (timeElapsed <= lerpDuration)
-         {
-             foreach (Renderer renderer in auraRenderers)
-             {
-                 renderer.material.SetFloat("_AuraIntensity", lerpAura);
-             }
-         }
+        Vector3 sizeCalculated = target.transform.GetComponentInChildren<Renderer>().bounds.size;
+        godRay.transform.localScale = sizeCalculated;
 
-         if (timeElapsed >= lerpDuration)
-         {
-             yield return null;
-         }
-     }
+        float timeElapsed = 0;
+
+        float lerpAura;
+
+        while (timeElapsed < duration)
+        {
+            lerpAura = Mathf.Lerp(minIntensity, maxIntensity, timeElapsed / duration);
+            godRayMat.SetFloat("_AuraIntensity", lerpAura);
+
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (timeElapsed >= duration && manuallyCease)
+        {
+            yield return new WaitForSeconds(godRayDuration);
+            yield return Retreat(godRay);
+            yield break;
+
+        } else if (timeElapsed >= duration && !manuallyCease)
+        {
+            yield return new WaitUntil(() => !characterBehaviours.behaviourIsActive);
+
+            StartCoroutine(Retreat(godRay));
+
+            yield break;
+
+        }
+    }
+
+
+    public IEnumerator Retreat(GameObject godRay)
+    {
+        Debug.Log("GodRay End!");
+
+        float timeElapsed = 0;
+
+        float lerpAura;
+
+        while (timeElapsed < duration)
+        {
+            lerpAura = Mathf.Lerp(maxIntensity, minIntensity, timeElapsed / duration);
+            godRayMat.SetFloat("_AuraIntensity", lerpAura);
+
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (timeElapsed >= duration)
+        {
+            Destroy(godRay);
+
+            yield break;
+        }
+    }
 }
-
 
 

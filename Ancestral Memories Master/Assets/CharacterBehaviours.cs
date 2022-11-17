@@ -15,6 +15,8 @@ public class CharacterBehaviours : MonoBehaviour
     private string currentState;
     public bool behaviourIsActive = false;
 
+    public GodRayControl god;
+
     // Idle
 
     const string PLAYER_IDLE = "Player_idle";
@@ -53,7 +55,7 @@ public class CharacterBehaviours : MonoBehaviour
         switch (selected)
         {
             case "Pray":
-                StartCoroutine(Pray());
+                StartCoroutine(Pray(hitObject));
                 break;
             case "Look":
                 //Look();
@@ -89,10 +91,10 @@ public class CharacterBehaviours : MonoBehaviour
 
     public void WalkToward(GameObject hitObject, string selected)
     {
-        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null));
+        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null));
     }
 
-    public IEnumerator Pray()
+    public IEnumerator Pray(GameObject hitObject)
     {
         behaviourIsActive = true;
 
@@ -103,12 +105,16 @@ public class CharacterBehaviours : MonoBehaviour
         ChangeState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToActionZoom();
+
+        //god.StartGodRay(hitObject.transform, false);
+
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         ChangeState(PLAYER_PRAYER_END);
 
         behaviourIsActive = false;
+
         cinematicCam.ToGameZoom();
         yield break;
     }
@@ -147,6 +153,8 @@ public class CharacterBehaviours : MonoBehaviour
         ChangeState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
 
+        cinematicCam.FlipCam(player.gameObject, 4f);
+
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
@@ -162,6 +170,7 @@ public class CharacterBehaviours : MonoBehaviour
         {
             isPsychdelicMode = false;
             cinematicCam.ToGameZoom();
+            
         }
 
         yield break;
@@ -174,7 +183,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         int chance = Random.Range(0, 100);
 
-        if (chance <= 85)
+        if (chance <= 35)
         {
             return true;
         } else
@@ -197,6 +206,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
+
         yield break;
     }
 

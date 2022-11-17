@@ -157,11 +157,9 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
 
-    Vector3 lastPosition;
-
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget)
+    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal)
     {
 
         Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
@@ -200,6 +198,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (areaManager.traversing)
         {
+
             reachedDestination = true;
 
             agent.stoppingDistance = defaultStoppingDistance;
@@ -207,7 +206,7 @@ public class PlayerWalk : MonoBehaviour
 
             if (areaManager.isEntering)
             {
-                StartCoroutine(areaManager.Teleport(agent, teleportTarget));
+                StartCoroutine(areaManager.Teleport(agent, teleportTarget, tempPortal));
             }
             else if (!areaManager.isEntering)
             {

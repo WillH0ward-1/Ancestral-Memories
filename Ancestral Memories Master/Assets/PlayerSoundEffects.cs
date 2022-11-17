@@ -6,11 +6,11 @@ public class PlayerSoundEffects : MonoBehaviour
 {
     private PARAMETER_ID ParamID;
 
-    [SerializeField] private EventReference EventPath;
+    [SerializeField] private EventReference WalkEventPath;
 
     void PlayWalkEvent()
     {
-        EventInstance walkEvent = RuntimeManager.CreateInstance(EventPath);
+        EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
         walkEvent.setParameterByNameWithLabel("TerrainType", "Grass");
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, GetComponent<Rigidbody>());
 

@@ -20,6 +20,8 @@ public class AreaManager : MonoBehaviour
 
     private GameObject room;
 
+    [SerializeField] private CamControl cineCam;
+
     public bool traversing = false;
 
     private void Start()
@@ -28,8 +30,9 @@ public class AreaManager : MonoBehaviour
         currentRoom = Room.Outside;
     }
 
-    public IEnumerator Teleport(NavMeshAgent traveller, Transform targetDestination)
+    public IEnumerator Teleport(NavMeshAgent traveller, Transform targetDestination, GameObject tempPortal)
     {
+        cineCam.EnterRoomZoom(tempPortal);
 
         Portal portal = targetDestination.GetComponentInChildren<Portal>();
 
@@ -49,14 +52,18 @@ public class AreaManager : MonoBehaviour
         traversing = true;
         isEntering = true;
 
+
         GameObject enterPortal = FindGameObjectInChildWithTag(interactedPortal, "Portal");
         Portal portal = enterPortal.GetComponent<Portal>();
 
+        GameObject tempPortal = portal.enterPortal.gameObject;
+
         Transform newDestination = portal.destination;
 
-        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform));
+        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform, tempPortal));
 
         yield return new WaitUntil(() => !isEntering);
+
 
         yield break;
     }
@@ -65,7 +72,9 @@ public class AreaManager : MonoBehaviour
     {
         isEntering = false;
 
-        StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null));
+        StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null, null));
+
+        cineCam.ToGameZoom();
 
         yield return new WaitUntil(() => !traversing);
 
