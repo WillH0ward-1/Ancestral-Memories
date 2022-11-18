@@ -183,30 +183,13 @@ public class CharacterClass : MonoBehaviour, IStats
     {
         Hunger(0.1f);
         DepleteFaith(0.1f);
+        CheckForDrowning();
 
-        if (starving && !hasDied)
-        {
-            Debug.Log("Starving!");
+        // UPDATE PLAYER STATS 
+    }
 
-            //ChangeAnimationState(PLAYER_STARVING);
-
-            if (hasDied)
-            {
-                ChangeAnimationState(PLAYER_STARVE);
-                starving = false;
-                hasStarved = true;
-            }
-        }
-
-        if (evolution <= evolutionThreshold)
-        {
-            alphaControl.playerIsHuman = false;
-        } else
-        {
-            alphaControl.playerIsHuman = true;
-        }
-
-        // DROWN
+    public virtual void CheckForDrowning()
+    {
 
         if (underwaterCheck.isUnderwater && underwaterCheck.playerDrowning)
         {
@@ -220,7 +203,6 @@ public class CharacterClass : MonoBehaviour, IStats
             }
         }
 
-        // UPDATE PLAYER STATS 
     }
 
     public virtual void SetHealth(int value)
@@ -237,6 +219,8 @@ public class CharacterClass : MonoBehaviour, IStats
     {
         health = minStat;
         hasDied = true;
+
+        ChangeAnimationState(PLAYER_STARVE);
         StartCoroutine(CheckForRevive());
     }
 
@@ -304,7 +288,7 @@ public class CharacterClass : MonoBehaviour, IStats
         faith -= faithDamage;
         faithBar.UpdateFaith(faith / maxStat);
 
-        if (faith <= minStat)
+        if (faith <= minStat) 
         {
             faith = minStat;
             isFaithless = true;

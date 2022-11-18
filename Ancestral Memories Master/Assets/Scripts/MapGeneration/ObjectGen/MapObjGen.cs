@@ -89,7 +89,6 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private NavMeshObstacle navMeshObstacle;
-
     [SerializeField] private NavMeshModifier navModifier;
 
     [SerializeField] float obstacleSizeX = 1;
@@ -123,9 +122,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private float mapSizeZ = 0;
 
     [SerializeField] private float xOffset = 0;
-
     [SerializeField] private float zOffset = 0;
-
     [SerializeField] private float initY = 0;
 
     public GameObject player;
@@ -141,14 +138,6 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     public List<GameObject> mapObjectList;
-
-    void OnSceneGUI()
-    {
-        if (Event.current.type == EventType.Repaint)
-        {
-            SceneView.RepaintAll();
-        }
-    }
 
     private void Awake()
     {
@@ -222,6 +211,11 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    public List<GameObject> treeList;
+    private GrowControl growControl;
+
+    private Vector3 startingScale = new Vector3(0, 0, 0);
+
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
         foreach (Vector2 sample in treeSampler.Samples())
@@ -232,11 +226,14 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            treeInstance.transform.localScale = new Vector3(
+            treeInstance.transform.localScale = startingScale;
+
+            /*
+            new Vector3(
             Random.Range(minTreeScale.x, maxTreeScale.x),
             Random.Range(minTreeScale.y, maxTreeScale.y),
             Random.Range(minTreeScale.z, maxTreeScale.z));
-
+            */
 
             treeInstance.tag = treeTag;
 
@@ -246,10 +243,30 @@ public class MapObjGen : MonoBehaviour
             treeInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(treeInstance);
-            
+            treeList.Add(treeInstance);
+
+        
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
+            
+        }
+
+
+        GrowTrees();
+    }
+
+
+    void GrowTrees()
+    {
+        Vector3 scaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+
+        float growTime = 180f;
+
+        foreach (GameObject tree in treeList)
+        {
+            growControl = tree.GetComponent<GrowControl>();
+            StartCoroutine(growControl.Grow(tree, startingScale, scaleDestination, growTime));
         }
     }
 
