@@ -21,8 +21,8 @@ public class AuraControl : MonoBehaviour
 
     public float auraIntensity;
 
-    private void OnEnable() => player.OnFaithChanged += faithChanged;
-    private void OnDisable() => player.OnFaithChanged -= faithChanged;
+    private void OnEnable() => player.OnFaithChanged += FaithChanged;
+    private void OnDisable() => player.OnFaithChanged -= FaithChanged;
 
     // Start is called before the first frame update
     void Start()
@@ -46,7 +46,7 @@ public class AuraControl : MonoBehaviour
 
     }
 
-    private void faithChanged(int faith, int maxFaith)
+    private void FaithChanged(int faith, int maxFaith)
     {
         targetAuraVal = (float)faith / maxFaith;
     }

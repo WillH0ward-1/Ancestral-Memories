@@ -27,6 +27,12 @@ public class PlayerWalk : MonoBehaviour
     const string PLAYER_CROUCH = "Player_crouch";
     const string PLAYER_SNEAK = "Player_sneak";
 
+
+
+    const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
+    const string PLAYER_STARVINGWALK = "Player_starvingWalk";
+    const string PLAYER_STARVINGCRITICAL = "Player_starvingCritical";
+
     const string PLAYER_DRUNKIDLE = "Player_drunkIdle";
     const string PLAYER_DRUNKWALK = "Player_drunkWalk";
     const string PLAYER_DRUNKRUN = "Player_drunkRun";
@@ -36,7 +42,7 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] private float walkThreshold = 0;
     [SerializeField] private float runThreshold = 25;
     [SerializeField] private float speed = 0;
-    [SerializeField] private float animSpeed = 0;
+    [SerializeField] private float walkAnimFactor = 0;
     [SerializeField] private float distanceRatios = 2;
     [SerializeField] float distanceThreshold = 60;
     [SerializeField] float distance = 0;
@@ -58,7 +64,7 @@ public class PlayerWalk : MonoBehaviour
     {
         if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
         {
-            if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+            if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
             {
                 CastRayToGround();
             }
@@ -66,7 +72,7 @@ public class PlayerWalk : MonoBehaviour
 
             if (Input.GetMouseButtonUp(0))
             {
-                if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false && player.isReviving == false)
+                if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false )
                 {
                     StopAgent();
                 }
@@ -103,50 +109,39 @@ public class PlayerWalk : MonoBehaviour
                 speed = cursorDistance / distanceRatios;
                 agent.destination = hitPoint;
                 agent.speed = speed;
-                animSpeed = speed / animFactor;
+                walkAnimFactor = speed / animFactor;
 
                 if (speed < runThreshold)
                 {
-                    if (playerIsCrouched)
+                    if (!behaviours.isPsychdelicMode && !player.starving)
                     {
-                        changeState(PLAYER_SNEAK);
+                        changeState(PLAYER_WALK);
                     }
-                    else
+                    else if (player.starving)
                     {
-                        if (!behaviours.isPsychdelicMode)
-                        {
-                            changeState(PLAYER_WALK);
-                        }
-                        else if (behaviours.isPsychdelicMode)
-                        {
-                            changeState(PLAYER_DRUNKWALK);
-                        }
+                        changeState(PLAYER_STARVINGWALK);
                     }
-
+                    else if (behaviours.isPsychdelicMode)
+                    {
+                        changeState(PLAYER_DRUNKWALK);
+                    }
+    
                     //player.AdjustAnimationSpeed(animSpeed);
                 }
 
                 if (speed > runThreshold)
                 {
-                    if (!playerIsCrouched)
+                    if (!behaviours.isPsychdelicMode)
                     {
-                        if (!behaviours.isPsychdelicMode)
-                        {
-                            changeState(PLAYER_RUN);
-                        } else if (behaviours.isPsychdelicMode)
-                        {
-                            changeState(PLAYER_DRUNKRUN);
-                        }
-                    }
-                    else
+                        changeState(PLAYER_RUN);
+                    } else if (behaviours.isPsychdelicMode)
                     {
-                        changeState(PLAYER_SNEAK);
+                        changeState(PLAYER_DRUNKRUN);
                     }
-
         
                 }
 
-                player.AdjustAnimationSpeed(animSpeed);
+                //player.AdjustAnimationSpeed(walkAnimFactor);
 
                 Debug.Log("Cursor Distance:" + cursorDistance);
                 Debug.Log("Speed:" + agent.speed);
@@ -155,16 +150,6 @@ public class PlayerWalk : MonoBehaviour
                 agent.acceleration = 10000;
 
                 //float runThreshold = cursorDistance / 2;
-
-                if (Input.GetKeyDown(KeyCode.LeftShift))
-                {
-                    EnterSneakMode();
-
-                    void EnterSneakMode()
-                    {
-                        changeState(PLAYER_CROUCH);
-                    }
-                }
             }
         }
 
@@ -180,7 +165,7 @@ public class PlayerWalk : MonoBehaviour
 
     public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal)
     {
-
+     
         Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
         destinationGizmo.transform.localScale = sizeCalculated;
 
@@ -206,7 +191,17 @@ public class PlayerWalk : MonoBehaviour
 
         reachedDestination = false;
 
-        changeState(PLAYER_WALK);
+        if (!behaviours.isPsychdelicMode && !player.starving)
+        {
+            changeState(PLAYER_WALK);
+        }
+        else if (player.starving)
+        {
+            changeState(PLAYER_STARVINGWALK);
+        } else if (behaviours.isPsychdelicMode)
+        {
+            changeState(PLAYER_DRUNKWALK);
+        }
 
         speed = 12;
         agent.destination = hitObject.transform.position;
@@ -257,10 +252,15 @@ public class PlayerWalk : MonoBehaviour
 
     public void StopAgent()
     {
-        if (!behaviours.isPsychdelicMode)
+        if (!behaviours.isPsychdelicMode && !player.starving)
         {
             changeState(PLAYER_IDLE);
-        } else if (behaviours.isPsychdelicMode)
+        }
+        if (player.starving)
+        {
+            changeState(PLAYER_STARVINGIDLE);
+        }
+        else if (behaviours.isPsychdelicMode)
         {
             changeState(PLAYER_DRUNKIDLE);
         }

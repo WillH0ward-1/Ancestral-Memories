@@ -71,7 +71,6 @@ public class CharacterClass : MonoBehaviour, IStats
     public bool killedByGod = false;
 
     public bool hasDied = false;
-    public bool isReviving = false;
 
     public CheckIfUnderwater underwaterCheck;
 
@@ -182,6 +181,9 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual void Update()
     {
+        Hunger(0.1f);
+        DepleteFaith(0.1f);
+
         if (starving && !hasDied)
         {
             Debug.Log("Starving!");
@@ -251,7 +253,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
         if (faith < 50) // In order to revive, currentFaith needs to be > x. 
         {
-            isReviving = true;
             StartCoroutine(Revive()); // Start Revive
         } else
         {
@@ -262,11 +263,9 @@ public class CharacterClass : MonoBehaviour, IStats
     public virtual IEnumerator Revive()
 
     {   // REVIVE PLAYER - Complete Reset.
-
-        hasDied = false;
-        health = maxStat;
-        hunger = maxStat;
-        faith = maxStat;
+        health = maxStat / 2;
+        hunger = maxStat / 2;
+        faith = maxStat / 2;
 
         ChangeAnimationState(PLAYER_REVIVING);
 
@@ -276,7 +275,7 @@ public class CharacterClass : MonoBehaviour, IStats
         //StartCoroutine(god.TriggerGodRay());
 
         //godRay.godRay = false;
-        isReviving = false;
+        hasDied = false;
 
         ChangeAnimationState(PLAYER_IDLE);
     }
@@ -327,6 +326,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
         if (health <= minStat)
         {
+            health = minStat;
             Kill();
         }
     }
@@ -345,25 +345,18 @@ public class CharacterClass : MonoBehaviour, IStats
     public virtual void Hunger(float hungerFactor)
     {
         hunger -= hungerFactor;
-        hungerBar.UpdateHunger(this.hunger / maxStat);
+        hungerBar.UpdateHunger(hunger / maxStat);
 
-
-        if (hunger <= minStat)
+        if (hunger <= maxStat / 3)
         {
-            ChangeAnimationState(PLAYER_STARVINGIDLE);
-        }
-
-        if (hunger <= minStat)
-        {
-            Kill();
+            starving = true;
         }
 
         if (hunger <= minStat)
         {
             hunger = minStat;
-            starving = true;
-        }
-        else
+            TakeDamage(0.1f);
+        } else
         {
             starving = false;
         }

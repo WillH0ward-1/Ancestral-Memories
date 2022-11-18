@@ -13,4 +13,8 @@ public class Player : CharacterClass
         base.Awake();
     }
 
+    public override void Update()
+    {
+        base.Update();
+    }
 }

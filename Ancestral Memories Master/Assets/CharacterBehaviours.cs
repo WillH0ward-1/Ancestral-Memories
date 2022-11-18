@@ -41,7 +41,7 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_DANCE_03 = "Player_Dance_03";
 
     const string PLAYER_PICKUP = "Player_PickUp";
-    const string PLAYER_EAT = "Player_Eat";
+    const string PLAYER_EAT = "Player_StandingEat";
 
     const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
@@ -146,13 +146,15 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
+    public GameObject frontFacingPivot;
+
     public IEnumerator PickMushroom()
     {
         behaviourIsActive = true;
 
         ChangeState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.FlipCam());
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, player.gameObject));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));

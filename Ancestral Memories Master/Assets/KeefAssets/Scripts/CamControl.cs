@@ -26,7 +26,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float actionZoom = 0;
     [SerializeField] private float cutSceneZoom = 0;
     [SerializeField] private float psychedelicZoom = 0;
-
+    [SerializeField] private float frontFaceZoom = 0;
 
     [SerializeField] private float spawnOrtho = 0;
     [SerializeField] private float initOrtho = 0;
@@ -34,6 +34,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float actionOrtho = 0;
     [SerializeField] private float cutSceneOrtho = 0;
     [SerializeField] private float psychedelicOrtho = 0;
+    [SerializeField] private float frontFaceOrtho = 0;
 
 
     [SerializeField] private bool SpawnCam = false;
@@ -55,6 +56,7 @@ public class CamControl : MonoBehaviour
     public Vector3 cameraOffset;
     // Update is called once per frame
 
+    
 
     float SmoothFactor = 0.25f;
     private Vector3 offset;
@@ -62,8 +64,10 @@ public class CamControl : MonoBehaviour
 
     public void Start()
     {
+        OverrideCam = false;
+
         camFollowTarget = true;
-        camRotateAround = false;
+        camRotateAround = true;
 
         rpCamera.perspective = initZoom;
         cam.orthographicSize = initOrtho;
@@ -165,6 +169,18 @@ public class CamControl : MonoBehaviour
         lerpDuration = 1f;
         zoomDestination = actionZoom;
         orthoDestination = actionOrtho;
+        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
+    }
+
+    public void ToFrontFaceZoom()
+    {
+        cinematicActive = true; // Level introduction.
+        //StartCoroutine(RotateAround());
+        //StartCoroutine(UserZoomBuffer());
+        SetCamClipPlane();
+        lerpDuration = 1f;
+        zoomDestination = frontFaceZoom;
+        orthoDestination = frontFaceOrtho;
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
@@ -337,22 +353,41 @@ public class CamControl : MonoBehaviour
 
     }
 
-    public IEnumerator FlipCam()
+    public GameObject defaultCamPosition;
+
+    public bool OverrideCam;
+
+    private bool retrigger = false;
+
+    public IEnumerator MoveCamToPosition(GameObject target, GameObject lookAtTarget)
     {
-        Vector3 targetRotation = new(cam.transform.rotation.x, -cam.transform.rotation.y + 80f, cam.transform.rotation.z);
+        camFollowTarget = false;
+
+        Vector3 newPosition = target.transform.position;
+        Vector3 lookTarget = lookAtTarget.transform.position;
 
         float timeElapsed = 0;
 
-        cam.transform.position = Vector3.Lerp(cam.transform.position, player.transform.position, timeElapsed / lerpDuration) ;
-
+        float lerpDuration = 3f;
 
         while (timeElapsed < lerpDuration)
         {
-            cam.transform.position = Vector3.Lerp(transform.rotation.eulerAngles, targetRotation, timeElapsed * Time.deltaTime);
+            cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, timeElapsed / lerpDuration);
 
+            transform.LookAt(lookTarget);
             timeElapsed += Time.deltaTime;
 
             yield return null;
+        }
+
+        if (timeElapsed > lerpDuration)
+        {
+
+            yield return new WaitUntil(() => !behaviours.behaviourIsActive);
+       
+            camFollowTarget = true;
+
+            yield break;
         }
    
 
