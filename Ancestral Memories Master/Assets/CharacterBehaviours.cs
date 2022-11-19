@@ -147,6 +147,7 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
     public GameObject frontFacingPivot;
+    public GameObject lookAtTarget;
 
     public IEnumerator PickMushroom()
     {
@@ -154,7 +155,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         ChangeState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, player.gameObject));
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));

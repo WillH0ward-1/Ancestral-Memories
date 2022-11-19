@@ -64,7 +64,6 @@ public class CamControl : MonoBehaviour
 
     public void Start()
     {
-        OverrideCam = false;
 
         camFollowTarget = true;
         camRotateAround = true;
@@ -355,43 +354,49 @@ public class CamControl : MonoBehaviour
 
     public GameObject defaultCamPosition;
 
-    public bool OverrideCam;
-
-    private bool retrigger = false;
-
-    public IEnumerator MoveCamToPosition(GameObject target, GameObject lookAtTarget)
+    public IEnumerator MoveCamToPosition(GameObject target, GameObject lookAtTarget, bool returnToDefault, float duration)
     {
-        camFollowTarget = false;
-
         Vector3 newPosition = target.transform.position;
         Vector3 lookTarget = lookAtTarget.transform.position;
 
         float timeElapsed = 0;
 
-        float lerpDuration = 3f;
+        duration = 10f;
 
-        while (timeElapsed < lerpDuration)
+        while (timeElapsed < duration)
         {
-            cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, timeElapsed / lerpDuration);
+            if (!returnToDefault)
+            {
+                camFollowTarget = false;
+                transform.LookAt(lookTarget);
+            }
+            cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, timeElapsed / duration);
 
-            transform.LookAt(lookTarget);
             timeElapsed += Time.deltaTime;
 
             yield return null;
         }
 
-        if (timeElapsed > lerpDuration)
+        if (timeElapsed > duration)
         {
+            if (returnToDefault)
+            {
+                StartCoroutine(MoveCamToPosition(defaultCamPosition, null, true, 3f));
+                camFollowTarget = true;
+                yield break;
+            }
+            else if (!returnToDefault)
+            {
 
-            yield return new WaitUntil(() => !behaviours.behaviourIsActive);
-       
-            camFollowTarget = true;
+                yield return new WaitUntil(() => !behaviours.behaviourIsActive);
+                camFollowTarget = true;
+                StartCoroutine(MoveCamToPosition(defaultCamPosition, null, false, 3f));
 
-            yield break;
+                yield break;
+            }
         }
-   
-
     }
+
 
 
     public AreaManager area;

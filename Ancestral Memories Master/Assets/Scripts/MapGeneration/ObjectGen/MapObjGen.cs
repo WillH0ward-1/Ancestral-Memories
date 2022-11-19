@@ -43,6 +43,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minTreeScale;
     [SerializeField] Vector3 maxTreeScale;
 
+    [SerializeField] Vector3 minAppleScale;
+    [SerializeField] Vector3 maxAppleScale;
+
     [SerializeField] Vector3 minGrassScale;
     [SerializeField] Vector3 maxGrassScale;
 
@@ -139,6 +142,7 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> mapObjectList;
 
+    public List<GameObject> appleTreeList;
     private void Awake()
     {
         Clear();
@@ -184,6 +188,7 @@ public class MapObjGen : MonoBehaviour
         SetOffset();
 
         GroundCheck();
+        GrowTrees();
     }
 
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
@@ -213,6 +218,7 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> treeList;
     private GrowControl growControl;
+    private TreeShaders treeShader;
 
     private Vector3 startingScale = new Vector3(0, 0, 0);
 
@@ -226,8 +232,6 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            treeInstance.transform.localScale = startingScale;
-
             /*
             new Vector3(
             Random.Range(minTreeScale.x, maxTreeScale.x),
@@ -235,7 +239,7 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minTreeScale.z, maxTreeScale.z));
             */
 
-            treeInstance.tag = treeTag;
+            //treeInstance.tag = treeTag;
 
             int treeLayer = LayerMask.NameToLayer("Trees");
             treeInstance.layer = treeLayer;
@@ -245,28 +249,68 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(treeInstance);
             treeList.Add(treeInstance);
 
-        
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
             
         }
-
-
-        GrowTrees();
+    
     }
 
+    [SerializeField] private float treeGrowthTime;
+    [SerializeField] private float appleGrowthTime;
+
+    public List<GameObject> appleList;
 
     void GrowTrees()
     {
-        Vector3 scaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
-        float growTime = 180f;
+        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+        Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
+
+        treeGrowthTime = 60f * 5;
+        appleGrowthTime = 60f * 5;
 
         foreach (GameObject tree in treeList)
         {
+            if (tree.transform.gameObject.CompareTag("AppleTree"))
+            {
+                treeList.Remove(tree);
+                appleTreeList.Add(tree);
+
+                continue;
+            }
+
             growControl = tree.GetComponent<GrowControl>();
-            StartCoroutine(growControl.Grow(tree, startingScale, scaleDestination, growTime));
+            treeShader = tree.GetComponent<TreeShaders>();
+
+            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
+            StartCoroutine(treeShader.GrowLeaves(30f));
+        }
+
+        AppleTrees(treeScaleDestination, appleScaleDestination);
+    }
+
+    void AppleTrees(Vector3 treeScaleDestination, Vector3 appleScaleDestination)
+    {
+        foreach (GameObject appleTree in appleTreeList)
+        {
+            growControl = appleTree.GetComponent<GrowControl>();
+            treeShader = appleTree.GetComponent<TreeShaders>();
+
+            StartCoroutine(growControl.Grow(appleTree, startingScale, treeScaleDestination, treeGrowthTime));
+
+            foreach(GameObject apple in appleTree.GetComponentsInChildren<GameObject>())
+            {
+                appleList.Add(apple.gameObject);
+            }
+
+            foreach (GameObject apple in appleList)
+            {
+                StartCoroutine(growControl.Grow(apple, startingScale, appleScaleDestination, appleGrowthTime));
+            }
+
+            StartCoroutine(treeShader.GrowLeaves(30f));
         }
     }
 
@@ -295,11 +339,6 @@ public class MapObjGen : MonoBehaviour
             grassInstance.AddComponent<NavMeshModifier>();
 
             mapObjectList.Add(grassInstance);
-
-//            navModifier.ignoreFromBuild = true;
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
         }
     }
 
@@ -326,9 +365,6 @@ public class MapObjGen : MonoBehaviour
             foliageInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(foliageInstance);
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
         }
     }
 
@@ -356,9 +392,6 @@ public class MapObjGen : MonoBehaviour
             rockInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(rockInstance);
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
         }
     }
 
@@ -383,9 +416,6 @@ public class MapObjGen : MonoBehaviour
             mushroomInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(mushroomInstance);
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
         }
     }
 
@@ -413,9 +443,6 @@ public class MapObjGen : MonoBehaviour
             fliesInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(fliesInstance);
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
         }
     }
 
@@ -426,8 +453,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (GameObject mapObject in mapObjectList)
         {
-
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity)) // TRY A CAPSULE CAST!! This will prevent things spawning too close to water.
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
             {
                 Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
@@ -459,6 +485,7 @@ public class MapObjGen : MonoBehaviour
         }
 
         ListCleanup();
+        AnchorToGround();
 
         void ListCleanup()
         {
@@ -469,12 +496,6 @@ public class MapObjGen : MonoBehaviour
             }
         }
 
-        AnchorToGround();
-
-        //Mesh mesh = GetComponent<MeshFilter>().mesh;
-        //Bounds bounds = mesh.bounds;
-
-    
         void AnchorToGround()
         {
             //LayerMask groundMask = LayerMask.GetMask("Ground");
@@ -483,7 +504,7 @@ public class MapObjGen : MonoBehaviour
             {
 
                 int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                int groundLayerMask = (1 << groundLayerIndex); 
+                int groundLayerMask = (1 << groundLayerIndex);
 
                 if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
 
@@ -512,7 +533,6 @@ public class MapObjGen : MonoBehaviour
 
                 if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
                 {
-
                     float distance = hitFloor.distance;
 
                     float x = mapObject.transform.position.x;
@@ -523,12 +543,8 @@ public class MapObjGen : MonoBehaviour
 
                     mapObject.transform.position = newPosition;
 
-                    //Debug.Log("Clamped to Ground!");
-                    //Debug.Log("Distance: " + distance);
                 }
             }
-
-            //AddColliders();
 
             DestroyDeadZones();
         }
@@ -537,7 +553,6 @@ public class MapObjGen : MonoBehaviour
         {
             foreach (GameObject mapObject in mapObjectList)
             {
-
                 int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
                 int deadZoneLayerMask = (1 << deadZoneLayerIndex);
 
@@ -548,9 +563,6 @@ public class MapObjGen : MonoBehaviour
                         Debug.Log("Water Ahoy!");
                         DestroyObject();
                     }
-
-                    //Debug.Log("Clamped to Ground!");
-                    //Debug.Log("Distance: " + distance);
                 }
 
                 void DestroyObject()
@@ -567,44 +579,46 @@ public class MapObjGen : MonoBehaviour
                     }
                 }
             }
-        }
 
-        void AddColliders()
-        {
-            foreach (GameObject mapObject in mapObjectList)
+            void AddColliders()
             {
-
-                if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
+                foreach (GameObject mapObject in mapObjectList)
                 {
-                    mapObject.AddComponent<MeshCollider>();
 
-                    navMeshObstacle = GetComponent<NavMeshObstacle>();
-                    navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
-
-                    navMeshObstacle.enabled = true;
-                    navMeshObstacle.center = new Vector3(0, 0, 0);
-                    ;
-                    navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
-
-                    if (mapObject.CompareTag(rockTag)) {
-                        navMeshObstacle.radius = 0.5f;
-                    }
-
-                    if (mapObject.CompareTag(treeTag))
+                    if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
                     {
-                        navMeshObstacle.radius = 0.2f;
+                        mapObject.AddComponent<MeshCollider>();
+
+                        navMeshObstacle = GetComponent<NavMeshObstacle>();
+                        navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
+
+                        navMeshObstacle.enabled = true;
+                        navMeshObstacle.center = new Vector3(0, 0, 0);
+                        ;
+                        navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
+
+                        if (mapObject.CompareTag(rockTag))
+                        {
+                            navMeshObstacle.radius = 0.5f;
+                        }
+
+                        if (mapObject.CompareTag(treeTag))
+                        {
+                            navMeshObstacle.radius = 0.2f;
+                        }
+
+                        navMeshObstacle.carving = true;
+                        //navMeshObstacle.carveOnlyStationary = true;
+
+                        //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
                     }
-
-                    navMeshObstacle.carving = true;
-                    //navMeshObstacle.carveOnlyStationary = true;
-
-                    //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
+                    continue;
                 }
-                continue;
-            }
-            Debug.Log("Colliders Generated!");
 
-            //AddInteractivity();
+                Debug.Log("Colliders Generated!");
+
+                //AddInteractivity();
+            }
         }
     }
 
@@ -621,6 +635,9 @@ public class MapObjGen : MonoBehaviour
     public void Clear()
     {
         mapObjectList.Clear();
+        treeList.Clear();
+        appleTreeList.Clear();
+        appleList.Clear();
 
         if (Application.isEditor)
         {

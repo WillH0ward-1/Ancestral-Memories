@@ -115,15 +115,15 @@ public class PlayerWalk : MonoBehaviour
                 {
                     if (!behaviours.isPsychdelicMode && !player.starving)
                     {
-                        changeState(PLAYER_WALK);
+                        ChangeState(PLAYER_WALK);
                     }
                     else if (player.starving)
                     {
-                        changeState(PLAYER_STARVINGWALK);
+                        ChangeState(PLAYER_STARVINGWALK);
                     }
                     else if (behaviours.isPsychdelicMode)
                     {
-                        changeState(PLAYER_DRUNKWALK);
+                        ChangeState(PLAYER_DRUNKWALK);
                     }
     
                     //player.AdjustAnimationSpeed(animSpeed);
@@ -133,10 +133,10 @@ public class PlayerWalk : MonoBehaviour
                 {
                     if (!behaviours.isPsychdelicMode)
                     {
-                        changeState(PLAYER_RUN);
+                        ChangeState(PLAYER_RUN);
                     } else if (behaviours.isPsychdelicMode)
                     {
-                        changeState(PLAYER_DRUNKRUN);
+                        ChangeState(PLAYER_DRUNKRUN);
                     }
         
                 }
@@ -193,14 +193,14 @@ public class PlayerWalk : MonoBehaviour
 
         if (!behaviours.isPsychdelicMode && !player.starving)
         {
-            changeState(PLAYER_WALK);
+            ChangeState(PLAYER_WALK);
         }
         else if (player.starving)
         {
-            changeState(PLAYER_STARVINGWALK);
+            ChangeState(PLAYER_STARVINGWALK);
         } else if (behaviours.isPsychdelicMode)
         {
-            changeState(PLAYER_DRUNKWALK);
+            ChangeState(PLAYER_DRUNKWALK);
         }
 
         speed = 12;
@@ -233,13 +233,10 @@ public class PlayerWalk : MonoBehaviour
         }
         else
         {
-
             StopAgent();
-
             Destroy(destinationGizmoInstance);
 
             reachedDestination = true;
-
             agent.stoppingDistance = defaultStoppingDistance;
             Debug.Log("Arrived.");
             agent.transform.LookAt(hitObject.transform.position);
@@ -247,22 +244,21 @@ public class PlayerWalk : MonoBehaviour
             behaviours.ChooseBehaviour(selected, null);
             yield break;
         }
-
     }
 
     public void StopAgent()
     {
         if (!behaviours.isPsychdelicMode && !player.starving)
         {
-            changeState(PLAYER_IDLE);
+            ChangeState(PLAYER_IDLE);
         }
         if (player.starving)
         {
-            changeState(PLAYER_STARVINGIDLE);
+            ChangeState(PLAYER_STARVINGIDLE);
         }
         else if (behaviours.isPsychdelicMode)
         {
-            changeState(PLAYER_DRUNKIDLE);
+            ChangeState(PLAYER_DRUNKIDLE);
         }
 
         agent.ResetPath();
@@ -271,7 +267,7 @@ public class PlayerWalk : MonoBehaviour
         //Debug.Log("Player moving?" + agent.isStopped);
     }
 
-    public void changeState(string newState)
+    public void ChangeState(string newState)
     {
         if (currentState == newState)
         {

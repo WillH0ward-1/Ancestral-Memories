@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class CharacterClass : MonoBehaviour, IStats
 {
@@ -99,7 +100,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
         health = maxStat;
         hunger = maxStat;
-        faith = maxStat;
+        faith = minStat;
         evolution = minStat;
 
         isDiseased = false;
@@ -292,7 +293,7 @@ public class CharacterClass : MonoBehaviour, IStats
         {
             faith = minStat;
             isFaithless = true;
-
+            StartCoroutine(DisasterCountdown());
             Debug.Log("Player is faithless!");             
             //earthQuake.start = true;
         } else
@@ -303,6 +304,19 @@ public class CharacterClass : MonoBehaviour, IStats
         }
     }
 
+    public virtual IEnumerator DisasterCountdown()
+    {
+        if (faith <= minStat)
+        {
+            yield return new WaitForSeconds(Random.Range(30, 180));
+            
+        } else
+        {
+            yield break;
+        }
+
+    }
+
     public virtual void TakeDamage(float damage)
     {
         health -= damage;
@@ -311,7 +325,7 @@ public class CharacterClass : MonoBehaviour, IStats
         if (health <= minStat)
         {
             health = minStat;
-            Kill();
+            //Kill();
         }
     }
 
@@ -357,13 +371,14 @@ public class CharacterClass : MonoBehaviour, IStats
         }
     }
 
+    int diseaseIndex;
+
     public virtual void ContractDisease()
     {
-        int diseaseIndex = diseaseSeverities.Length - 1;
-
-        // Factor in current health, faith, age etc...
-        NotifyOfDisease(diseaseIndex);
-
+        if (!isDiseased) { 
+        diseaseIndex = Random.Range(0, diseaseSeverities.Length - 1);
+        NotifyOfDisease(diseaseIndex); // Factor in current health, faith, age etc...
+        }
     }
 
     private void NotifyOfDisease(int diseaseIndex)
@@ -383,27 +398,29 @@ public class CharacterClass : MonoBehaviour, IStats
 
     int diseaseMultiplier;
 
-    private void DiseaseSeverity()
+    private void DiseaseDamage()
     {
-        if (diseaseSeverity == "mild")
+        switch (diseaseSeverity)
         {
-            diseaseMultiplier = 2;
-            TakeDamage(0.00005f * diseaseMultiplier);
-        }
-        if (diseaseSeverity == "severe")
-        {
-            diseaseMultiplier = 3;
-            TakeDamage(0.0005f * diseaseMultiplier);
-        }
-        if (diseaseSeverity == "fatal")
-        {
-            diseaseMultiplier = 4;
-            TakeDamage(0.005f * diseaseMultiplier);
-        }
-        if (diseaseSeverity == "terminal")
-        {
-            diseaseMultiplier = 5;
-            TakeDamage(0.05f * diseaseMultiplier);
+            case "mild":
+                diseaseMultiplier = 2;
+                TakeDamage(0.00005f * diseaseMultiplier);
+                break;
+
+            case "severe":
+                diseaseMultiplier = 2;
+                TakeDamage(0.00005f * diseaseMultiplier);
+                break;
+
+            case "fatal":
+                diseaseMultiplier = 2;
+                TakeDamage(0.00005f * diseaseMultiplier);
+                break;
+
+            case "terminal":
+                diseaseMultiplier = 2;
+                TakeDamage(0.00005f * diseaseMultiplier);
+                break;
         }
     }
 
