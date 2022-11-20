@@ -254,7 +254,7 @@ public class MapObjGen : MonoBehaviour
             //WaterCheck();
             
         }
-    
+
     }
 
     [SerializeField] private float treeGrowthTime;
@@ -262,9 +262,9 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> appleList;
 
+
     void GrowTrees()
     {
-
         Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
         Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
 
@@ -275,9 +275,10 @@ public class MapObjGen : MonoBehaviour
         {
             if (tree.transform.gameObject.CompareTag("AppleTree"))
             {
-                treeList.Remove(tree);
                 appleTreeList.Add(tree);
-
+                treeList.Remove(tree);
+            } else
+            {
                 continue;
             }
 
@@ -302,7 +303,7 @@ public class MapObjGen : MonoBehaviour
 
             foreach(GameObject apple in appleTree.GetComponentsInChildren<GameObject>())
             {
-                appleList.Add(apple.gameObject);
+                appleList.Add(apple);
             }
 
             foreach (GameObject apple in appleList)
@@ -556,11 +557,24 @@ public class MapObjGen : MonoBehaviour
                 int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
                 int deadZoneLayerMask = (1 << deadZoneLayerIndex);
 
+                int caveLayerIndex = LayerMask.NameToLayer("Cave");
+                int caveLayerMask = (1 << deadZoneLayerIndex);
+
                 if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
                 {
                     if (hitFloor.collider.CompareTag("DeadZone"))
                     {
                         Debug.Log("Water Ahoy!");
+                        DestroyObject();
+                    }
+                }
+
+                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitCave, Mathf.Infinity, caveLayerMask))
+                {
+                    if (hitFloor.collider.CompareTag("Cave"))
+                    {
+                        //Debug.Log("Cannot generate objects in cave!");
+
                         DestroyObject();
                     }
                 }

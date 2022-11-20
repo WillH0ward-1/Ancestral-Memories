@@ -41,7 +41,14 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_DANCE_03 = "Player_Dance_03";
 
     const string PLAYER_PICKUP = "Player_PickUp";
-    const string PLAYER_EAT = "Player_StandingEat";
+    const string PLAYER_STANDINGEAT = "Player_StandingEat";
+
+    const string PLAYER_TOCROUCH = "Player_ToCrouch";
+
+    const string PLAYER_CROUCHDRINK = "Player_CrouchDrink";
+    const string PLAYER_CROUCHFORAGING = "Player_CrouchForaging";
+    const string PLAYER_CROUCHPLANTSEEDS = "Player_CrouchPlantSeeds";
+    const string PLAYER_CROUCHTOSTAND = "Player_CrouchToStand";
 
     const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
@@ -49,6 +56,16 @@ public class CharacterBehaviours : MonoBehaviour
     private float animationLength;
 
     public AreaManager areaManager;
+
+    public ToolControl wield;
+
+    public GameObject wieldedStoneAxe;
+    public GameObject sheathedStoneAxe;
+
+    void Start()
+    {
+        wield.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
+    }
 
     public void ChooseBehaviour(string selected, GameObject hitObject)
     {
@@ -74,6 +91,9 @@ public class CharacterBehaviours : MonoBehaviour
             case "Eat":
                 StartCoroutine(PickMushroom());
                 break;
+            case "Drink":
+                StartCoroutine(Drink());
+                break;
             case "Enter":
                 StartCoroutine(areaManager.EnterPortal(hitObject));
                 break;
@@ -92,6 +112,11 @@ public class CharacterBehaviours : MonoBehaviour
     public void WalkToward(GameObject hitObject, string selected)
     {
         StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null));
+    }
+
+    public void SheatheItem()
+    {
+        wield.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
     }
 
     public IEnumerator Pray(GameObject hitObject)
@@ -160,7 +185,7 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_EAT);
+        ChangeState(PLAYER_STANDINGEAT);
 
         behaviourIsActive = false;
 
@@ -177,6 +202,27 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield break;
 
+    }
+
+    public IEnumerator Drink()
+    {
+        behaviourIsActive = true;
+
+        ChangeState(PLAYER_TOCROUCH);
+
+        cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+
+        ChangeState(PLAYER_CROUCHDRINK);
+
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        ChangeState(PLAYER_CROUCHTOSTAND);
+
+        cinematicCam.ToGameZoom();
+
+        yield break;
     }
 
     public bool isPsychdelicMode = false;
@@ -196,6 +242,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator HarvestTree()
     {
+        wield.Wield(wieldedStoneAxe, sheathedStoneAxe);
+
         behaviourIsActive = true;
 
         ChangeState(PLAYER_HARVEST_TREE);
@@ -208,6 +256,8 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
+
+        SheatheItem();
 
         yield break;
     }

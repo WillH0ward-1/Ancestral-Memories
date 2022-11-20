@@ -80,11 +80,20 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.layer = 8; // 'Ground' Layer
 			tmp.AddComponent<CorruptionControl>();
 			tmp.AddComponent<LerpTerrain>();
+			Interactable interactable = tmp.AddComponent<Interactable>();
+
+			interactable.name = "Plant";
+			interactable.options[0].title = "Plant";
+			interactable.options[0].color = Color.white;
+			Sprite spriteName = Resources.Load<Sprite>("Menu/Icons/PlantIcon");
+			interactable.options[0].sprite = spriteName;
+	
+			//tmp.AddComponent<ParticleCollision>();
 
 		}
 	}
 
-	void Update() {
+    void Update() {
 
 		viewerPosition = new Vector2 (viewer.position.x, viewer.position.z);
 

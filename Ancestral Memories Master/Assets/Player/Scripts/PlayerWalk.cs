@@ -184,6 +184,8 @@ public class PlayerWalk : MonoBehaviour
             reachedDestination = true;
             agent.stoppingDistance = defaultStoppingDistance;
 
+            behaviours.SheatheItem();
+
             Destroy(destinationGizmoInstance);
 
             yield break;
