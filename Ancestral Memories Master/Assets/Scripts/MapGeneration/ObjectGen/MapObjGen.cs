@@ -137,12 +137,6 @@ public class MapObjGen : MonoBehaviour
 
     //public Interactable treeInteraction;
 
-    [Header("Generated Objects")]
-    [Space(10)]
-
-    public List<GameObject> mapObjectList;
-
-    public List<GameObject> appleTreeList;
     private void Awake()
     {
         Clear();
@@ -188,7 +182,7 @@ public class MapObjGen : MonoBehaviour
         SetOffset();
 
         GroundCheck();
-        GrowTrees();
+        //SortTreeTypes(treeList);
     }
 
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
@@ -216,14 +210,21 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    [Header("Generated Objects")]
+    [Space(10)]
+
+    public List<GameObject> mapObjectList;
     public List<GameObject> treeList;
-    private GrowControl growControl;
-    private TreeShaders treeShader;
+    public List<GameObject> appleTreeList;
+    public List<GameObject> appleList;
 
     private Vector3 startingScale = new Vector3(0, 0, 0);
 
+    private GrowControl growControl;
+
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
+
         foreach (Vector2 sample in treeSampler.Samples())
         {
             GameObject randomTree = GetRandomMapObject(trees);
@@ -244,10 +245,10 @@ public class MapObjGen : MonoBehaviour
             int treeLayer = LayerMask.NameToLayer("Trees");
             treeInstance.layer = treeLayer;
 
-            treeInstance.transform.SetParent(hierarchyRoot.transform);
-
             mapObjectList.Add(treeInstance);
             treeList.Add(treeInstance);
+
+            treeInstance.transform.SetParent(hierarchyRoot.transform);
 
 
             //GroundCheck(instantiatedPrefab);
@@ -255,65 +256,128 @@ public class MapObjGen : MonoBehaviour
             
         }
 
+        GrowTrees();
+
+
+    }
+
+    void GrowTrees()
+    {
+        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+
+        float growTime = 180f;
+
+        foreach (GameObject tree in treeList)
+        {
+            if (tree.transform.CompareTag("AppleTree"))
+            {
+                appleTreeList.Add(tree);
+            }
+
+            growControl = tree.GetComponent<GrowControl>();
+            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, growTime));
+
+        }
+
+        Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
+
+        foreach (GameObject appleTree in appleTreeList)
+        {
+            Transform[] apples = appleTree.GetComponentsInChildren<Transform>();
+
+            foreach (Transform apple in apples)
+            {
+                appleList.Add(apple.transform.gameObject);
+            }
+
+        }
+
+        AppleListCleanup();
+
+        foreach (GameObject apple in appleList)
+        {
+            growControl = apple.GetComponentInParent<GrowControl>();
+            StartCoroutine(growControl.Grow(apple, startingScale, appleScaleDestination, appleGrowthTime));
+        }
+    }
+
+    void AppleListCleanup()
+    {
+        for (var i = appleList.Count; i < appleList.Count; i++)
+        {
+            if (!mapObjectList[i].transform.CompareTag("Apple"))
+            {
+                mapObjectList.RemoveAt(i);
+            }
+            else
+            {
+                continue;
+            }
+            return;
+        }
     }
 
     [SerializeField] private float treeGrowthTime;
     [SerializeField] private float appleGrowthTime;
 
-    public List<GameObject> appleList;
-
-
-    void GrowTrees()
+    void SortTreeTypes(List<GameObject> treeList)
     {
-        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
-        Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
 
-        treeGrowthTime = 60f * 5;
-        appleGrowthTime = 60f * 5;
+    GrowControl growControl;
+    TreeShaders treeShader;
+
+    treeGrowthTime = 30f;
+        appleGrowthTime = 30f;
 
         foreach (GameObject tree in treeList)
         {
-            if (tree.transform.gameObject.CompareTag("AppleTree"))
+            if (tree.transform.CompareTag("AppleTree"))
             {
                 appleTreeList.Add(tree);
                 treeList.Remove(tree);
-            } else
+            } else if (tree.CompareTag("Trees") || !tree.CompareTag("AppleTree"))
             {
                 continue;
             }
 
-            growControl = tree.GetComponent<GrowControl>();
-            treeShader = tree.GetComponent<TreeShaders>();
+            GrowTrees(tree);
 
-            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
-            StartCoroutine(treeShader.GrowLeaves(30f));
         }
 
-        AppleTrees(treeScaleDestination, appleScaleDestination);
-    }
+        Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
 
-    void AppleTrees(Vector3 treeScaleDestination, Vector3 appleScaleDestination)
-    {
+        Transform[] apples;
+
         foreach (GameObject appleTree in appleTreeList)
         {
-            growControl = appleTree.GetComponent<GrowControl>();
-            treeShader = appleTree.GetComponent<TreeShaders>();
+            
+            apples = appleTree.GetComponentsInChildren<Transform>();
 
-            StartCoroutine(growControl.Grow(appleTree, startingScale, treeScaleDestination, treeGrowthTime));
-
-            foreach(GameObject apple in appleTree.GetComponentsInChildren<GameObject>())
+            foreach (Transform apple in apples)
             {
-                appleList.Add(apple);
+                appleList.Add(apple.gameObject);
             }
 
             foreach (GameObject apple in appleList)
             {
+                growControl = apple.GetComponent<GrowControl>();
                 StartCoroutine(growControl.Grow(apple, startingScale, appleScaleDestination, appleGrowthTime));
             }
-
-            StartCoroutine(treeShader.GrowLeaves(30f));
         }
     }
+
+    void GrowTrees(GameObject tree)
+    {
+        GrowControl growControl = tree.GetComponent<GrowControl>();
+        TreeShaders treeShader = tree.GetComponent<TreeShaders>();
+
+        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+
+        StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
+        StartCoroutine(treeShader.GrowLeaves(30f));
+    }
+
+ 
 
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)
     {
@@ -487,6 +551,7 @@ public class MapObjGen : MonoBehaviour
 
         ListCleanup();
         AnchorToGround();
+
 
         void ListCleanup()
         {

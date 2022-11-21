@@ -31,6 +31,8 @@ public class InteractCamera : MonoBehaviour
 
     }
 
+    [SerializeField] private float maxSelectionDistance = 5f;
+    [SerializeField] private float minSelectionDistance = 0f;
     void Update()
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -39,6 +41,18 @@ public class InteractCamera : MonoBehaviour
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
+                if (hit.distance >= maxSelectionDistance)
+                {
+                    Debug.Log("Selection out of range!");
+                    return;
+                }
+
+                if (hit.distance <= minSelectionDistance)
+                {
+                    Debug.Log("Selection too close!");
+                    return;
+                }
+
                 lastHit = hit.collider.gameObject;
 
                 if (Input.GetMouseButtonDown(1))
