@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -28,6 +29,7 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private GameObject[] trees;
+    [SerializeField] private GameObject[] appleTrees;
     [SerializeField] private GameObject[] grass;
     [SerializeField] private GameObject[] foliage;
     [SerializeField] private GameObject[] rocks;
@@ -78,6 +80,7 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] float minimumTreeRadius = 70;
+    [SerializeField] float minimumAppleTreeRadius = 70;
     [SerializeField] float minimumGrassRadius = 70;
     [SerializeField] float minimumFoliageRadius = 70;
     [SerializeField] float minimumRockRadius = 70;
@@ -101,6 +104,7 @@ public class MapObjGen : MonoBehaviour
     [Header("========================================================================================================================")]
 
     private readonly string treeTag = "Trees";
+    private readonly string appleTreeTag = "AppleTree";
     private readonly string waterTag = "Water";
     private readonly string groundTag = "Ground";
     private readonly string grassTag = "Grass";
@@ -164,6 +168,7 @@ public class MapObjGen : MonoBehaviour
         //mapObjectList.Clear();
 
         PoissonDiscSampler treeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTreeRadius);
+        PoissonDiscSampler appleTreeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAppleTreeRadius);
         PoissonDiscSampler grassSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumGrassRadius);
         PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
@@ -172,6 +177,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
 
         TreePoissonDisc(treeSampler);
+        AppleTreePoissonDisc(appleTreeSampler);
         GrassPoissonDisc(grassSampler);
         FoliagePoissonDisc(foliageSampler);
         RocksPoissonDisc(rockSampler);
@@ -214,13 +220,8 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     public List<GameObject> mapObjectList;
-    public List<GameObject> treeList;
-    public List<GameObject> appleTreeList;
-    public List<GameObject> appleList;
 
     private Vector3 startingScale = new Vector3(0, 0, 0);
-
-    private GrowControl growControl;
 
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
@@ -246,138 +247,118 @@ public class MapObjGen : MonoBehaviour
             treeInstance.layer = treeLayer;
 
             mapObjectList.Add(treeInstance);
-            treeList.Add(treeInstance);
 
             treeInstance.transform.SetParent(hierarchyRoot.transform);
 
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
+
+            GrowTree(treeInstance);
+
+        }
+
+
+    }
+
+    void AppleTreePoissonDisc(PoissonDiscSampler appleTreeSampler) {
+
+        foreach (Vector2 sample in appleTreeSampler.Samples())
+        {
+            GameObject randomAppleTree = GetRandomMapObject(appleTrees);
+
+            GameObject appleTreeInstance = Instantiate(randomAppleTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            appleTreeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            /*
+            new Vector3(
+            Random.Range(minTreeScale.x, maxTreeScale.x),
+            Random.Range(minTreeScale.y, maxTreeScale.y),
+            Random.Range(minTreeScale.z, maxTreeScale.z));
+            */
+
+            //treeInstance.tag = treeTag;
+
+            int appleTreeLayer = LayerMask.NameToLayer("AppleTree");
+            appleTreeInstance.layer = appleTreeLayer;
+
+            mapObjectList.Add(appleTreeInstance);
+
+            appleTreeInstance.transform.SetParent(hierarchyRoot.transform);
+
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+
+            GrowTree(appleTreeInstance);
+        }
+
+    }
+
+    [SerializeField] private float treeGrowthTime = 30f;
+    [SerializeField] private float appleGrowthTime = 30f;
+
+    private void GrowTree(GameObject tree)
+    {
+        //TreeShaders treeshader = tree.GetComponent<TreeShaders>();
+
+        Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+
+        GrowControl growControl = tree.transform.GetComponent<GrowControl>();
+
+        if (!tree.transform.CompareTag("AppleTree"))
+        {
+            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
+        }
+        else if (tree.transform.CompareTag("AppleTree"))
+        {
+            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
+
+            foreach (Transform apple in tree.transform)
+            {
+
+                apple.GetComponent<Renderer>().enabled = false;
+                GrowControl appleGrowControl = apple.GetComponent<GrowControl>();
+                StartCoroutine(WaitUntilGrown(tree));
+            }
             
         }
-
-        GrowTrees();
-
-
+        // StartCoroutine(treeShader.GrowLeaves(30f));
     }
 
-    void GrowTrees()
+    private IEnumerator WaitUntilGrown(GameObject growObject)
     {
-        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+        GrowControl growControl = growObject.GetComponent<GrowControl>();
 
-        float growTime = 180f;
+        yield return new WaitUntil(() => growControl.isFullyGrown);
 
-        foreach (GameObject tree in treeList)
+        if (growObject.transform.CompareTag("AppleTree"))
         {
-            if (tree.transform.CompareTag("AppleTree"))
-            {
-                appleTreeList.Add(tree);
-            }
+            GrowApples(growObject, growControl);
 
-            growControl = tree.GetComponent<GrowControl>();
-            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, growTime));
+            yield break;
 
-        }
-
-        Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
-
-        foreach (GameObject appleTree in appleTreeList)
+        } else if (growObject.transform.CompareTag("Apple"))
         {
-            Transform[] apples = appleTree.GetComponentsInChildren<Transform>();
+            Rigidbody rigidBody = growObject.transform.GetComponent<Rigidbody>();
 
-            foreach (Transform apple in apples)
-            {
-                appleList.Add(apple.transform.gameObject);
-            }
-
-        }
-
-        AppleListCleanup();
-
-        foreach (GameObject apple in appleList)
-        {
-            growControl = apple.GetComponentInParent<GrowControl>();
-            StartCoroutine(growControl.Grow(apple, startingScale, appleScaleDestination, appleGrowthTime));
+            rigidBody.isKinematic = false;
+            rigidBody.useGravity = true;
         }
     }
 
-    void AppleListCleanup()
+    private void GrowApples(GameObject tree, GrowControl appleGrowControl)
     {
-        for (var i = appleList.Count; i < appleList.Count; i++)
+        Vector3 appleScaleDestination = new(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
+
+        foreach (Transform apple in tree.transform)
         {
-            if (!mapObjectList[i].transform.CompareTag("Apple"))
-            {
-                mapObjectList.RemoveAt(i);
-            }
-            else
-            {
-                continue;
-            }
-            return;
-        }
-    }
-
-    [SerializeField] private float treeGrowthTime;
-    [SerializeField] private float appleGrowthTime;
-
-    void SortTreeTypes(List<GameObject> treeList)
-    {
-
-    GrowControl growControl;
-    TreeShaders treeShader;
-
-    treeGrowthTime = 30f;
-        appleGrowthTime = 30f;
-
-        foreach (GameObject tree in treeList)
-        {
-            if (tree.transform.CompareTag("AppleTree"))
-            {
-                appleTreeList.Add(tree);
-                treeList.Remove(tree);
-            } else if (tree.CompareTag("Trees") || !tree.CompareTag("AppleTree"))
-            {
-                continue;
-            }
-
-            GrowTrees(tree);
-
+            apple.GetComponent<Renderer>().enabled = true;
+            StartCoroutine(appleGrowControl.Grow(apple.transform.gameObject, startingScale, appleScaleDestination, appleGrowthTime));
         }
 
-        Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
-
-        Transform[] apples;
-
-        foreach (GameObject appleTree in appleTreeList)
-        {
-            
-            apples = appleTree.GetComponentsInChildren<Transform>();
-
-            foreach (Transform apple in apples)
-            {
-                appleList.Add(apple.gameObject);
-            }
-
-            foreach (GameObject apple in appleList)
-            {
-                growControl = apple.GetComponent<GrowControl>();
-                StartCoroutine(growControl.Grow(apple, startingScale, appleScaleDestination, appleGrowthTime));
-            }
-        }
     }
-
-    void GrowTrees(GameObject tree)
-    {
-        GrowControl growControl = tree.GetComponent<GrowControl>();
-        TreeShaders treeShader = tree.GetComponent<TreeShaders>();
-
-        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
-
-        StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
-        StartCoroutine(treeShader.GrowLeaves(30f));
-    }
-
- 
 
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)
     {
@@ -714,9 +695,6 @@ public class MapObjGen : MonoBehaviour
     public void Clear()
     {
         mapObjectList.Clear();
-        treeList.Clear();
-        appleTreeList.Clear();
-        appleList.Clear();
 
         if (Application.isEditor)
         {
