@@ -173,7 +173,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler foliageSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFoliageRadius);
         PoissonDiscSampler rockSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumRockRadius);
         PoissonDiscSampler fliesSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFliesRadius);
-        PoissonDiscSampler  animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
+        PoissonDiscSampler animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
 
         TreePoissonDisc(treeSampler);
@@ -296,16 +296,26 @@ public class MapObjGen : MonoBehaviour
 
     }
 
+
+    [SerializeField] private float maxTreeGrowTime = 30f;
+    [SerializeField] private float minTreeGrowTime = 30f;
+
+    [SerializeField] private float maxAppleGrowTime = 30f;
+    [SerializeField] private float minAppleGrowTime = 30f;
+
     [SerializeField] private float treeGrowthTime = 30f;
     [SerializeField] private float appleGrowthTime = 30f;
 
     private void GrowTree(GameObject tree)
     {
-        //TreeShaders treeshader = tree.GetComponent<TreeShaders>();
-
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
         GrowControl growControl = tree.transform.GetComponent<GrowControl>();
+        TreeShaders treeshader = tree.GetComponent<TreeShaders>();
+
+        treeGrowthTime = Random.Range(minTreeGrowTime, maxTreeGrowTime);
+        appleGrowthTime = Random.Range(minAppleGrowTime, maxAppleGrowTime);
+
 
         if (!tree.transform.CompareTag("AppleTree"))
         {
@@ -317,15 +327,16 @@ public class MapObjGen : MonoBehaviour
 
             foreach (Transform apple in tree.transform)
             {
-
+                apple.GetComponent<Rigidbody>().isKinematic = true;
                 apple.GetComponent<Renderer>().enabled = false;
-                GrowControl appleGrowControl = apple.GetComponent<GrowControl>();
                 StartCoroutine(WaitUntilGrown(tree));
             }
-            
+
         }
         // StartCoroutine(treeShader.GrowLeaves(30f));
     }
+
+    float RandomDestroyBuffer = Random.Range(3f, 5f);
 
     private IEnumerator WaitUntilGrown(GameObject growObject)
     {
@@ -342,13 +353,21 @@ public class MapObjGen : MonoBehaviour
         } else if (growObject.transform.CompareTag("Apple"))
         {
             Rigidbody rigidBody = growObject.transform.GetComponent<Rigidbody>();
+            Collider collider = growObject.transform.GetComponent<Collider>();
 
             rigidBody.isKinematic = false;
             rigidBody.useGravity = true;
-        }
+
+            //collider.isTrigger = true;
+
+            HitGround hitGround = growObject.GetComponent<HitGround>();
+
+            yield break;
+        } 
+        
     }
 
-    private void GrowApples(GameObject tree, GrowControl appleGrowControl)
+        private void GrowApples(GameObject tree, GrowControl appleGrowControl)
     {
         Vector3 appleScaleDestination = new(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
 
@@ -356,7 +375,10 @@ public class MapObjGen : MonoBehaviour
         {
             apple.GetComponent<Renderer>().enabled = true;
             StartCoroutine(appleGrowControl.Grow(apple.transform.gameObject, startingScale, appleScaleDestination, appleGrowthTime));
+            StartCoroutine(WaitUntilGrown(apple.gameObject));
         }
+
+
 
     }
 
@@ -531,7 +553,6 @@ public class MapObjGen : MonoBehaviour
         }
 
         ListCleanup();
-        AnchorToGround();
 
 
         void ListCleanup()
@@ -543,141 +564,147 @@ public class MapObjGen : MonoBehaviour
             }
         }
 
-        void AnchorToGround()
+        AnchorToGround();
+    }
+
+
+
+    void AddColliders()
+    {
+        foreach (GameObject mapObject in mapObjectList)
         {
-            //LayerMask groundMask = LayerMask.GetMask("Ground");
 
-            foreach (GameObject mapObject in mapObjectList)
+            if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
             {
+                mapObject.AddComponent<MeshCollider>();
 
-                int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                int groundLayerMask = (1 << groundLayerIndex);
+                navMeshObstacle = GetComponent<NavMeshObstacle>();
+                navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
 
-                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+                navMeshObstacle.enabled = true;
+                navMeshObstacle.center = new Vector3(0, 0, 0);
+                ;
+                navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
 
+                if (mapObject.CompareTag(rockTag))
                 {
-
-                    float distance = hitFloor.distance;
-
-                    float x = mapObject.transform.position.x;
-                    float y = mapObject.transform.position.y - distance;
-                    float z = mapObject.transform.position.z;
-
-                    Vector3 newPosition = new Vector3(x, y, z);
-
-                    mapObject.transform.position = newPosition;
-
-                    //Debug.Log("Clamped to Ground!");
-                    //Debug.Log("Distance: " + distance);
+                    navMeshObstacle.radius = 0.5f;
                 }
-            }
 
-            foreach (GameObject mapObject in mapObjectList)
-            {
-
-                int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                int groundLayerMask = (1 << groundLayerIndex);
-
-                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+                if (mapObject.CompareTag(treeTag))
                 {
-                    float distance = hitFloor.distance;
-
-                    float x = mapObject.transform.position.x;
-                    float y = mapObject.transform.position.y - distance;
-                    float z = mapObject.transform.position.z;
-
-                    Vector3 newPosition = new Vector3(x, y, z);
-
-                    mapObject.transform.position = newPosition;
-
+                    navMeshObstacle.radius = 0.2f;
                 }
-            }
 
-            DestroyDeadZones();
+                navMeshObstacle.carving = true;
+                //navMeshObstacle.carveOnlyStationary = true;
+
+                //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
+            }
+            continue;
         }
 
-        void DestroyDeadZones()
+        Debug.Log("Colliders Generated!");
+
+        //AddInteractivity();
+    }
+        
+    void AnchorToGround()
+    {
+        //LayerMask groundMask = LayerMask.GetMask("Ground");
+
+        foreach (GameObject mapObject in mapObjectList)
         {
-            foreach (GameObject mapObject in mapObjectList)
+
+            int groundLayerIndex = LayerMask.NameToLayer("Ground");
+            int groundLayerMask = (1 << groundLayerIndex);
+
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+
             {
-                int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
-                int deadZoneLayerMask = (1 << deadZoneLayerIndex);
 
-                int caveLayerIndex = LayerMask.NameToLayer("Cave");
-                int caveLayerMask = (1 << deadZoneLayerIndex);
+                float distance = hitFloor.distance;
 
-                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+                float x = mapObject.transform.position.x;
+                float y = mapObject.transform.position.y - distance;
+                float z = mapObject.transform.position.z;
+
+                Vector3 newPosition = new Vector3(x, y, z);
+
+                mapObject.transform.position = newPosition;
+
+                //Debug.Log("Clamped to Ground!");
+                //Debug.Log("Distance: " + distance);
+            }
+        }
+
+        foreach (GameObject mapObject in mapObjectList)
+        {
+
+            int groundLayerIndex = LayerMask.NameToLayer("Ground");
+            int groundLayerMask = (1 << groundLayerIndex);
+
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+            {
+                float distance = hitFloor.distance;
+
+                float x = mapObject.transform.position.x;
+                float y = mapObject.transform.position.y - distance;
+                float z = mapObject.transform.position.z;
+
+                Vector3 newPosition = new Vector3(x, y, z);
+
+                mapObject.transform.position = newPosition;
+
+            }
+        }
+
+        DestroyDeadZones();
+    }
+
+
+
+    void DestroyDeadZones()
+    {
+        foreach (GameObject mapObject in mapObjectList)
+        {
+            int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
+            int deadZoneLayerMask = (23 << deadZoneLayerIndex);
+
+            int caveLayerIndex = LayerMask.NameToLayer("Cave");
+            int caveLayerMask = (24 << caveLayerIndex);
+
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+            {
+                if (hitFloor.collider.CompareTag("DeadZone"))
                 {
-                    if (hitFloor.collider.CompareTag("DeadZone"))
-                    {
-                        Debug.Log("Water Ahoy!");
-                        DestroyObject();
-                    }
-                }
-
-                if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitCave, Mathf.Infinity, caveLayerMask))
-                {
-                    if (hitFloor.collider.CompareTag("Cave"))
-                    {
-                        //Debug.Log("Cannot generate objects in cave!");
-
-                        DestroyObject();
-                    }
-                }
-
-                void DestroyObject()
-                {
-                    if (Application.isEditor)
-                    {
-                        Debug.Log("Object destroyed in Editor.");
-                        DestroyImmediate(mapObject);
-                    }
-                    else
-                    {
-                        Debug.Log("Object destroyed in game.");
-                        Destroy(mapObject);
-                    }
+                    //Debug.Log("DeadZone hit.");
+                    DestroyObject();
                 }
             }
 
-            void AddColliders()
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitCave, Mathf.Infinity, caveLayerMask))
             {
-                foreach (GameObject mapObject in mapObjectList)
+                if (hitFloor.collider.CompareTag("Cave"))
                 {
+                    //Debug.Log("Cannot generate objects in cave!");
 
-                    if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
-                    {
-                        mapObject.AddComponent<MeshCollider>();
-
-                        navMeshObstacle = GetComponent<NavMeshObstacle>();
-                        navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
-
-                        navMeshObstacle.enabled = true;
-                        navMeshObstacle.center = new Vector3(0, 0, 0);
-                        ;
-                        navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
-
-                        if (mapObject.CompareTag(rockTag))
-                        {
-                            navMeshObstacle.radius = 0.5f;
-                        }
-
-                        if (mapObject.CompareTag(treeTag))
-                        {
-                            navMeshObstacle.radius = 0.2f;
-                        }
-
-                        navMeshObstacle.carving = true;
-                        //navMeshObstacle.carveOnlyStationary = true;
-
-                        //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
-                    }
-                    continue;
+                    DestroyObject();
                 }
+            }
 
-                Debug.Log("Colliders Generated!");
-
-                //AddInteractivity();
+            void DestroyObject()
+            {
+                if (Application.isEditor)
+                {
+                    Debug.Log("Object destroyed in Editor.");
+                    DestroyImmediate(mapObject);
+                }
+                else
+                {
+                    Debug.Log("Object destroyed in game.");
+                    Destroy(mapObject);
+                }
             }
         }
     }

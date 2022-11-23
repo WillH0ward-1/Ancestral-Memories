@@ -297,7 +297,10 @@ public class CamControl : MonoBehaviour
             transform.position = SmoothedPosition;
 
         }
-        return;
+        else
+        {
+            return;
+        }
     }
 
     public float turnSpeed = 4.0f;
@@ -313,7 +316,7 @@ public class CamControl : MonoBehaviour
     IEnumerator Zoom(float lerpDuration, float zoomDestination, float orthoDestination)
     {
 
-        float zoomMultiplier = 1;
+        float zoomMultiplier = 0;
 
         float timeElapsed = 0;
         while (timeElapsed < lerpDuration)
@@ -333,7 +336,7 @@ public class CamControl : MonoBehaviour
             currentZoom = rpCamera.perspective;
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, timeElapsed / lerpDuration);
  
-            timeElapsed += Time.deltaTime * zoomMultiplier;
+            timeElapsed += Time.deltaTime;
 
             yield return null;
         }
@@ -361,15 +364,15 @@ public class CamControl : MonoBehaviour
 
         float timeElapsed = 0;
 
-        duration = 10f;
-
-        while (timeElapsed < duration)
+        while (timeElapsed <= duration)
         {
             if (!returnToDefault)
             {
                 camFollowTarget = false;
                 transform.LookAt(lookTarget);
+
             }
+
             cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, timeElapsed / duration);
 
             timeElapsed += Time.deltaTime;
@@ -377,20 +380,15 @@ public class CamControl : MonoBehaviour
             yield return null;
         }
 
-        if (timeElapsed > duration)
+        if (timeElapsed >= duration)
         {
             if (returnToDefault)
             {
-                StartCoroutine(MoveCamToPosition(defaultCamPosition, null, true, 3f));
-                camFollowTarget = true;
-                yield break;
-            }
-            else if (!returnToDefault)
-            {
 
-                yield return new WaitUntil(() => !behaviours.behaviourIsActive);
+                StartCoroutine(MoveCamToPosition(defaultCamPosition, null, true, 10f));
+
+                transform.LookAt(player.transform);
                 camFollowTarget = true;
-                StartCoroutine(MoveCamToPosition(defaultCamPosition, null, false, 3f));
 
                 yield break;
             }

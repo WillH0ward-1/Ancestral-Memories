@@ -6,78 +6,51 @@ public class TreeShaders : MonoBehaviour
 {
     public Material leafMaterial;
 
-    [SerializeField]
-    private CharacterClass player;
+    string playerTag = "Player";
+
+    [SerializeField] private Player characterClass;
+
+    float alphaIntensity;
 
     public int maxAlpha = 1;
     public int minAlpha = 0;
 
-    public Renderer leaves;
+    public Renderer[] mat;
 
     private float targetAlphaValue = 1f;
     private float currentAlphaValue = 1f;
 
     public float alpha;
 
-    private void OnEnable() => player.OnFaithChanged += FaithChanged;
-    private void OnDisable() => player.OnFaithChanged -= FaithChanged;
+    private void OnEnable() => characterClass.OnFaithChanged += LeafDensity;
+    private void OnDisable() => characterClass.OnFaithChanged -= LeafDensity;
 
     // Start is called before the first frame update
     void Start()
     {
-        //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
+        GameObject player = GameObject.FindGameObjectWithTag(playerTag);
 
-        alpha = minAlpha;
+        characterClass = player.GetComponent<Player>();
+
     }
 
     private bool kill;
 
     // Update is called once per frame
-    public IEnumerator GrowLeaves(float duration)
+    public IEnumerator GrowLeaves(float targetAlphaValue)
     {
-        targetAlphaValue = maxAlpha;
+        currentAlphaValue = Mathf.Lerp(currentAlphaValue, targetAlphaValue, 2f * Time.deltaTime);
 
-        float time = 0;
-
-        while (time < duration)
+        foreach (Renderer m in mat)
         {
-            currentAlphaValue = leaves.material.GetFloat("_Alpha");
-            leaves.material.SetFloat("_Alpha", Mathf.Lerp(currentAlphaValue, targetAlphaValue, time / duration));
-          
-            yield return null;
-        }
-
-        if (time > duration)
-        {
-            yield break;
+            m.sharedMaterial.SetFloat("_Alpha", currentAlphaValue);
+            yield return null; 
         }
     }
 
-    public IEnumerator KillLeaves(float duration)
-    {
-        targetAlphaValue = minAlpha;
-
-        float time = 0;
-
-        while (time < duration)
-        {
-
-            currentAlphaValue = leaves.material.GetFloat("_Alpha");
-            currentAlphaValue = Mathf.Lerp(currentAlphaValue, targetAlphaValue, time / duration);
-            leaves.material.SetFloat("_Alpha", currentAlphaValue);
-
-            yield return null;
-
-        }
-
-        if (time > duration)
-        {
-            yield break;
-        }
-    }
-
-    private void FaithChanged(int faith, int maxFaith)
+    private void LeafDensity(int faith, int maxFaith)
     {
         targetAlphaValue = (float)faith / maxFaith;
+        StartCoroutine(GrowLeaves(targetAlphaValue));
     }
 }

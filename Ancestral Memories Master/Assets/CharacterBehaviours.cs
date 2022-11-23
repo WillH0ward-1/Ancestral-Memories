@@ -130,8 +130,10 @@ public class CharacterBehaviours : MonoBehaviour
         ChangeState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToActionZoom();
-
+        StartCoroutine(
+                GainFaith());
         //god.StartGodRay(hitObject.transform, false);
+
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -142,6 +144,15 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToGameZoom();
         yield break;
+    }
+
+    public IEnumerator GainFaith()
+    {
+        while (behaviourIsActive)
+        {
+            player.GainFaith(0.25f);
+            yield return null;
+        }
     }
 
     public virtual string GetRandomAnimation(string[] animClips)
@@ -211,7 +222,7 @@ public class CharacterBehaviours : MonoBehaviour
         ChangeState(PLAYER_TOCROUCH);
 
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
 
         ChangeState(PLAYER_CROUCHDRINK);
 

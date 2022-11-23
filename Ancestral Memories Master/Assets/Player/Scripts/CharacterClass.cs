@@ -282,25 +282,75 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual event Action<int, int> OnFaithChanged;
 
+    public bool isBlessed = false;
     public virtual void DepleteFaith(float faithDamage)
     {
-        OnFaithChanged?.Invoke((int)faith, maxStat);
-
-        faith -= faithDamage;
-        faithBar.UpdateFaith(faith / maxStat);
-
-        if (faith <= minStat) 
+        if (!isBlessed)
         {
-            faith = minStat;
-            isFaithless = true;
-            StartCoroutine(DisasterCountdown());
-            Debug.Log("Player is faithless!");             
-            //earthQuake.start = true;
-        } else
+            OnFaithChanged?.Invoke((int)faith, maxStat);
 
+            faith -= faithDamage;
+            faithBar.UpdateFaith(faith / maxStat);
+
+            if (faith <= minStat)
+            {
+                faith = minStat;
+                isFaithless = true;
+                StartCoroutine(DisasterCountdown());
+                Debug.Log("Player is faithless!");
+                //earthQuake.start = true;
+            }
+            else
+
+            {
+                earthQuake.start = false;
+                isFaithless = false;
+            }
+        }
+    }
+
+    public virtual void GainFaith(float faithFactor)
+    {
+        if (!isBlessed)
         {
-            earthQuake.start = false;
-            isFaithless = false;
+            faith += faithFactor;
+            faithBar.UpdateFaith(faith / maxStat);
+
+            if (faith >= maxStat)
+            {
+                faith = maxStat;
+                Debug.Log("Player has max faith!");
+                StartCoroutine(TransendenceTimer());
+            }
+        }
+    }
+
+    public virtual IEnumerator TransendenceTimer()
+    {
+        yield return new WaitForSeconds(Random.Range(10, 180));
+
+        if (faith >= maxStat)
+        {
+            faith = maxStat;
+            isBlessed = true;
+
+            Debug.Log("Player is blessed.");
+
+            yield return new WaitForSeconds(Random.Range(60, 180));
+
+            if (faith <= maxStat / 1.25f)
+            {
+                isBlessed = false;
+                Debug.Log("Player is no longer blessed.");
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(Random.Range(60, 180));
+
+            isBlessed = false;
+            Debug.Log("Player is no longer blessed.");
+
+            yield break;
         }
     }
 

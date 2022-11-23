@@ -41,7 +41,7 @@ public class AuraControl : MonoBehaviour
 
         foreach (Renderer renderer in auraRenderers)
         {
-            renderer.material.SetFloat("_AuraIntensity", currentAuraVal);
+            renderer.sharedMaterial.SetFloat("_AuraIntensity", currentAuraVal);
         }
 
     }

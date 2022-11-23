@@ -5,9 +5,7 @@ using UnityEngine;
 public class TriggerDisgust : MonoBehaviour
 {
 
-    [SerializeField] private Animator animator;
-
-    CharacterClass player;
+    public Player player;
 
     const string PLAYER_DISGUSTED = "Player_disgusted";
 
@@ -15,8 +13,6 @@ public class TriggerDisgust : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-
-        player.ChangeAnimationState(PLAYER_DISGUSTED);
 
         // Chance of getting disease
 
