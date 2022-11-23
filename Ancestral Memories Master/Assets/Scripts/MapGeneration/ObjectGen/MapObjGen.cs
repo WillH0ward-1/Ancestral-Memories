@@ -306,6 +306,8 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private float treeGrowthTime = 30f;
     [SerializeField] private float appleGrowthTime = 30f;
 
+    private List<GameObject> activeApples;
+
     private void GrowTree(GameObject tree)
     {
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
@@ -324,22 +326,49 @@ public class MapObjGen : MonoBehaviour
         else if (tree.transform.CompareTag("AppleTree"))
         {
             StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
-
-            foreach (Transform apple in tree.transform)
-            {
-                apple.GetComponent<Rigidbody>().isKinematic = true;
-                apple.GetComponent<Renderer>().enabled = false;
-                StartCoroutine(WaitUntilGrown(tree));
-            }
-
+            GrowApples(tree);
         }
         // StartCoroutine(treeShader.GrowLeaves(30f));
     }
+
+    void GrowApples(GameObject tree)
+    {
+        foreach (Transform apple in tree.transform)
+        {
+            apple.GetComponent<Renderer>().enabled = false;
+
+            Vector3 applePos = new(apple.transform.position.x, apple.transform.position.y, apple.transform.position.z);
+
+            GameObject appleInstance = Instantiate(apple.gameObject, applePos, Quaternion.identity);
+
+            appleInstance.GetComponent<Renderer>().enabled = true;
+            //appleInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+
+            appleInstance.GetComponent<Rigidbody>().isKinematic = true;
+
+
+            StartCoroutine(WaitUntilGrown(tree));
+        }
+    }
+
+    IEnumerator RegrowBuffer(HitGround hitGround)
+    {
+        yield return new WaitUntil(() => hitGround.hit = true);
+
+        StartCoroutine(RegrowBuffer(hitGround));
+        GrowApples(hitGround.transform.gameObject);
+
+
+        yield break;
+    }
+
 
     float RandomDestroyBuffer = Random.Range(3f, 5f);
 
     private IEnumerator WaitUntilGrown(GameObject growObject)
     {
+
         GrowControl growControl = growObject.GetComponent<GrowControl>();
 
         yield return new WaitUntil(() => growControl.isFullyGrown);
@@ -353,14 +382,15 @@ public class MapObjGen : MonoBehaviour
         } else if (growObject.transform.CompareTag("Apple"))
         {
             Rigidbody rigidBody = growObject.transform.GetComponent<Rigidbody>();
-            Collider collider = growObject.transform.GetComponent<Collider>();
+            //Collider collider = growObject.transform.GetComponent<Collider>();
 
             rigidBody.isKinematic = false;
-            rigidBody.useGravity = true;
+            rigidBody.useGravity = true; // Object falling to ground.
+            HitGround hitGround = growObject.transform.GetComponent<HitGround>();
+
+            StartCoroutine(RegrowBuffer(hitGround));
 
             //collider.isTrigger = true;
-
-            HitGround hitGround = growObject.GetComponent<HitGround>();
 
             yield break;
         } 
@@ -377,9 +407,6 @@ public class MapObjGen : MonoBehaviour
             StartCoroutine(appleGrowControl.Grow(apple.transform.gameObject, startingScale, appleScaleDestination, appleGrowthTime));
             StartCoroutine(WaitUntilGrown(apple.gameObject));
         }
-
-
-
     }
 
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)

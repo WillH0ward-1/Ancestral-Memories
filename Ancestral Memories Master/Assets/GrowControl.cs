@@ -31,12 +31,14 @@ public class GrowControl : MonoBehaviour
 
         while (time <= duration)
         {
-            localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time / duration * xAxisGrowMultiplier);
-            localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time / duration * yAxisGrowMultiplier);
-            localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time / duration * zAxisGrowMultiplier);
+            time += Time.deltaTime;
+
+            localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time * xAxisGrowMultiplier / duration );
+            localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time * yAxisGrowMultiplier / duration);
+            localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time * zAxisGrowMultiplier / duration);
 
             scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
-            time += Time.deltaTime;
+          
             yield return null;
         }
 
