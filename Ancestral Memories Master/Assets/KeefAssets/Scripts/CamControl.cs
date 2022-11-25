@@ -4,21 +4,33 @@ using UnityEngine;
 
 public class CamControl : MonoBehaviour
 {
+    [Header("Camera Control")]
+    [Header("========================================================================================================================")]
+
+    public RPCamera rpCamera;
+    private Camera cam;
+    public Camera movementCam;
+    public bool cinematicActive = false;
+    public Vector3 cameraOffset;
+
+    [Header("========================================================================================================================")]
+    [Header("Camera Target Attributes")]
+
     public CharacterClass player;
-    private CharacterBehaviours behaviours;
-
     private Transform camTarget;
-
     private bool camFollowTarget = true;
+    private CharacterBehaviours behaviours;
+    [SerializeField] private bool isSpawning = false;
+
+    [Header("========================================================================================================================")]
+    [Header("Camera Target/Follow")]
 
     public float ScrollSpeed = 0.125f;
     public float SmoothSpeed = 0.125f;
-
     [SerializeField] private Vector3 camFollowOffset;
 
-    public bool cinematicActive = false;
-
-
+    [Header("========================================================================================================================")]
+    [Header("Target Pespective Zoom")]
 
     [SerializeField] private float spawnZoom = 0;
     [SerializeField] private float initZoom = 0;
@@ -27,6 +39,10 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float cutSceneZoom = 0;
     [SerializeField] private float psychedelicZoom = 0;
     [SerializeField] private float frontFaceZoom = 0;
+    [SerializeField] private float toRoomZoom = 0;
+
+    [Header("========================================================================================================================")]
+    [Header("Target Orthographic Size")]
 
     [SerializeField] private float spawnOrtho = 0;
     [SerializeField] private float initOrtho = 0;
@@ -35,31 +51,26 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float cutSceneOrtho = 0;
     [SerializeField] private float psychedelicOrtho = 0;
     [SerializeField] private float frontFaceOrtho = 0;
+    [SerializeField] private float toRoomOrtho = 0;
 
+    [Header("========================================================================================================================")]
+    [Header("Zoom Duration")]
 
-    [SerializeField] private bool SpawnCam = false;
-    [SerializeField] private bool GameCam = false;
-    [SerializeField] private bool CutsceneCam = false;
-    [SerializeField] private bool PsychedelicCam = false;
+    [SerializeField] private float toSpawnZoomDuration = 30f;
+    [SerializeField] private float toActionZoomDuration = 1f;
+    [SerializeField] private float toFrontFaceZoomDuration = 1f;
+    [SerializeField] private float toGameZoomDuration = 1f;
+    [SerializeField] private float toCinematicZoomDuration = 1f;
+    [SerializeField] private float toPsychedelicZoomDuration = 60f;
+    [SerializeField] private float toNewRoomZoomDuration = 1f;
 
-    [SerializeField] private bool isSpawning = false;
+    [Header("========================================================================================================================")]
 
-    //string cutscene = ("");
+    [Header("Camera Rotation")]
 
-    public RPCamera rpCamera;
-    private Camera cam;
-    public Camera movementCam;
-
-    public bool camRotateAround = false; // Enable after psychedelic ingestion
+    public bool camRotateAround = false; 
     public float RotationSpeed = 1f;
-
-    public Vector3 cameraOffset;
-    // Update is called once per frame
-
-    
-
-    float SmoothFactor = 0.25f;
-    private Vector3 offset;
+    float RotationSmoothFactor = 0.25f;
 
 
     public void Start()
@@ -77,6 +88,8 @@ public class CamControl : MonoBehaviour
 
         cameraOffset = new Vector3(12, 2.5f, -8);
     }
+
+    private Vector3 offset;
 
     void Awake()
     {
@@ -114,46 +127,12 @@ public class CamControl : MonoBehaviour
         }
     }
 
-    /*
-     * WIP switch cams for debugging/editing.
-     * 
-    public void DebugChangeCam()
-    {
-        if (SpawnCam)
-        {
-            StopAllCoroutines();
-            ToSpawnZoom();
-        }
-        if (GameCam)
-        {
-            StopAllCoroutines();
-            ToGameZoom();
-        }
-        if (CutsceneCam)
-        {
-            StopAllCoroutines();
-            ToCutsceneZoom();
-        }
-        if (PsychedelicCam)
-        {
-            StopAllCoroutines();
-            ToPsychedelicZoom();
-        } else
-        {
-            return;
-        }
-    }
-    */
-
-    public float lerpDuration = 0f;
-
     public void ToSpawnZoom()
     {
         isSpawning = true;
-        //StartCoroutine(RotateCamera());
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
-        lerpDuration = 4f;
+        float lerpDuration = toSpawnZoomDuration;
         zoomDestination = spawnZoom;
         orthoDestination = spawnOrtho;
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
@@ -161,23 +140,19 @@ public class CamControl : MonoBehaviour
 
     public void ToActionZoom()
     {
-        cinematicActive = true; // Level introduction.
-        //StartCoroutine(RotateAround());
-        //StartCoroutine(UserZoomBuffer());
+        cinematicActive = true;
         SetCamClipPlane();
-        lerpDuration = 1f;
+        float lerpDuration = toActionZoomDuration;
         zoomDestination = actionZoom;
         orthoDestination = actionOrtho;
-        StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
+        StartCoroutine(Zoom(toActionZoomDuration, zoomDestination, orthoDestination));
     }
 
     public void ToFrontFaceZoom()
     {
-        cinematicActive = true; // Level introduction.
-        //StartCoroutine(RotateAround());
-        //StartCoroutine(UserZoomBuffer());
+        cinematicActive = true; 
         SetCamClipPlane();
-        lerpDuration = 1f;
+        float lerpDuration = toFrontFaceZoomDuration;
         zoomDestination = frontFaceZoom;
         orthoDestination = frontFaceOrtho;
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
@@ -185,22 +160,20 @@ public class CamControl : MonoBehaviour
 
     public void ToGameZoom()
     {
-        //RotateAroundPlayer = true;
         cinematicActive = false;
-        //StartCoroutine(UserZoomBuffer());
         camTarget = player.transform;
         SetCamClipPlane();
-        lerpDuration = 1f;
+        float lerpDuration = toGameZoomDuration;
         zoomDestination = gameModeZoom;
         orthoDestination = gameModeOrtho;
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
-    public void ToCutsceneZoom()
+    public void ToCinematicZoom()
     {
         cinematicActive = true; 
         SetCamClipPlane();
-        lerpDuration = 1f;
+        float lerpDuration = toCinematicZoomDuration;
         zoomDestination = cutSceneZoom;
         orthoDestination = cutSceneOrtho;
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
@@ -210,7 +183,7 @@ public class CamControl : MonoBehaviour
     {
         cinematicActive = false; 
         SetCamClipPlane();
-        lerpDuration = 60000f;
+        float lerpDuration = toPsychedelicZoomDuration;
         zoomDestination = psychedelicZoom;
         orthoDestination = psychedelicOrtho;
 
@@ -222,9 +195,9 @@ public class CamControl : MonoBehaviour
         camTarget = interactedPortal.transform;
         cinematicActive = false;
         SetCamClipPlane();
-        lerpDuration = 1f;
-        zoomDestination = 9;
-        orthoDestination = 1;
+        float lerpDuration = toNewRoomZoomDuration;
+        zoomDestination = toRoomZoom;
+        orthoDestination = toRoomOrtho;
 
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
@@ -249,7 +222,7 @@ public class CamControl : MonoBehaviour
 
             Vector3 newPos = player.transform.position + cameraOffset;
 
-            transform.position = Vector3.Slerp(transform.position, newPos, SmoothFactor);
+            transform.position = Vector3.Slerp(transform.position, newPos, RotationSmoothFactor);
             transform.LookAt(player.transform.position);
         }
         yield break;

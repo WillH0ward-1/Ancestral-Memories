@@ -51,6 +51,7 @@ public class PlayerWalk : MonoBehaviour
     public CharacterBehaviours behaviours;
 
     public AreaManager areaManager;
+    public LayerMask walkableLayers;
 
     void Awake()
     {
@@ -85,7 +86,10 @@ public class PlayerWalk : MonoBehaviour
                 int groundLayerIndex = LayerMask.NameToLayer("Ground");
                 int groundLayerMask = (1 << groundLayerIndex);
 
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayerMask))
+                int caveGroundLayerIndex = LayerMask.NameToLayer("InsideCave");
+                int caveGroundLayerMask = (1 << caveGroundLayerIndex);
+
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, walkableLayers))
                 {
                     Vector3 playerPosition = playerObject.transform.position;
 

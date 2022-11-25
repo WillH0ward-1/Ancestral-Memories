@@ -10,18 +10,14 @@ public class GrowControl : MonoBehaviour
     public int yAxisGrowMultiplier = 1;
     public int zAxisGrowMultiplier = 1;
 
-    public int minGrowDelay = 2;
-    public int maxGrowDelay = 5;
-
-    public IEnumerator Grow(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration)
+    public IEnumerator Grow(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration, float delay)
     {
-        scaleObject.transform.GetComponent<GrowControl>().isFullyGrown = false;
+
+        isFullyGrown = false;
 
         scaleObject.transform.localScale = scaleStart;
 
-        float startGrowDelay = Random.Range(minGrowDelay, maxGrowDelay);
-
-        yield return new WaitForSeconds(startGrowDelay);
+        yield return new WaitForSeconds(delay);
 
         float time = 0;
 
@@ -33,9 +29,13 @@ public class GrowControl : MonoBehaviour
         {
             time += Time.deltaTime;
 
-            localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time * xAxisGrowMultiplier / duration );
-            localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time * yAxisGrowMultiplier / duration);
-            localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time * zAxisGrowMultiplier / duration);
+            localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time / duration);
+            localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time / duration);
+            localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time / duration);
+
+            localScaleX *= xAxisGrowMultiplier;
+            localScaleY *= yAxisGrowMultiplier; 
+            localScaleZ *= zAxisGrowMultiplier;
 
             scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
           
@@ -44,7 +44,7 @@ public class GrowControl : MonoBehaviour
 
         if (time >= duration)
         {
-            scaleObject.transform.GetComponent<GrowControl>().isFullyGrown = true;
+            isFullyGrown = true;
             yield break;
         }
         

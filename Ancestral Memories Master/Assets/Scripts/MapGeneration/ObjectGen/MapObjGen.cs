@@ -220,8 +220,9 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     public List<GameObject> mapObjectList;
+    public List<GameObject> treeList;
 
-    private Vector3 startingScale = new Vector3(0, 0, 0);
+    private Vector3 zeroScale = new Vector3(0, 0, 0);
 
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
@@ -254,17 +255,19 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
 
-            GrowTree(treeInstance);
+            GrowTrees(treeInstance);
 
         }
 
 
     }
 
+
     void AppleTreePoissonDisc(PoissonDiscSampler appleTreeSampler) {
 
         foreach (Vector2 sample in appleTreeSampler.Samples())
         {
+
             GameObject randomAppleTree = GetRandomMapObject(appleTrees);
 
             GameObject appleTreeInstance = Instantiate(randomAppleTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
@@ -291,107 +294,159 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
 
-            GrowTree(appleTreeInstance);
+            GrowTrees(appleTreeInstance);
         }
 
     }
 
+    float randomFallDuration;
 
-    [SerializeField] private float maxTreeGrowTime = 30f;
-    [SerializeField] private float minTreeGrowTime = 30f;
+    void Update()
+    {
+        if (Input.GetKeyDown("space"))
+        {
+            KillTrees();
+        }
+    }
 
-    [SerializeField] private float maxAppleGrowTime = 30f;
-    [SerializeField] private float minAppleGrowTime = 30f;
+    void KillTrees()
+    {
+        foreach(GameObject tree in treeList)
+        {
+            randomFallDuration  = Random.Range(2, 4);
+            Fall(tree.transform.gameObject, randomFallDuration);
+        }
+    }
 
-    [SerializeField] private float treeGrowthTime = 30f;
-    [SerializeField] private float appleGrowthTime = 30f;
+    public void Fall(GameObject treeObject, float duration)
+    {
+        Vector2 pointOnCircle = Random.insideUnitCircle * treeObject.transform.localScale.y;
 
-    private void GrowTree(GameObject tree)
+        Vector3 fallPoint = treeObject.transform.position +
+            pointOnCircle.x * treeObject.transform.right +
+            pointOnCircle.y * treeObject.transform.forward;
+
+        Vector3 updatedUpVector = Vector3.Normalize(fallPoint - treeObject.transform.position);
+
+        StartCoroutine(UpdateUpVector(treeObject, updatedUpVector, duration, 0.001f));
+    }
+
+    public IEnumerator UpdateUpVector(GameObject target, Vector3 upVector, float duration, float threshold = 0.001f)
+    {
+        while (Vector3.Distance(upVector, target.transform.up) > threshold)
+        {
+            target.transform.up = Vector3.Lerp(target.transform.up, upVector, duration * Time.deltaTime);
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    [Header("Tree Growth + Fruit Growth")]
+    [Space(10)]
+
+    [SerializeField] private int minTreeGrowDuration = 15;
+    [SerializeField] private int maxTreeGrowDuration = 30;
+    [SerializeField] private int minTreeGrowDelay = 15;
+    [SerializeField] private int maxTreeGrowDelay = 30;
+
+    [SerializeField] private int minAppleGrowDuration = 15;
+    [SerializeField] private int maxAppleGrowDuration = 30;
+    [SerializeField] private int minAppleGrowDelay = 15;
+    [SerializeField] private int maxAppleGrowDelay = 30;
+
+    private int treeGrowDuration;
+    private int appleGrowDuration;
+
+    float appleGrowthDelay;
+    float treeGrowthDelay;
+
+    private void GrowTrees(GameObject tree)
     {
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
-        GrowControl growControl = tree.transform.GetComponent<GrowControl>();
+        GrowControl treeGrowControl = tree.transform.GetComponent<GrowControl>();
         TreeShaders treeshader = tree.GetComponent<TreeShaders>();
 
-        treeGrowthTime = Random.Range(minTreeGrowTime, maxTreeGrowTime);
-        appleGrowthTime = Random.Range(minAppleGrowTime, maxAppleGrowTime);
+        treeGrowDuration = Random.Range(minTreeGrowDuration, maxTreeGrowDuration);
+        appleGrowDuration = Random.Range(minAppleGrowDuration, maxAppleGrowDuration);
+
+        appleGrowthDelay = Random.Range(minAppleGrowDelay, maxAppleGrowDelay);
+        treeGrowthDelay = Random.Range(minTreeGrowDelay, maxTreeGrowDelay);
+
 
 
         if (!tree.transform.CompareTag("AppleTree"))
         {
-            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
+            StartCoroutine(treeGrowControl.Grow(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
         }
         else if (tree.transform.CompareTag("AppleTree"))
         {
-            StartCoroutine(growControl.Grow(tree, startingScale, treeScaleDestination, treeGrowthTime));
+            StartCoroutine(treeGrowControl.Grow(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
 
             foreach (Transform apple in tree.transform)
             {
-                ////////////////
-                Renderer renderer = apple.GetComponent<Renderer>();
-                renderer.enabled = false;
+                apple.GetComponent<Renderer>().enabled = false;
 
-                Vector3 applePos = new(apple.transform.position.x, apple.transform.position.y, apple.transform.position.z);
+                if (!apple.transform.CompareTag("Apple"))
+                {
+                    continue;
+                }
+         
+                GrowControl appleGrowControl = apple.transform.GetComponent<GrowControl>();
 
-                GameObject appleInstance = Instantiate(apple.gameObject, applePos, Quaternion.identity);
+                apple.GetComponent<Rigidbody>().isKinematic = true;
 
-                //appleInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+                Vector3 appleScaleDestination = new(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
+                apple.GetComponent<Renderer>().enabled = true;
 
-
-                appleInstance.GetComponent<Rigidbody>().isKinematic = true;
-                appleInstance.GetComponent<Renderer>().enabled = false;
-
-                StartCoroutine(WaitUntilGrown(tree));
+                StartCoroutine(appleGrowControl.Grow(apple.transform.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
+                StartCoroutine(WaitUntilGrown(apple.gameObject, appleGrowControl));
             }
 
         }
         // StartCoroutine(treeShader.GrowLeaves(30f));
     }
 
+    [SerializeField] private float minDecayDuration = 5f;
+    [SerializeField] public float maxDecayDuration = 10f;
 
-    float RandomDestroyBuffer = Random.Range(3f, 5f);
+    [SerializeField] public float minDecayDelayTime = 5f;
+    [SerializeField] public float maxDecayDelayTime = 10f;
 
-    private IEnumerator WaitUntilGrown(GameObject growObject)
+    private IEnumerator WaitUntilGrown(GameObject growObject, GrowControl scaleControl)
     {
+     
+        yield return new WaitUntil(() => scaleControl.isFullyGrown);
 
-        GrowControl growControl = growObject.GetComponent<GrowControl>();
-
-        yield return new WaitUntil(() => growControl.isFullyGrown);
-
-        if (growObject.transform.CompareTag("AppleTree"))
-        {
-            GrowApples(growObject, growControl);
-
-            yield break;
-
-        } else if (growObject.transform.CompareTag("Apple"))
+        if (growObject.transform.CompareTag("Apple"))
         {
             Rigidbody rigidBody = growObject.transform.GetComponent<Rigidbody>();
             Collider collider = growObject.transform.GetComponent<Collider>();
+            HitGround hitGround = growObject.GetComponent<HitGround>();
 
             rigidBody.isKinematic = false;
             rigidBody.useGravity = true; // Object falling to ground.
 
             //collider.isTrigger = true;
+            yield return new WaitUntil(() => hitGround.hit);
 
-            HitGround hitGround = growObject.GetComponent<HitGround>();
+            float decayDuration = Random.Range(minDecayDuration, maxDecayDuration);
+            float decayDelay = Random.Range(minDecayDelayTime, maxDecayDelayTime);
+
+            StartCoroutine(scaleControl.Grow(growObject, growObject.transform.localScale, Vector3.zero, decayDuration, decayDelay));
+
+            Destroy(growObject, decayDelay + decayDuration);
 
             yield break;
-        } 
-        
-    }
 
-        private void GrowApples(GameObject tree, GrowControl appleGrowControl)
-    {
-        Vector3 appleScaleDestination = new(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
-
-        foreach (Transform apple in tree.transform)
+        } else if (growObject.transform.CompareTag("AppleTree"))
         {
-            apple.GetComponent<Renderer>().enabled = true;
-            StartCoroutine(appleGrowControl.Grow(apple.transform.gameObject, startingScale, appleScaleDestination, appleGrowthTime));
-            StartCoroutine(WaitUntilGrown(apple.gameObject));
+            //GrowApples(growObject, growControl);
+
+            yield break;
+
         }
     }
+
 
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)
     {

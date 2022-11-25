@@ -4,38 +4,51 @@ using UnityEngine;
 
 public class HitGround : MonoBehaviour
 {
-    public float minDecayTime = 5f;
-
-    public float maxDecayTime = 10f;
-
     public bool hit = false;
+    [SerializeField] private Vector3 fallForce = new Vector3(0, -10, 0);
+
+    private WaterFloat floating;
 
     private void Awake()
     {
+        WaterFloat floating = transform.gameObject.GetComponent<WaterFloat>();
+        floating.enabled = false;
+
         hit = false;
+       
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // If a GameObject has an "Enemy" tag, remove him.
 
-        if (other.CompareTag("Walkable") || other.CompareTag("Water"))
+        if (other.CompareTag("Walkable") || other.CompareTag("Water") || other.CompareTag("Rock") || other.CompareTag("Cave"))
         {
+
 
             Rigidbody rigidBody = gameObject.transform.GetComponent<Rigidbody>();
-            GrowControl growControl = gameObject.transform.GetComponent<GrowControl>();
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
-            float decayTime = Random.Range(minDecayTime, maxDecayTime);
-
+            rigidBody.AddForce(fallForce, ForceMode.Force);
             hit = true;
 
-            Destroy(gameObject, decayTime);
-            
+            if (other.CompareTag("Water")){
+
+                floating.enabled = true;
+                StartCoroutine(floating.Float(transform.gameObject));
+
+                return;
+
+            }
+
+            return;
+
+
         } else
         {
+            hit = false;
             return;
         }
         
     }
+
 }

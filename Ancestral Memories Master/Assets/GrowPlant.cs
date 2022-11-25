@@ -16,6 +16,6 @@ public class GrowPlant : MonoBehaviour
     void PrepareMound()
     {
         duration = 3f;
-        grow.Grow(dirtMound, scaleStart, scaleDestination, duration);
+        //grow.Grow(dirtMound, scaleStart, scaleDestination, duration);
     }
 }

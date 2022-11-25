@@ -97,6 +97,9 @@ public class CharacterBehaviours : MonoBehaviour
             case "Enter":
                 StartCoroutine(areaManager.EnterPortal(hitObject));
                 break;
+            case "EatApple":
+                StartCoroutine(PickApple());
+                break;
             //Look();
             default:
                 Debug.Log("No such behaviour.");
@@ -215,6 +218,26 @@ public class CharacterBehaviours : MonoBehaviour
 
     }
 
+
+    public IEnumerator PickApple()
+    {
+        behaviourIsActive = true;
+
+        ChangeState(PLAYER_PICKUP);
+        cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        ChangeState(PLAYER_STANDINGEAT);
+
+        behaviourIsActive = false;
+
+        yield break;
+
+    }
+
     public IEnumerator Drink()
     {
         behaviourIsActive = true;
@@ -222,7 +245,7 @@ public class CharacterBehaviours : MonoBehaviour
         ChangeState(PLAYER_TOCROUCH);
 
         cinematicCam.ToActionZoom();
-        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
 
         ChangeState(PLAYER_CROUCHDRINK);
 
