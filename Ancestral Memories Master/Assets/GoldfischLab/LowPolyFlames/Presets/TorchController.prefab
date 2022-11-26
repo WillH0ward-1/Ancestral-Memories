@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2064237512917872886
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2064237512917872882}
+  - component: {fileID: 2064237512917872885}
+  - component: {fileID: 2064237512917872884}
+  - component: {fileID: 2064237512917872887}
+  m_Layer: 0
+  m_Name: TorchController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2064237512917872882
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064237512917872886}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2064237512917872885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064237512917872886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e287c19bf40278b4ba67a98a56b671c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minColChange: 700
+  maxColChange: 1400
+  minIntensChange: 400
+  maxIntensChange: 800
+  minIntensity: 0.2
+  maxIntensity: 0.4
+  darkColor: {r: 0, g: 0.78431374, b: 0.39215687, a: 0}
+  brightColor: {r: 0.19607843, g: 0.9019608, b: 0.50980395, a: 0}
+--- !u!114 &2064237512917872884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064237512917872886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f967c2be18453af4a88b92096d68454f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minColChange: 700
+  maxColChange: 1400
+  minIntensChange: 400
+  maxIntensChange: 800
+  minIntensity: 0.2
+  maxIntensity: 0.4
+  darkColor: {r: 0.9411765, g: 0.7254902, b: 0.27450982, a: 0}
+  brightColor: {r: 0.98039216, g: 0.7647059, b: 0.39215687, a: 0}
+--- !u!114 &2064237512917872887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064237512917872886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17f00b5b1fa7b0a42ade1912aa98777f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minColChange: 700
+  maxColChange: 1400
+  minIntensChange: 400
+  maxIntensChange: 800
+  minIntensity: 0.2
+  maxIntensity: 0.4
+  darkColor: {r: 0.43137255, g: 0.627451, b: 0.64705884, a: 0}
+  brightColor: {r: 0.49019608, g: 0.64705884, b: 0.9019608, a: 0}

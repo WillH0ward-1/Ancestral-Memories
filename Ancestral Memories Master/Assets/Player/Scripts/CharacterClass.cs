@@ -110,23 +110,48 @@ public class CharacterClass : MonoBehaviour, IStats
     {
         var humanState = alphaControl.humanObject;
         var apeState = alphaControl.monkeyObject;
+        var skeletonState = alphaControl.skeletonObject;
 
-        if (alphaControl.playerIsHuman == false) // If player is monkey
+        if (alphaControl.playerIsSkeleton)
         {
+            inactiveAnimators.Remove(skeletonState);
+            activeAnimators.Add(skeletonState);
+
+            inactiveAnimators.Add(humanState);
             activeAnimators.Remove(humanState);
+
+            inactiveAnimators.Add(apeState);
+            activeAnimators.Remove(apeState);
+
+            return;
+        }
+
+        if (alphaControl.playerIsHuman == false && !alphaControl.playerIsSkeleton) 
+        {
+            inactiveAnimators.Remove(apeState);
             activeAnimators.Add(apeState);
 
-            inactiveAnimators.Remove(apeState);
             inactiveAnimators.Add(humanState);
+            activeAnimators.Remove(humanState);
 
-        } else if (alphaControl.playerIsHuman == true){// If player is Human
+            inactiveAnimators.Add(skeletonState);
+            activeAnimators.Remove(skeletonState);
 
-            activeAnimators.Remove(apeState);
-            activeAnimators.Add(humanState);
+            return;
+
+        } else if (alphaControl.playerIsHuman == true && !alphaControl.playerIsSkeleton){
 
             inactiveAnimators.Remove(humanState);
+            activeAnimators.Add(humanState);
+
             inactiveAnimators.Add(apeState);
-        }
+            activeAnimators.Remove(apeState);
+
+            inactiveAnimators.Add(skeletonState);
+            activeAnimators.Remove(skeletonState);
+
+            return;
+        } 
     }
 
     public virtual void AssignAnimators()
@@ -233,8 +258,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
     private IEnumerator CheckForRevive()
     {
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(animationLength);
+        yield return new WaitForSeconds(GetAnimationLength());
 
         if (faith < 50) // In order to revive, currentFaith needs to be > x. 
         {
@@ -243,6 +267,14 @@ public class CharacterClass : MonoBehaviour, IStats
         {
             StartCoroutine(RespawnBuffer()); // Start Respawn
         }
+    }
+
+
+    public virtual float GetAnimationLength()
+    {
+        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+
+        return animationLength;
     }
 
     public virtual IEnumerator Revive()
@@ -254,8 +286,8 @@ public class CharacterClass : MonoBehaviour, IStats
 
         ChangeAnimationState(PLAYER_REVIVING);
 
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(animationLength);
+        
+        yield return new WaitForSeconds(GetAnimationLength());
 
         //StartCoroutine(god.TriggerGodRay());
 
@@ -267,8 +299,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual IEnumerator RespawnBuffer()
     {
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(animationLength); // Wait for this many seconds before respawning. This may be an audio cue in future.
+        yield return new WaitForSeconds(GetAnimationLength()); // Wait for this many seconds before respawning. This may be an audio cue in future.
         respawn = true;
         ResetGame();
     }

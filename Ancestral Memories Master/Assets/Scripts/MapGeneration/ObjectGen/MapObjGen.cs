@@ -37,6 +37,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] flies;
     [SerializeField] private GameObject[] fish;
     [SerializeField] private GameObject[] animals;
+    [SerializeField] private GameObject[] fireWood;
 
     [Header("========================================================================================================================")]
     [Header("Object Scaling")]
@@ -66,6 +67,10 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minFishScale;
     [SerializeField] Vector3 maxFishScale;
 
+    [SerializeField] Vector3 minFireWoodScale;
+    [SerializeField] Vector3 maxFireWoodScale;
+
+
     [Header("========================================================================================================================")]
 
     [Header("Object Rotation")]
@@ -88,6 +93,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumFliesRadius = 70;
     [SerializeField] float minimumFishRadius = 70;
     [SerializeField] float minimumAnimalRadius = 70;
+    [SerializeField] float minimumFireWoodRadius = 70;
 
     [Header("========================================================================================================================")]
 
@@ -114,6 +120,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string fishTag = "Fish";
     private readonly string animalTag = "Animal";
     private readonly string mushroomTag = "Mushrooms";
+    private readonly string fireWoodTag = "FireWood";
 
     [Header("========================================================================================================================")]
 
@@ -175,6 +182,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler fliesSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFliesRadius);
         PoissonDiscSampler animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
+        PoissonDiscSampler fireWoodSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFireWoodRadius);
 
         TreePoissonDisc(treeSampler);
         AppleTreePoissonDisc(appleTreeSampler);
@@ -184,6 +192,7 @@ public class MapObjGen : MonoBehaviour
         FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
+        FireWoodPoissonDisc(fireWoodSampler);
 
         SetOffset();
 
@@ -363,7 +372,7 @@ public class MapObjGen : MonoBehaviour
     {
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
-        GrowControl treeGrowControl = tree.transform.GetComponent<GrowControl>();
+        ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
         TreeShaders treeshader = tree.GetComponent<TreeShaders>();
 
         treeGrowDuration = Random.Range(minTreeGrowDuration, maxTreeGrowDuration);
@@ -372,15 +381,14 @@ public class MapObjGen : MonoBehaviour
         appleGrowthDelay = Random.Range(minAppleGrowDelay, maxAppleGrowDelay);
         treeGrowthDelay = Random.Range(minTreeGrowDelay, maxTreeGrowDelay);
 
-
-
         if (!tree.transform.CompareTag("AppleTree"))
         {
-            StartCoroutine(treeGrowControl.Grow(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
+            StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
         }
+
         else if (tree.transform.CompareTag("AppleTree"))
         {
-            StartCoroutine(treeGrowControl.Grow(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
+            StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
 
             foreach (Transform apple in tree.transform)
             {
@@ -390,15 +398,15 @@ public class MapObjGen : MonoBehaviour
                 {
                     continue;
                 }
-         
-                GrowControl appleGrowControl = apple.transform.GetComponent<GrowControl>();
+
+                ScaleControl appleGrowControl = apple.transform.GetComponent<ScaleControl>();
 
                 apple.GetComponent<Rigidbody>().isKinematic = true;
 
                 Vector3 appleScaleDestination = new(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
                 apple.GetComponent<Renderer>().enabled = true;
 
-                StartCoroutine(appleGrowControl.Grow(apple.transform.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
+                StartCoroutine(appleGrowControl.LerpScale(apple.transform.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
                 StartCoroutine(WaitUntilGrown(apple.gameObject, appleGrowControl));
             }
 
@@ -412,7 +420,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] public float minDecayDelayTime = 5f;
     [SerializeField] public float maxDecayDelayTime = 10f;
 
-    private IEnumerator WaitUntilGrown(GameObject growObject, GrowControl scaleControl)
+    private IEnumerator WaitUntilGrown(GameObject growObject, ScaleControl scaleControl)
     {
      
         yield return new WaitUntil(() => scaleControl.isFullyGrown);
@@ -423,16 +431,15 @@ public class MapObjGen : MonoBehaviour
             Collider collider = growObject.transform.GetComponent<Collider>();
             HitGround hitGround = growObject.GetComponent<HitGround>();
 
-            rigidBody.isKinematic = false;
             rigidBody.useGravity = true; // Object falling to ground.
+            rigidBody.isKinematic = false;
 
-            //collider.isTrigger = true;
             yield return new WaitUntil(() => hitGround.hit);
 
             float decayDuration = Random.Range(minDecayDuration, maxDecayDuration);
             float decayDelay = Random.Range(minDecayDelayTime, maxDecayDelayTime);
 
-            StartCoroutine(scaleControl.Grow(growObject, growObject.transform.localScale, Vector3.zero, decayDuration, decayDelay));
+            StartCoroutine(scaleControl.LerpScale(growObject, growObject.transform.localScale, Vector3.zero, decayDuration, decayDelay));
 
             Destroy(growObject, decayDelay + decayDuration);
 
@@ -440,10 +447,7 @@ public class MapObjGen : MonoBehaviour
 
         } else if (growObject.transform.CompareTag("AppleTree"))
         {
-            //GrowApples(growObject, growControl);
-
             yield break;
-
         }
     }
 
@@ -577,6 +581,33 @@ public class MapObjGen : MonoBehaviour
             fliesInstance.transform.SetParent(hierarchyRoot.transform);
 
             mapObjectList.Add(fliesInstance);
+        }
+    }
+
+    void FireWoodPoissonDisc(PoissonDiscSampler fireWoodSampler)
+    {
+        foreach (Vector2 sample in fireWoodSampler.Samples())
+        {
+            GameObject randomFireWood = GetRandomMapObject(fireWood);
+
+            GameObject fireWoodInstance = Instantiate(randomFireWood, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            fireWoodInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            fireWoodInstance.transform.localScale = new Vector3(
+            Random.Range(minFireWoodScale.x, maxFireWoodScale.x),
+            Random.Range(minFireWoodScale.y, maxFireWoodScale.y),
+            Random.Range(minFireWoodScale.z, maxFireWoodScale.z));
+
+
+            fireWoodInstance.tag = fireWoodTag;
+
+            int fireWoodLayer = LayerMask.NameToLayer("FireWood");
+            fireWoodInstance.layer = fireWoodLayer;
+
+            fireWoodInstance.transform.SetParent(hierarchyRoot.transform);
+
+            mapObjectList.Add(fireWoodInstance);
         }
     }
 

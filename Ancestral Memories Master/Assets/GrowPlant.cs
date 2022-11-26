@@ -10,7 +10,7 @@ public class GrowPlant : MonoBehaviour
 
     Vector3 scaleStart = new(0, 0, 0);
     Vector3 scaleDestination = new(1, 2, 1.4f);
-    GrowControl grow;
+    ScaleControl grow;
     float duration;
 
     void PrepareMound()

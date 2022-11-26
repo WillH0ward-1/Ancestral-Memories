@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GrowControl : MonoBehaviour
+public class ScaleControl : MonoBehaviour
 {
     public bool isFullyGrown = false;
 
@@ -10,7 +10,7 @@ public class GrowControl : MonoBehaviour
     public int yAxisGrowMultiplier = 1;
     public int zAxisGrowMultiplier = 1;
 
-    public IEnumerator Grow(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration, float delay)
+    public IEnumerator LerpScale(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration, float delay)
     {
 
         isFullyGrown = false;
@@ -33,9 +33,9 @@ public class GrowControl : MonoBehaviour
             localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time / duration);
             localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time / duration);
 
-            localScaleX *= xAxisGrowMultiplier;
-            localScaleY *= yAxisGrowMultiplier; 
-            localScaleZ *= zAxisGrowMultiplier;
+            time *= xAxisGrowMultiplier;
+            time *= yAxisGrowMultiplier;
+            time *= zAxisGrowMultiplier;
 
             scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
           

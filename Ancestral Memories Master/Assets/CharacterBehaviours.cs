@@ -50,6 +50,8 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_CROUCHPLANTSEEDS = "Player_CrouchPlantSeeds";
     const string PLAYER_CROUCHTOSTAND = "Player_CrouchToStand";
 
+    const string PLAYER_KINDLEFIRE = "Player_KindleFire";
+
     const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
 
@@ -99,6 +101,9 @@ public class CharacterBehaviours : MonoBehaviour
                 break;
             case "EatApple":
                 StartCoroutine(PickApple());
+                break;
+            case "KindleFire":
+                StartCoroutine(KindleFire(hitObject));
                 break;
             //Look();
             default:
@@ -290,6 +295,41 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
+
+        SheatheItem();
+
+        yield break;
+    }
+
+    [SerializeField] private GameObject campFire;
+
+
+    public IEnumerator KindleFire(GameObject hitObject)
+    {
+
+        wield.Wield(wieldedStoneAxe, sheathedStoneAxe);
+
+        behaviourIsActive = true;
+
+        ChangeState(PLAYER_TOCROUCH);
+
+        yield return new WaitForSeconds(player.GetAnimationLength());
+
+        cinematicCam.ToActionZoom();
+
+        ChangeState(PLAYER_KINDLEFIRE);
+
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        ChangeState(PLAYER_IDLE);
+
+        behaviourIsActive = false;
+        cinematicCam.ToGameZoom();
+
+
+        Instantiate(campFire, hitObject.transform.position, Quaternion.identity, campFire.transform);
+        hitObject.SetActive(false);
 
         SheatheItem();
 

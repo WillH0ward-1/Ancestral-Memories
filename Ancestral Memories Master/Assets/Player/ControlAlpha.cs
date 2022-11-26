@@ -17,18 +17,25 @@ public class ControlAlpha : MonoBehaviour
 
     [SerializeField] public GameObject humanObject;
     [SerializeField] public GameObject monkeyObject;
+    [SerializeField] public GameObject skeletonObject;
+
 
     [SerializeField] private Renderer[] monkeyRenderers;
     [SerializeField] private Renderer[] humanRenderers;
+    [SerializeField] private Renderer[] skeletonRenderers;
 
     private Material humanMaterial;
     private Material monkeyMaterial;
+    private Material skeletonMaterial;
 
     [SerializeField] private float humanCurrentAlphaValue = 0f;
     [SerializeField] private float humanTargetAlphaValue = 0f;
 
     [SerializeField] private float monkeyCurrentAlphaValue = 0f;
     [SerializeField] private float monkeyTargetAlphaValue = 0f;
+
+    [SerializeField] private float skeletonCurrentAlphaValue = 0f;
+    [SerializeField] private float skeletonTargetAlphaValue = 0f;
 
     private float maxAlpha = 1f;
     private float minAlpha = 0f;
@@ -44,13 +51,17 @@ public class ControlAlpha : MonoBehaviour
 
     public bool playerIsHuman = false;
     public bool playerIsTransforming = false;
+    public bool playerIsSkeleton = false;
 
     private void Awake()
     {
         humanRenderers = humanObject.GetComponentsInChildren<Renderer>();
         monkeyRenderers = monkeyObject.GetComponentsInChildren<Renderer>();
+        skeletonRenderers = skeletonObject.GetComponentsInChildren<Renderer>();
 
         playerIsHuman = true;
+        playerIsSkeleton = false;
+
         playerIsTransforming = false;
         //blendShapeDuration = lerpDuration;
         CheckRenderers();
@@ -73,22 +84,113 @@ public class ControlAlpha : MonoBehaviour
                 //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
             }
         }
+
+        if (Input.GetKeyDown("up"))
+        {
+            if (!playerIsTransforming)
+            {
+                playerIsSkeleton = !playerIsSkeleton;
+
+                player.Assign();
+
+                StartCoroutine(FadeSkeleton());
+
+                if (!playerIsHuman)
+                {
+                    StartCoroutine(StartBlendShape());
+                }
+                //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
+            }
+        }
     }
+
 
     void CheckRenderers()
     {
         if (!playerIsTransforming)
         {
-            if (!playerIsHuman)
+            if (playerIsSkeleton)
             {
+                DisableRenderers(monkeyObject);
                 DisableRenderers(humanObject);
             }
 
-            else if (playerIsHuman)
+            if (!playerIsSkeleton && playerIsHuman)
             {
+
+                DisableRenderers(skeletonObject);
                 DisableRenderers(monkeyObject);
+
+            }
+            else if (!playerIsSkeleton && !playerIsHuman)
+            {
+                DisableRenderers(skeletonObject);
+                DisableRenderers(humanObject);
             }
         }
+    }
+
+    private IEnumerator FadeSkeleton()
+    {
+        EnableRenderers(skeletonObject);
+
+        if (playerIsHuman)
+        {
+            humanTargetAlphaValue = minAlpha;
+        }
+        else if (!playerIsHuman)
+        {
+            monkeyTargetAlphaValue = minAlpha;
+        }
+
+        skeletonCurrentAlphaValue = playerIsSkeleton ? minAlpha : maxAlpha;
+        skeletonTargetAlphaValue = playerIsSkeleton ? maxAlpha : minAlpha;
+
+
+
+        float t = 0f;
+
+        while (t < 1f)
+        {
+
+            t += Time.deltaTime / lerpDuration;
+
+            float humanLerpVal = Mathf.Lerp(humanCurrentAlphaValue, humanTargetAlphaValue, t);
+            float monkeyLerpVal = Mathf.Lerp(monkeyCurrentAlphaValue, monkeyTargetAlphaValue, t);
+            float skeletonLerpVal = Mathf.Lerp(skeletonCurrentAlphaValue, skeletonTargetAlphaValue, t);
+
+            foreach (Renderer renderer in humanRenderers)
+            {
+
+                foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
+                {
+                    material.SetFloat("_Alpha", humanLerpVal);
+                }
+            }
+
+            foreach (Renderer renderer in monkeyRenderers)
+            {
+                foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
+                {
+                    material.SetFloat("_Alpha", monkeyLerpVal);
+                }
+            }
+
+            foreach (Renderer renderer in skeletonRenderers)
+            {
+                foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
+                {
+                    material.SetFloat("_Alpha", skeletonLerpVal);
+                }
+            }
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(retriggerBuffer);
+        playerIsTransforming = false;
+        CheckRenderers();
+
     }
 
     private IEnumerator Fade()
@@ -108,34 +210,6 @@ public class ControlAlpha : MonoBehaviour
         //float timeElapsed = 0;
 
         float t = 0f;
-
-        /*
-        while (timeElapsed <= lerpDuration)
-        {
-
-            timeElapsed += Time.deltaTime;
-
-            float humanLerpVal = Mathf.Lerp(humanCurrentAlphaValue, humanTargetAlphaValue, timeElapsed / lerpDuration);
-            float monkeyLerpVal = Mathf.Lerp(monkeyCurrentAlphaValue, monkeyTargetAlphaValue, timeElapsed / lerpDuration);
-
-                foreach (Renderer renderer in humanRenderers)
-                {
-
-                    foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
-                    {
-                        material.SetFloat("_Alpha", humanLerpVal);
-                    }
-                }
-            
-                foreach (Renderer renderer in monkeyRenderers)
-                {
-                    foreach (Material material in renderer.GetComponentInChildren<Renderer>().materials)
-                    {
-                        material.SetFloat("_Alpha", monkeyLerpVal);
-                    }
-                }
-        }
-        */
 
         while (t < 1f)
         {

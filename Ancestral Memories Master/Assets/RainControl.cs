@@ -63,6 +63,12 @@ public class RainControl : MonoBehaviour
         }
     }
 
+    public IEnumerator RainStrength()
+    {
+        yield return null;
+
+    }
+
     public float minDroughtDuration = 30f;
     public float maxDroughtDuration = 60f;
 
