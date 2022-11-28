@@ -59,7 +59,7 @@ public class InteractCamera : MonoBehaviour
                 {
                     Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
 
-                    interactable.SpawnMenu(lastHit);
+                    interactable.SpawnMenu(lastHit, hit);
 
                     Debug.Log(lastHit + "selected");
                 }

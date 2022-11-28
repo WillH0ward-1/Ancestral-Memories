@@ -21,7 +21,7 @@ public class HitGround : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
 
-        if (other.CompareTag("Walkable") || other.CompareTag("Water") || other.CompareTag("Rock") || other.CompareTag("Cave"))
+        if (other.CompareTag("Walkable") || other.CompareTag("Water") || other.CompareTag("Rocks") || other.CompareTag("Cave"))
         {
 
 

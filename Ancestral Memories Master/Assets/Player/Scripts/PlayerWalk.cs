@@ -53,6 +53,8 @@ public class PlayerWalk : MonoBehaviour
     public AreaManager areaManager;
     public LayerMask walkableLayers;
 
+    private RaycastHit rayHit;
+
     void Awake()
     {
         agent.stoppingDistance = defaultStoppingDistance;
@@ -89,11 +91,11 @@ public class PlayerWalk : MonoBehaviour
                 int caveGroundLayerIndex = LayerMask.NameToLayer("InsideCave");
                 int caveGroundLayerMask = (1 << caveGroundLayerIndex);
 
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, walkableLayers))
+                if (Physics.Raycast(ray, out rayHit, Mathf.Infinity, walkableLayers))
                 {
                     Vector3 playerPosition = playerObject.transform.position;
 
-                    distance = Vector3.Distance(playerPosition, hit.point);
+                    distance = Vector3.Distance(playerPosition, rayHit.point);
 
                     Debug.Log(distance);
 
@@ -103,7 +105,7 @@ public class PlayerWalk : MonoBehaviour
                     }
                     else
                     {
-                        MoveAgent(hit.point, distance, playerPosition);
+                        MoveAgent(rayHit.point, distance, playerPosition);
                     }
                 }
             }
@@ -165,20 +167,39 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
 
+    private Vector3 destination;
+    private Vector3 sizeCalculated;
+
     [SerializeField] private GameObject destinationGizmo;
 
-    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal)
+    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal, RaycastHit rayHit)
     {
-     
-        Vector3 sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-        destinationGizmo.transform.localScale = sizeCalculated;
+        if (selected == "Drink")
+        {
+            destination = rayHit.point;
+            sizeCalculated = player.transform.localScale;
+            destinationGizmo.transform.localScale = sizeCalculated;
+        }
+        else if (selected != "Drink")
+        {
+            destination = hitObject.transform.position;
+            sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+            destinationGizmo.transform.localScale = sizeCalculated;
+        }
 
         if (selected == "HarvestTree")
         {
             destinationGizmo.transform.localScale = sizeCalculated / 8;
         }
 
-        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, hitObject.transform.position, Quaternion.identity);
+
+        if (selected == "Talk")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated * 2;
+        }
+
+
+        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
 
         if (Input.GetMouseButtonDown(0) && !areaManager.traversing)
@@ -210,7 +231,7 @@ public class PlayerWalk : MonoBehaviour
         }
 
         speed = 12;
-        agent.destination = hitObject.transform.position;
+        agent.destination = destination;
         agent.speed = speed;
         agent.isStopped = false;
 

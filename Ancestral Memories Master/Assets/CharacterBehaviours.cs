@@ -12,8 +12,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public CamControl cinematicCam;
 
-    private string currentState;
     public bool behaviourIsActive = false;
+    public bool dialogueIsActive = false;
 
     public GodRayControl god;
 
@@ -105,6 +105,9 @@ public class CharacterBehaviours : MonoBehaviour
             case "KindleFire":
                 StartCoroutine(KindleFire(hitObject));
                 break;
+            case "Talk":
+                StartCoroutine(Talk(hitObject));
+                break;
             //Look();
             default:
                 Debug.Log("No such behaviour.");
@@ -117,9 +120,9 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
 
-    public void WalkToward(GameObject hitObject, string selected)
+    public void WalkToward(GameObject hitObject, string selected, RaycastHit rayHit)
     {
-        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null));
+        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null, rayHit));
     }
 
     public void SheatheItem()
@@ -131,11 +134,11 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_PRAYER_START);
+        player.ChangeAnimationState(PLAYER_PRAYER_START);
 
         animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
-        ChangeState(PLAYER_PRAYER_LOOP);
+        player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToActionZoom();
         StartCoroutine(
@@ -146,7 +149,7 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_PRAYER_END);
+        player.ChangeAnimationState(PLAYER_PRAYER_END);
 
         behaviourIsActive = false;
 
@@ -167,8 +170,6 @@ public class CharacterBehaviours : MonoBehaviour
     {
         string randomAnimation = animClips[Random.Range(0, animClips.Length - 1)];
 
-        animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-
         return randomAnimation;
     }
 
@@ -177,13 +178,13 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        ChangeState(randomDanceAnim);
+        player.ChangeAnimationState(randomDanceAnim);
         cinematicCam.ToActionZoom();
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_IDLE);
+        player.ChangeAnimationState(PLAYER_IDLE);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
@@ -197,14 +198,14 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_PICKUP);
+        player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_STANDINGEAT);
+        player.ChangeAnimationState(PLAYER_STANDINGEAT);
 
         behaviourIsActive = false;
 
@@ -228,14 +229,14 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_PICKUP);
+        player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_STANDINGEAT);
+        player.ChangeAnimationState(PLAYER_STANDINGEAT);
 
         behaviourIsActive = false;
 
@@ -247,17 +248,18 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_TOCROUCH);
+        player.ChangeAnimationState(PLAYER_TOCROUCH);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
 
-        ChangeState(PLAYER_CROUCHDRINK);
+        player.ChangeAnimationState(PLAYER_CROUCHDRINK);
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_CROUCHTOSTAND);
+        player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
         cinematicCam.ToGameZoom();
 
@@ -285,13 +287,13 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_HARVEST_TREE);
+        player.ChangeAnimationState(PLAYER_HARVEST_TREE);
         cinematicCam.ToActionZoom();
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_IDLE);
+        player.ChangeAnimationState(PLAYER_IDLE);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
@@ -311,24 +313,24 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = true;
 
-        ChangeState(PLAYER_TOCROUCH);
-
-        yield return new WaitForSeconds(player.GetAnimationLength());
+        player.ChangeAnimationState(PLAYER_TOCROUCH);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
         cinematicCam.ToActionZoom();
 
-        ChangeState(PLAYER_KINDLEFIRE);
+        player.ChangeAnimationState(PLAYER_KINDLEFIRE);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        ChangeState(PLAYER_IDLE);
+        player.ChangeAnimationState(PLAYER_IDLE);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
 
-
-        Instantiate(campFire, hitObject.transform.position, Quaternion.identity, campFire.transform);
+        Instantiate(campFire, hitObject.transform.position, Quaternion.identity, hitObject.transform);
+        hitObject.transform.SetParent(campFire.transform);
         hitObject.SetActive(false);
 
         SheatheItem();
@@ -336,16 +338,32 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
-    void ChangeState(string newState)
+    public IEnumerator Talk(GameObject hitObject)
     {
-        if (currentState == newState)
-        {
-            return;
-        }
+        behaviourIsActive = true;
+        dialogueIsActive = true;
 
-        currentState = newState;
+        player.ChangeAnimationState(PLAYER_IDLE);
 
-        player.ChangeAnimationState(newState);
+        cinematicCam.ToActionZoom();
+
+        player.transform.LookAt(hitObject.transform);
+        hitObject.transform.LookAt(player.transform);
+
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        player.ChangeAnimationState(PLAYER_IDLE);
+
+        behaviourIsActive = false;
+        dialogueIsActive = false;
+
+        cinematicCam.ToGameZoom();
+
+        yield break;
+
     }
 
 }

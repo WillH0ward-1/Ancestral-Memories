@@ -12,11 +12,15 @@ public class RadialMenuSpawner : MonoBehaviour
         menuInstance = this;
     }
 
-    public void SpawnMenu(Interactable obj, GameObject lastHit) {
+    public void SpawnMenu(Interactable obj, GameObject lastHit, RaycastHit hit)
+    {
         RadialMenu newMenu = Instantiate(menuPrefab);
-        newMenu.transform.SetParent(transform, true); 
+        newMenu.transform.SetParent(transform, true);
         newMenu.transform.position = Input.mousePosition;
-        newMenu.SpawnButtons(obj, lastHit);
+
+        newMenu.SpawnButtons(obj, lastHit, hit);
+
+      
     }
 
 }

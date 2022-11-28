@@ -29,6 +29,7 @@ public class AnimalAI : MonoBehaviour
     //NavMesh Agent
     NavMeshAgent agent;
 
+    [SerializeField] private bool shouldFlee = true;
     bool switchAction = false;
     float actionTimer = 0; 
     [SerializeField] Transform player;
@@ -45,6 +46,8 @@ public class AnimalAI : MonoBehaviour
     //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
+    private CharacterBehaviours playerBehaviours;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -60,154 +63,165 @@ public class AnimalAI : MonoBehaviour
         state = AIState.Idle;
         actionTimer = Random.Range(0.1f, 2.0f);
         ChangeAnimationState(IDLE);
+
+        playerBehaviours = player.transform.GetComponent<CharacterBehaviours>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Wait for the next course of action
-        if (actionTimer > 0)
+        if (!playerBehaviours.dialogueIsActive)
         {
-            actionTimer -= Time.deltaTime;
-        }
-        else
-        {
-            switchAction = true;
-        }
 
-        if (state == AIState.Idle)
-        {
-            if (switchAction)
+            //Wait for the next course of action
+            if (actionTimer > 0)
             {
-                if (player)
-                {
-                    //Run away
-                    agent.SetDestination(RandomNavSphere(transform.position, Random.Range(1, 2.4f)));
-                    state = AIState.Running;
-                    ChangeAnimationState(RUN);
-                }
-                else
-                {
-                    //No enemies nearby, start eating
-                    actionTimer = Random.Range(14, 22);
-
-                    state = AIState.Eating;
-                    ChangeAnimationState(EAT);
-
-                    //Keep last 5 Idle positions for future reference
-                    previousIdlePoints.Add(transform.position);
-
-                    if (previousIdlePoints.Count > 5)
-                    {
-                        previousIdlePoints.RemoveAt(0);
-                    }
-                }
-            }
-        }
-
-        else if (state == AIState.Walking)
-        {
-            //Set NavMesh Agent Speed
-            agent.speed = walkingSpeed;
-
-            // Check if we've reached the destination
-            if (DoneReachingDestination())
-            {
-                state = AIState.Idle;
-            }
-        }
-        else if (state == AIState.Eating)
-        {
-            if (switchAction)
-            {
-                //Wait for current animation to finish playing
-                if (!animator || animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f)
-                {
-                    //Walk to another random destination
-                    agent.destination = RandomNavSphere(transform.position, Random.Range(3, 7));
-                    state = AIState.Walking;
-                    ChangeAnimationState(WALK);
-                }
-            }
-        }
-        else if (state == AIState.Running)
-        {
-            //Set NavMesh Agent Speed
-            agent.speed = runningSpeed;
-
-            //Run away
-            if (player)
-            {
-                if (reverseFlee)
-                {
-                    if (DoneReachingDestination() && timeStuck < 0)
-                    {
-                        reverseFlee = false;
-                    }
-                    else
-                    {
-                        timeStuck -= Time.deltaTime;
-                    }
-                }
-                else
-                {
-                    Vector3 runTo = transform.position + ((transform.position - player.position) * multiplier);
-                    distance = (transform.position - player.position).sqrMagnitude;
-
-                    //Find the closest NavMesh edge
-                    NavMeshHit hit;
-                    if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
-                    {
-                        closestEdge = hit.position;
-                        distanceToEdge = hit.distance;
-                        //Debug.DrawLine(transform.position, closestEdge, Color.red);
-                    }
-
-                    if (distanceToEdge < 1f)
-                    {
-                        if (timeStuck > 1.5f)
-                        {
-                            if (previousIdlePoints.Count > 0)
-                            {
-                                runTo = previousIdlePoints[Random.Range(0, previousIdlePoints.Count - 1)];
-                                reverseFlee = true;
-                            }
-                        }
-                        else
-                        {
-                            timeStuck += Time.deltaTime;
-                        }
-                    }
-
-                    if (distance < range * range)
-                    {
-                        agent.SetDestination(runTo);
-                    }
-                }
-
-                //Temporarily switch to Idle if the Agent stopped
-                if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
-                {
-                    ChangeAnimationState(IDLE);
-                }
-                else
-                {
-                    ChangeAnimationState(RUN);
-                }
+                actionTimer -= Time.deltaTime;
             }
             else
             {
-                //Check if we've reached the destination then stop running
-                if (DoneReachingDestination())
+                switchAction = true;
+            }
+
+            if (state == AIState.Idle)
+            {
+                if (switchAction)
                 {
-                    actionTimer = Random.Range(1.4f, 3.4f);
-                    state = AIState.Eating;
-                    ChangeAnimationState(IDLE);
+                    if (player && shouldFlee)
+                    {
+                        //Run away
+                        agent.SetDestination(RandomNavSphere(transform.position, Random.Range(1, 2.4f)));
+                        state = AIState.Running;
+                        ChangeAnimationState(RUN);
+                    }
+                    else
+                    {
+                        //No enemies nearby, start eating
+                        actionTimer = Random.Range(14, 22);
+
+                        state = AIState.Eating;
+                        ChangeAnimationState(EAT);
+
+                        //Keep last 5 Idle positions for future reference
+                        previousIdlePoints.Add(transform.position);
+
+                        if (previousIdlePoints.Count > 5)
+                        {
+                            previousIdlePoints.RemoveAt(0);
+                        }
+                    }
                 }
             }
-        }
 
-        switchAction = false;
+            else if (state == AIState.Walking)
+            {
+                //Set NavMesh Agent Speed
+                agent.speed = walkingSpeed;
+
+                // Check if we've reached the destination
+                if (DoneReachingDestination())
+                {
+                    state = AIState.Idle;
+                }
+            }
+            else if (state == AIState.Eating)
+            {
+                if (switchAction)
+                {
+                    //Wait for current animation to finish playing
+                    if (!animator || animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f)
+                    {
+                        //Walk to another random destination
+                        agent.destination = RandomNavSphere(transform.position, Random.Range(3, 7));
+                        state = AIState.Walking;
+                        ChangeAnimationState(WALK);
+                    }
+                }
+            }
+            else if (state == AIState.Running)
+            {
+                //Set NavMesh Agent Speed
+                agent.speed = runningSpeed;
+
+                //Run away
+                if (player)
+                {
+                    if (reverseFlee)
+                    {
+                        if (DoneReachingDestination() && timeStuck < 0)
+                        {
+                            reverseFlee = false;
+                        }
+                        else
+                        {
+                            timeStuck -= Time.deltaTime;
+                        }
+                    }
+                    else
+                    {
+                        Vector3 runTo = transform.position + ((transform.position - player.position) * multiplier);
+                        distance = (transform.position - player.position).sqrMagnitude;
+
+                        //Find the closest NavMesh edge
+                        NavMeshHit hit;
+                        if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
+                        {
+                            closestEdge = hit.position;
+                            distanceToEdge = hit.distance;
+                            //Debug.DrawLine(transform.position, closestEdge, Color.red);
+                        }
+
+                        if (distanceToEdge < 1f)
+                        {
+                            if (timeStuck > 1.5f)
+                            {
+                                if (previousIdlePoints.Count > 0)
+                                {
+                                    runTo = previousIdlePoints[Random.Range(0, previousIdlePoints.Count - 1)];
+                                    reverseFlee = true;
+                                }
+                            }
+                            else
+                            {
+                                timeStuck += Time.deltaTime;
+                            }
+                        }
+
+                        if (distance < range * range)
+                        {
+                            agent.SetDestination(runTo);
+                        }
+                    }
+
+                    //Temporarily switch to Idle if the Agent stopped
+                    if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
+                    {
+                        ChangeAnimationState(IDLE);
+                    }
+                    else
+                    {
+                        ChangeAnimationState(RUN);
+                    }
+                }
+                else
+                {
+                    //Check if we've reached the destination then stop running
+                    if (DoneReachingDestination())
+                    {
+                        actionTimer = Random.Range(1.4f, 3.4f);
+                        state = AIState.Eating;
+                        ChangeAnimationState(IDLE);
+                    }
+                }
+            }
+
+            switchAction = false;
+        } else if (playerBehaviours.dialogueIsActive)
+        {
+            state = AIState.Idle;
+            ChangeAnimationState(IDLE);
+            agent.transform.LookAt(player.transform);
+        }
     }
 
     bool DoneReachingDestination()

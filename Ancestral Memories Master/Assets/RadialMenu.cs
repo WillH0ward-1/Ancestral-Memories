@@ -17,12 +17,14 @@ public class RadialMenu : MonoBehaviour
     public List<RadialButton> buttons;
 
     public GameObject hitObject;
+    public RaycastHit rayHit;
 
     public AreaManager areaManager;
 
-    public void SpawnButtons(Interactable obj, GameObject lastHit)
+    public void SpawnButtons(Interactable obj, GameObject lastHit, RaycastHit hit)
     {
         hitObject = lastHit;
+        rayHit = hit;
 
         for (int i = 0; i < obj.options.Length; i++)
         {
@@ -74,7 +76,7 @@ public class RadialMenu : MonoBehaviour
                 else
                 {
                     StartCoroutine(DestroyBuffer());
-                    behaviours.WalkToward(hitObject, selected.title);
+                    behaviours.WalkToward(hitObject, selected.title, rayHit);
 
                     return;
                 }

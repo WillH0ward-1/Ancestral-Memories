@@ -17,9 +17,9 @@ public class Interactable : MonoBehaviour
     }
    
 
-    public void SpawnMenu(GameObject lastHit)
+    public void SpawnMenu(GameObject lastHit, RaycastHit rayHit)
     {       
-        RadialMenuSpawner.menuInstance.SpawnMenu(this, lastHit);
+        RadialMenuSpawner.menuInstance.SpawnMenu(this, lastHit, rayHit);
     }
 
 }

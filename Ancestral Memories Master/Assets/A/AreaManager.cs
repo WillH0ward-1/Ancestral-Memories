@@ -24,10 +24,13 @@ public class AreaManager : MonoBehaviour
 
     public bool traversing = false;
 
+    private RaycastHit nullHit;
+
     private void Start()
     {
         traversing = false;
         currentRoom = Room.Outside;
+
     }
 
     public IEnumerator Teleport(NavMeshAgent traveller, Transform targetDestination, GameObject tempPortal)
@@ -60,7 +63,7 @@ public class AreaManager : MonoBehaviour
 
         Transform newDestination = portal.destination;
 
-        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform, tempPortal));
+        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform, tempPortal, nullHit));
 
         yield return new WaitUntil(() => !isEntering);
 
@@ -72,7 +75,7 @@ public class AreaManager : MonoBehaviour
     {
         isEntering = false;
 
-        StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null, null));
+        StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null, null, nullHit));
 
         cineCam.ToGameZoom();
 

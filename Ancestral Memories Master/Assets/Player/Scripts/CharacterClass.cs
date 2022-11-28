@@ -13,6 +13,7 @@ public class CharacterClass : MonoBehaviour, IStats
     [System.NonSerialized] public Animator inactiveAnimator;
 
     private string currentState;
+    private string state;
 
     // ANIMATION STATES ==================================================
 
@@ -193,6 +194,12 @@ public class CharacterClass : MonoBehaviour, IStats
         currentState = newState;
     }
 
+    public float GetAnimLength(Animator activeAnimator)
+    {
+        return activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+
+    }
+
     public virtual void Assign()
     {
         AssignAnimators();
@@ -258,23 +265,16 @@ public class CharacterClass : MonoBehaviour, IStats
 
     private IEnumerator CheckForRevive()
     {
-        yield return new WaitForSeconds(GetAnimationLength());
 
         if (faith < 50) // In order to revive, currentFaith needs to be > x. 
         {
             StartCoroutine(Revive()); // Start Revive
+            yield break;
         } else
         {
             StartCoroutine(RespawnBuffer()); // Start Respawn
+            yield break;
         }
-    }
-
-
-    public virtual float GetAnimationLength()
-    {
-        float animationLength = activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-
-        return animationLength;
     }
 
     public virtual IEnumerator Revive()
@@ -286,8 +286,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
         ChangeAnimationState(PLAYER_REVIVING);
 
-        
-        yield return new WaitForSeconds(GetAnimationLength());
+   
 
         //StartCoroutine(god.TriggerGodRay());
 
@@ -295,13 +294,18 @@ public class CharacterClass : MonoBehaviour, IStats
         hasDied = false;
 
         ChangeAnimationState(PLAYER_IDLE);
+
+        yield break;
     }
+
+    [SerializeField]private float respawnCountdown = 5;
 
     public virtual IEnumerator RespawnBuffer()
     {
-        yield return new WaitForSeconds(GetAnimationLength()); // Wait for this many seconds before respawning. This may be an audio cue in future.
+        yield return new WaitForSeconds(respawnCountdown);
         respawn = true;
         ResetGame();
+        yield break;
     }
 
     public void ResetGame()
