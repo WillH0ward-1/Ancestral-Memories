@@ -25,20 +25,43 @@ public class GodRayControl : MonoBehaviour
 
     private CharacterBehaviours characterBehaviours;
 
+
+    [SerializeField] private int playerTargetSizeDivide = 25;
+    [SerializeField] private int animalTargetSizeDivide = 50;
+    [SerializeField] private int treeTargetSizeDivide = 50;
+
     Material godRayMat;
 
     private void Awake()
     {
         characterBehaviours = player.GetComponent<CharacterBehaviours>();
     }
-    public void StartGodRay(Transform target, bool manuallyCease)
+    public void StartGodRay(Transform target, bool manuallyCease, float duration)
     {
-        StartCoroutine(GodRay(target, manuallyCease));
+        StartCoroutine(GodRay(target, manuallyCease, duration));
     }
 
-    public IEnumerator GodRay(Transform target, bool manuallyCease)
+    public IEnumerator GodRay(Transform target, bool manuallyCease, float duration)
     {
-        Debug.Log("GodRay!");
+        int sizeDivide = 0;
+
+        switch (target.tag)
+        {
+            case "Player":
+                sizeDivide = playerTargetSizeDivide;
+                break;
+            case "Animal":
+                sizeDivide = animalTargetSizeDivide;
+                break;
+            case "Trees":
+                sizeDivide = treeTargetSizeDivide;
+                break;
+            default:
+                Debug.Log("No case detected to set " + transform.name + " size");
+                break;
+        }
+
+        Debug.Log(target.tag + sizeDivide);
 
         GameObject godRay = Instantiate(godRayPrefab, target.transform.position, Quaternion.identity, target.transform);
 
@@ -47,19 +70,19 @@ public class GodRayControl : MonoBehaviour
 
         godRay.transform.position = new Vector3(target.position.x, target.position.y + yOffset, target.position.z);
 
-        Vector3 sizeCalculated = target.transform.GetComponentInChildren<Renderer>().bounds.size;
+        Vector3 sizeCalculated = target.transform.GetComponentInChildren<Renderer>().bounds.size / sizeDivide;
         godRay.transform.localScale = sizeCalculated;
 
         float timeElapsed = 0;
 
         float lerpAura;
 
-        while (timeElapsed < duration)
+        while (timeElapsed <= duration)
         {
-            lerpAura = Mathf.Lerp(minIntensity, maxIntensity, timeElapsed / duration);
+            lerpAura = Mathf.Lerp(minIntensity, maxIntensity, timeElapsed);
             godRayMat.SetFloat("_AuraIntensity", lerpAura);
 
-            timeElapsed += Time.deltaTime;
+            timeElapsed += Time.deltaTime / duration;
             yield return null;
         }
 
@@ -89,7 +112,7 @@ public class GodRayControl : MonoBehaviour
 
         float lerpAura;
 
-        while (timeElapsed < duration)
+        while (timeElapsed <= duration)
         {
             lerpAura = Mathf.Lerp(maxIntensity, minIntensity, timeElapsed / duration);
             godRayMat.SetFloat("_AuraIntensity", lerpAura);

@@ -19,6 +19,12 @@ public class RPCamera : MonoBehaviour {
 	private float m_m00;
 	private float m_m11;
 
+    private void Update()
+    {
+		UpdateProjection(true);
+
+	}
+
     void Reset()
     {
         rpCam = GetComponent<Camera>();

@@ -130,6 +130,9 @@ public class CharacterBehaviours : MonoBehaviour
         wield.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
     }
 
+    [SerializeField] float godRayDuration = 5f;
+    [SerializeField] int sizeDivide = 10;
+
     public IEnumerator Pray(GameObject hitObject)
     {
         behaviourIsActive = true;
@@ -140,19 +143,19 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
-        cinematicCam.ToActionZoom();
-        StartCoroutine(
-                GainFaith());
-        //god.StartGodRay(hitObject.transform, false);
+        cinematicCam.ToPrayerZoom();
 
+        StartCoroutine(GainFaith());
+        god.StartGodRay(hitObject.transform, false, godRayDuration);
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
 
-        behaviourIsActive = false;
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
+        behaviourIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
     }
@@ -200,7 +203,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, 15f));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -231,7 +234,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, 15f));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -254,12 +257,13 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.ToActionZoom();
 
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
-
-        Debug.Log("Click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
         player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
         yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+
+        behaviourIsActive = false;
+        player.ChangeAnimationState(PLAYER_IDLE);
 
         cinematicCam.ToGameZoom();
 
@@ -338,22 +342,34 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
+    private Dialogue dialogue;
+
     public IEnumerator Talk(GameObject hitObject)
     {
+        GameObject DefaultCamPivot = player.transform.Find("DefaultCamPosition").gameObject;
+        GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+
+        GameObject lookAtTarget = hitObject;
+        Debug.Log("HITOBJECT: " + hitObject);
+
         behaviourIsActive = true;
-        dialogueIsActive = true;
 
         player.ChangeAnimationState(PLAYER_IDLE);
 
-        cinematicCam.ToActionZoom();
+        dialogue = hitObject.transform.GetComponent<Dialogue>();
+        dialogue.StartDialogue();
+
+        StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
+        cinematicCam.ToCinematicZoom();
 
         player.transform.LookAt(hitObject.transform);
         hitObject.transform.LookAt(player.transform);
 
-        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, false, 15f));
+        yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
 
-        Debug.Log("Click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        lookAtTarget = player.transform.gameObject;
+
+        StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
 
         player.ChangeAnimationState(PLAYER_IDLE);
 

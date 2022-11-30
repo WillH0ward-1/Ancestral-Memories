@@ -268,7 +268,7 @@ public class PlayerWalk : MonoBehaviour
             Debug.Log("Arrived.");
             agent.transform.LookAt(hitObject.transform.position);
 
-            behaviours.ChooseBehaviour(selected, null);
+            behaviours.ChooseBehaviour(selected, hitObject);
             yield break;
         }
     }

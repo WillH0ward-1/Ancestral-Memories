@@ -760,17 +760,21 @@ public class MapObjGen : MonoBehaviour
     }
 
 
+    [SerializeField] private int layer = 10;
+    private int caveLayerMask;
 
     void DestroyDeadZones()
     {
         foreach (GameObject mapObject in mapObjectList)
         {
             int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
-            int deadZoneLayerMask = (23 << deadZoneLayerIndex);
+            int deadZoneLayerMask = (1<< deadZoneLayerIndex);
 
             int caveLayerIndex = LayerMask.NameToLayer("Cave");
-            int caveLayerMask = (24 << caveLayerIndex);
-
+            int caveLayerMask = (1 << caveLayerIndex);
+ 
+            caveLayerMask = (1 << layer);
+    
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
             {
                 if (hitFloor.collider.CompareTag("DeadZone"))

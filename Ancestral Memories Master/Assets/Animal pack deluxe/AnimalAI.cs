@@ -64,7 +64,7 @@ public class AnimalAI : MonoBehaviour
         actionTimer = Random.Range(0.1f, 2.0f);
         ChangeAnimationState(IDLE);
 
-        playerBehaviours = player.transform.GetComponent<CharacterBehaviours>();
+        playerBehaviours = player.GetComponent<CharacterBehaviours>();
     }
 
     // Update is called once per frame
@@ -220,7 +220,7 @@ public class AnimalAI : MonoBehaviour
         {
             state = AIState.Idle;
             ChangeAnimationState(IDLE);
-            agent.transform.LookAt(player.transform);
+            //agent.transform.LookAt(player.transform);
         }
     }
 

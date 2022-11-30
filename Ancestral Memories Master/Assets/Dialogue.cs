@@ -6,39 +6,54 @@ using TMPro;
 public class Dialogue : MonoBehaviour
 {
 
-    public TextMeshProUGUI textComponent;
-    public string[] lines;
-    public float textSpeed;
+    [SerializeField] private TextMeshProUGUI textComponent;
+    [SerializeField] private GameObject dialogueBox;
+
+    [SerializeField] private string[] lines;
+    [SerializeField] private float textSpeed;
+
+    public bool dialogueIsActive;
 
     private int index;
 
-    // Start is called before the first frame update
-    void Start()
+    private IEnumerator WaitForSkip()
     {
-        textComponent.text = string.Empty;
-        StartDialogue();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
+        while (dialogueIsActive)
         {
-            if (textComponent.text == lines[index])
+            if (Input.GetMouseButtonDown(0))
             {
-                NextLine();
-            } else
-            {
-                StopAllCoroutines();
-                textComponent.text = lines[index];
+                if (textComponent.text == lines[index])
+                {
+                    NextLine();
+                }
+                else
+                {
+                    StopAllCoroutines();
+                    textComponent.text = lines[index];
+                }
             }
+            yield return null;
         }
+
+        yield break;
     }
 
-    void StartDialogue()
+    public void StartDialogue()
     {
+
+        Debug.Log("Dialogue Started.");
+        dialogueBox = Instantiate(dialogueBox, transform);
+
+        textComponent = dialogueBox.transform.GetComponentInChildren<TextMeshProUGUI>();
+
+        textComponent.text = string.Empty;
+
+        dialogueIsActive = true;
+
         index = 0;
+
         StartCoroutine(TypeLine());
+        StartCoroutine(WaitForSkip());
     }
 
     void NextLine()
@@ -48,11 +63,15 @@ public class Dialogue : MonoBehaviour
             index++;
             textComponent.text = string.Empty;
             StartCoroutine(TypeLine());
+
         } else
         {
-            gameObject.SetActive(false);
+            dialogueIsActive = false;
+            dialogueBox.SetActive(false);
+            //Destroy(dialogueBox);
         }
     }
+
     IEnumerator TypeLine()
     {
         foreach (char c in lines[index].ToCharArray())
