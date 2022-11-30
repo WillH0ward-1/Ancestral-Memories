@@ -16,7 +16,15 @@ public class LightningStrike : MonoBehaviour
 
     private bool lightningActive = false;
 
+    Light lightningLight;
+
     // Start is called before the first frame update
+
+    private void Awake()
+    {
+        lightningLight = transform.GetComponentInChildren<Light>();
+        lightningLight.transform.gameObject.SetActive(false);
+    }
     void StrikeLightning()
     {
         if (!lightningActive)
@@ -28,6 +36,9 @@ public class LightningStrike : MonoBehaviour
 
     private IEnumerator Strike(Transform target, float duration)
     {
+        lightningLight.transform.gameObject.SetActive(true);
+        lightningLight.intensity = 100f;
+
         Debug.Log("Lightning!");
 
         GameObject lightning = Instantiate(lightningPrefab, target.transform.position, Quaternion.identity, target.transform);
@@ -38,14 +49,14 @@ public class LightningStrike : MonoBehaviour
 
         float timeElapsed = 0;
 
-        while (timeElapsed < duration)
+        while (timeElapsed < 1f)
         {
-            lightning.transform.localScale = Vector3.Lerp(minScale, maxScale, timeElapsed / duration);
-            timeElapsed += Time.deltaTime;
+            lightning.transform.localScale = Vector3.Lerp(minScale, maxScale, timeElapsed);
+            timeElapsed += Time.deltaTime / duration;
             yield return null;
         }
 
-        if (timeElapsed >= duration)
+        if (timeElapsed >= 1f)
         {
             yield return new WaitForSeconds(lightningDuration);
             yield return Retreat(lightning, duration);
@@ -57,16 +68,19 @@ public class LightningStrike : MonoBehaviour
     {
         Debug.Log("Lightning End!");
 
+        lightningLight.transform.gameObject.SetActive(false);
+        lightningLight.intensity = 0f;
+
         float timeElapsed = 0;
 
-        while (timeElapsed < duration)
+        while (timeElapsed < 1f)
         {
-            lightning.transform.localScale = Vector3.Lerp(maxScale, minScale, timeElapsed / duration);
-            timeElapsed += Time.deltaTime;
+            lightning.transform.localScale = Vector3.Lerp(maxScale, minScale, timeElapsed);
+            timeElapsed += Time.deltaTime / duration;
             yield return null;
         }
 
-        if (timeElapsed >= duration)
+        if (timeElapsed >= 1f)
         {
             Destroy(lightning);
             lightningActive = false;

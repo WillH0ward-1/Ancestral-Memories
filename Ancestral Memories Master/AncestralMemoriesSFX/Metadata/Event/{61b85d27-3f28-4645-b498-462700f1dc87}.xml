@@ -97,7 +97,16 @@
 	<object class="MixerBusPanner" id="{07fced30-dbe2-4676-8846-fda8cfbdccb7}" />
 	<object class="SingleSound" id="{ef67be34-d3e0-452c-a68d-3af680841f09}">
 		<property name="length">
-			<value>39.99935416666667</value>
+			<value>36.850792661295841</value>
+		</property>
+		<property name="timelockedOffset">
+			<value>0.47193715634084671</value>
+		</property>
+		<property name="volume">
+			<value>1.5</value>
+		</property>
+		<property name="pitch">
+			<value>-1</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{059d9e65-2fd9-4174-9aaf-be1e7b1db12d}</destination>
@@ -125,7 +134,7 @@
 			<value>0</value>
 		</property>
 		<property name="length">
-			<value>39.99935416666667</value>
+			<value>36.850792661295841</value>
 		</property>
 		<relationship name="timeline">
 			<destination>{4c1d0684-84a6-4e95-a1f3-b2567ba950a4}</destination>
@@ -167,27 +176,21 @@
 	<object class="MixerBusFader" id="{74294495-d0b4-486b-bc5c-b71f205c4d51}" />
 	<object class="DistortionEffect" id="{5458830b-ab10-40f0-808d-a8f9862d30de}">
 		<property name="level">
-			<value>0.439999998</value>
+			<value>0.714999974</value>
 		</property>
 	</object>
 	<object class="ThreeEQEffect" id="{158d7649-232d-44c2-89e7-291753eec1a2}">
 		<property name="lowGain">
-			<value>-17</value>
+			<value>-25</value>
 		</property>
 		<property name="midGain">
-			<value>-34</value>
-		</property>
-		<property name="highGain">
-			<value>0.5</value>
+			<value>-36</value>
 		</property>
 		<property name="lowCrossover">
-			<value>300</value>
+			<value>140</value>
 		</property>
 		<property name="highCrossover">
-			<value>10000</value>
-		</property>
-		<property name="crossoverSlope">
-			<value>0</value>
+			<value>17500</value>
 		</property>
 	</object>
 </objects>

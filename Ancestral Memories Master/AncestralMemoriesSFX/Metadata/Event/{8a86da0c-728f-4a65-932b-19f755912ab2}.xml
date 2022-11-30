@@ -32,9 +32,6 @@
 		<relationship name="timeline">
 			<destination>{e6905266-bc49-4ad2-91da-1093c8dd4b7d}</destination>
 		</relationship>
-		<relationship name="parameters">
-			<destination>{7229e8ff-5250-4f5c-859c-aa6ae02802d8}</destination>
-		</relationship>
 		<relationship name="banks">
 			<destination>{312af681-03fa-4f0a-97ac-af4d02c4f20c}</destination>
 		</relationship>
@@ -45,9 +42,6 @@
 		</relationship>
 	</object>
 	<object class="MasterTrack" id="{e58d9e69-b885-4e5e-8d15-6e5a976e1d42}">
-		<relationship name="modules">
-			<destination>{2ca3155c-3084-40bf-84f6-e84ad99cd566}</destination>
-		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{420d9b0c-0d5d-484a-9e71-6bf8aa84f394}</destination>
 		</relationship>
@@ -63,7 +57,14 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{0f9fe63a-8cb7-4e38-b3f4-7c8b71943124}" />
+	<object class="EventAutomatableProperties" id="{0f9fe63a-8cb7-4e38-b3f4-7c8b71943124}">
+		<property name="maxVoices">
+			<value>5</value>
+		</property>
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{7cef5a72-3d55-49f2-8c84-9c474ad9fed5}" />
 	<object class="GroupTrack" id="{bfb196b3-39a8-46b3-a8d8-146d0c54c647}">
 		<relationship name="modules">
@@ -90,12 +91,10 @@
 			<destination>{9cbe2c14-9192-4805-97f8-0bf3f62fe340}</destination>
 		</relationship>
 	</object>
-	<object class="ActionSheet" id="{7229e8ff-5250-4f5c-859c-aa6ae02802d8}">
-		<relationship name="modules">
-			<destination>{2ca3155c-3084-40bf-84f6-e84ad99cd566}</destination>
-		</relationship>
-	</object>
 	<object class="EventMixerMaster" id="{420d9b0c-0d5d-484a-9e71-6bf8aa84f394}">
+		<property name="volume">
+			<value>-3.5</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{1b30fb85-8080-441f-9207-7801c62d536a}</destination>
 		</relationship>
@@ -106,7 +105,6 @@
 			<destination>{d96d3f7e-dc5a-4406-9f1c-4fc5d85022be}</destination>
 		</relationship>
 	</object>
-	<object class="MultiSound" id="{2ca3155c-3084-40bf-84f6-e84ad99cd566}" />
 	<object class="MixerBusEffectChain" id="{e1462ed6-79e6-45e3-ad01-907ab4e8e9a2}">
 		<relationship name="effects">
 			<destination>{c00c468b-2567-4af6-a0b8-c2eef34e8af7}</destination>
@@ -135,7 +133,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{b2e4fbfa-b18a-43d8-a30f-be64f50124bb}">
 		<property name="volume">
-			<value>8</value>
+			<value>-2</value>
 		</property>
 		<property name="name">
 			<value>Audio 1</value>
@@ -159,6 +157,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{00920f5e-13bf-47f6-8bfc-3359fa6aabac}">
+		<property name="volume">
+			<value>-80</value>
+		</property>
 		<property name="name">
 			<value>Audio 2</value>
 		</property>

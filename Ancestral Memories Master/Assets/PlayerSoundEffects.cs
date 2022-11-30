@@ -7,6 +7,8 @@ public class PlayerSoundEffects : MonoBehaviour
     private PARAMETER_ID ParamID;
 
     [SerializeField] private EventReference WalkEventPath;
+    [SerializeField] private EventReference HitTreeEventPath;
+    [SerializeField] private EventReference WhooshEventPath;
 
     void PlayWalkEvent()
     {
@@ -16,5 +18,23 @@ public class PlayerSoundEffects : MonoBehaviour
 
         walkEvent.start();
         walkEvent.release();
+    }
+
+    void HitTree()
+    {
+        EventInstance hitTreeEvent = RuntimeManager.CreateInstance(HitTreeEventPath);
+        RuntimeManager.AttachInstanceToGameObject(hitTreeEvent, transform, GetComponent<Rigidbody>());
+
+        hitTreeEvent.start();
+        hitTreeEvent.release();
+    }
+
+    void WhooshEvent()
+    {
+        EventInstance whooshEvent = RuntimeManager.CreateInstance(WhooshEventPath);
+        RuntimeManager.AttachInstanceToGameObject(whooshEvent, transform, GetComponent<Rigidbody>());
+
+        whooshEvent.start();
+        whooshEvent.release();
     }
 }

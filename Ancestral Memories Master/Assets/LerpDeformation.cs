@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class LerpDeformation : MonoBehaviour
 {
@@ -9,13 +10,13 @@ public class LerpDeformation : MonoBehaviour
     [SerializeField]
     private CharacterClass player;
 
-    public int maxVal = 1;
+    public int maxVal = 0;
     public float minVal = -0.2f;
 
     private float targetDeform = 1f;
     private float currentDeform = 1f;
 
-    float inflationFactor;
+    [SerializeField] Deform.InflateDeformer inflate;
 
     private void OnEnable() => player.OnHungerChanged += HungerChanged;
     private void OnDisable() => player.OnHungerChanged -= HungerChanged;
@@ -25,10 +26,9 @@ public class LerpDeformation : MonoBehaviour
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
 
-        Deform.InflateDeformer inflate = transform.GetComponentInChildren<Deform.InflateDeformer>();
-        inflationFactor = inflate.Factor;
+        inflate = transform.GetComponentInChildren<Deform.InflateDeformer>();
 
-        inflationFactor = maxVal;
+        inflate.Factor = maxVal;
 
     }
 
@@ -36,13 +36,17 @@ public class LerpDeformation : MonoBehaviour
     void Update()
     {
         currentDeform = Mathf.Lerp(currentDeform, targetDeform, 2f * Time.deltaTime);
-        inflationFactor = currentDeform;  
+        inflate.Factor = currentDeform;  
 
     }
 
     private void HungerChanged(int hunger, int maxHunger)
     {
-        targetDeform = (float)hunger / maxHunger;
+        float x = 1;
+        float t = Mathf.InverseLerp(hunger, maxHunger, x);
+        float output = Mathf.Lerp(minVal, maxVal, t);
+
+        targetDeform = (float)output / maxHunger;
     }
 
 

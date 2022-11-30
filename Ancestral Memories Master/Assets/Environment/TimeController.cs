@@ -75,6 +75,12 @@ public class TimeController : MonoBehaviour
             timeText.text = currentTime.ToString("HH:mm");
         }
 
+        switch (timeText.text)
+        {
+            case "8:00":
+                Debug.Log("The time is" + timeText.text);
+                break;
+        }
 
         if (timeText.text == "8:00")
         {

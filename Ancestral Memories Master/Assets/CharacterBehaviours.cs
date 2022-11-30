@@ -53,6 +53,11 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_KINDLEFIRE = "Player_KindleFire";
 
     const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
+
+    const string PLAYER_SITONFLOOR = "Player_SitOnFloor";
+    const string PLAYER_SITTINGFLOORIDLE = "Player_SittingFloorIdle";
+    const string PLAYER_STANDUPFROMSIT = "Player_StandUpFromSit";
+
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
 
     private float animationLength;
@@ -80,7 +85,7 @@ public class CharacterBehaviours : MonoBehaviour
                 //Look();
                 break;
             case "Reflect":
-                //Reflect();
+                StartCoroutine(Reflect());
                 break;
             case "Dance":
                 StartCoroutine(Dance(GetRandomAnimation(danceAnimClips)));
@@ -270,6 +275,31 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
+    public IEnumerator Reflect()
+    {
+        behaviourIsActive = true;
+
+        player.ChangeAnimationState(PLAYER_SITONFLOOR);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+
+        cinematicCam.ToActionZoom();
+
+        player.ChangeAnimationState(PLAYER_SITTINGFLOORIDLE);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        player.ChangeAnimationState(PLAYER_STANDUPFROMSIT);
+
+        behaviourIsActive = false;
+        player.ChangeAnimationState(PLAYER_IDLE);
+
+        cinematicCam.ToGameZoom();
+
+        yield break;
+    }
+
     public bool isPsychdelicMode = false;
 
     bool DetectIfPsychedelic()
@@ -335,7 +365,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         Instantiate(campFire, hitObject.transform.position, Quaternion.identity, hitObject.transform);
         hitObject.transform.SetParent(campFire.transform);
-        hitObject.SetActive(false);
+        hitObject.GetComponent<Renderer>().enabled = false;
 
         SheatheItem();
 

@@ -20,6 +20,7 @@
 		</relationship>
 		<relationship name="modulators">
 			<destination>{4eb78faf-8efe-405e-a8cb-cae395183744}</destination>
+			<destination>{7713013b-d832-4586-ab34-58b318e85f84}</destination>
 		</relationship>
 	</object>
 	<object class="Automator" id="{e4bac03e-aec1-4415-a4c1-198846f19b82}">
@@ -35,13 +36,21 @@
 			<value>6</value>
 		</property>
 		<property name="rate">
-			<value>0.359999985</value>
+			<value>0.299999982</value>
 		</property>
 		<property name="depth">
-			<value>32</value>
+			<value>31.5</value>
 		</property>
 		<property name="direction">
 			<value>32</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{7713013b-d832-4586-ab34-58b318e85f84}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>cursorPosition</value>
+		</property>
+		<property name="amount">
+			<value>100</value>
 		</property>
 	</object>
 </objects>
