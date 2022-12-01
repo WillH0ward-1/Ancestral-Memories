@@ -200,6 +200,11 @@ public class MapObjGen : MonoBehaviour
         //SortTreeTypes(treeList);
     }
 
+    void GenerateOceanEmitters(float sampleWidth, float sampleHeight)
+    {
+
+    }
+
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
 
     {

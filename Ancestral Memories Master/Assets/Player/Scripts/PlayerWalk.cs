@@ -55,16 +55,49 @@ public class PlayerWalk : MonoBehaviour
 
     private RaycastHit rayHit;
 
+    [SerializeField] private Transform rightFootRaySource;
+    [SerializeField]  private Transform leftFootRaySource;
+
+    [SerializeField] private List<Transform> raySources;
+
     void Awake()
     {
         agent.stoppingDistance = defaultStoppingDistance;
         agent = GetComponent<NavMeshAgent>();
         agent.isStopped = true;
 
+        raySources.Add(rightFootRaySource);
+        raySources.Add(leftFootRaySource);
+
+
     }
+
+
+
+    public bool playerInWater = false;
 
     void Update()
     {
+        int waterLayerIndex = LayerMask.NameToLayer("Water");
+        int waterLayerMask = (1 << waterLayerIndex);
+
+
+        foreach (Transform t in raySources)
+        {
+            if (Physics.Raycast(leftFootRaySource.transform.position, Vector3.up, out RaycastHit hitWater, Mathf.Infinity, waterLayerMask))
+
+            {
+
+                float distance = hitWater.distance;
+                playerInWater = true;
+                Debug.Log("Water Detected!");
+            }
+            else
+            {
+                playerInWater = false;
+            }
+        }
+
         if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
         {
             if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)

@@ -31,6 +31,7 @@ public class FireSoundEffects : MonoBehaviour
         RuntimeManager.AttachInstanceToGameObject(fireLoopEvent, transform, GetComponent<Rigidbody>());
 
         fireLoopEvent.start();
+
         //fireEvent.release();
     }
 }

@@ -316,7 +316,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
 
     public virtual event Action<int, int> OnFaithChanged;
-    public virtual event Action<int, int> OnHungerChanged;
+    public virtual event Action<float, float, float> OnHungerChanged;
 
     public bool isBlessed = false;
     public virtual void DepleteFaith(float faithDamage)
@@ -431,7 +431,7 @@ public class CharacterClass : MonoBehaviour, IStats
         hunger -= hungerFactor;
         hungerBar.UpdateHunger(hunger / maxStat);
 
-        OnHungerChanged?.Invoke((int)hunger, maxStat);
+        OnHungerChanged?.Invoke(hunger, minStat, maxStat);
 
         if (hunger <= maxStat / 3)
         {

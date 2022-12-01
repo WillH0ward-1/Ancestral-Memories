@@ -10,11 +10,10 @@ public class LerpDeformation : MonoBehaviour
     [SerializeField]
     private CharacterClass player;
 
-    public int maxVal = 0;
+    public float maxVal = 0f;
     public float minVal = -0.2f;
 
-    private float targetDeform = 1f;
-    private float currentDeform = 1f;
+    private float currentDeform;
 
     [SerializeField] Deform.InflateDeformer inflate;
 
@@ -28,25 +27,25 @@ public class LerpDeformation : MonoBehaviour
 
         inflate = transform.GetComponentInChildren<Deform.InflateDeformer>();
 
-        inflate.Factor = maxVal;
-
+        inflate.Factor = targetDeform;
     }
 
     // Update is called once per frame
     void Update()
     {
-        currentDeform = Mathf.Lerp(currentDeform, targetDeform, 2f * Time.deltaTime);
-        inflate.Factor = currentDeform;  
 
+        currentDeform = Mathf.Lerp(currentDeform, targetDeform, Time.deltaTime);
+        inflate.Factor = currentDeform;  
     }
 
-    private void HungerChanged(int hunger, int maxHunger)
+    private float targetDeform;
+
+    private void HungerChanged(float hunger, float minHunger, float maxHunger)
     {
-        float x = 1;
-        float t = Mathf.InverseLerp(hunger, maxHunger, x);
+        var t = Mathf.InverseLerp(minHunger, maxHunger, hunger);
         float output = Mathf.Lerp(minVal, maxVal, t);
 
-        targetDeform = (float)output / maxHunger;
+        targetDeform = output;
     }
 
 
