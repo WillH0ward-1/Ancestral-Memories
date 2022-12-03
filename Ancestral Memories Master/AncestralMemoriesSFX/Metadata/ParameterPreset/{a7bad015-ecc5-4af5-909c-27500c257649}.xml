@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.01.00">
+	<object class="ParameterPreset" id="{a7bad015-ecc5-4af5-909c-27500c257649}">
+		<property name="name">
+			<value>HarmonicStability</value>
+		</property>
+		<relationship name="folder">
+			<destination>{706adfaf-2af0-4187-9688-0367b5d8fe4f}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}">
+		<property name="isGlobal">
+			<value>true</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="isExposedRecursively">
+			<value>false</value>
+		</property>
+	</object>
+</objects>

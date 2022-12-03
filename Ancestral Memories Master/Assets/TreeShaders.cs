@@ -48,7 +48,7 @@ public class TreeShaders : MonoBehaviour
         }
     }
 
-    private void LeafDensity(int faith, int maxFaith)
+    private void LeafDensity(float faith, float minFaith, float maxFaith)
     {
         targetAlphaValue = (float)faith / maxFaith;
         StartCoroutine(GrowLeaves(targetAlphaValue));

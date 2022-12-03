@@ -37,9 +37,9 @@ public class TerrainChunk {
 		this.meshSettings = meshSettings;
 		this.viewer = viewer;
 
-		sampleCentre = coord * meshSettings.meshWorldSize / meshSettings.meshScale;
-		Vector2 position = coord * meshSettings.meshWorldSize ;
-		bounds = new Bounds(position,Vector2.one * meshSettings.meshWorldSize );
+		sampleCentre = coord * meshSettings.MeshWorldSize / meshSettings.meshScale;
+		Vector2 position = coord * meshSettings.MeshWorldSize ;
+		bounds = new Bounds(position,Vector2.one * meshSettings.MeshWorldSize );
 
 
 		meshObject = new GameObject("Terrain Chunk");
@@ -69,7 +69,7 @@ public class TerrainChunk {
 	}
 
 	public void Load() {
-		ThreadedDataRequester.RequestData(() => HeightMapGenerator.GenerateHeightMap (meshSettings.numVertsPerLine, meshSettings.numVertsPerLine, heightMapSettings, sampleCentre), OnHeightMapReceived);
+		ThreadedDataRequester.RequestData(() => HeightMapGenerator.GenerateHeightMap (meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, heightMapSettings, sampleCentre), OnHeightMapReceived);
 	}
 
 

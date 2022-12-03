@@ -46,7 +46,7 @@ public class AuraControl : MonoBehaviour
 
     }
 
-    private void FaithChanged(int faith, int maxFaith)
+    private void FaithChanged(float faith, float minFaith, float maxFaith)
     {
         targetAuraVal = (float)faith / maxFaith;
     }

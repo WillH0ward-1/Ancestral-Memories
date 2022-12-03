@@ -1,69 +1,82 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using FMODUnity;
+using FMOD.Studio;
+
 
 public class WeatherControl : MonoBehaviour
 {
     const string WIND_LOOP = ("event:/Wind");
 
-    private FMOD.Studio.EventInstance instance;
-
-    public FMODUnity.EventReference windEvent;
-
-    [SerializeField]
-    [Range(-0f, 1f)]
-    private float pitch;
-
-    private bool isRaining = false;
-    private bool isThunder = false;
-    private bool isSnowing = false;
+    private EventInstance instance;
+    public EventReference windEvent;
 
     private float windStrength = 0;
 
-    public float windDuration = 0;
-
-    public float retriggerBuffer = 1;
+    private int minWindStrength = 0;
+    private int maxWindStrength = 1;
 
     private float currentWindStrength = 0;
     private float targetWindStrength;
 
+    public bool windIsActive;
+
+
+
     // Start is called before the first frame update
     void Start()
     {
-        StartFMODInstance(WIND_LOOP);
+        EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
 
-        /*
-        StartCoroutine(WindStrength());
-        */
-    }
 
-    private void StartFMODInstance(string instance)
-    {
-        FMOD.Studio.EventInstance sound = FMODUnity.RuntimeManager.CreateInstance(instance);
-        sound.start();
+        StartCoroutine(WindStrength(windSFX));
+
+        windStrength = currentWindStrength;
     }
 
 
-    /*
-    private IEnumerator WindStrength()
+    private IEnumerator WindStrength(EventInstance windSFX)
     {
-        targetWindStrength = Random.Range(0, 1);
-        windDuration = Random.Range(1, 5);
+        windIsActive = true;
 
-        float timeElapsed = 0;
+        windSFX.start();
 
-        while (timeElapsed <= windDuration)
+        while (windIsActive)
         {
-            float windStrength = Mathf.Lerp(currentWindStrength, targetWindStrength, timeElapsed / windDuration);
+            float windStrength = targetWindStrength;
 
-            timeElapsed += Time.deltaTime;
+            windSFX.setParameterByName("WindStrength", windStrength);
+            Debug.Log("WindStrength:" + windStrength);
+            yield return null;
+        }
 
-            instance.setParameterByName("Pitch", windStrength);
-
-            yield return new WaitForSeconds(retriggerBuffer);
-
-            StartCoroutine(WindStrength());
+        if (!windIsActive)
+        {
+            StartCoroutine(StopWind(windSFX));
+            yield break;
         }
     }
-    */
+
+    private IEnumerator StopWind(EventInstance windSFX)
+    {
+        windSFX.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        windIsActive = false;
+        yield break;
+    }
+
+    [SerializeField]
+    private CharacterClass player;
+
+    private void OnEnable() => player.OnFaithChanged += WindStrength;
+    private void OnDisable() => player.OnFaithChanged -= WindStrength;
+
+    private void WindStrength(float faith, float minFaith, float maxFaith)
+    {
+        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
+        float output = Mathf.Lerp(minWindStrength, maxWindStrength, t);
+
+        targetWindStrength = output;
+    }
+
 }

@@ -25,9 +25,9 @@ public class ScaleControl : MonoBehaviour
         float localScaleY = scaleObject.transform.localScale.y;
         float localScaleZ = scaleObject.transform.localScale.z;
 
-        while (time <= duration)
+        while (time <= 1f)
         {
-            time += Time.deltaTime;
+            time += Time.deltaTime / duration;
 
             localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time / duration);
             localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time / duration);
@@ -38,17 +38,14 @@ public class ScaleControl : MonoBehaviour
             time *= zAxisGrowMultiplier;
 
             scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
-          
+
             yield return null;
         }
 
-        if (time >= duration)
+        if (time >= 1f)
         {
             isFullyGrown = true;
             yield break;
         }
-        
     }
-
-
 }

@@ -34,7 +34,7 @@ public class LerpDeformation : MonoBehaviour
     void Update()
     {
 
-        currentDeform = Mathf.Lerp(currentDeform, targetDeform, Time.deltaTime);
+        currentDeform = targetDeform;
         inflate.Factor = currentDeform;  
     }
 

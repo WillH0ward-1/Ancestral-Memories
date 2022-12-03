@@ -51,8 +51,8 @@ public class CharacterClass : MonoBehaviour, IStats
 
     private int ageToDie = 0;
 
-    private int maxStat = 100;
-    private int minStat = 0;
+    public int maxStat = 100;
+    public int minStat = 0;
 
     public HealthBar healthBar;
     public HungerBar hungerBar;
@@ -102,7 +102,7 @@ public class CharacterClass : MonoBehaviour, IStats
         health = maxStat;
         hunger = maxStat;
         faith = minStat;
-        evolution = minStat;
+        evolution = minStat;        
 
         isDiseased = false;
     }
@@ -315,31 +315,32 @@ public class CharacterClass : MonoBehaviour, IStats
     }
 
 
-    public virtual event Action<int, int> OnFaithChanged;
+    public virtual event Action<float, float, float> OnFaithChanged;
     public virtual event Action<float, float, float> OnHungerChanged;
 
     public bool isBlessed = false;
+
+    [SerializeField] private DisasterManager naturalDisaster;
+
     public virtual void DepleteFaith(float faithDamage)
     {
         if (!isBlessed)
         {
-            OnFaithChanged?.Invoke((int)faith, maxStat);
+            OnFaithChanged?.Invoke(faith, minStat, maxStat);
 
             faith -= faithDamage;
             faithBar.UpdateFaith(faith / maxStat);
 
-            if (faith <= minStat)
+            if (faith <= minStat )
             {
                 faith = minStat;
                 isFaithless = true;
-                StartCoroutine(DisasterCountdown());
-                Debug.Log("Player is faithless!");
-                //earthQuake.start = true;
+                Debug.Log("Player is faithless!");  
+          
             }
             else
 
             {
-                earthQuake.start = false;
                 isFaithless = false;
             }
         }
@@ -388,19 +389,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
             yield break;
         }
-    }
-
-    public virtual IEnumerator DisasterCountdown()
-    {
-        if (faith <= minStat)
-        {
-            yield return new WaitForSeconds(Random.Range(30, 180));
-            
-        } else
-        {
-            yield break;
-        }
-
     }
 
     public virtual void TakeDamage(float damage)

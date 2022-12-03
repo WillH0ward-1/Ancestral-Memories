@@ -87,7 +87,6 @@ public class PlayerWalk : MonoBehaviour
             if (Physics.Raycast(leftFootRaySource.transform.position, Vector3.up, out RaycastHit hitWater, Mathf.Infinity, waterLayerMask))
 
             {
-
                 float distance = hitWater.distance;
                 playerInWater = true;
                 Debug.Log("Water Detected!");
@@ -98,101 +97,105 @@ public class PlayerWalk : MonoBehaviour
             }
         }
 
-        if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
+        if (!stopOverride)
         {
-            if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
+            if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
             {
-                CastRayToGround();
-            }
-
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false )
+                if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
                 {
-                    StopAgent();
+                    CastRayToGround();
+                }
+
+
+                if (Input.GetMouseButtonUp(0))
+                {
+                    if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false)
+                    {
+                        StopAgent();
+                    }
+                }
+
+                void CastRayToGround()
+                {
+                    Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+                    int groundLayerIndex = LayerMask.NameToLayer("Ground");
+                    int groundLayerMask = (1 << groundLayerIndex);
+
+                    int caveGroundLayerIndex = LayerMask.NameToLayer("InsideCave");
+                    int caveGroundLayerMask = (1 << caveGroundLayerIndex);
+
+                    if (Physics.Raycast(ray, out rayHit, Mathf.Infinity, walkableLayers))
+                    {
+                        Vector3 playerPosition = playerObject.transform.position;
+
+                        distance = Vector3.Distance(playerPosition, rayHit.point);
+
+                        Debug.Log(distance);
+
+                        if (distance >= distanceThreshold)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            MoveAgent(rayHit.point, distance, playerPosition);
+                        }
+                    }
+                }
+
+                void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
+                {
+                    speed = cursorDistance / distanceRatios;
+                    agent.destination = hitPoint;
+                    agent.speed = speed;
+                    walkAnimFactor = speed / animFactor;
+
+                    if (speed < runThreshold)
+                    {
+                        if (!behaviours.isPsychdelicMode && !player.starving)
+                        {
+                            ChangeState(PLAYER_WALK);
+                        }
+                        else if (player.starving)
+                        {
+                            ChangeState(PLAYER_STARVINGWALK);
+                        }
+                        else if (behaviours.isPsychdelicMode)
+                        {
+                            ChangeState(PLAYER_DRUNKWALK);
+                        }
+
+                        //player.AdjustAnimationSpeed(animSpeed);
+                    }
+
+                    if (speed > runThreshold)
+                    {
+                        if (!behaviours.isPsychdelicMode)
+                        {
+                            ChangeState(PLAYER_RUN);
+                        }
+                        else if (behaviours.isPsychdelicMode)
+                        {
+                            ChangeState(PLAYER_DRUNKRUN);
+                        }
+
+                    }
+
+                    //player.AdjustAnimationSpeed(walkAnimFactor);
+
+                    Debug.Log("Cursor Distance:" + cursorDistance);
+                    Debug.Log("Speed:" + agent.speed);
+
+                    agent.isStopped = false;
+                    agent.acceleration = 10000;
+
+                    //float runThreshold = cursorDistance / 2;
                 }
             }
 
-            void CastRayToGround()
-            {
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-
-                int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                int groundLayerMask = (1 << groundLayerIndex);
-
-                int caveGroundLayerIndex = LayerMask.NameToLayer("InsideCave");
-                int caveGroundLayerMask = (1 << caveGroundLayerIndex);
-
-                if (Physics.Raycast(ray, out rayHit, Mathf.Infinity, walkableLayers))
-                {
-                    Vector3 playerPosition = playerObject.transform.position;
-
-                    distance = Vector3.Distance(playerPosition, rayHit.point);
-
-                    Debug.Log(distance);
-
-                    if (distance >= distanceThreshold)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        MoveAgent(rayHit.point, distance, playerPosition);
-                    }
-                }
-            }
-
-            void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
-            {
-                speed = cursorDistance / distanceRatios;
-                agent.destination = hitPoint;
-                agent.speed = speed;
-                walkAnimFactor = speed / animFactor;
-
-                if (speed < runThreshold)
-                {
-                    if (!behaviours.isPsychdelicMode && !player.starving)
-                    {
-                        ChangeState(PLAYER_WALK);
-                    }
-                    else if (player.starving)
-                    {
-                        ChangeState(PLAYER_STARVINGWALK);
-                    }
-                    else if (behaviours.isPsychdelicMode)
-                    {
-                        ChangeState(PLAYER_DRUNKWALK);
-                    }
-    
-                    //player.AdjustAnimationSpeed(animSpeed);
-                }
-
-                if (speed > runThreshold)
-                {
-                    if (!behaviours.isPsychdelicMode)
-                    {
-                        ChangeState(PLAYER_RUN);
-                    } else if (behaviours.isPsychdelicMode)
-                    {
-                        ChangeState(PLAYER_DRUNKRUN);
-                    }
-        
-                }
-
-                //player.AdjustAnimationSpeed(walkAnimFactor);
-
-                Debug.Log("Cursor Distance:" + cursorDistance);
-                Debug.Log("Speed:" + agent.speed);
-
-                agent.isStopped = false;
-                agent.acceleration = 10000;
-
-                //float runThreshold = cursorDistance / 2;
-            }
+            return;
         }
-
-        return;
     }
 
     float defaultStoppingDistance = 0f;
@@ -339,10 +342,19 @@ public class PlayerWalk : MonoBehaviour
         player.ChangeAnimationState(newState);
     }
 
+    bool stopOverride = false;
+
     public void StopAgentOverride()
     {
+        stopOverride = true;
+
         agent.ResetPath();
         agent.isStopped = true;
+    }
+
+    public void CancelAgentOverride()
+    {
+        stopOverride = false;
     }
 
 }

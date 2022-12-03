@@ -58,20 +58,26 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_SITTINGFLOORIDLE = "Player_SittingFloorIdle";
     const string PLAYER_STANDUPFROMSIT = "Player_StandUpFromSit";
 
+    const string PLAYER_THUNDERSTRUCK = "Player_thunderstruck";
+    const string PLAYER_FALLFLATONFLOOR = "Player_FallFlatOnFloor";
+    const string PLAYER_FACEDOWNIDLE = "Player_FaceDownIdle"; 
+
+    const string PLAYER_STANDUPFROMFLOOR = "Player_StandUpFromFloor";
+
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
 
     private float animationLength;
 
     public AreaManager areaManager;
 
-    public ToolControl wield;
+    public ToolControl tool;
 
     public GameObject wieldedStoneAxe;
     public GameObject sheathedStoneAxe;
 
     void Start()
     {
-        wield.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
+        tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
     }
 
     public void ChooseBehaviour(string selected, GameObject hitObject)
@@ -132,13 +138,41 @@ public class CharacterBehaviours : MonoBehaviour
 
     public void SheatheItem()
     {
-        wield.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
+        tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
     }
 
     [SerializeField] float godRayDuration = 5f;
     [SerializeField] int sizeDivide = 10;
+    [SerializeField] private LightningStrike lightning;
 
-    public IEnumerator Pray(GameObject hitObject)
+    public IEnumerator Electrocution() { 
+    
+        behaviourIsActive = true;
+
+        playerWalk.StopAgentOverride();
+
+        player.ChangeAnimationState(PLAYER_THUNDERSTRUCK);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+
+        yield return new WaitUntil(() => !lightning.lightningActive);
+
+        player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+
+        player.ChangeAnimationState(PLAYER_STANDUPFROMFLOOR);
+        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+
+        player.ChangeAnimationState(PLAYER_IDLE);
+
+        behaviourIsActive = false;
+        //cinematicCam.ToGameZoom();
+
+        playerWalk.CancelAgentOverride();
+
+        yield break;
+
+    }
+        public IEnumerator Pray(GameObject hitObject)
     {
         behaviourIsActive = true;
 
@@ -317,7 +351,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator HarvestTree()
     {
-        wield.Wield(wieldedStoneAxe, sheathedStoneAxe);
+        tool.Wield(wieldedStoneAxe, sheathedStoneAxe);
 
         behaviourIsActive = true;
 
@@ -343,7 +377,7 @@ public class CharacterBehaviours : MonoBehaviour
     public IEnumerator KindleFire(GameObject hitObject)
     {
 
-        wield.Wield(wieldedStoneAxe, sheathedStoneAxe);
+        tool.Wield(wieldedStoneAxe, sheathedStoneAxe);
 
         behaviourIsActive = true;
 

@@ -94,8 +94,7 @@ public class GodRayControl : MonoBehaviour
 
         } else if (timeElapsed >= duration && !manuallyCease)
         {
-            yield return new WaitUntil(() => !characterBehaviours.behaviourIsActive);
-
+           
             StartCoroutine(Retreat(godRay));
 
             yield break;
@@ -112,16 +111,16 @@ public class GodRayControl : MonoBehaviour
 
         float lerpAura;
 
-        while (timeElapsed <= duration)
+        while (timeElapsed <= 1f)
         {
-            lerpAura = Mathf.Lerp(maxIntensity, minIntensity, timeElapsed / duration);
+            lerpAura = Mathf.Lerp(maxIntensity, minIntensity, timeElapsed);
             godRayMat.SetFloat("_AuraIntensity", lerpAura);
 
-            timeElapsed += Time.deltaTime;
+            timeElapsed += Time.deltaTime / duration;
             yield return null;
         }
 
-        if (timeElapsed >= duration)
+        if (timeElapsed >= 1f)
         {
             Destroy(godRay);
 

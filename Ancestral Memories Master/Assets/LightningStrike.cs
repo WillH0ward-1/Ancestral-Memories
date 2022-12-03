@@ -7,16 +7,22 @@ public class LightningStrike : MonoBehaviour
     [SerializeField] private GameObject lightningPrefab;
     [SerializeField] private Transform target;
 
-    [SerializeField] private float lightningSpeed = 1f;
-    [SerializeField] private float lightningDuration;
+    [SerializeField] private float duration = 1f;
     [SerializeField] private Vector3 minScale;
     [SerializeField] private Vector3 maxScale;
 
     [SerializeField] private float yOffset = 45f;
 
-    private bool lightningActive = false;
+    public bool lightningActive = false;
 
     Light lightningLight;
+
+    public CharacterBehaviours behaviours;
+    private DisasterManager naturalDisaster;
+
+    private float lightIntensity = 15f;
+
+    private LightningSoundEffects lightningSFX;
 
     // Start is called before the first frame update
 
@@ -25,19 +31,23 @@ public class LightningStrike : MonoBehaviour
         lightningLight = transform.GetComponentInChildren<Light>();
         lightningLight.transform.gameObject.SetActive(false);
     }
-    void StrikeLightning()
+
+    public void StrikeLightning(Transform target)
     {
         if (!lightningActive)
         {
-            lightningActive = true;
-            StartCoroutine(Strike(target.transform, lightningSpeed));
+            //StartCoroutine(behaviours.Electrocution());
+            //lightningSFX.PlayLightningStrike();
+            StartCoroutine(Strike(target.transform, duration));
         } 
     }
 
     private IEnumerator Strike(Transform target, float duration)
     {
+        lightningActive = true;
+
         lightningLight.transform.gameObject.SetActive(true);
-        lightningLight.intensity = 100f;
+        lightningLight.intensity = lightIntensity;
 
         Debug.Log("Lightning!");
 
@@ -47,18 +57,17 @@ public class LightningStrike : MonoBehaviour
 
         lightning.transform.localScale = minScale;
 
-        float timeElapsed = 0;
+        float time = 0;
 
-        while (timeElapsed < 1f)
+        while (time <= 1f)
         {
-            lightning.transform.localScale = Vector3.Lerp(minScale, maxScale, timeElapsed);
-            timeElapsed += Time.deltaTime / duration;
+            lightning.transform.localScale = Vector3.Lerp(minScale, maxScale, time);
+            time += Time.deltaTime / duration;
             yield return null;
         }
 
-        if (timeElapsed >= 1f)
+        if (time >= 1f)
         {
-            yield return new WaitForSeconds(lightningDuration);
             yield return Retreat(lightning, duration);
         }
 
@@ -71,19 +80,20 @@ public class LightningStrike : MonoBehaviour
         lightningLight.transform.gameObject.SetActive(false);
         lightningLight.intensity = 0f;
 
-        float timeElapsed = 0;
+        float time = 0;
 
-        while (timeElapsed < 1f)
+        while (time <= 1f)
         {
-            lightning.transform.localScale = Vector3.Lerp(maxScale, minScale, timeElapsed);
-            timeElapsed += Time.deltaTime / duration;
+            lightning.transform.localScale = Vector3.Lerp(maxScale, minScale, time);
+            time += Time.deltaTime / duration;
             yield return null;
         }
 
-        if (timeElapsed >= 1f)
+        if (time >= 1f)
         {
-            Destroy(lightning);
             lightningActive = false;
+            StartCoroutine(naturalDisaster.DisasterCoolDown());
+            Destroy(lightning);
             yield break;
         }
     }

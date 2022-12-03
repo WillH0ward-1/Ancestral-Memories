@@ -164,15 +164,17 @@ public class MapObjGen : MonoBehaviour
         //sampleWidth = meshSettings.meshWorldSize;
         //sampleHeight = meshSettings.meshWorldSize;
 
-        ResetPosOffset();
+        ResetPosOffset(mapObject.transform);
 
-        sampleWidth = meshSettings.meshWorldSize;
-        sampleHeight = meshSettings.meshWorldSize;
+        sampleWidth = meshSettings.MeshWorldSize;
+        sampleHeight = meshSettings.MeshWorldSize;
 
         xOffset = -sampleWidth / 2;
         zOffset = -sampleHeight / 2;
 
         //mapObjectList.Clear();
+
+        GenerateOceanEmitters(sampleWidth, sampleHeight);
 
         PoissonDiscSampler treeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTreeRadius);
         PoissonDiscSampler appleTreeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAppleTreeRadius);
@@ -194,14 +196,48 @@ public class MapObjGen : MonoBehaviour
         MushroomPoissonDisc(mushroomSampler);
         FireWoodPoissonDisc(fireWoodSampler);
 
-        SetOffset();
+        SetOffset(mapObject.transform);
 
         GroundCheck();
         //SortTreeTypes(treeList);
     }
 
+    private List<Vector3> XspawnPositions;
+    private List<Vector3> ZspawnPositions;
+
+    [SerializeField] GameObject EmitterHierarchyParent;
+    [SerializeField] GameObject OceanSoundEmitter;
+
     void GenerateOceanEmitters(float sampleWidth, float sampleHeight)
     {
+        float halfWidth = sampleWidth / 2;
+        float halfLength = sampleHeight / 2;
+        float initY = 0;
+
+        Vector3 positiveX = new(halfLength, initY, 0);
+        Vector3 positiveZ = new(0, initY, halfWidth);
+
+        Vector3 negativeX = new(-halfLength, initY, 0);
+        Vector3 negativeZ = new(0, initY, -halfWidth);
+
+        XspawnPositions.Add(positiveX);
+        XspawnPositions.Add(negativeX);
+
+        ZspawnPositions.Add(positiveZ);
+        ZspawnPositions.Add(negativeZ);
+
+        foreach(Vector3 spawnPoint in XspawnPositions)
+        {
+            GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
+        }
+
+        foreach (Vector3 spawnPoint in ZspawnPositions)
+        {
+            GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
+        }
+
+
+
 
     }
 
@@ -815,14 +851,14 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    void SetOffset()
+    void SetOffset(Transform offsetObject)
     {
-        mapObject.transform.position = new Vector3(xOffset, initY, zOffset);
+        offsetObject.position = new Vector3(xOffset, initY, zOffset);
     }
 
-    void ResetPosOffset()
+    void ResetPosOffset(Transform offsetObject)
     {
-        mapObject.transform.position = new Vector3(0, initY, 0);
+        offsetObject.position = new Vector3(0, initY, 0);
     }
 
     public void Clear()
@@ -832,7 +868,7 @@ public class MapObjGen : MonoBehaviour
         if (Application.isEditor)
         {
 
-            ResetPosOffset();
+            ResetPosOffset(mapObject.transform);
 
             while (hierarchyRoot.transform.childCount != 0)
             {
@@ -847,11 +883,24 @@ public class MapObjGen : MonoBehaviour
                 }
             }
 
+            while (EmitterHierarchyParent.transform.childCount != 0)
+            {
+                foreach (Transform child in EmitterHierarchyParent.transform)
+                {
+                    DestroyImmediate(child.gameObject);
+                    if (EmitterHierarchyParent.transform.childCount != 0)
+                    {
+                        continue;
+                    }
+
+                }
+            }
+
         }
         else
 
         {
-            ResetPosOffset();
+            ResetPosOffset(mapObject.transform);
 
             while (hierarchyRoot.transform.childCount != 0)
             {
@@ -863,6 +912,19 @@ public class MapObjGen : MonoBehaviour
                         continue;
 
                     }
+                }
+            }
+
+            while (EmitterHierarchyParent.transform.childCount != 0)
+            {
+                foreach (Transform child in EmitterHierarchyParent.transform)
+                {
+                    Destroy(child.gameObject);
+                    if (EmitterHierarchyParent.transform.childCount != 0)
+                    {
+                        continue;
+                    }
+
                 }
             }
         }

@@ -15,12 +15,14 @@
 		<property name="initialValue">
 			<value>0</value>
 		</property>
+		<property name="seekSpeed">
+			<value>1</value>
+		</property>
 		<relationship name="automators">
 			<destination>{e4bac03e-aec1-4415-a4c1-198846f19b82}</destination>
 		</relationship>
 		<relationship name="modulators">
 			<destination>{4eb78faf-8efe-405e-a8cb-cae395183744}</destination>
-			<destination>{7713013b-d832-4586-ab34-58b318e85f84}</destination>
 		</relationship>
 	</object>
 	<object class="Automator" id="{e4bac03e-aec1-4415-a4c1-198846f19b82}">
@@ -44,13 +46,44 @@
 		<property name="direction">
 			<value>32</value>
 		</property>
+		<relationship name="automators">
+			<destination>{aa053e24-c7d5-40ae-aa99-0a56a3901fe3}</destination>
+		</relationship>
 	</object>
-	<object class="RandomizerModulator" id="{7713013b-d832-4586-ab34-58b318e85f84}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>cursorPosition</value>
+	<object class="Automator" id="{aa053e24-c7d5-40ae-aa99-0a56a3901fe3}">
+		<property name="nameOfPropertyBeingAutomated">
+			<value>rate</value>
 		</property>
-		<property name="amount">
-			<value>100</value>
+		<relationship name="automationCurves">
+			<destination>{c1592413-5054-4818-95c0-0c5b9a59e7cc}</destination>
+		</relationship>
+	</object>
+	<object class="AutomationCurve" id="{c1592413-5054-4818-95c0-0c5b9a59e7cc}">
+		<relationship name="parameter">
+			<destination>{bf81465f-266d-4715-a208-f791bf514cd9}</destination>
+		</relationship>
+		<relationship name="automationPoints">
+			<destination>{4e4222a9-a5c0-4b9e-bc06-8e8a8054a4bb}</destination>
+			<destination>{fc80947a-a1c0-4c32-aee0-989b9aa58cc3}</destination>
+		</relationship>
+	</object>
+	<object class="AutomationPoint" id="{4e4222a9-a5c0-4b9e-bc06-8e8a8054a4bb}">
+		<property name="position">
+			<value>0</value>
+		</property>
+		<property name="value">
+			<value>0</value>
+		</property>
+		<property name="curveShape">
+			<value>0.281484634</value>
+		</property>
+	</object>
+	<object class="AutomationPoint" id="{fc80947a-a1c0-4c32-aee0-989b9aa58cc3}">
+		<property name="position">
+			<value>1</value>
+		</property>
+		<property name="value">
+			<value>3</value>
 		</property>
 	</object>
 </objects>

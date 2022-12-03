@@ -58,13 +58,13 @@ public class CorruptionControl : MonoBehaviour
         meshRenderer.sharedMaterial.SetFloat("_Alpha", currentCorruption);
     }
 
-    private void Corruption(int corruption, int maxCorruption)
+    private void Corruption(float corruption, float minCorruption, float maxCorruption)
     {
-        targetCorruption = (float)corruption / maxCorruption;
+        targetCorruption = corruption / maxCorruption;
     }
 
-    private void Alpha(int alpha, int maxAlpha)
+    private void Alpha(float alpha, float minAlpha, float maxAlpha)
     {
-        targetAlpha = (float)alpha / maxAlpha;
+        targetAlpha = alpha / maxAlpha;
     }
 }
