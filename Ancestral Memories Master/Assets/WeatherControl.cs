@@ -68,8 +68,8 @@ public class WeatherControl : MonoBehaviour
     [SerializeField]
     private CharacterClass player;
 
-    private void OnEnable() => player.OnFaithChanged -= WindStrength;
-    private void OnDisable() => player.OnFaithChanged += WindStrength;
+    private void OnEnable() => player.OnFaithChanged += WindStrength;
+    private void OnDisable() => player.OnFaithChanged -= WindStrength;
 
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {

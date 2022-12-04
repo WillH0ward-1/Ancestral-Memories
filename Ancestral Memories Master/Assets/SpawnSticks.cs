@@ -6,7 +6,7 @@ public class SpawnSticks : MonoBehaviour
 {
     private Transform tree;
     [SerializeField] private GameObject[] sticks;
-    private Mesh mesh;
+    [SerializeField] private Mesh mesh;
     private Vector3[] vertices;
 
     private float dropRate;
@@ -33,7 +33,7 @@ public class SpawnSticks : MonoBehaviour
     private void Awake()
     {
         tree = transform.parent;
-        mesh = GetComponent<MeshFilter>().mesh;
+        mesh = transform.GetComponent<MeshFilter>().mesh;
         vertices = mesh.vertices;
         StartCoroutine(
                 DropStick());
@@ -52,12 +52,10 @@ public class SpawnSticks : MonoBehaviour
     {
         Vector3 randomVertices = vertices[Random.Range(0, vertices.Length)];
 
-            GameObject stickInstance = Instantiate(sticks[Random.Range(0, sticks.Length)], tree.localToWorldMatrix.MultiplyPoint3x4(randomVertices), Quaternion.identity);
-            Rigidbody stickRigidBody = stickInstance.GetComponent<Rigidbody>();
+        GameObject stickInstance = Instantiate(sticks[Random.Range(0, sticks.Length)], tree.localToWorldMatrix.MultiplyPoint3x4(randomVertices), Quaternion.identity);
+        Rigidbody stickRigidBody = stickInstance.GetComponent<Rigidbody>();
 
         ScaleControl stickGrowControl = stickRigidBody.transform.GetComponent<ScaleControl>();
-
-        stickRigidBody.GetComponent<Rigidbody>().isKinematic = true;
 
         Vector3 appleScaleDestination = new(maxStickScale.x, minStickScale.y, minStickScale.z);
         stickRigidBody.GetComponent<Renderer>().enabled = true;
@@ -65,6 +63,7 @@ public class SpawnSticks : MonoBehaviour
         StartCoroutine(stickGrowControl.LerpScale(stickInstance.transform.gameObject, zeroScale, appleScaleDestination, stickGrowDuration, stickGrowthDelay));
         StartCoroutine(generator.WaitUntilGrown(stickInstance, stickGrowControl));
         //stickInstance.transform.SetParent(flammableObject.transform, true);
+
 
         yield return new WaitForSeconds(dropRate);
             StartCoroutine(DropStick());

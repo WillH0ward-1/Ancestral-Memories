@@ -63,6 +63,8 @@ public class TerrainGenerator : MonoBehaviour {
 		return null;
     }
 
+	[SerializeField] private RainControl rainControl;
+
 	void Start() {
 
 		textureSettings.ApplyToMaterial(mapMaterial);
@@ -83,7 +85,7 @@ public class TerrainGenerator : MonoBehaviour {
 			CorruptionControl corruptionControl = tmp.AddComponent<CorruptionControl>();
 			LerpTerrain lerpTerrain = tmp.AddComponent<LerpTerrain>();
 			lerpTerrain.player = player;
-
+			rainControl.lerpTerrain = lerpTerrain;
 			corruptionControl.player = player;
 
 			//interactable.name = "Plant";

@@ -44,12 +44,20 @@ public class LerpTerrain : MonoBehaviour
     }
 
 
-    public IEnumerator GrowGrass()
+    public IEnumerator GrowGrass(float duration)
     {
 
-        ToState(Wet);
+        ToState(Wet, duration);
         yield break;
         
+    }
+
+    public IEnumerator DryGrass(float duration)
+    {
+
+        ToState(Oasis, duration);
+        yield break;
+
     }
 
     private IEnumerator ChanceOfDrought()
@@ -59,8 +67,9 @@ public class LerpTerrain : MonoBehaviour
 
         if (!weather.isRaining)
         {
-            ToState(Desert);
-        } else
+            ToState(Desert, 15f);
+        }
+        else if (weather.isRaining)
         {
             StartCoroutine(ChanceOfDrought());
             yield return null;
@@ -69,10 +78,10 @@ public class LerpTerrain : MonoBehaviour
         yield return null;
     }
 
-    void ToState(float state)
+    void ToState(float state, float duration)
     {
 
-        StopCoroutine(LerpTerrainTexture(0, 0));
+        //StopCoroutine(LerpTerrainTexture(0, 0));
 
         targetState = state;
         StartCoroutine(LerpTerrainTexture(duration, targetState));
@@ -95,7 +104,7 @@ public class LerpTerrain : MonoBehaviour
                 float state = r.sharedMaterial.GetVector("_VertexTile").y;
 
                 time += Time.deltaTime / duration;
-                state = Mathf.Lerp(state, targetState, time);
+                state = Mathf.Lerp(state, targetState, time / duration);
    
                 r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, state, 0, 0));
                 yield return null;
