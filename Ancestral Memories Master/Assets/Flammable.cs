@@ -55,6 +55,7 @@ public class Flammable : MonoBehaviour
 
         return scalar;
     }
+
     private IEnumerator CatchFire()
     {
         int sampleDensity = vertices.Length / vertSampleFactor;

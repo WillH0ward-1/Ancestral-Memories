@@ -73,28 +73,27 @@ public class GodRayControl : MonoBehaviour
         Vector3 sizeCalculated = target.transform.GetComponentInChildren<Renderer>().bounds.size / sizeDivide;
         godRay.transform.localScale = sizeCalculated;
 
-        float timeElapsed = 0;
+        float time = 0;
 
         float lerpAura;
 
-        while (timeElapsed <= duration)
+        while (time <= 1f)
         {
-            lerpAura = Mathf.Lerp(minIntensity, maxIntensity, timeElapsed);
+            lerpAura = Mathf.Lerp(minIntensity, maxIntensity, time);
             godRayMat.SetFloat("_AuraIntensity", lerpAura);
 
-            timeElapsed += Time.deltaTime / duration;
+            time += Time.deltaTime / duration;
             yield return null;
         }
 
-        if (timeElapsed >= duration && manuallyCease)
+        if (time >= 1f && manuallyCease)
         {
-            yield return new WaitForSeconds(godRayDuration);
-            yield return Retreat(godRay);
+            StartCoroutine(Retreat(godRay));
             yield break;
 
-        } else if (timeElapsed >= duration && !manuallyCease)
+        } else if (time >= 1 && !manuallyCease)
         {
-           
+            yield return new WaitUntil(() => !characterBehaviours.behaviourIsActive);
             StartCoroutine(Retreat(godRay));
 
             yield break;

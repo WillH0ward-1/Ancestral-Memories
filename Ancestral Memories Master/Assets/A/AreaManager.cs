@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+
 public class AreaManager : MonoBehaviour
 {
     public CharacterBehaviours behaviours;
@@ -14,9 +15,7 @@ public class AreaManager : MonoBehaviour
     [SerializeField] private Camera currentCam;
     [SerializeField] private Camera newCam;
 
-    private enum Room {Outside, InsideCave};
-
-    private Room currentRoom;
+    public string currentRoom = "";
 
     private GameObject room;
 
@@ -26,16 +25,20 @@ public class AreaManager : MonoBehaviour
 
     private RaycastHit nullHit;
 
+    [SerializeField] private CircleWipeController transition;
+
     private void Start()
     {
         traversing = false;
-        currentRoom = Room.Outside;
+        currentRoom = "Outside";
 
     }
 
     public IEnumerator Teleport(NavMeshAgent traveller, Transform targetDestination, GameObject tempPortal)
     {
         cineCam.EnterRoomZoom(tempPortal);
+
+        transition.FadeOut();
 
         Portal portal = targetDestination.GetComponentInChildren<Portal>();
 
@@ -44,6 +47,8 @@ public class AreaManager : MonoBehaviour
         StartCoroutine(ExitPortal(portal));
 
         yield return new WaitUntil(() => !traversing);
+
+        transition.FadeIn();
 
         yield break;
     }
@@ -54,7 +59,6 @@ public class AreaManager : MonoBehaviour
     {
         traversing = true;
         isEntering = true;
-
 
         GameObject enterPortal = FindGameObjectInChildWithTag(interactedPortal, "Portal");
         Portal portal = enterPortal.GetComponent<Portal>();
@@ -73,6 +77,9 @@ public class AreaManager : MonoBehaviour
 
     public IEnumerator ExitPortal(Portal portal)
     {
+        string area = portal.exitPortal.GetComponent<AreaName>().areaName;
+        currentRoom = area;
+
         isEntering = false;
 
         StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null, null, nullHit));

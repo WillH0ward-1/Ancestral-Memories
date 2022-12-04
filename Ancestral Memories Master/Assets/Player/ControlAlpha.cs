@@ -68,41 +68,39 @@ public class ControlAlpha : MonoBehaviour
 
     }
 
-    void Update()
+    public void SwitchHumanState()
     {
-        if (Input.GetKeyDown("space"))
-        {
-            if (!playerIsTransforming) {
+        if (!playerIsTransforming) {
 
-                playerIsHuman = !playerIsHuman; 
+            playerIsHuman = !playerIsHuman; 
 
-                player.Assign();
+            player.Assign();
 
-                StartCoroutine(Fade());
-                StartCoroutine(StartBlendShape());
+            StartCoroutine(Fade());
+            StartCoroutine(StartBlendShape());
 
-                //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
-            }
-        }
-
-        if (Input.GetKeyDown("up"))
-        {
-            if (!playerIsTransforming)
-            {
-                playerIsSkeleton = !playerIsSkeleton;
-
-                player.Assign();
-
-                StartCoroutine(FadeSkeleton());
-
-                if (!playerIsHuman)
-                {
-                    StartCoroutine(StartBlendShape());
-                }
-                //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
-            }
+            //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
         }
     }
+
+    public void SwitchSkeleton()
+    {
+        if (!playerIsTransforming)
+        {
+            playerIsSkeleton = !playerIsSkeleton;
+
+            player.Assign();
+
+            StartCoroutine(FadeSkeleton());
+            StartCoroutine(Fade());
+            if (!playerIsHuman)
+            {
+                StartCoroutine(StartBlendShape());
+            }
+            //Debug.Log("playerIsMonkey?: " + playerIsMonkey);
+        }
+    }
+    
 
 
     void CheckRenderers()
@@ -146,11 +144,9 @@ public class ControlAlpha : MonoBehaviour
         skeletonCurrentAlphaValue = playerIsSkeleton ? minAlpha : maxAlpha;
         skeletonTargetAlphaValue = playerIsSkeleton ? maxAlpha : minAlpha;
 
-
-
         float t = 0f;
 
-        while (t < 1f)
+        while (t <= 1f)
         {
 
             t += Time.deltaTime / lerpDuration;
@@ -187,9 +183,14 @@ public class ControlAlpha : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(retriggerBuffer);
-        playerIsTransforming = false;
-        CheckRenderers();
+        if (t >= 1f)
+        {
+            CheckRenderers();
+            playerIsTransforming = false;
+        }
+
+
+ 
 
     }
 
@@ -236,13 +237,13 @@ public class ControlAlpha : MonoBehaviour
                 }
             }
 
-            yield return null;
+            if (t >= 1)
+            {
+                yield return null;
+                playerIsTransforming = false;
+                CheckRenderers();
+            }
         }
-
-        yield return new WaitForSeconds(retriggerBuffer);
-        playerIsTransforming = false;
-        CheckRenderers();
-        
     }
 
     IEnumerator StartBlendShape()
@@ -264,12 +265,12 @@ public class ControlAlpha : MonoBehaviour
             }
         }
 
-        float timeElapsed = 0;
+        float time = 0;
 
-        while (timeElapsed <= blendShapeDuration)
+        while (time <= 1f)
         {
-            float lerpVal = Mathf.Lerp(currentBlendShapeWeight, targetBlendShapeWeight, timeElapsed / blendShapeDuration);
-            timeElapsed += Time.deltaTime;
+            float lerpVal = Mathf.Lerp(currentBlendShapeWeight, targetBlendShapeWeight, time);
+            time += Time.deltaTime / blendShapeDuration;
 
             meshRenderer.SetBlendShapeWeight(blendShapeIndex, lerpVal);
 

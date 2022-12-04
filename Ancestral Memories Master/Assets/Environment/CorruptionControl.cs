@@ -19,43 +19,40 @@ public class CorruptionControl : MonoBehaviour
     private float targetAlpha = 0f;
     private float currentAlpha = 1f;
 
-    private float corruptionMultiplier = 1f;
-
-    [SerializeField] private Player characterClass;
+   public Player player;
 
     // Start is called before the first frame update
 
     void Start()
     {
 
-        GameObject player = GameObject.FindGameObjectWithTag(playerTag);
-
-        characterClass = player.GetComponent<Player>();
-
-        meshRenderer = GetComponent<Renderer>();
+        meshRenderer = transform.GetComponent<Renderer>();
 
     }
 
     private void OnEnable()
     {
-        characterClass.OnFaithChanged -= Corruption;
-        characterClass.OnFaithChanged += Alpha;
+        player.OnFaithChanged -= Corruption;
+        player.OnFaithChanged += Alpha;
     }
 
     private void OnDisable()
     {
-        characterClass.OnFaithChanged += Corruption;
-        characterClass.OnFaithChanged -= Alpha;
+        player.OnFaithChanged += Corruption;
+        player.OnFaithChanged -= Alpha;
     }
+
+    float time = 0;
 
     // Update is called once per frame
     void Update()
     {
-        currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, corruptionMultiplier * Time.deltaTime);
-        currentAlpha = Mathf.Lerp(currentAlpha, targetAlpha, corruptionMultiplier * Time.deltaTime);
+        currentCorruption = targetCorruption;
+        currentAlpha = targetAlpha;
 
         meshRenderer.sharedMaterial.SetFloat("_Corruption", currentCorruption);
-        meshRenderer.sharedMaterial.SetFloat("_Alpha", currentCorruption);
+        meshRenderer.sharedMaterial.SetFloat("_Alpha", currentAlpha);
+
     }
 
     private void Corruption(float corruption, float minCorruption, float maxCorruption)

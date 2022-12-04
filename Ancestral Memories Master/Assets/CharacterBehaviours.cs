@@ -63,6 +63,7 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_FACEDOWNIDLE = "Player_FaceDownIdle"; 
 
     const string PLAYER_STANDUPFROMFLOOR = "Player_StandUpFromFloor";
+    const string PLAYER_DROWN = "Player_Drown";
 
     public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
 
@@ -75,9 +76,14 @@ public class CharacterBehaviours : MonoBehaviour
     public GameObject wieldedStoneAxe;
     public GameObject sheathedStoneAxe;
 
+    [SerializeField] private ControlAlpha costumeControl;
+
+    [SerializeField] private CheckIfUnderwater waterCheck;
+
     void Start()
     {
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
+        waterCheck = player.GetComponent<CheckIfUnderwater>();
     }
 
     public void ChooseBehaviour(string selected, GameObject hitObject)
@@ -111,7 +117,7 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(areaManager.EnterPortal(hitObject));
                 break;
             case "EatApple":
-                StartCoroutine(PickApple());
+                StartCoroutine(PickupApple());
                 break;
             case "KindleFire":
                 StartCoroutine(KindleFire(hitObject));
@@ -142,8 +148,11 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
     [SerializeField] float godRayDuration = 5f;
-    [SerializeField] int sizeDivide = 10;
     [SerializeField] private LightningStrike lightning;
+
+    int randChance;
+    int randTarget = 1;
+    private bool isSkeleton = false;
 
     public IEnumerator Electrocution() { 
     
@@ -151,28 +160,59 @@ public class CharacterBehaviours : MonoBehaviour
 
         playerWalk.StopAgentOverride();
 
+        int randChance = Random.Range(0, 2);
+        int randTarget = 1;
+
+        if (randChance == randTarget)
+        {
+            costumeControl.SwitchSkeleton();
+            isSkeleton = true;
+        }
+
         player.ChangeAnimationState(PLAYER_THUNDERSTRUCK);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
-        yield return new WaitUntil(() => !lightning.lightningActive);
-
-        player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        if (isSkeleton)
+        {
+            costumeControl.SwitchSkeleton();
+            isSkeleton = false;
+        }
 
         player.ChangeAnimationState(PLAYER_STANDUPFROMFLOOR);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
 
-        player.ChangeAnimationState(PLAYER_IDLE);
+        if (!Input.GetMouseButtonDown(0))
+        {
+            yield return new WaitForSeconds(player.GetAnimLength());
 
-        behaviourIsActive = false;
+            behaviourIsActive = false;
+            playerWalk.CancelAgentOverride();
+
+            yield break;
+        }
+        else if (Input.GetMouseButtonDown(0))
+        {
+            behaviourIsActive = false;
+            playerWalk.CancelAgentOverride();
+            yield break;
+        }
+
         //cinematicCam.ToGameZoom();
 
-        playerWalk.CancelAgentOverride();
+    }
+
+    public IEnumerator Drown()
+    {
+        behaviourIsActive = true;
+
+        player.ChangeAnimationState(PLAYER_DROWN);
+        yield return new WaitForSeconds(player.GetAnimLength());
+
+             behaviourIsActive = false;
 
         yield break;
 
     }
-        public IEnumerator Pray(GameObject hitObject)
+    public IEnumerator Pray(GameObject hitObject)
     {
         behaviourIsActive = true;
 
@@ -184,6 +224,14 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToPrayerZoom();
 
+        if (!hitObject.CompareTag("Player"))
+        {
+            StartCoroutine(cinematicCam.MoveCamToPosition(backFacingPivot, lookAtTarget, camMoveDuration));
+        } else
+        {
+            StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        }
+
         StartCoroutine(GainFaith());
         god.StartGodRay(hitObject.transform, false, godRayDuration);
 
@@ -192,7 +240,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
 
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
@@ -234,6 +282,8 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
     public GameObject frontFacingPivot;
+    public GameObject frontFacingAngledPivot;
+    public GameObject backFacingPivot;
     public GameObject lookAtTarget;
 
     public IEnumerator PickMushroom()
@@ -242,7 +292,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, 15f));
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -267,13 +317,13 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
 
-    public IEnumerator PickApple()
+    public IEnumerator PickupApple()
     {
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, 15f));
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -291,15 +341,16 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         behaviourIsActive = false;
         player.ChangeAnimationState(PLAYER_IDLE);
@@ -314,12 +365,13 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_SITONFLOOR);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_SITTINGFLOORIDLE);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -349,17 +401,44 @@ public class CharacterBehaviours : MonoBehaviour
         }
     }
 
+    [SerializeField] float minAnimationSpeed = 1;
+    [SerializeField] float maxAnimationSpeed = 4;
+    float speed;
+
+    private float camMoveDuration = 1f;
+
     public IEnumerator HarvestTree()
     {
         tool.Wield(wieldedStoneAxe, sheathedStoneAxe);
 
         behaviourIsActive = true;
 
-        player.ChangeAnimationState(PLAYER_HARVEST_TREE);
+       
+        float time = 0;
+
+        speed = Random.Range(minAnimationSpeed, maxAnimationSpeed);
+
+        while (time <= speed && !Input.GetMouseButtonDown(0))
+        {
+            speed = Random.Range(minAnimationSpeed, maxAnimationSpeed);
+
+            minAnimationSpeed = player.activeAnimator.speed;
+
+            player.ChangeAnimationState(PLAYER_HARVEST_TREE);
+            player.activeAnimator.speed = Mathf.Lerp(minAnimationSpeed, speed, time);
+
+            time += Time.deltaTime / speed;
+
+            yield return null;
+        }
+
         cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        player.activeAnimator.speed = 1f;
 
         player.ChangeAnimationState(PLAYER_IDLE);
 
@@ -382,12 +461,13 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_KINDLEFIRE);
-        yield return new WaitForSeconds(player.GetAnimLength(player.activeAnimator));
+        yield return new WaitForSeconds(player.GetAnimLength());
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));

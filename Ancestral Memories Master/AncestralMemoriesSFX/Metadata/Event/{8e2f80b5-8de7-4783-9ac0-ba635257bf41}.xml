@@ -89,6 +89,9 @@
 	</object>
 	<object class="MixerBusPanner" id="{66a18149-2057-4796-8c29-e5e25f4b642f}" />
 	<object class="SingleSound" id="{1ec489d7-91d3-4da0-8732-5e940155e248}">
+		<property name="triggerProbabilityEnabled">
+			<value>true</value>
+		</property>
 		<property name="length">
 			<value>1.3095011337868481</value>
 		</property>
@@ -145,7 +148,7 @@
 			<value>-80</value>
 		</property>
 		<property name="attackTime">
-			<value>0</value>
+			<value>100</value>
 		</property>
 		<property name="peakValue">
 			<value>-1.15555573</value>
@@ -159,7 +162,7 @@
 			<value>pitch</value>
 		</property>
 		<property name="amount">
-			<value>31.5</value>
+			<value>29.5</value>
 		</property>
 	</object>
 	<object class="ADSRModulator" id="{b1f62cda-b4f9-4f67-9afe-15b9fbe50964}">

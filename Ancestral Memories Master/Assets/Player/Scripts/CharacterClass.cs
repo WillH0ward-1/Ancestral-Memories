@@ -81,7 +81,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public List<GameObject> activeAnimators = new List<GameObject>();
     public List<GameObject> inactiveAnimators = new List<GameObject>();
 
-    public float animationCrossFade = 2f;
+    [SerializeField] public float animationCrossFade = 0.1f;
 
     public bool respawn;
 
@@ -127,7 +127,7 @@ public class CharacterClass : MonoBehaviour, IStats
             return;
         }
 
-        if (alphaControl.playerIsHuman == false && !alphaControl.playerIsSkeleton) 
+        else if (alphaControl.playerIsHuman == false && !alphaControl.playerIsSkeleton)
         {
             inactiveAnimators.Remove(apeState);
             activeAnimators.Add(apeState);
@@ -140,7 +140,8 @@ public class CharacterClass : MonoBehaviour, IStats
 
             return;
 
-        } else if (alphaControl.playerIsHuman == true && !alphaControl.playerIsSkeleton){
+        } else if (alphaControl.playerIsHuman == true && !alphaControl.playerIsSkeleton)
+        { 
 
             inactiveAnimators.Remove(humanState);
             activeAnimators.Add(humanState);
@@ -194,7 +195,7 @@ public class CharacterClass : MonoBehaviour, IStats
         currentState = newState;
     }
 
-    public float GetAnimLength(Animator activeAnimator)
+    public float GetAnimLength()
     {
         return activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
@@ -216,27 +217,8 @@ public class CharacterClass : MonoBehaviour, IStats
     {
         Hunger(0.1f);
         DepleteFaith(0.1f);
-        CheckForDrowning();
-
-        // UPDATE PLAYER STATS 
     }
 
-    public virtual void CheckForDrowning()
-    {
-
-        if (underwaterCheck.isUnderwater && underwaterCheck.playerDrowning)
-        {
-            Debug.Log("Drowning!");
-
-            if (hasDied)
-            {
-                ChangeAnimationState(PLAYER_DROWN);
-                underwaterCheck.playerDrowning = false;
-                underwaterCheck.playerHasDrowned = true;
-            }
-        }
-
-    }
 
     public virtual void SetHealth(int value)
     {
@@ -286,11 +268,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
         ChangeAnimationState(PLAYER_REVIVING);
 
-   
-
-        //StartCoroutine(god.TriggerGodRay());
-
-        //godRay.godRay = false;
         hasDied = false;
 
         ChangeAnimationState(PLAYER_IDLE);

@@ -210,6 +210,8 @@ public class PlayerWalk : MonoBehaviour
 
     public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal, RaycastHit rayHit)
     {
+        // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
+
         if (selected == "Drink")
         {
             destination = rayHit.point;
@@ -221,6 +223,11 @@ public class PlayerWalk : MonoBehaviour
             destination = hitObject.transform.position;
             sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = sizeCalculated;
+        }
+
+        if (selected == "Pray")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 2;
         }
 
         if (selected == "HarvestTree")
@@ -284,10 +291,11 @@ public class PlayerWalk : MonoBehaviour
             if (areaManager.isEntering)
             {
                 StartCoroutine(areaManager.Teleport(agent, teleportTarget, tempPortal));
+
             }
             else if (!areaManager.isEntering)
             {
-                Debug.Log("EnteredRoom.");
+                Debug.Log("Entered");
                 StopAgent();
                 Destroy(destinationGizmoInstance);
                 areaManager.traversing = false;

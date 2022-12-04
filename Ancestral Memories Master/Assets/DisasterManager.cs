@@ -7,12 +7,20 @@ public class DisasterManager : MonoBehaviour
     [SerializeField] private LightningStrike lightning;
     [SerializeField] private Player player;
 
+    [SerializeField] private CharacterBehaviours behaviours;
+
+    [SerializeField] private Transform target;
+
+    public bool disasterOccuring = false;
+    public bool disasterCountdown = false;
+
+    [SerializeField] private AreaManager areaManager;
+
     private void Update()
     {
-        if (player.isFaithless && !disasterOccuring && !disasterCountdown)
+        if (!behaviours.behaviourIsActive && !behaviours.dialogueIsActive && player.isFaithless && !disasterOccuring && !disasterCountdown)
         {
             StartCoroutine(DisasterCountdown());
-            return;
         } else
         {
             return;
@@ -24,14 +32,16 @@ public class DisasterManager : MonoBehaviour
         
     }
 
-    public bool disasterOccuring = false;
-    public bool disasterCountdown = false;
 
+
+    [SerializeField] float minCountdown = 10;
+    [SerializeField] float maxCountdown = 30;
 
     public IEnumerator DisasterCountdown()
     {
+  
         disasterCountdown = true;
-        yield return new WaitForSeconds(Random.Range(3, 5));
+        yield return new WaitForSeconds(Random.Range(minCountdown, maxCountdown));
         TriggerDisaster();
         yield break;
 
@@ -40,25 +50,42 @@ public class DisasterManager : MonoBehaviour
 
     void TriggerDisaster()
     {
-        disasterOccuring = true;
-        disasterCountdown = false;
-        lightning.StrikeLightning(player.transform);
-        return;
+        if (!behaviours.behaviourIsActive && !areaManager.traversing)
+        {
+            target = player.transform;
+            disasterOccuring = true;
+            lightning.StrikeLightning(target);
+            return;
+
+        }
+        else if(behaviours.behaviourIsActive && areaManager.traversing)
+        {
+            return;
+        }
     }
+
+    [SerializeField] float minDisasterRetrigger = 10;
+    [SerializeField] float maxDisasterRetrigger = 30;
 
     public IEnumerator DisasterCoolDown()
     {
+        disasterCountdown = false;
         disasterOccuring = false;
-        yield return new WaitForSeconds(Random.Range(3, 5));
 
-        if (player.isFaithless && !disasterOccuring)
+        if (!disasterCountdown)
         {
-            TriggerDisaster();
-            yield break;
+            yield return new WaitForSeconds(Random.Range(minDisasterRetrigger, maxDisasterRetrigger));
 
-        } else if (!player.isFaithless)
-        {
-            yield break;
+            if (player.isFaithless && !disasterOccuring)
+            {
+                TriggerDisaster();
+                yield break;
+
+            }
+            else if (!player.isFaithless)
+            {
+                yield break;
+            }
         }
     }
 

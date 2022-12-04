@@ -6,6 +6,8 @@ public class RainControl : MonoBehaviour
 {
     [SerializeField] private ParticleSystem rainParticles;
 
+    [SerializeField] AreaManager areaManager;
+
     void Start()
     {
         ParticleSystem.EmissionModule emission = rainParticles.emission;
@@ -26,6 +28,9 @@ public class RainControl : MonoBehaviour
 
     public float minWaitForRain = 0f;
     public float maxWaitForRain = 300f;
+
+    private bool isInside;
+  
 
     private void Awake()
     {
@@ -102,26 +107,40 @@ public class RainControl : MonoBehaviour
 
         while (time < duration)
         {
+            if (areaManager.currentRoom == "InsideCave"){
+                StartCoroutine(StopRaining(emission, false));
+            }
+
             time += Time.deltaTime;
             yield return null;
         }
 
-        if (time >= duration)
+        if (time >= duration && areaManager.currentRoom != "InsideCave")
         {
-            StartCoroutine(StopRaining(emission));
+            StartCoroutine(StopRaining(emission, true));
             yield break;
         }
     }
 
-    public IEnumerator StopRaining(ParticleSystem.EmissionModule emission)
+    private bool retrigger = false;
+
+    public IEnumerator StopRaining(ParticleSystem.EmissionModule emission, bool retrigger)
     {
+
         if (isRaining)
         {
             emission.enabled = false;
             isRaining = false;
-            StartCoroutine(ChanceOfRain(emission));
 
-            yield break;
+            if (retrigger)
+            {
+
+                StartCoroutine(ChanceOfRain(emission));
+                yield break;
+            } else
+            {
+                yield break;
+            }
         }
         else
         {

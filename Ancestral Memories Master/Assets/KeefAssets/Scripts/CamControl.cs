@@ -297,17 +297,20 @@ public class CamControl : MonoBehaviour
 
     float approxZoomDestination;
 
+    [SerializeField] float perspectiveDelay = 1;
+
+
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
     {
 
-        lerpParams.lerpType = LerpType.Exponential;
+        lerpParams.lerpType = LerpType.EaseInOutCubic;
         System.Func<float, float> func = Lerp.GetLerpFunction(lerpParams.lerpType);
 
         float zoomMultiplier = 0;
 
         float time = 0f;
 
-        while (time <= 1)
+        while (time <= 1f)
         {
             if (behaviours.isPsychdelicMode && Input.GetMouseButton(0))
             {
@@ -315,21 +318,17 @@ public class CamControl : MonoBehaviour
             }
 
             currentOrthoZoom = cam.orthographicSize;
-            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time));
-
-            //float perspectiveDelay = 2;
+            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time * perspectiveDelay));
 
             currentZoom = rpCamera.perspective;
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, func(time));
-
-            //approxZoomDestination = Mathf.Approximately(currentOrthoZoom, currentZoom);
 
             time += Time.deltaTime / duration;
 
             yield return null;
         }
 
-        if (time >= 1)
+        if (time >= 1f)
         {
             currentZoom = zoomDestination;
             currentOrthoZoom = orthographicTarget;
@@ -360,7 +359,7 @@ public class CamControl : MonoBehaviour
 
         while (time <= 1)
         {
-
+            cam.transform.LookAt(lookTarget);
             cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, func(time));
             time += Time.deltaTime / duration;
 
@@ -369,7 +368,7 @@ public class CamControl : MonoBehaviour
 
         if (time >= 1)
         {
-
+            cam.transform.LookAt(lookTarget);
             yield break;
         }
 

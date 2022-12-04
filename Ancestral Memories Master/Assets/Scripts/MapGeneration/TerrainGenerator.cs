@@ -34,6 +34,8 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private string terrainChunkName = "Terrain Chunk";
 
+	[SerializeField] private Player player;
+
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
 	List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
@@ -78,8 +80,11 @@ public class TerrainGenerator : MonoBehaviour {
 		{
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
-			tmp.AddComponent<CorruptionControl>();
-			tmp.AddComponent<LerpTerrain>();
+			CorruptionControl corruptionControl = tmp.AddComponent<CorruptionControl>();
+			LerpTerrain lerpTerrain = tmp.AddComponent<LerpTerrain>();
+			lerpTerrain.player = player;
+
+			corruptionControl.player = player;
 
 			//interactable.name = "Plant";
 			//interactable.options[0].title = "Plant";

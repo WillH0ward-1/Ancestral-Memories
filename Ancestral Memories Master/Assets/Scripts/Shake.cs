@@ -21,11 +21,11 @@ public class Shake : MonoBehaviour
         if (start)
         {
             start = false;
-            StartCoroutine(Shaking());
+            StartCoroutine(Shaking(duration));
         }
     }
 
-    IEnumerator Shaking()
+    IEnumerator Shaking(float duration)
     {
         instance.start();
 
@@ -42,5 +42,25 @@ public class Shake : MonoBehaviour
             instance.release();
         }
         transform.position = startPosition;
+    }
+
+
+    public IEnumerator ScreenShake(float duration, float strengthMultiplier)
+    {
+        Vector3 startPosition = transform.position;
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            float strength = curve.Evaluate(time / duration);
+            strength *= strengthMultiplier;
+            transform.position = startPosition + Random.insideUnitSphere * strength;
+            yield return null;
+        }
+
+        transform.position = startPosition;
+
+        yield break;
     }
 }

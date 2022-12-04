@@ -7,7 +7,7 @@ using UnityEngine;
 public class CheckIfUnderwater : MonoBehaviour
 {
 
-    [SerializeField] private CharacterClass player;
+    [SerializeField] private Player player;
 
     public bool isUnderwater = false;
 
@@ -15,6 +15,12 @@ public class CheckIfUnderwater : MonoBehaviour
 
     public bool playerHasDrowned = false;
 
+    private CharacterBehaviours behaviours;
+
+    private void Awake()
+    {
+        behaviours = player.GetComponent<CharacterBehaviours>();
+    }
     void Update()
     {
         RaycastHit hit;
@@ -30,7 +36,7 @@ public class CheckIfUnderwater : MonoBehaviour
 
                 if (playerDrowning == false && player.hasDied == false)
                 {
-                    StartCoroutine(StartDrowning());
+                    StartCoroutine(DrownBuffer());
                 }
             }
         }
@@ -43,16 +49,17 @@ public class CheckIfUnderwater : MonoBehaviour
         }
     }
 
-    IEnumerator StartDrowning()
+    IEnumerator DrownBuffer()
     {
         yield return new WaitForSeconds(4f); // wait for this many seconds before taking damage from drowning. // make this value the 'O2' level or 'lung capacity'
 
         if (isUnderwater == true)
         {
-            playerDrowning = true;
+            behaviours.StartCoroutine(behaviours.Drown());
 
         } else if (isUnderwater == false)
         {
+            StopCoroutine(behaviours.Drown());
             yield break;
         }
     }

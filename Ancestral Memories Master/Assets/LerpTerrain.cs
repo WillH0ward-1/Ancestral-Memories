@@ -4,44 +4,45 @@ using UnityEngine;
 
 public class LerpTerrain : MonoBehaviour
 {
-    public Material terrainMaterial;
-
-    [SerializeField]
-    private CharacterClass player;
+    public CharacterClass player;
 
     public float Desert = 0f;
 
-    public float Oasis = 2.2f;
+    public float Oasis = 10f;
 
-    public float Wet = 7.7f;
+    public float Wet = 21f;
 
-    public Renderer[] auraRenderers = new Renderer[0];
+    public List<Material> Materials;
 
-    private float targetState = 1f;
-    private float terrainState = 0;
+    private float targetState = 0f;
+    private float terrainState = 0f;
 
-    public float VertexTileY;
+    [SerializeField] private float duration = 5f;
 
-    public float timeMultiplier = 2;
+    Material material;
 
     // Start is called before the first frame update
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
 
-        terrainState = Desert;
 
-        VertexTileY = terrainMaterial.GetFloat("_VertexTile");
+
+        material = GetComponent<Renderer>().material;
+        Materials.Add(material);
+
 
         StartCoroutine(ChanceOfDrought());
+
+        material.SetVector("_VertexTile", new Vector4(0, Oasis, 0, 0));
     }
 
     private IEnumerator ChanceOfDrought()
     {
         
-        yield return new WaitForSeconds(Random.Range(60f, 300f));
+        yield return new WaitForSeconds(Random.Range(10f, 15f));
 
-        ToState(Oasis);
+        ToState(Desert);
 
         yield return null;
     }
@@ -49,19 +50,40 @@ public class LerpTerrain : MonoBehaviour
     void ToState(float state)
     {
         targetState = state;
+        StartCoroutine(LerpTerrainTexture(duration, targetState));
         return;
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-        terrainState = Mathf.Lerp(terrainState, targetState, timeMultiplier * Time.deltaTime);
 
-        foreach (Renderer renderer in auraRenderers)
+    float time;
+
+    private IEnumerator LerpTerrainTexture(float duration, float targetState)
+    {
+        float time = 0;
+
+        while (time <= 1f)
         {
-            renderer.material.SetFloat("_AuraIntensity", terrainState);
+            terrainState = Mathf.Lerp(terrainState, targetState, time );
+
+            foreach (Material material in Materials)
+            {
+                material.SetVector("_VertexTile", new Vector4(0, terrainState, 0, 0));
+            }
+
+            time += Time.deltaTime / duration;
+
+            yield return null;
         }
+
+        if (time >= 1f)
+        {
+            yield break;
+        }
+
+
+
+        yield break;
 
     }
 }

@@ -461,12 +461,12 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] public float minDecayDelayTime = 5f;
     [SerializeField] public float maxDecayDelayTime = 10f;
 
-    private IEnumerator WaitUntilGrown(GameObject growObject, ScaleControl scaleControl)
+    public IEnumerator WaitUntilGrown(GameObject growObject, ScaleControl scaleControl)
     {
      
         yield return new WaitUntil(() => scaleControl.isFullyGrown);
 
-        if (growObject.transform.CompareTag("Apple"))
+        if (growObject.transform.CompareTag("Apple") || growObject.transform.CompareTag("Stick"))
         {
             Rigidbody rigidBody = growObject.transform.GetComponent<Rigidbody>();
             Collider collider = growObject.transform.GetComponent<Collider>();

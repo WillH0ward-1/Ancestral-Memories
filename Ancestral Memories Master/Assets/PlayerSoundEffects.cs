@@ -10,9 +10,10 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference HitTreeEventPath;
     [SerializeField] private EventReference WhooshEventPath;
     [SerializeField] private EventReference PlayerScreamEventPath;
+    [SerializeField] private EventReference DrownEventPath;
+    [SerializeField]private Camera cam;
 
     private string terrainType = "";
-
     public bool waterColliding = false;
 
     private void Awake()
@@ -39,6 +40,15 @@ public class PlayerSoundEffects : MonoBehaviour
         walkEvent.release();
     }
 
+    void DrownEvent()
+    {
+        EventInstance drownEvent = RuntimeManager.CreateInstance(DrownEventPath);
+        RuntimeManager.AttachInstanceToGameObject(drownEvent, transform, GetComponent<Rigidbody>());
+
+        drownEvent.start();
+        drownEvent.release();
+    }
+
     void HitGround()
     {
 
@@ -59,6 +69,11 @@ public class PlayerSoundEffects : MonoBehaviour
         walkEvent.release();
     }
 
+    float duration = 0;
+    [SerializeField] float minShakeDuration = 1;
+    [SerializeField] float maxShakeDuration = 2;
+    float shakeMultiplier = 1;
+
     void HitTree()
     {
         EventInstance hitTreeEvent = RuntimeManager.CreateInstance(HitTreeEventPath);
@@ -66,8 +81,13 @@ public class PlayerSoundEffects : MonoBehaviour
 
         hitTreeEvent.start();
         hitTreeEvent.release();
-    }
 
+        Shake camShake = cam.GetComponent<Shake>();
+
+        duration = Random.Range(minShakeDuration, maxShakeDuration);
+        //shakeMultiplier = Random.Range(1, 1.1);
+        StartCoroutine(camShake.ScreenShake(duration, shakeMultiplier));
+    }
 
     void ScreamingPainEvent()
     {
