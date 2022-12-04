@@ -6,19 +6,24 @@ public class FireSoundEffects : MonoBehaviour
 {
 
     private PARAMETER_ID ParamID;
+    private EventInstance fireLoopEvent;
+    private EventInstance fireWooshEvent;
 
     [SerializeField] private EventReference FireWooshEvent;
     [SerializeField] private EventReference FireLoopEvent;
 
     private void Awake()
     {
+        FireWoosh();
         FireLoop();
     }
 
     void FireWoosh()
     {
-        EventInstance fireWooshEvent = RuntimeManager.CreateInstance(FireWooshEvent);
-        RuntimeManager.AttachInstanceToGameObject(fireWooshEvent, transform, GetComponent<Rigidbody>());
+   
+        fireWooshEvent = RuntimeManager.CreateInstance(FireWooshEvent);
+        
+        RuntimeManager.AttachInstanceToGameObject(fireWooshEvent, transform, transform.GetComponent<Rigidbody>());
 
         fireWooshEvent.start();
         fireWooshEvent.release();
@@ -26,13 +31,17 @@ public class FireSoundEffects : MonoBehaviour
 
     void FireLoop()
     {
-        EventInstance fireLoopEvent = RuntimeManager.CreateInstance(FireLoopEvent);
-        fireLoopEvent.setParameterByNameWithLabel("TerrainType", "Grass");
-        RuntimeManager.AttachInstanceToGameObject(fireLoopEvent, transform, GetComponent<Rigidbody>());
+        fireLoopEvent = RuntimeManager.CreateInstance(FireLoopEvent);
+        RuntimeManager.AttachInstanceToGameObject(fireLoopEvent, transform, transform.GetComponent<Rigidbody>());
 
         fireLoopEvent.start();
 
         //fireEvent.release();
+    }
+
+    private void OnDestroy()
+    {
+        fireLoopEvent.release();
     }
 }
 

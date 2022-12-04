@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class LerpTerrain : MonoBehaviour
 {
@@ -12,29 +13,43 @@ public class LerpTerrain : MonoBehaviour
 
     public float Wet = 21f;
 
-    public List<Material> Materials;
+    [SerializeField] List<Renderer> rendererList = new List<Renderer>();
 
     private float targetState = 0f;
     private float terrainState = 0f;
 
-    [SerializeField] private float duration = 5f;
+    [SerializeField] private float duration = 15f;
 
-    Material material;
+    private Material material;
+
+    private RainControl weather;
 
     // Start is called before the first frame update
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
+        Vector4 initState = new Vector4(0, Oasis, 0, 0);
 
-
-
-        material = GetComponent<Renderer>().material;
-        Materials.Add(material);
-
+        GetRenderers();
 
         StartCoroutine(ChanceOfDrought());
 
-        material.SetVector("_VertexTile", new Vector4(0, Oasis, 0, 0));
+        material.SetVector("_VertexTile", initState);
+    }
+
+    void GetRenderers()
+    {
+        Renderer[] objectRenderers = transform.GetComponentsInChildren<Renderer>();
+        rendererList = objectRenderers.ToList();
+    }
+
+
+    public IEnumerator GrowGrass()
+    {
+
+        ToState(Wet);
+        yield break;
+        
     }
 
     private IEnumerator ChanceOfDrought()
@@ -42,13 +57,23 @@ public class LerpTerrain : MonoBehaviour
         
         yield return new WaitForSeconds(Random.Range(10f, 15f));
 
-        ToState(Desert);
+        if (!weather.isRaining)
+        {
+            ToState(Desert);
+        } else
+        {
+            StartCoroutine(ChanceOfDrought());
+            yield return null;
+        }
 
         yield return null;
     }
 
     void ToState(float state)
     {
+
+        StopCoroutine(LerpTerrainTexture(0, 0));
+
         targetState = state;
         StartCoroutine(LerpTerrainTexture(duration, targetState));
         return;
@@ -64,14 +89,18 @@ public class LerpTerrain : MonoBehaviour
 
         while (time <= 1f)
         {
-            terrainState = Mathf.Lerp(terrainState, targetState, time );
 
-            foreach (Material material in Materials)
+            foreach (Renderer r in rendererList)
             {
-                material.SetVector("_VertexTile", new Vector4(0, terrainState, 0, 0));
+                float state = r.sharedMaterial.GetVector("_VertexTile").y;
+
+                time += Time.deltaTime / duration;
+                state = Mathf.Lerp(state, targetState, time);
+   
+                r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, state, 0, 0));
+                yield return null;
             }
 
-            time += Time.deltaTime / duration;
 
             yield return null;
         }

@@ -84,6 +84,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{697d9e84-632c-443b-9a2f-f0818a84eff4}">
+		<property name="pitch">
+			<value>2</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{bdcf3fde-01f0-4e77-a874-9c8c8f35371a}</destination>
 		</relationship>
@@ -124,8 +127,6 @@
 			<destination>{2514aa6e-7b5a-43c9-ab12-4bb2101bf620}</destination>
 			<destination>{b6366926-6777-48f8-adce-dc3e90e9d0e9}</destination>
 			<destination>{ab46f243-eb7f-410a-97d5-9c249d529079}</destination>
-			<destination>{20d3dc57-49ef-4465-9bb6-ab75bf9a1f0b}</destination>
-			<destination>{bc294f1e-2e1e-40cc-a3b8-c806f2564b20}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{d30c004e-f0ed-4580-ab51-03d1dfe408d0}" />
@@ -134,7 +135,7 @@
 			<value>29.5</value>
 		</property>
 		<property name="volume">
-			<value>-14</value>
+			<value>-12.5</value>
 		</property>
 		<property name="looping">
 			<value>true</value>
@@ -156,42 +157,11 @@
 	<object class="MixerBusPanner" id="{8c4ae722-5259-44cf-bc09-469f0ddf2dae}" />
 	<object class="GainEffect" id="{2514aa6e-7b5a-43c9-ab12-4bb2101bf620}">
 		<property name="gain">
-			<value>-32</value>
+			<value>-23.5</value>
 		</property>
 	</object>
 	<object class="MixerBusFader" id="{b6366926-6777-48f8-adce-dc3e90e9d0e9}" />
 	<object class="SpatialiserEffect" id="{ab46f243-eb7f-410a-97d5-9c249d529079}" />
-	<object class="ThreeEQEffect" id="{20d3dc57-49ef-4465-9bb6-ab75bf9a1f0b}">
-		<property name="lowGain">
-			<value>7</value>
-		</property>
-		<property name="midGain">
-			<value>10</value>
-		</property>
-		<property name="highGain">
-			<value>6</value>
-		</property>
-		<property name="lowCrossover">
-			<value>12500</value>
-		</property>
-		<property name="highCrossover">
-			<value>95</value>
-		</property>
-		<property name="crossoverSlope">
-			<value>0</value>
-		</property>
-	</object>
-	<object class="TremoloEffect" id="{bc294f1e-2e1e-40cc-a3b8-c806f2564b20}">
-		<property name="frequency">
-			<value>20</value>
-		</property>
-		<property name="depth">
-			<value>0.449999988</value>
-		</property>
-		<property name="duty">
-			<value>0.329999983</value>
-		</property>
-	</object>
 	<object class="RandomizerModulator" id="{d7e7506d-dc3c-4b0b-9696-a4fc7c86dc4f}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>pitch</value>

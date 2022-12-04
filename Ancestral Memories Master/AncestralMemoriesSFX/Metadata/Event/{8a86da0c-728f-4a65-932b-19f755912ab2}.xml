@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.01.00">
 	<object class="Event" id="{8a86da0c-728f-4a65-932b-19f755912ab2}">
 		<property name="name">
-			<value>Flames</value>
+			<value>FireLoop</value>
 		</property>
 		<property name="outputFormat">
 			<value>2</value>
@@ -83,8 +83,11 @@
 	</object>
 	<object class="EventMixerMaster" id="{420d9b0c-0d5d-484a-9e71-6bf8aa84f394}">
 		<property name="volume">
-			<value>-3.5</value>
+			<value>8</value>
 		</property>
+		<relationship name="modulators">
+			<destination>{673ce446-002f-4c77-8539-44b483ccc10e}</destination>
+		</relationship>
 		<relationship name="effectChain">
 			<destination>{1b30fb85-8080-441f-9207-7801c62d536a}</destination>
 		</relationship>
@@ -108,11 +111,11 @@
 		<property name="startOffset">
 			<value>24.5</value>
 		</property>
-		<property name="volume">
-			<value>-3.5</value>
-		</property>
 		<property name="pitch">
 			<value>-1.39999998</value>
+		</property>
+		<property name="looping">
+			<value>true</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{e2aa25db-ab1b-43c6-9831-8c5f32a39c6e}</destination>
@@ -127,7 +130,7 @@
 			<value>-2</value>
 		</property>
 		<property name="name">
-			<value>Audio 1</value>
+			<value>FireLoop</value>
 		</property>
 		<relationship name="effectChain">
 			<destination>{4206a977-5864-45ec-b891-b925c429b78e}</destination>
@@ -153,10 +156,44 @@
 			<destination>{7cef5a72-3d55-49f2-8c84-9c474ad9fed5}</destination>
 		</relationship>
 	</object>
+	<object class="ADSRModulator" id="{673ce446-002f-4c77-8539-44b483ccc10e}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>volume</value>
+		</property>
+		<property name="initialValue">
+			<value>-80</value>
+		</property>
+		<property name="attackTime">
+			<value>340</value>
+		</property>
+		<property name="attackShape">
+			<value>0.196110159</value>
+		</property>
+		<property name="peakValue">
+			<value>9</value>
+		</property>
+		<property name="holdTime">
+			<value>40</value>
+		</property>
+		<property name="decayTime">
+			<value>560</value>
+		</property>
+		<property name="decayShape">
+			<value>-0.533287644</value>
+		</property>
+		<property name="sustainValue">
+			<value>-13</value>
+		</property>
+		<property name="finalValue">
+			<value>-80</value>
+		</property>
+	</object>
 	<object class="MixerBusEffectChain" id="{1b30fb85-8080-441f-9207-7801c62d536a}">
 		<relationship name="effects">
+			<destination>{4b0e032c-4d52-4ce0-a030-9e99f2189281}</destination>
 			<destination>{0c890f72-616f-4760-970d-6c8b10e9136c}</destination>
 			<destination>{fbefbd71-59ed-448d-8d01-c8c942b85428}</destination>
+			<destination>{3e5f5762-fdf5-4c5c-bc2c-7e75a88bacc7}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{1c92e052-2175-4496-99b2-d86ce9bc9f77}" />
@@ -183,7 +220,29 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{be2c8074-011d-4e2b-bf5d-8f0debea03cd}" />
+	<object class="DistortionEffect" id="{4b0e032c-4d52-4ce0-a030-9e99f2189281}">
+		<property name="level">
+			<value>0.394999981</value>
+		</property>
+	</object>
 	<object class="MixerBusFader" id="{0c890f72-616f-4760-970d-6c8b10e9136c}" />
 	<object class="SpatialiserEffect" id="{fbefbd71-59ed-448d-8d01-c8c942b85428}" />
+	<object class="ThreeEQEffect" id="{3e5f5762-fdf5-4c5c-bc2c-7e75a88bacc7}">
+		<property name="lowGain">
+			<value>-4</value>
+		</property>
+		<property name="midGain">
+			<value>-16.5</value>
+		</property>
+		<property name="highGain">
+			<value>1</value>
+		</property>
+		<property name="lowCrossover">
+			<value>240</value>
+		</property>
+		<property name="highCrossover">
+			<value>7000</value>
+		</property>
+	</object>
 	<object class="MixerBusFader" id="{b5b080d2-1c2d-492d-b640-a50df349173b}" />
 </objects>

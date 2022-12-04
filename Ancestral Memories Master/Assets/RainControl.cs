@@ -95,6 +95,7 @@ public class RainControl : MonoBehaviour
         }
     }
 
+    [SerializeField] private LerpTerrain terrain;
 
     public IEnumerator StartRaining(ParticleSystem.EmissionModule emission)
     {
@@ -104,6 +105,8 @@ public class RainControl : MonoBehaviour
         float time = 0;
 
         float duration = Random.Range(minRainDuration, maxRainDuration);
+
+        StartCoroutine(terrain.GrowGrass());
 
         while (time < duration)
         {

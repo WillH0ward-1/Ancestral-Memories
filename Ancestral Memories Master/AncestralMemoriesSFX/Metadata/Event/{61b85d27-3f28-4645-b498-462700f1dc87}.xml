@@ -165,7 +165,6 @@
 	<object class="MixerBusEffectChain" id="{6bf26fa7-fcb1-4539-987d-fe06c1a8924d}">
 		<relationship name="effects">
 			<destination>{5453edb7-e187-4ca0-bdb1-a56afba2740a}</destination>
-			<destination>{9b0bb734-7bd3-4dc7-80cb-211f84117dea}</destination>
 			<destination>{74294495-d0b4-486b-bc5c-b71f205c4d51}</destination>
 			<destination>{5458830b-ab10-40f0-808d-a8f9862d30de}</destination>
 			<destination>{158d7649-232d-44c2-89e7-291753eec1a2}</destination>
@@ -175,7 +174,7 @@
 	<object class="MixerBusFader" id="{d008bf64-9b25-443f-97a8-0fadf7a3050c}" />
 	<object class="SpatialiserEffect" id="{fe4863d7-f918-4ce7-b52a-7c0461ce0066}">
 		<property name="maximumDistance">
-			<value>1000</value>
+			<value>10</value>
 		</property>
 	</object>
 	<object class="GainEffect" id="{5453edb7-e187-4ca0-bdb1-a56afba2740a}">
@@ -183,15 +182,10 @@
 			<value>10</value>
 		</property>
 	</object>
-	<object class="GainEffect" id="{9b0bb734-7bd3-4dc7-80cb-211f84117dea}">
-		<property name="gain">
-			<value>10</value>
-		</property>
-	</object>
 	<object class="MixerBusFader" id="{74294495-d0b4-486b-bc5c-b71f205c4d51}" />
 	<object class="DistortionEffect" id="{5458830b-ab10-40f0-808d-a8f9862d30de}">
 		<property name="level">
-			<value>0.88499999</value>
+			<value>0.724999964</value>
 		</property>
 	</object>
 	<object class="ThreeEQEffect" id="{158d7649-232d-44c2-89e7-291753eec1a2}">
@@ -199,13 +193,13 @@
 			<value>-80</value>
 		</property>
 		<property name="midGain">
-			<value>-44</value>
+			<value>-35</value>
 		</property>
 		<property name="lowCrossover">
-			<value>280</value>
+			<value>240</value>
 		</property>
 		<property name="highCrossover">
-			<value>19000</value>
+			<value>15500</value>
 		</property>
 	</object>
 </objects>
