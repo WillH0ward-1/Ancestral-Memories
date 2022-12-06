@@ -23,6 +23,13 @@ public class LightningStrike : MonoBehaviour
 
     private ControlAlpha costumeControl;
 
+    [SerializeField] private AreaManager areaManager;
+
+    [SerializeField] private GameObject fire;
+    [SerializeField] private FireController fireManager;
+
+    private string insideCave = "InsideCave";
+
     // Start is called before the first frame update
 
     private void Awake()
@@ -33,18 +40,23 @@ public class LightningStrike : MonoBehaviour
 
     public void StrikeLightning(Transform target)
     {
-       
-        StartCoroutine(behaviours.Electrocution());
-        StartCoroutine(Strike(target));
+        if (areaManager.currentRoom != insideCave)
+        {
+            StartCoroutine(behaviours.Electrocution());
+            StartCoroutine(Strike(target));
+        } else
+        {
+            return;
+        }
 
     }
-
 
     [SerializeField] private float minLightIntensity;
     [SerializeField] private float maxLightIntensity;
 
     public IEnumerator Strike(Transform target)
     {
+        maxScale = new Vector3(0.5f, Random.Range(-1f, -20f), 0.5f);
 
         lightningLight.enabled = true;
         lightningLight.intensity = 0f;
@@ -60,7 +72,7 @@ public class LightningStrike : MonoBehaviour
 
         float halfTime = duration / 2; 
 
-        duration = halfTime;
+        float lightningDuration = halfTime;
 
         float time = 0;
 
@@ -68,19 +80,21 @@ public class LightningStrike : MonoBehaviour
         {
             lightning.transform.localScale = Vector3.Lerp(minScale, maxScale, time);
             lightningLight.intensity = Mathf.Lerp(minLightIntensity, maxLightIntensity, time);
-            time += Time.deltaTime / duration;
+            time += Time.deltaTime / lightningDuration;
             yield return null;
         }
 
         if (time >= 1f)
         {
-            yield return Retreat(lightning, duration);
+            fireManager.StartFire(target.transform, new Vector3(target.position.x, target.position.y, target.position.z));
+
+            yield return Retreat(lightning, lightningDuration);
             
         }
 
     }
 
-    private IEnumerator Retreat(GameObject lightning, float duration)
+    private IEnumerator Retreat(GameObject lightning, float lightningDuration)
     {
         Debug.Log("Lightning End!");
 
@@ -93,7 +107,7 @@ public class LightningStrike : MonoBehaviour
         {
             lightning.transform.localScale = Vector3.Lerp(maxScale, minScale, time);
             lightningLight.intensity = Mathf.Lerp(maxLightIntensity, minLightIntensity, time);
-            time += Time.deltaTime / duration;
+            time += Time.deltaTime / lightningDuration;
             yield return null;
         }
 

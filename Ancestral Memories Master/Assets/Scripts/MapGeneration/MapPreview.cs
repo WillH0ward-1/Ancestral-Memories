@@ -45,32 +45,14 @@ public class MapPreview : MonoBehaviour {
 		meshFilter.gameObject.SetActive (false);
 	}
 
+	public void DrawMesh(MeshData meshData)
+	{
+		meshFilter.sharedMesh = meshData.CreateMesh();
 
-	public void DrawMesh(MeshData meshData) {
-
-		//Mesh meshType;
-
-		/*
-		if (Application.isEditor)
-        {
-			meshType = meshFilter.sharedMesh;
-        } else
-        {
-			meshType = meshFilter.mesh;
-        }
-		*/
-
-        meshFilter.sharedMesh = meshData.CreateMesh();
-
-		meshFilter.GetComponent<MeshCollider>().sharedMesh = null;
 		meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.sharedMesh;
 
-		textureRender.gameObject.SetActive (false);
-		meshFilter.gameObject.SetActive (true);
-
-		//MeshCollider meshc = gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
-		//meshFilter.gameObject.tag = "Walkable";
-		//terrain.surface.BuildNavMesh();
+		textureRender.gameObject.SetActive(false);
+		meshFilter.gameObject.SetActive(true);
 	}
 
 

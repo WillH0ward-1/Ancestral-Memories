@@ -8,6 +8,8 @@ public class RainControl : MonoBehaviour
 
     [SerializeField] AreaManager areaManager;
 
+    public LerpTerrain lerpTerrain;
+
     void Start()
     {
         ParticleSystem.EmissionModule emission = rainParticles.emission;
@@ -21,8 +23,6 @@ public class RainControl : MonoBehaviour
     public bool isRaining = false;
     public bool drought = false;
 
-    public float droughtThreshold;
-
     public float minRainDuration = 10f;
     public float maxRainDuration = 60f;
 
@@ -30,42 +30,52 @@ public class RainControl : MonoBehaviour
     public float maxWaitForRain = 300f;
 
     private bool isInside;
-  
+    private bool triggerDrought;
 
     private void Awake()
     {
-        droughtThreshold = maxWaitForRain;
+        triggerDrought = false;
     }
-
+    
     public IEnumerator ChanceOfRain(ParticleSystem.EmissionModule emission)
     {
-        if (!isRaining && !drought)
+        triggerDrought = false;
+        if (isRaining)
+        {
+            yield break;
+        }
+
+        if (!isRaining)
         {
             float time = 0;
-            float duration = Random.Range(minWaitForRain, maxWaitForRain);
+            float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
 
-            if (duration >= droughtThreshold)
+            int trigger = Random.Range(0, 1);
+            if (trigger == 1)
             {
-                drought = true;
-                StartCoroutine(Drought(emission));
-                yield break;
+                triggerDrought = true;
             }
 
-            while (time < duration)
+            while (time < rainWaitDuration)
             {
                 time += Time.deltaTime;
                 yield return null;
             }
 
-            if (time >= duration)
+            if (time >= rainWaitDuration)
             {
-                StartCoroutine(StartRaining(emission));
+                if (triggerDrought)
+                {
+                    StartCoroutine(lerpTerrain.ToDesert(15f));
+                    yield break;
+                }
+                else if (!triggerDrought)
+                {
+                    StartCoroutine(StartRaining(emission));
+                    yield break;
+                }
             }
-            
-        } else
-        {
-            yield break;
-        }
+        } 
     }
 
     public IEnumerator RainStrength()
@@ -79,46 +89,57 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator Drought(ParticleSystem.EmissionModule emission)
     {
-        float time = 0;
-        float duration = Random.Range(minDroughtDuration, maxDroughtDuration);
+        drought = true;
 
-        while (time < duration)
+        float time = 0;
+        float droughtDuration = Random.Range(minDroughtDuration, maxDroughtDuration);
+
+        StartCoroutine(lerpTerrain.ToDesert(15));
+
+        while (time < droughtDuration)
         {
             time += Time.deltaTime;
+
+            if (time >= droughtDuration)
+            {
+                StartCoroutine(StartRaining(emission));
+                yield break;
+            }
+
             yield return null;
         }
-
-        if (time >= duration)
-        {
-            drought = false;
-            StartCoroutine(StartRaining(emission));
-        }
+    
     }
 
-    public LerpTerrain lerpTerrain;
+    float rainDuration;
 
     public IEnumerator StartRaining(ParticleSystem.EmissionModule emission)
     {
         emission.enabled = true;
         isRaining = true;
+        drought = false;
 
         float time = 0;
 
-        float duration = Random.Range(minRainDuration, maxRainDuration);
+        rainDuration = Random.Range(minRainDuration, maxRainDuration);
 
-        StartCoroutine(lerpTerrain.GrowGrass(duration));
+        StartCoroutine(lerpTerrain.ToWetOasis(15));
 
-        while (time < duration)
+        while (time < rainDuration)
         {
-            if (areaManager.currentRoom == "InsideCave"){
-                StartCoroutine(StopRaining(emission, false));
+            if (areaManager.currentRoom == "InsideCave" || drought){
+                if (isRaining)
+                {
+                    StartCoroutine(StopRaining(emission, false));
+                }
+                yield break;
             }
 
             time += Time.deltaTime;
             yield return null;
         }
 
-        if (time >= duration && areaManager.currentRoom != "InsideCave")
+        if (time >= rainDuration && areaManager.currentRoom != "InsideCave")
         {
             StartCoroutine(StopRaining(emission, true));
             yield break;
@@ -135,6 +156,7 @@ public class RainControl : MonoBehaviour
         {
             emission.enabled = false;
             isRaining = false;
+            StartCoroutine(lerpTerrain.ToOasis(15f));
 
             if (retrigger)
             {

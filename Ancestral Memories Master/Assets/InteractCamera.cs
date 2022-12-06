@@ -17,6 +17,8 @@ public class InteractCamera : MonoBehaviour
 
     public AreaManager areaManager;
 
+    public Transform lookAtTarget;
+    public Transform defaultTarget;
     Ray ray;
 
     private void Start()
@@ -30,6 +32,8 @@ public class InteractCamera : MonoBehaviour
         radialMenu.areaManager = areaManager;
 
     }
+
+    private bool selected;
 
     [SerializeField] private float maxSelectionDistance = 5f;
     [SerializeField] private float minSelectionDistance = 0f;
@@ -57,11 +61,41 @@ public class InteractCamera : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(1))
                 {
-                    Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
+                    if (!Input.GetMouseButtonUp(1))
+                    {
+                        selected = true;
 
-                    interactable.SpawnMenu(lastHit, hit);
+                        Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
 
-                    Debug.Log(lastHit + "selected");
+                        interactable.SpawnMenu(lastHit, hit);
+
+                        if (hit.collider.transform.CompareTag("Player"))
+                        {
+                            selected = true;
+                            lookAtTarget.position = cam.WorldToScreenPoint(hit.point);
+                            Debug.Log(lastHit + "selected");
+                        }
+
+                    }
+
+                    else if (Input.GetMouseButtonUp(1))
+                    {
+   
+                        selected = false;
+                        lookAtTarget.position = defaultTarget.transform.position;
+                        Debug.Log(lastHit + "selected");
+
+                    }
+
+                }
+
+
+                if (!areaManager.traversing)
+                {
+                    lookAtTarget.position = hit.point;
+                } else if (areaManager.traversing)
+                {
+                    lookAtTarget.position = defaultTarget.transform.position;
                 }
             }
         }

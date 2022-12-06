@@ -16,10 +16,15 @@ public class WaterFloat : MonoBehaviour
     {
         isFloating = true;
 
+        float time = 0;
+
         while (isFloating)
         {
-            float theta = Time.timeSinceLevelLoad / period;
+            time += Time.deltaTime;
+
+            float theta = time / period;
             float distance = amplitude * Mathf.Sin(theta);
+
             bobObject.transform.position = bobObject.transform.position + Vector3.up * distance;
             yield return null;
         }

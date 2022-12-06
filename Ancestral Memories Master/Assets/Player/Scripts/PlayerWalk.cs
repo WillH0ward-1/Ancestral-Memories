@@ -10,6 +10,8 @@ public class PlayerWalk : MonoBehaviour
 {
     public RPCamera rpCam;
 
+    public Transform lookAtTarget;
+
     public Camera cam;
     public CamControl cineCam;
 
@@ -84,8 +86,7 @@ public class PlayerWalk : MonoBehaviour
 
         foreach (Transform t in raySources)
         {
-            if (Physics.Raycast(leftFootRaySource.transform.position, Vector3.up, out RaycastHit hitWater, Mathf.Infinity, waterLayerMask))
-
+            if (Physics.Raycast(t.transform.position, Vector3.up, out RaycastHit hitWater, Mathf.Infinity, waterLayerMask))
             {
                 float distance = hitWater.distance;
                 playerInWater = true;
@@ -227,7 +228,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 2;
+            destinationGizmo.transform.localScale = sizeCalculated / 3;
         }
 
         if (selected == "HarvestTree")
@@ -282,7 +283,6 @@ public class PlayerWalk : MonoBehaviour
 
         if (areaManager.traversing)
         {
-
             reachedDestination = true;
 
             agent.stoppingDistance = defaultStoppingDistance;
@@ -356,13 +356,13 @@ public class PlayerWalk : MonoBehaviour
     {
         stopOverride = true;
 
-        agent.ResetPath();
-        agent.isStopped = true;
+        StopAgent();
     }
 
     public void CancelAgentOverride()
     {
         stopOverride = false;
+        
     }
 
 }

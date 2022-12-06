@@ -15,8 +15,8 @@ public class GodRayControl : MonoBehaviour
 
     [SerializeField] private GameObject godRayPrefab;
 
-    [SerializeField] private float duration = 1f;
-    [SerializeField] private float godRayDuration;
+    [SerializeField] private float inDuration = 1f;
+    [SerializeField] private float outDuration = 1f;
 
     [SerializeField] private float minIntensity;
     [SerializeField] private float maxIntensity;
@@ -30,19 +30,22 @@ public class GodRayControl : MonoBehaviour
     [SerializeField] private int animalTargetSizeDivide = 50;
     [SerializeField] private int treeTargetSizeDivide = 50;
 
-    Material godRayMat;
+    private Renderer[] renderers = new Renderer[0];
 
     private void Awake()
     {
         characterBehaviours = player.GetComponent<CharacterBehaviours>();
     }
-    public void StartGodRay(Transform target, bool manuallyCease, float duration)
+    public void StartGodRay(Transform target, bool manuallyCease)
     {
-        StartCoroutine(GodRay(target, manuallyCease, duration));
+        StartCoroutine(GodRay(target, manuallyCease));
     }
 
-    public IEnumerator GodRay(Transform target, bool manuallyCease, float duration)
+    private float lerpAura;
+
+    public IEnumerator GodRay(Transform target, bool manuallyCease)
     {
+
         int sizeDivide = 0;
 
         switch (target.tag)
@@ -65,40 +68,46 @@ public class GodRayControl : MonoBehaviour
 
         GameObject godRay = Instantiate(godRayPrefab, target.transform.position, Quaternion.identity, target.transform);
 
-        Renderer renderer = godRay.GetComponent<Renderer>();
-        godRayMat = renderer.material;
-
-        godRay.transform.position = new Vector3(target.position.x, target.position.y + yOffset, target.position.z);
-
         Vector3 sizeCalculated = target.transform.GetComponentInChildren<Renderer>().bounds.size / sizeDivide;
         godRay.transform.localScale = sizeCalculated;
 
-        float time = 0;
 
-        float lerpAura;
+        renderers = godRay.GetComponentsInChildren<Renderer>();
 
-        while (time <= 1f)
+        foreach (Renderer r in renderers)
         {
-            lerpAura = Mathf.Lerp(minIntensity, maxIntensity, time);
-            godRayMat.SetFloat("_AuraIntensity", lerpAura);
+            Material godRayMat = r.material;
 
-            time += Time.deltaTime / duration;
-            yield return null;
+            godRay.transform.position = new Vector3(target.position.x, target.position.y + yOffset, target.position.z);
+
+            float time = 0;
+
+            while (time <= 1f)
+            {
+                lerpAura = Mathf.Lerp(minIntensity, maxIntensity, time);
+                godRayMat.SetFloat("_AuraIntensity", lerpAura);
+
+                time += Time.deltaTime / inDuration;
+                yield return null;
+            }
+
+            if (time >= 1f && manuallyCease)
+            {
+                StartCoroutine(Retreat(godRay));
+                yield break;
+
+            }
+            else if (time >= 1 && !manuallyCease)
+            {
+                yield return new WaitUntil(() => !characterBehaviours.behaviourIsActive);
+                StartCoroutine(Retreat(godRay));
+
+                yield break;
+
+            }
         }
 
-        if (time >= 1f && manuallyCease)
-        {
-            StartCoroutine(Retreat(godRay));
-            yield break;
-
-        } else if (time >= 1 && !manuallyCease)
-        {
-            yield return new WaitUntil(() => !characterBehaviours.behaviourIsActive);
-            StartCoroutine(Retreat(godRay));
-
-            yield break;
-
-        }
+        yield break;
     }
 
 
@@ -106,24 +115,29 @@ public class GodRayControl : MonoBehaviour
     {
         Debug.Log("GodRay End!");
 
-        float timeElapsed = 0;
+        float time = 0;
 
         float lerpAura;
 
-        while (timeElapsed <= 1f)
+        foreach (Renderer r in renderers)
         {
-            lerpAura = Mathf.Lerp(maxIntensity, minIntensity, timeElapsed);
-            godRayMat.SetFloat("_AuraIntensity", lerpAura);
+            Material godRayMat = r.material;
 
-            timeElapsed += Time.deltaTime / duration;
-            yield return null;
-        }
+            while (time <= 1f)
+            {
+                lerpAura = Mathf.Lerp(maxIntensity, minIntensity, time);
+                godRayMat.SetFloat("_AuraIntensity", lerpAura);
 
-        if (timeElapsed >= 1f)
-        {
-            Destroy(godRay);
+                time += Time.deltaTime / outDuration;
+                yield return null;
+            }
 
-            yield break;
+            if (time >= 1f)
+            {
+                Destroy(godRay);
+
+                yield break;
+            }
         }
     }
 }

@@ -57,12 +57,12 @@ public class SpawnSticks : MonoBehaviour
 
         ScaleControl stickGrowControl = stickRigidBody.transform.GetComponent<ScaleControl>();
 
-        Vector3 appleScaleDestination = new(maxStickScale.x, minStickScale.y, minStickScale.z);
+        Vector3 stickScaleDestination = new(maxStickScale.x, minStickScale.y, minStickScale.z);
         stickRigidBody.GetComponent<Renderer>().enabled = true;
 
-        StartCoroutine(stickGrowControl.LerpScale(stickInstance.transform.gameObject, zeroScale, appleScaleDestination, stickGrowDuration, stickGrowthDelay));
+        StartCoroutine(stickGrowControl.LerpScale(stickInstance.transform.gameObject, zeroScale, stickScaleDestination, stickGrowDuration, stickGrowthDelay));
         StartCoroutine(generator.WaitUntilGrown(stickInstance, stickGrowControl));
-        //stickInstance.transform.SetParent(flammableObject.transform, true);
+        stickInstance.transform.SetParent(stickInstance.transform, true);
 
 
         yield return new WaitForSeconds(dropRate);

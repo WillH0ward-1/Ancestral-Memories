@@ -7,11 +7,11 @@ public class LerpTerrain : MonoBehaviour
 {
     public CharacterClass player;
 
-    public float Desert = 0f;
+    public float Desert = 1f;
 
-    public float Oasis = 10f;
+    public float Oasis = 16f;
 
-    public float Wet = 21f;
+    public float Wet = 22f;
 
     [SerializeField] List<Renderer> rendererList = new List<Renderer>();
 
@@ -24,17 +24,31 @@ public class LerpTerrain : MonoBehaviour
 
     private RainControl weather;
 
+    [SerializeField] private float currentState;
+
     // Start is called before the first frame update
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        Vector4 initState = new Vector4(0, Oasis, 0, 0);
+        //Vector4 initState = new Vector4(0, Oasis, 0, 0);
 
         GetRenderers();
 
-        StartCoroutine(ChanceOfDrought());
+        StartCoroutine(SetTerrainState(Desert));
+    }
 
-        material.SetVector("_VertexTile", initState);
+ 
+    IEnumerator SetTerrainState(float newState)
+    {
+        foreach (Renderer r in rendererList)
+        {
+            newState = r.sharedMaterial.GetVector("_VertexTile").y;
+
+            r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, newState, 0, 0));
+            yield return null;
+        }
+
+        yield break;
     }
 
     void GetRenderers()
@@ -43,83 +57,86 @@ public class LerpTerrain : MonoBehaviour
         rendererList = objectRenderers.ToList();
     }
 
-
-    public IEnumerator GrowGrass(float duration)
+    public IEnumerator ToOasis(float duration)
     {
-
-        ToState(Wet, duration);
-        yield break;
-        
-    }
-
-    public IEnumerator DryGrass(float duration)
-    {
-
         ToState(Oasis, duration);
         yield break;
 
     }
 
-    private IEnumerator ChanceOfDrought()
+    public IEnumerator ToWetOasis(float duration)
     {
-        
-        yield return new WaitForSeconds(Random.Range(10f, 15f));
-
-        if (!weather.isRaining)
-        {
-            ToState(Desert, 15f);
-        }
-        else if (weather.isRaining)
-        {
-            StartCoroutine(ChanceOfDrought());
-            yield return null;
-        }
-
-        yield return null;
+        ToState(Wet, duration);
+        yield break;
     }
 
-    void ToState(float state, float duration)
+    float minDroughtWaitTime = 10;
+    float maxDroughtWaitTime = 15;
+
+    public IEnumerator ToDesert(float duration)
     {
+        ToState(Desert, duration);
+        yield break;
 
-        //StopCoroutine(LerpTerrainTexture(0, 0));
+    }
 
-        targetState = state;
-        StartCoroutine(LerpTerrainTexture(duration, targetState));
-        return;
+    void ToState(float newState, float duration)
+    {
+        StopCoroutine(LerpTerrainTexture(0, 0));
+
+        if (newState != currentState)
+        {
+            StartCoroutine(LerpTerrainTexture(newState, duration));
+            return;
+        }
+        else
+        {
+            return;
+        }
     }
 
     // Update is called once per frame
 
     float time;
+    private bool isLerping;
 
-    private IEnumerator LerpTerrainTexture(float duration, float targetState)
+    float state;
+
+    private IEnumerator LerpTerrainTexture(float targetState, float duration)
     {
+
         float time = 0;
 
         while (time <= 1f)
         {
+            currentState = targetState;
+
+            isLerping = true;
+
+            if (isLerping == false)
+            {
+                yield break;
+            }
 
             foreach (Renderer r in rendererList)
             {
-                float state = r.sharedMaterial.GetVector("_VertexTile").y;
-
-                time += Time.deltaTime / duration;
-                state = Mathf.Lerp(state, targetState, time / duration);
-   
+                state = r.sharedMaterial.GetVector("_VertexTile").y;
+                state = Mathf.Lerp(state, targetState, time);
                 r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, state, 0, 0));
+                time += Time.deltaTime / duration;
+
                 yield return null;
             }
 
+            if (time >= 1f)
+            {
+                isLerping = false;
+                yield break;
+            }
 
             yield return null;
+
         }
-
-        if (time >= 1f)
-        {
-            yield break;
-        }
-
-
 
         yield break;
 

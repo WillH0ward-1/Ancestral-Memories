@@ -92,6 +92,9 @@
         },
         {
             "m_Id": "f0bd6fdf2bd64f8087ff12cbf576b2a2"
+        },
+        {
+            "m_Id": "fcf27e6af67e41daaa90bc0ba948c7b6"
         }
     ],
     "m_GroupDatas": [],
@@ -149,20 +152,6 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "09d3f559206e4c05b3af9fbff29fed03"
-                },
-                "m_SlotId": 0
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "53d51d6531ce4501a75ac1b2cde0acc8"
-                },
-                "m_SlotId": 2
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "1a08f0e2286f410399ef7e8685d75d31"
                 },
                 "m_SlotId": 0
             }
@@ -277,6 +266,20 @@
                     "m_Id": "0aa6cbb3297b4dbab2e09dfbd1a4b4e3"
                 },
                 "m_SlotId": -654812216
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "fcf27e6af67e41daaa90bc0ba948c7b6"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "1a08f0e2286f410399ef7e8685d75d31"
+                },
+                "m_SlotId": 0
             }
         }
     ],
@@ -615,10 +618,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1176.9998779296875,
-            "y": -78.00000762939453,
+            "x": -602.0,
+            "y": -97.00000762939453,
             "width": 207.99993896484376,
-            "height": 326.0
+            "height": 326.0000305175781
         }
     },
     "m_Slots": [
@@ -816,9 +819,9 @@
     "m_ShaderOutputName": "BaseColor",
     "m_StageCapability": 2,
     "m_Value": {
-        "x": 0.5,
-        "y": 0.5,
-        "z": 0.5
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0
     },
     "m_DefaultValue": {
         "x": 0.0,
@@ -1096,10 +1099,10 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "r": 0.0,
-        "g": 0.0,
-        "b": 0.0,
-        "a": 0.0
+        "r": 0.1882353127002716,
+        "g": 0.125490203499794,
+        "b": 0.05098039656877518,
+        "a": 1.0
     },
     "isMainColor": false,
     "m_ColorMode": 0
@@ -1137,6 +1140,31 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "VertexDescription.Position"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "7a4176f99e444383a3e59e294134b276",
+    "m_Id": 0,
+    "m_DisplayName": "HairColour",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -2124,6 +2152,42 @@
     },
     "m_Property": {
         "m_Id": "3c335168f1984d3bba35683c0d290560"
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "fcf27e6af67e41daaa90bc0ba948c7b6",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 556.0,
+            "y": 240.99993896484376,
+            "width": 133.0,
+            "height": 34.00006103515625
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "7a4176f99e444383a3e59e294134b276"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "7269d41f215c44ad83d24b3810e54bc9"
     }
 }
 

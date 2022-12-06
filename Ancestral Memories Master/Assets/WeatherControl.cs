@@ -7,9 +7,6 @@ using FMOD.Studio;
 
 public class WeatherControl : MonoBehaviour
 {
-    const string WIND_LOOP = ("event:/Wind");
-
-    private EventInstance instance;
     public EventReference windEvent;
 
     private float windStrength = 0;
@@ -22,17 +19,12 @@ public class WeatherControl : MonoBehaviour
 
     public bool windIsActive;
 
-
-
     // Start is called before the first frame update
     void Start()
     {
         EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
-
-
-        StartCoroutine(WindStrength(windSFX));
-
         windStrength = currentWindStrength;
+        StartCoroutine(WindStrength(windSFX));
     }
 
 
@@ -44,7 +36,7 @@ public class WeatherControl : MonoBehaviour
 
         while (windIsActive)
         {
-            float windStrength = targetWindStrength;
+            windStrength = targetWindStrength;
 
             windSFX.setParameterByName("WindStrength", windStrength);
             Debug.Log("WindStrength:" + windStrength);

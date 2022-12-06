@@ -65,7 +65,9 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_STANDUPFROMFLOOR = "Player_StandUpFromFloor";
     const string PLAYER_DROWN = "Player_Drown";
 
-    public string[] danceAnimClips = { PLAYER_DANCE_01, PLAYER_DANCE_02, PLAYER_DANCE_03 };
+    const string PLAYER_VOMIT = "Player_Vomit";
+
+    public string[] danceAnimClips;
 
     private float animationLength;
 
@@ -147,7 +149,6 @@ public class CharacterBehaviours : MonoBehaviour
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
     }
 
-    [SerializeField] float godRayDuration = 5f;
     [SerializeField] private LightningStrike lightning;
 
     int randChance;
@@ -177,23 +178,34 @@ public class CharacterBehaviours : MonoBehaviour
             costumeControl.SwitchSkeleton();
             isSkeleton = false;
         }
+        var maxTimeOnFloor = player.GetAnimLength() + Random.Range(3, 5);
 
+        player.ChangeAnimationState(PLAYER_FACEDOWNIDLE);
+
+        float timeOnFloor = Random.Range(player.GetAnimLength(), maxTimeOnFloor);
+
+        yield return new WaitForSeconds(timeOnFloor);
+     
         player.ChangeAnimationState(PLAYER_STANDUPFROMFLOOR);
+        float time = 0;
+        float duration = player.GetAnimLength();
 
-        if (!Input.GetMouseButtonDown(0))
+        while (time <= duration)
         {
-            yield return new WaitForSeconds(player.GetAnimLength());
 
-            behaviourIsActive = false;
-            playerWalk.CancelAgentOverride();
+            time += Time.deltaTime / duration;
 
-            yield break;
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-            behaviourIsActive = false;
-            playerWalk.CancelAgentOverride();
-            yield break;
+            if (Input.GetMouseButtonDown(0) || time >= duration)
+            {
+
+                behaviourIsActive = false;
+                playerWalk.CancelAgentOverride();
+                yield break;
+            }
+
+   
+
+            yield return null;
         }
 
         //cinematicCam.ToGameZoom();
@@ -207,18 +219,17 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_DROWN);
         yield return new WaitForSeconds(player.GetAnimLength());
 
-             behaviourIsActive = false;
+        behaviourIsActive = false;
 
         yield break;
 
     }
+
     public IEnumerator Pray(GameObject hitObject)
     {
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_PRAYER_START);
-
-        animationLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
 
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
@@ -229,11 +240,14 @@ public class CharacterBehaviours : MonoBehaviour
             StartCoroutine(cinematicCam.MoveCamToPosition(backFacingPivot, lookAtTarget, camMoveDuration));
         } else
         {
-            StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+            StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
         }
-
-        StartCoroutine(GainFaith());
-        god.StartGodRay(hitObject.transform, false, godRayDuration);
+         
+        float faithFactor = 0.5f;
+        StartCoroutine(
+                FaithModify(faithFactor)
+); ;
+        god.StartGodRay(hitObject.transform, false);
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -247,18 +261,22 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator GainFaith()
+    private IEnumerator FaithModify(float faithFactor)
     {
         while (behaviourIsActive)
         {
-            player.GainFaith(0.25f);
+            player.GainFaith(faithFactor);
             yield return null;
         }
     }
 
+
+
+
+
     public virtual string GetRandomAnimation(string[] animClips)
     {
-        string randomAnimation = animClips[Random.Range(0, animClips.Length - 1)];
+        string randomAnimation = animClips[Random.Range(0, animClips.Length)];
 
         return randomAnimation;
     }
@@ -267,6 +285,12 @@ public class CharacterBehaviours : MonoBehaviour
     public IEnumerator Dance(string randomDanceAnim)
     {
         behaviourIsActive = true;
+
+        while (behaviourIsActive)
+        {
+            player.GainFaith(0.01f);
+            yield return null;
+        }
 
         player.ChangeAnimationState(randomDanceAnim);
         cinematicCam.ToActionZoom();
@@ -349,20 +373,42 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
         yield return new WaitForSeconds(player.GetAnimLength());
 
+
         player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
         yield return new WaitForSeconds(player.GetAnimLength());
 
-        behaviourIsActive = false;
-        player.ChangeAnimationState(PLAYER_IDLE);
+        if (player.faith <= player.maxStat / 2)
+        {
+            cinematicCam.ToGameZoom();
 
-        cinematicCam.ToGameZoom();
+            player.ChangeAnimationState(PLAYER_VOMIT);
+            yield return new WaitForSeconds(player.GetAnimLength());
+            behaviourIsActive = false;
+            yield break;
 
-        yield break;
+        }
+        else
+        {
+
+
+            behaviourIsActive = false;
+            player.ChangeAnimationState(PLAYER_IDLE);
+            cinematicCam.ToGameZoom();
+
+            yield break;
+        }
+
     }
 
     public IEnumerator Reflect()
     {
         behaviourIsActive = true;
+
+        while (behaviourIsActive)
+        {
+            player.GainFaith(0.001f);
+            yield return null;
+        }
 
         player.ChangeAnimationState(PLAYER_SITONFLOOR);
         yield return new WaitForSeconds(player.GetAnimLength());
@@ -390,9 +436,9 @@ public class CharacterBehaviours : MonoBehaviour
 
     bool DetectIfPsychedelic()
     {
-        int chance = Random.Range(0, 100);
+        int chance = Random.Range(0, 1);
 
-        if (chance <= 35)
+        if (chance <= 0.5f)
         {
             return true;
         } else
@@ -477,8 +523,8 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
 
-        Instantiate(campFire, hitObject.transform.position, Quaternion.identity, hitObject.transform);
-        hitObject.transform.SetParent(campFire.transform);
+        GameObject newFire = Instantiate(campFire, hitObject.transform.position, Quaternion.identity);
+        hitObject.transform.SetParent(newFire.transform);
         hitObject.GetComponent<Renderer>().enabled = false;
 
         SheatheItem();

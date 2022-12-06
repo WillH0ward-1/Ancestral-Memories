@@ -30,11 +30,14 @@ public class TerrainGenerator : MonoBehaviour {
 
 	float meshWorldSize;
 
+	[SerializeField] private MapObjGen mapObjGen;
+
 	int chunksVisibleInViewDst;
 
 	private string terrainChunkName = "Terrain Chunk";
 
 	[SerializeField] private Player player;
+	[SerializeField] private LerpTerrain lerpTerrain;
 
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
 	List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
@@ -42,6 +45,7 @@ public class TerrainGenerator : MonoBehaviour {
 	private void Awake()
 	{
 		surface.BuildNavMesh();
+		//mapObjGen.meshWorldSize = meshSettings.MeshWorldSize;
 	}
 
 	private GameObject FindChildGameObject(GameObject parent, string terrainChunkName)
@@ -83,7 +87,7 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 			CorruptionControl corruptionControl = tmp.AddComponent<CorruptionControl>();
-			LerpTerrain lerpTerrain = tmp.AddComponent<LerpTerrain>();
+		    lerpTerrain = tmp.AddComponent<LerpTerrain>();
 			lerpTerrain.player = player;
 			rainControl.lerpTerrain = lerpTerrain;
 			corruptionControl.player = player;
@@ -97,6 +101,7 @@ public class TerrainGenerator : MonoBehaviour {
 			//tmp.AddComponent<ParticleCollision>();
 
 		}
+
 	}
 
     void Update() {

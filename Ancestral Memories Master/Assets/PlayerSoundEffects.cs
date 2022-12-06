@@ -83,11 +83,11 @@ public class PlayerSoundEffects : MonoBehaviour
         hitTreeEvent.release();
 
         Shake camShake = cam.GetComponent<Shake>();
-
         duration = Random.Range(minShakeDuration, maxShakeDuration);
-        //shakeMultiplier = Random.Range(1, 1.1);
         StartCoroutine(camShake.ScreenShake(duration, shakeMultiplier));
+        //shakeMultiplier = Random.Range(1, 1.1);
     }
+
 
     void ScreamingPainEvent()
     {
@@ -96,6 +96,7 @@ public class PlayerSoundEffects : MonoBehaviour
 
         screamingPainEvent.start();
         screamingPainEvent.release();
+
     }
 
     void WhooshEvent()

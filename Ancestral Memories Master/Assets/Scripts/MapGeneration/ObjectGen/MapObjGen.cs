@@ -139,16 +139,24 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private float zOffset = 0;
     [SerializeField] private float initY = 0;
 
-    public GameObject player;
+    [SerializeField] private Player player;
 
     public RadialMenu radialMenu;
 
     public Camera cam;
 
+    public float meshWorldSize;
+
 
     //public Interactable treeInteraction;
 
     private void Awake()
+    {
+        meshWorldSize = meshSettings.MeshWorldSize;
+        GenerateMap();
+    }
+
+    public void GenerateMap()
     {
         Clear();
         Generate();
@@ -161,13 +169,11 @@ public class MapObjGen : MonoBehaviour
 
     public void Generate()
     {
-        //sampleWidth = meshSettings.meshWorldSize;
-        //sampleHeight = meshSettings.meshWorldSize;
 
         ResetPosOffset(mapObject.transform);
 
-        sampleWidth = meshSettings.MeshWorldSize;
-        sampleHeight = meshSettings.MeshWorldSize;
+        sampleWidth = meshWorldSize;
+        sampleHeight = meshWorldSize;
 
         xOffset = -sampleWidth / 2;
         zOffset = -sampleHeight / 2;
@@ -349,46 +355,6 @@ public class MapObjGen : MonoBehaviour
 
     }
 
-    float randomFallDuration;
-
-    void Update()
-    {
-        if (Input.GetKeyDown("space"))
-        {
-            KillTrees();
-        }
-    }
-
-    void KillTrees()
-    {
-        foreach(GameObject tree in treeList)
-        {
-            randomFallDuration  = Random.Range(2, 4);
-            Fall(tree.transform.gameObject, randomFallDuration);
-        }
-    }
-
-    public void Fall(GameObject treeObject, float duration)
-    {
-        Vector2 pointOnCircle = Random.insideUnitCircle * treeObject.transform.localScale.y;
-
-        Vector3 fallPoint = treeObject.transform.position +
-            pointOnCircle.x * treeObject.transform.right +
-            pointOnCircle.y * treeObject.transform.forward;
-
-        Vector3 updatedUpVector = Vector3.Normalize(fallPoint - treeObject.transform.position);
-
-        StartCoroutine(UpdateUpVector(treeObject, updatedUpVector, duration, 0.001f));
-    }
-
-    public IEnumerator UpdateUpVector(GameObject target, Vector3 upVector, float duration, float threshold = 0.001f)
-    {
-        while (Vector3.Distance(upVector, target.transform.up) > threshold)
-        {
-            target.transform.up = Vector3.Lerp(target.transform.up, upVector, duration * Time.deltaTime);
-            yield return new WaitForEndOfFrame();
-        }
-    }
 
     [Header("Tree Growth + Fruit Growth")]
     [Space(10)]
@@ -409,11 +375,17 @@ public class MapObjGen : MonoBehaviour
     float appleGrowthDelay;
     float treeGrowthDelay;
 
+    [SerializeField] private CorruptionControl corruptionControl;
+
     private void GrowTrees(GameObject tree)
     {
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
         ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
+
+        corruptionControl = tree.transform.GetComponent<CorruptionControl>();
+        corruptionControl.player = player;
+
         TreeShaders treeshader = tree.GetComponent<TreeShaders>();
 
         treeGrowDuration = Random.Range(minTreeGrowDuration, maxTreeGrowDuration);
@@ -452,7 +424,7 @@ public class MapObjGen : MonoBehaviour
             }
 
         }
-        // StartCoroutine(treeShader.GrowLeaves(30f));
+       //StartCoroutine(treeShader.GrowLeaves(30f));
     }
 
     [SerializeField] private float minDecayDuration = 5f;
@@ -461,10 +433,17 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] public float minDecayDelayTime = 5f;
     [SerializeField] public float maxDecayDelayTime = 10f;
 
+    [SerializeField] public float minFruitFallBuffer = 1f;
+    [SerializeField] public float maxFruitFallBuffer = 60f;
+
     public IEnumerator WaitUntilGrown(GameObject growObject, ScaleControl scaleControl)
     {
      
         yield return new WaitUntil(() => scaleControl.isFullyGrown);
+
+        float fallBuffer = Random.Range(minFruitFallBuffer, maxFruitFallBuffer);
+
+        yield return new WaitForSeconds(fallBuffer);
 
         if (growObject.transform.CompareTag("Apple") || growObject.transform.CompareTag("Stick"))
         {

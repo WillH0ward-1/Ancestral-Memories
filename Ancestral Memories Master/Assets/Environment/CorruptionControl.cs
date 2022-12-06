@@ -54,6 +54,7 @@ public class CorruptionControl : MonoBehaviour
     void Update()
     {
         currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, 2f * Time.deltaTime);
+        currentAlpha = Mathf.Lerp(currentAlpha, targetAlpha, 2f * Time.deltaTime);
     }
 
     float newMin = 0;

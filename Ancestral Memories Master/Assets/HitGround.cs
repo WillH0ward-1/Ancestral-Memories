@@ -11,7 +11,7 @@ public class HitGround : MonoBehaviour
 
     private void Awake()
     {
-        WaterFloat floating = transform.gameObject.GetComponent<WaterFloat>();
+        floating = transform.gameObject.GetComponent<WaterFloat>();
         floating.enabled = false;
 
         hit = false;
@@ -28,7 +28,11 @@ public class HitGround : MonoBehaviour
             Rigidbody rigidBody = gameObject.transform.GetComponent<Rigidbody>();
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
-            rigidBody.AddForce(fallForce, ForceMode.Force);
+            rigidBody.velocity = new Vector3(0, 0, 0);
+
+           ///
+           //rigidBody.AddForce(fallForce, ForceMode.Force);
+
             hit = true;
 
             if (other.CompareTag("Water")){

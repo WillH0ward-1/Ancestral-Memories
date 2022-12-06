@@ -6,13 +6,12 @@ public class ScaleControl : MonoBehaviour
 {
     public bool isFullyGrown = false;
 
-    public int xAxisGrowMultiplier = 1;
-    public int yAxisGrowMultiplier = 1;
-    public int zAxisGrowMultiplier = 1;
+    [SerializeField] private float xAxisGrowMultiplier = 1;
+    [SerializeField] private float yAxisGrowMultiplier = 1;
+    [SerializeField] private float zAxisGrowMultiplier = 1;
 
     public IEnumerator LerpScale(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration, float delay)
     {
-
         isFullyGrown = false;
 
         scaleObject.transform.localScale = scaleStart;
@@ -27,15 +26,12 @@ public class ScaleControl : MonoBehaviour
 
         while (time <= 1f)
         {
+
+            localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time *= xAxisGrowMultiplier);
+            localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time *= yAxisGrowMultiplier);
+            localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time *= zAxisGrowMultiplier);
+
             time += Time.deltaTime / duration;
-
-            localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time / duration);
-            localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time / duration);
-            localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time / duration);
-
-            time *= xAxisGrowMultiplier;
-            time *= yAxisGrowMultiplier;
-            time *= zAxisGrowMultiplier;
 
             scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
 

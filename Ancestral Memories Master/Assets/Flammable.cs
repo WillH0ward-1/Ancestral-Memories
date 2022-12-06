@@ -24,6 +24,8 @@ public class Flammable : MonoBehaviour
     [SerializeField] private int minFireSpreadDelay = 0;
     [SerializeField] private int maxFireSpreadDelay = 5;
 
+    private FireController fireManager;
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Fire"))
@@ -76,8 +78,7 @@ public class Flammable : MonoBehaviour
                     yield break;
                 }
 
-                GameObject fireInstance = Instantiate(fire, flammableObject.transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]), Quaternion.identity);
-                fireInstance.transform.SetParent(flammableObject.transform, true);
+                fireManager.StartFire(flammableObject.transform, flammableObject.transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]));
 
                 i += sampleDensity;
 

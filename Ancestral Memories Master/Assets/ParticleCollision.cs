@@ -13,9 +13,12 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private StudioEventEmitter emitter;
 
     [SerializeField] private EventReference rainSFX;
+    private EventInstance instance;
 
-    private int stability = 0;
-    private int instability = 1;
+    private float stability = 0;
+    private float instability = 1;
+
+    private float harmonicStability;
 
     private float currentWindStrength = 0;
     private float targetHarmonicStability;
@@ -23,12 +26,6 @@ public class ParticleCollision : MonoBehaviour
     public bool windIsActive;
 
     private StudioGlobalParameterTrigger globalParams;
-
-    private void Awake()
-    {
-        emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
-    }
-
 
     private void OnParticleCollision(GameObject other)
     {
@@ -52,13 +49,50 @@ public class ParticleCollision : MonoBehaviour
         if (onScreen)
         {
             //rainDropInstance = RuntimeManager.CreateInstance(rainSFX);
-           // rainDropInstance.start();
-            emitter.EventInstance.start();
+            // rainDropInstance.start();
+
+            instance = RuntimeManager.CreateInstance(rainSFX);
+            instance.start();
+
+   
+
             //emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
         }
 
         //lightningStrikeEvent.setVolume();
     }
+
+    private bool rainIsActive = false;
+
+    private bool harmonicStabilityActive;
+
+    private void Awake()
+    {
+        harmonicStabilityActive = true;
+        StartCoroutine(HarmonicStability());
+
+    }
+
+    private IEnumerator HarmonicStability()
+    {
+        while (harmonicStabilityActive)
+        {
+            if (!harmonicStabilityActive)
+            {
+                yield break;
+            }
+
+            harmonicStability = targetHarmonicStability;
+
+            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
+            Debug.Log("WindStrength:" + harmonicStability);
+            yield return null;
+        }
+  
+        yield break;
+
+    }
+
 
     private void OnEnable() => player.OnFaithChanged += HarmonicStability;
     private void OnDisable() => player.OnFaithChanged -= HarmonicStability;
@@ -66,10 +100,13 @@ public class ParticleCollision : MonoBehaviour
     private void HarmonicStability(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float output = Mathf.Lerp(stability, instability, t);
+        float output = Mathf.Lerp(instability, stability, t);
 
         targetHarmonicStability = output;
 
-        emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
+
+
     }
+
+
 }
