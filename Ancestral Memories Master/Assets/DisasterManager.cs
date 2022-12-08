@@ -16,6 +16,7 @@ public class DisasterManager : MonoBehaviour
 
     [SerializeField] private AreaManager areaManager;
 
+    /*
     private void Update()
     {
         if (!behaviours.behaviourIsActive && !behaviours.dialogueIsActive && player.isFaithless && !disasterOccuring && !disasterCountdown)
@@ -26,12 +27,12 @@ public class DisasterManager : MonoBehaviour
             return;
         }
     }
+    */
 
     void GetRandomDisaster()
     {
         
     }
-
 
 
     [SerializeField] float minCountdown = 10;
@@ -58,7 +59,7 @@ public class DisasterManager : MonoBehaviour
             return;
 
         }
-        else if(behaviours.behaviourIsActive && areaManager.traversing)
+        else if(behaviours.behaviourIsActive || areaManager.traversing)
         {
             return;
         }

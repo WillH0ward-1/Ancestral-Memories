@@ -11,6 +11,8 @@ public class MapObjGen : MonoBehaviour
     [Header("Map Object Generator")]
     [Header("========================================================================================================================")]
 
+    public GameObject terrain;
+
     [Header("Terrain Mesh Data")]
     [Space(10)]
 
@@ -145,6 +147,8 @@ public class MapObjGen : MonoBehaviour
 
     public Camera cam;
 
+    [SerializeField] private Interactable interactable;
+    [SerializeField] private Interactable interact;
     public float meshWorldSize;
 
 
@@ -156,10 +160,24 @@ public class MapObjGen : MonoBehaviour
         GenerateMap();
     }
 
+    private void Start()
+    {
+        interact = terrain.transform.GetComponent<Interactable>();
+        interactable = transform.GetComponent<Interactable>();
+
+        interact = interactable;
+
+        interact.name = interactable.name;
+        interact.options[0].title = interactable.options[0].title;
+        interact.options[0].color = interactable.options[0].color;
+        interact.options[0].sprite = interactable.options[0].sprite;
+    }
+
     public void GenerateMap()
     {
         Clear();
         Generate();
+        
     }
 
     public GameObject GetRandomMapObject(GameObject[] mapElements)

@@ -65,7 +65,7 @@ public class WeatherControl : MonoBehaviour
 
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
-        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
+        var t = Mathf.InverseLerp(maxFaith, minFaith, faith);
         float output = Mathf.Lerp(minWindStrength, maxWindStrength, t);
 
         targetWindStrength = output;

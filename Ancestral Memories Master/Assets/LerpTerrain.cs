@@ -109,7 +109,6 @@ public class LerpTerrain : MonoBehaviour
 
         while (time <= 1f)
         {
-            currentState = targetState;
 
             isLerping = true;
 
@@ -128,14 +127,15 @@ public class LerpTerrain : MonoBehaviour
                 yield return null;
             }
 
-            if (time >= 1f)
-            {
-                isLerping = false;
-                yield break;
-            }
-
             yield return null;
 
+        }
+
+
+        if (time >= 1f)
+        {
+            isLerping = false;
+            yield break;
         }
 
         yield break;

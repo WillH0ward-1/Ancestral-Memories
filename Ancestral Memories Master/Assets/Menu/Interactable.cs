@@ -12,8 +12,6 @@ public class Interactable : MonoBehaviour
         public Color color;
         public Sprite sprite;
         public string title;
-        //public Animation animation;
-        //public float alpha = 1f;
     }
    
 

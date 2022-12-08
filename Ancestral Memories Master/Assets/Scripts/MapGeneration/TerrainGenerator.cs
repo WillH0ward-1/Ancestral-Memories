@@ -30,6 +30,8 @@ public class TerrainGenerator : MonoBehaviour {
 
 	float meshWorldSize;
 
+	[SerializeField] private Interactable interactable;
+
 	[SerializeField] private MapObjGen mapObjGen;
 
 	int chunksVisibleInViewDst;
@@ -90,8 +92,14 @@ public class TerrainGenerator : MonoBehaviour {
 		    lerpTerrain = tmp.AddComponent<LerpTerrain>();
 			lerpTerrain.player = player;
 			rainControl.lerpTerrain = lerpTerrain;
+			Interactable interactable = tmp.AddComponent<Interactable>();
+			GameObject terrainObject = tmp;
+
+			mapObjGen.terrain = terrainObject;
+
 			corruptionControl.player = player;
 
+			
 			//interactable.name = "Plant";
 			//interactable.options[0].title = "Plant";
 			//interactable.options[0].color = Color.white;

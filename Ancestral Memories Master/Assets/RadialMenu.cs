@@ -25,7 +25,11 @@ public class RadialMenu : MonoBehaviour
     {
         hitObject = lastHit;
         rayHit = hit;
+        StartCoroutine(AnimateButtons(obj));
+    }
 
+    private IEnumerator AnimateButtons(Interactable obj)
+    {
         for (int i = 0; i < obj.options.Length; i++)
         {
             RadialButton newButton = Instantiate(buttonPrefab);
@@ -50,9 +54,19 @@ public class RadialMenu : MonoBehaviour
             newButton.myMenu = this;
 
             buttons.Add(newButton);
+            yield return new WaitForSeconds(Random.Range(0.01f, 0.02f));
+            
         }
-
     }
+
+    [SerializeField] private float buttonRevealSpeed;
+    [SerializeField] Vector3 targetButtonSize = new(1, 1, 1);
+
+    public void Animate(RadialButton newButton)
+    {
+        StartCoroutine(newButton.AnimateButtonIn(buttonRevealSpeed, targetButtonSize));
+    }
+
 
     public bool walkingToward = false;
 
@@ -92,6 +106,11 @@ public class RadialMenu : MonoBehaviour
             }
             
         }
+    }
+
+    private void DestroyMenu()
+    {
+
     }
 
     public void HideButtons()

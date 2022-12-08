@@ -7,13 +7,178 @@
 [LOG] SystemI::init                            : Output requires a sample rate of 44100Hz, resampling will occur.
 [LOG] Thread::initThread                       : Init FMOD stream thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFB, Stack Size: 98304, Semaphore: No, Sleep Time: 10, Looping: Yes.
 [LOG] Thread::initThread                       : Init FMOD mixer thread. Affinity: 0x4000000000000001, Priority: 0xFFFF7FFA, Stack Size: 81920, Semaphore: Yes, Sleep Time: 0, Looping: Yes.
-[LOG] AsyncManager::init                       : manager 0x7fc3393e7808 isAsync 0 updatePeriod 0.02
+[LOG] AsyncManager::init                       : manager 0x7fc819939c08 isAsync 0 updatePeriod 0.02
 [LOG] AsyncManager::init                       : done
 [LOG] PlaybackSystem::init                     : 
 [LOG] Thread::initThread                       : Init FMOD Studio sample load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
 [LOG] PlaybackSystem::init                     : done
 [LOG] Thread::initThread                       : Init FMOD Studio bank load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
 [LOG] Manager::init                            : done.
+[LOG] SystemI::createSound                     : filename = Assets/FmodBanks/Desktop/Master.bank : mode 02010082
+[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
+[LOG] SystemI::createSound                     : setdata soundi = 0x7fc7ef66ec58 : node = 0x7fc7efde3d80
+[LOG] SystemI::createSound                     : add node to async list : head = 0x7fc7f8115978.  list count = 0
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7ef66ec58
+[LOG] SystemI::createSoundInternal             :     Create name='Assets/FmodBanks/Desktop/Master.bank', mode=0x02010082
+[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
+[LOG] SystemI::createSoundInternal             :     exinfo->length             = 14010592
+[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 87136
+[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 0x7fc7efde3e90
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
+[LOG] SystemI::createSoundInternal             :     exinfo->initialseekposition = 1500
+[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
+[LOG] SystemI::createSound                     :     filename = Assets/FmodBanks/Desktop/Master.bank : mode 02010082
+[LOG] SystemI::createSound                     :     FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
+[LOG] SystemI::createSound                     :     setdata soundi = 0x7fc7f81c0e28 : node = 0x7fc7efded7b0
+[LOG] SystemI::createSound                     :     add node to async list : head = 0x7fc7f8115978.  list count = 0
+[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='469009__innorecords__relaxing-mountains-rivers-streams-running-water', format=5, channels=2, frequency=48000, lengthbytes=4178880, lengthpcm=14394850, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.070679.
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7ef66ec58
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7f81c0e28
+[LOG] SystemI::createSoundInternal             :     Create name='Assets/FmodBanks/Desktop/Master.bank', mode=0x02010082
+[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
+[LOG] SystemI::createSoundInternal             :     exinfo->length             = 14010592
+[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 87136
+[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 0x7fc7efded8c0
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
+[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
+[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='Birds Chirping - Extended Ambience', format=5, channels=2, frequency=48000, lengthbytes=1307360, lengthpcm=7008000, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.098927.
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7f81c0e28
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7eb914fa8
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7eb914fa8
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7efd11b68
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7efd11b68
+[LOG] SystemI::createSound                     : filename = Assets/FmodBanks/Desktop/Master.bank : mode 02010082
+[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
+[LOG] SystemI::createSound                     : setdata soundi = 0x7fc7ef833288 : node = 0x7fc7ef839990
+[LOG] SystemI::createSound                     : add node to async list : head = 0x7fc7f8115978.  list count = 0
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7ef833288
+[LOG] SystemI::createSoundInternal             :     Create name='Assets/FmodBanks/Desktop/Master.bank', mode=0x02010082
+[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
+[LOG] SystemI::createSoundInternal             :     exinfo->length             = 14010592
+[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 87136
+[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 0x7fc7ef839aa0
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
+[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
+[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='FireLoop01', format=5, channels=2, frequency=48000, lengthbytes=215968, lengthpcm=684124, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.612279.
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7ef833288
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7eff96688
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7eff96688
+[LOG] SoundI::release                          : FireLoop01 (0x7fc7eb200aa8)
+[LOG] SoundI::release                          :     FireLoop01 (0x7fc7efdebd48)
+[LOG] SoundI::release                          :     FireLoop01 (0x7fc80bdc79f8)
+[LOG] SystemI::createSound                     : filename = Assets/FmodBanks/Desktop/Master.bank : mode 02010082
+[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
+[LOG] SystemI::createSound                     : setdata soundi = 0x7fc7f8746d08 : node = 0x7fc7ef62d320
+[LOG] SystemI::createSound                     : add node to async list : head = 0x7fc7f8115978.  list count = 0
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7f8746d08
+[LOG] SystemI::createSoundInternal             :     Create name='Assets/FmodBanks/Desktop/Master.bank', mode=0x02010082
+[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
+[LOG] SystemI::createSoundInternal             :     exinfo->length             = 14010592
+[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 87136
+[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 0x7fc7ef62d430
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
+[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
+[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='FireLoop01', format=5, channels=2, frequency=48000, lengthbytes=215968, lengthpcm=684124, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.612279.
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7f8746d08
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7efe6ee08
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7efe6ee08
+[LOG] SoundI::release                          : FireLoop01 (0x7fc7ef833288)
+[LOG] SoundI::release                          :     FireLoop01 (0x7fc7f8928f68)
+[LOG] SoundI::release                          :     FireLoop01 (0x7fc7eff96688)
+[LOG] SystemI::createSound                     : filename = Assets/FmodBanks/Desktop/Master.bank : mode 02010082
+[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
+[LOG] SystemI::createSound                     : setdata soundi = 0x7fc7ebbebd48 : node = 0x7fc7f8423df0
+[LOG] SystemI::createSound                     : add node to async list : head = 0x7fc7f8115978.  list count = 0
+[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 0x7fc7ebbebd48
+[LOG] SystemI::createSoundInternal             :     Create name='Assets/FmodBanks/Desktop/Master.bank', mode=0x02010082
+[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
+[LOG] SystemI::createSoundInternal             :     exinfo->length             = 14010592
+[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 87136
+[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 0x7fc7f8423f00
+[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
+[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
+[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
+[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='DayCrickets', format=5, channels=2, frequency=48000, lengthbytes=423296, lengthpcm=1510613, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.005009.
+[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 0x7fc7ebbebd48
+[LOG] SoundI::release                          : DayCrickets (0x7fc7f8627c58)
+[LOG] SoundI::release                          :     DayCrickets (0x7fc7f81ca888)
+[LOG] SoundI::release                          :     DayCrickets (0x7fc7efd11b68)
+[LOG] SoundI::release                          : WindLoop (0x7fc80a4b6a78)
+[LOG] SoundI::release                          :     WindLoop (0x7fc7f89a6258)
+[LOG] SoundI::release                          :     WindLoop (0x7fc7eb914fa8)
+[LOG] SoundI::release                          : Birds Chirping - Extended Ambience (0x7fc7f81c0e28)
+[LOG] SoundI::release                          :     Birds Chirping - Extended Ambience (0x7fc7ef1b0c18)
+[LOG] SoundI::release                          :     Birds Chirping - Extended Ambience (0x7fc7ef1aa8f8)
+[LOG] SoundI::release                          : DayCrickets (0x7fc7ebbebd48)
+[LOG] SoundI::release                          :     DayCrickets (0x7fc80efd80f8)
+[LOG] SoundI::release                          :     DayCrickets (0x7fc7ef349d88)
+[LOG] SoundI::release                          : FireLoop01 (0x7fc7f8746d08)
+[LOG] SoundI::release                          :     FireLoop01 (0x7fc7eebcee28)
+[LOG] SoundI::release                          :     FireLoop01 (0x7fc7efe6ee08)
+[LOG] SoundI::release                          : 469009__innorecords__relaxing-mountains-rivers-streams-running-water (0x7fc7ef66ec58)
+[LOG] SoundI::release                          :     469009__innorecords__relaxing-mountains-rivers-streams-running-water (0x7fc81b03a6a8)
+[LOG] SoundI::release                          :     469009__innorecords__relaxing-mountains-rivers-streams-running-water (0x7fc7ef149f48)
+[LOG] SoundI::release                          :  (0x7fc7f8ac9a38)
+[LOG] SoundI::release                          :     Swimming01 (0x7fc80ef13548)
+[LOG] SoundI::release                          :  (0x7fc7eefc4ec8)
+[LOG] SoundI::release                          :     Swimming02 (0x7fc7eef1c488)
+[LOG] SoundI::release                          :  (0x7fc7f8aed868)
+[LOG] SoundI::release                          :     Swimming03 (0x7fc7f8a82658)
+[LOG] SoundI::release                          :  (0x7fc7ef3761e8)
+[LOG] SoundI::release                          :     Swimming04 (0x7fc7f8325be8)
+[LOG] SoundI::release                          :  (0x7fc80ef8d648)
+[LOG] SoundI::release                          :     Swimming05 (0x7fc7f8a88678)
+[LOG] SoundI::release                          :  (0x7fc7f833ba38)
+[LOG] SoundI::release                          :     SandFootstep01 (0x7fc7f83dec08)
+[LOG] SoundI::release                          :  (0x7fc80ef75908)
+[LOG] SoundI::release                          :     SandFootstep02 (0x7fc7f8a11bc8)
+[LOG] SoundI::release                          :  (0x7fc80ef523e8)
+[LOG] SoundI::release                          :     SandFootstep03 (0x7fc7eef23ae8)
+[LOG] SoundI::release                          :  (0x7fc7f8376158)
+[LOG] SoundI::release                          :     SandFootstep04 (0x7fc7f839f5e8)
+[LOG] SoundI::release                          :  (0x7fc7f83a4628)
+[LOG] SoundI::release                          :     SandFootstep05 (0x7fc7f8a52508)
+[LOG] SoundI::release                          :  (0x7fc7ef3b8f68)
+[LOG] SoundI::release                          :     sfxDirtFootstep01 (0x7fc7f83a6ff8)
+[LOG] SoundI::release                          :  (0x7fc7ef3dab88)
+[LOG] SoundI::release                          :     sfxDirtFootstep02 (0x7fc7ef3a30f8)
+[LOG] SoundI::release                          :  (0x7fc7ef37d568)
+[LOG] SoundI::release                          :     sfxDirtFootstep03 (0x7fc7eefede98)
+[LOG] SoundI::release                          :  (0x7fc818b335e8)
+[LOG] SoundI::release                          :     sfxDirtFootstep04 (0x7fc80ef287a8)
+[LOG] SoundI::release                          :  (0x7fc80bd5f0a8)
+[LOG] SoundI::release                          :     Fire Start (Whoosh) (0x7fc7e9d04428)
+[LOG] SoundI::release                          :  (0x7fc7ef6ec778)
+[LOG] SoundI::release                          :     PianoHighKeySample05 (0x7fc7f8118e98)
+[LOG] SoundI::release                          :  (0x7fc7ef4bd268)
+[LOG] SoundI::release                          :     PianoHighKeySample04 (0x7fc7f8264148)
+[LOG] SoundI::release                          :  (0x7fc7f81e02c8)
+[LOG] SoundI::release                          :     PianoHighKeySample03 (0x7fc7efd1ee08)
+[LOG] SoundI::release                          :  (0x7fc80bd47918)
+[LOG] SoundI::release                          :     PianoHighKeySample02 (0x7fc7ef603df8)
+[LOG] SoundI::release                          :  (0x7fc7f81186e8)
+[LOG] SoundI::release                          :     PianoHighKeySample01 (0x7fc7f8746b48)
+[LOG] SoundI::release                          :  (0x7fc7e9c68b78)
+[LOG] SoundI::release                          :     sfxGrassFootstep (0x7fc7eb26d478)
+[LOG] Thread::callback                         : FMOD Studio update thread finished.
+[LOG] Thread::callback                         : FMOD Studio bank load thread finished.
+[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
+[LOG] Thread::callback                         : FMOD Studio sample load thread finished.
+[LOG] LiveUpdate::release                      : 
+[LOG] LiveUpdate::reset                        : Reset connection (reason Disconnected)
+[LOG] Thread::callback                         : FMOD stream thread finished.
+[LOG] Thread::callback                         : FMOD mixer thread finished.
+[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
+[LOG] SystemI::close                           : Closed.
 [LOG] Thread::callback                         : FMOD Studio bank load thread finished.
 [LOG] Thread::callback                         : FMOD Studio sample load thread finished.
 [LOG] LiveUpdate::release                      : 
@@ -21,3 +186,5 @@
 [LOG] Thread::callback                         : FMOD stream thread finished.
 [LOG] Thread::callback                         : FMOD mixer thread finished.
 [LOG] SystemI::close                           : Closed.
+[LOG] Thread::callback                         : FMOD nonblocking thread (0) finished.
+[LOG] Thread::callback                         : FMOD file thread finished.

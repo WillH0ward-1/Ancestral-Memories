@@ -178,7 +178,7 @@ public class CharacterBehaviours : MonoBehaviour
             costumeControl.SwitchSkeleton();
             isSkeleton = false;
         }
-        var maxTimeOnFloor = player.GetAnimLength() + Random.Range(3, 5);
+        var maxTimeOnFloor = player.GetAnimLength() + Random.Range(0, 2);
 
         player.ChangeAnimationState(PLAYER_FACEDOWNIDLE);
 
@@ -195,17 +195,17 @@ public class CharacterBehaviours : MonoBehaviour
 
             time += Time.deltaTime / duration;
 
-            if (Input.GetMouseButtonDown(0) || time >= duration)
-            {
-
-                behaviourIsActive = false;
-                playerWalk.CancelAgentOverride();
-                yield break;
-            }
-
-   
+         
 
             yield return null;
+        }
+
+        if (Input.GetMouseButtonDown(0) || time >= duration)
+        {
+
+            behaviourIsActive = false;
+            playerWalk.CancelAgentOverride();
+            yield break;
         }
 
         //cinematicCam.ToGameZoom();
@@ -244,9 +244,8 @@ public class CharacterBehaviours : MonoBehaviour
         }
          
         float faithFactor = 0.5f;
-        StartCoroutine(
-                FaithModify(faithFactor)
-); ;
+        StartCoroutine(FaithModify(faithFactor));
+
         god.StartGodRay(hitObject.transform, false);
 
         Debug.Log("Click to exit this action.");

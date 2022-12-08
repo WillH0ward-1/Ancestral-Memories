@@ -13,6 +13,22 @@ public class RadialButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     Color defaultColor;
 
+    public IEnumerator AnimateButtonIn(float buttonRevealSpeed, Vector3 targetButtonSize)
+    {
+        transform.localScale = Vector3.zero;
+        float time = 0;
+
+        while (time <= 1)
+        {
+            transform.localScale = Vector3.Lerp(transform.localScale, targetButtonSize, time);
+            time += Time.deltaTime / buttonRevealSpeed;
+            yield return null;
+        }
+
+        transform.localScale = targetButtonSize;
+        yield return null;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         myMenu.selected = this;

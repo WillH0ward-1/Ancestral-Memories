@@ -57,8 +57,10 @@ public class PlayerWalk : MonoBehaviour
 
     private RaycastHit rayHit;
 
-    [SerializeField] private Transform rightFootRaySource;
-    [SerializeField]  private Transform leftFootRaySource;
+    private float targetWaterDepth;
+    private float waterDepth;
+
+    [SerializeField] private Transform playerHead;
 
     [SerializeField] private List<Transform> raySources;
 
@@ -68,34 +70,97 @@ public class PlayerWalk : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         agent.isStopped = true;
 
-        raySources.Add(rightFootRaySource);
-        raySources.Add(leftFootRaySource);
+        raySources.Add(playerHead);
 
 
     }
 
+    private IEnumerator WaterSFX()
+    {
+        while (playerInWater)
+        {
+            if (!playerInWater)
+            {
+                yield break;
+            }
 
+            waterDepth = targetWaterDepth;
+
+            RuntimeManager.StudioSystem.setParameterByName("WaterDepth", waterDepth);
+            Debug.Log("WaterDepth:" + waterDepth);
+            yield return null;
+        }
+
+        yield break;
+
+    }
+
+    float minParamDepth = 0;
+    float maxParamDepth = 1;
+
+    private IEnumerator GetWaterDepth(Vector3 playerHead, RaycastHit rayHit, float distance)
+    {
+        while (playerInWater)
+        {
+            var t = Mathf.InverseLerp(playerHead.y, rayHit.point.y, distance);
+            float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
+
+            targetWaterDepth = output;
+
+            if (!playerInWater)
+            {
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    private bool playerIsInWater = false;
+
+    private void Water(Vector3 playerHead, RaycastHit rayHit, float distance)
+    {
+        StartCoroutine(GetWaterDepth(playerHead, rayHit, distance));
+    }
 
     public bool playerInWater = false;
-
+    private LayerMask layerMask;
     void Update()
     {
+        layerMask = LayerMask.GetMask("Water", "Ground");
+
         int waterLayerIndex = LayerMask.NameToLayer("Water");
         int waterLayerMask = (1 << waterLayerIndex);
 
 
         foreach (Transform t in raySources)
         {
-            if (Physics.Raycast(t.transform.position, Vector3.up, out RaycastHit hitWater, Mathf.Infinity, waterLayerMask))
+            Vector3 rayDirection = Vector3.down;
+            Vector3 playerHead = new Vector3(t.transform.position.x, t.transform.position.y, t.transform.position.z);
+
+            if (Physics.Raycast(t.transform.position, rayDirection, out RaycastHit rayHit, Mathf.Infinity, layerMask))
             {
-                float distance = hitWater.distance;
-                playerInWater = true;
-                Debug.Log("Water Detected!");
+                float distance = rayHit.distance;
+
+                if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground"))
+                {
+                    playerInWater = false;
+                    return;
+
+                }
+                else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
+                {
+                    playerInWater = true;
+                    Debug.Log("Water Detected!");
+                    Water(playerHead, rayHit, distance);
+                }
+
+                Debug.DrawRay(t.transform.position, rayDirection, Color.blue);
             }
-            else
-            {
-                playerInWater = false;
-            }
+
+  
         }
 
         if (!stopOverride)
@@ -236,7 +301,6 @@ public class PlayerWalk : MonoBehaviour
             destinationGizmo.transform.localScale = sizeCalculated / 8;
         }
 
-
         if (selected == "Talk")
         {
             destinationGizmo.transform.localScale = sizeCalculated * 2;
@@ -274,7 +338,7 @@ public class PlayerWalk : MonoBehaviour
             ChangeState(PLAYER_DRUNKWALK);
         }
 
-        speed = 12;
+        speed = 23;
         agent.destination = destination;
         agent.speed = speed;
         agent.isStopped = false;

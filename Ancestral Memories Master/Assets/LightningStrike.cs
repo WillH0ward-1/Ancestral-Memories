@@ -40,7 +40,7 @@ public class LightningStrike : MonoBehaviour
 
     public void StrikeLightning(Transform target)
     {
-        if (areaManager.currentRoom != insideCave)
+        if (areaManager.currentRoom != insideCave && !behaviours.behaviourIsActive)
         {
             StartCoroutine(behaviours.Electrocution());
             StartCoroutine(Strike(target));
