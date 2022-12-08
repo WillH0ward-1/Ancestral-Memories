@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.01.00">
+	<object class="MixerReturn" id="{a010e7d6-5151-4b67-9fb4-dcacf539c572}">
+		<property name="name">
+			<value>PsychedelicFX</value>
+		</property>
+		<relationship name="effectChain">
+			<destination>{48db36d5-866b-46b9-a51e-4e6ce9fdcceb}</destination>
+		</relationship>
+		<relationship name="panner">
+			<destination>{1a60a013-9e62-4d3e-808d-60db07e785e8}</destination>
+		</relationship>
+		<relationship name="output">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusEffectChain" id="{48db36d5-866b-46b9-a51e-4e6ce9fdcceb}">
+		<relationship name="effects">
+			<destination>{498cd0c4-b6e6-4fb8-b1f4-56441e7f56ee}</destination>
+			<destination>{6431bb87-37a2-4a5a-b8bc-50c01951f8d3}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusPanner" id="{1a60a013-9e62-4d3e-808d-60db07e785e8}" />
+	<object class="MixerBusFader" id="{498cd0c4-b6e6-4fb8-b1f4-56441e7f56ee}" />
+	<object class="FlangerEffect" id="{6431bb87-37a2-4a5a-b8bc-50c01951f8d3}" />
+</objects>
