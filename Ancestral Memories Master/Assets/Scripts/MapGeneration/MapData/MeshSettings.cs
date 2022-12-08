@@ -24,7 +24,7 @@ public class MeshSettings : UpdatableData
 
 
 	// num verts per line of mesh rendered at LOD = 0. Includes the 2 extra verts that are excluded from final mesh, but used for calculating normals
-	public int NumVertsPerLine
+	public int numVertsPerLine
 	{
 		get
 		{
@@ -32,12 +32,12 @@ public class MeshSettings : UpdatableData
 		}
 	}
 
-	public float MeshWorldSize
+	public float meshWorldSize
 	{
 		get
 
 		{
-			return (NumVertsPerLine - 3) * meshScale;
+			return (numVertsPerLine - 3) * meshScale;
 		}
 	}
 

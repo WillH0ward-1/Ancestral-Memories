@@ -156,7 +156,7 @@ public class MapObjGen : MonoBehaviour
 
     private void Awake()
     {
-        meshWorldSize = meshSettings.MeshWorldSize;
+        meshWorldSize = meshSettings.meshWorldSize;
         GenerateMap();
     }
 
