@@ -149,56 +149,30 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private Interactable interactable;
     [SerializeField] private Interactable interact;
-    public float meshWorldSize;
-
 
     //public Interactable treeInteraction;
 
-    private void Awake()
-    {
-        meshWorldSize = meshSettings.MeshWorldSize;
-        GenerateMap();
-    }
-
-    private void Start()
-    {
-        interact = terrain.transform.GetComponent<Interactable>();
-        interactable = transform.GetComponent<Interactable>();
-
-        interact = interactable;
-
-        interact.name = interactable.name;
-        interact.options[0].title = interactable.options[0].title;
-        interact.options[0].color = interactable.options[0].color;
-        interact.options[0].sprite = interactable.options[0].sprite;
-    }
-
-    public void GenerateMap()
-    {
-        Clear();
-        Generate();
-        
-    }
 
     public GameObject GetRandomMapObject(GameObject[] mapElements)
     {
         return mapElements[Random.Range(0, mapElements.Length)];
     }
 
-    public void Generate()
+    public void GenerateMapObjects()
     {
 
-        ResetPosOffset(mapObject.transform);
+       // ResetPosOffset(mapObject.transform);
+        ResetPosOffset();
 
-        sampleWidth = meshWorldSize;
-        sampleHeight = meshWorldSize;
+        sampleWidth = meshSettings.meshWorldSize; 
+        sampleHeight = meshSettings.meshWorldSize; 
 
         xOffset = -sampleWidth / 2;
         zOffset = -sampleHeight / 2;
 
         //mapObjectList.Clear();
 
-        GenerateOceanEmitters(sampleWidth, sampleHeight);
+        //GenerateOceanEmitters(sampleWidth, sampleHeight);
 
         PoissonDiscSampler treeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTreeRadius);
         PoissonDiscSampler appleTreeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAppleTreeRadius);
@@ -220,7 +194,8 @@ public class MapObjGen : MonoBehaviour
         MushroomPoissonDisc(mushroomSampler);
         FireWoodPoissonDisc(fireWoodSampler);
 
-        SetOffset(mapObject.transform);
+        //SetOffset();
+        SetOffset();
 
         GroundCheck();
         //SortTreeTypes(treeList);
@@ -250,14 +225,19 @@ public class MapObjGen : MonoBehaviour
         ZspawnPositions.Add(positiveZ);
         ZspawnPositions.Add(negativeZ);
 
-        foreach(Vector3 spawnPoint in XspawnPositions)
+        
+        foreach (Vector3 spawnPoint in XspawnPositions)
         {
             GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
+            mapObjectList.Add(perimeterPoint);
+            perimeterPoint.transform.SetParent(hierarchyRoot.transform);
         }
 
         foreach (Vector3 spawnPoint in ZspawnPositions)
         {
             GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
+            mapObjectList.Add(perimeterPoint);
+            perimeterPoint.transform.SetParent(hierarchyRoot.transform);
         }
 
 
@@ -824,7 +804,7 @@ public class MapObjGen : MonoBehaviour
 
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitCave, Mathf.Infinity, caveLayerMask))
             {
-                if (hitFloor.collider.CompareTag("Cave"))
+                if (hitCave.collider.CompareTag("Cave"))
                 {
                     //Debug.Log("Cannot generate objects in cave!");
 
@@ -848,14 +828,14 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    void SetOffset(Transform offsetObject)
+    void SetOffset()
     {
-        offsetObject.position = new Vector3(xOffset, initY, zOffset);
+        mapObject.transform.position = new Vector3(xOffset, initY, zOffset);
     }
 
-    void ResetPosOffset(Transform offsetObject)
+    void ResetPosOffset()
     {
-        offsetObject.position = new Vector3(0, initY, 0);
+        mapObject.transform.position = new Vector3(0, initY, 0);
     }
 
     public void Clear()
@@ -865,7 +845,7 @@ public class MapObjGen : MonoBehaviour
         if (Application.isEditor)
         {
 
-            ResetPosOffset(mapObject.transform);
+            ResetPosOffset();
 
             while (hierarchyRoot.transform.childCount != 0)
             {
@@ -894,37 +874,7 @@ public class MapObjGen : MonoBehaviour
             }
 
         }
-        else
 
-        {
-            ResetPosOffset(mapObject.transform);
-
-            while (hierarchyRoot.transform.childCount != 0)
-            {
-                foreach (Transform child in hierarchyRoot.transform)
-                {
-                    Destroy(child.gameObject);
-                    if (hierarchyRoot.transform.childCount != 0)
-                    {
-                        continue;
-
-                    }
-                }
-            }
-
-            while (EmitterHierarchyParent.transform.childCount != 0)
-            {
-                foreach (Transform child in EmitterHierarchyParent.transform)
-                {
-                    Destroy(child.gameObject);
-                    if (EmitterHierarchyParent.transform.childCount != 0)
-                    {
-                        continue;
-                    }
-
-                }
-            }
-        }
     }
 }
 

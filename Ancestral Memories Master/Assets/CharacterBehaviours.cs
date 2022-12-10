@@ -138,7 +138,6 @@ public class CharacterBehaviours : MonoBehaviour
         return;
     }
 
-
     public void WalkToward(GameObject hitObject, string selected, RaycastHit rayHit)
     {
         StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null, rayHit));
@@ -542,6 +541,7 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("HITOBJECT: " + hitObject);
 
         behaviourIsActive = true;
+        dialogueIsActive = true;
 
         player.ChangeAnimationState(PLAYER_IDLE);
 

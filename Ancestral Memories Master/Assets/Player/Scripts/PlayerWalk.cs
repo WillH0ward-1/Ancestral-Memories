@@ -29,8 +29,6 @@ public class PlayerWalk : MonoBehaviour
     const string PLAYER_CROUCH = "Player_crouch";
     const string PLAYER_SNEAK = "Player_sneak";
 
-
-
     const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
     const string PLAYER_STARVINGWALK = "Player_starvingWalk";
     const string PLAYER_STARVINGCRITICAL = "Player_starvingCritical";
@@ -71,7 +69,7 @@ public class PlayerWalk : MonoBehaviour
         agent.isStopped = true;
 
         raySources.Add(playerHead);
-
+        layerMask = LayerMask.GetMask("Water", "Ground");
 
     }
 
@@ -106,19 +104,17 @@ public class PlayerWalk : MonoBehaviour
             float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
             targetWaterDepth = output;
-
-            if (!playerInWater)
-            {
-                yield break;
-            }
-
+            //StartCoroutine(WaterSFX());
             yield return null;
+        }
+
+        if (!playerInWater)
+        {
+            yield break;
         }
 
         yield break;
     }
-
-    private bool playerIsInWater = false;
 
     private void Water(Vector3 playerHead, RaycastHit rayHit, float distance)
     {
@@ -127,14 +123,11 @@ public class PlayerWalk : MonoBehaviour
 
     public bool playerInWater = false;
     private LayerMask layerMask;
+   
     void Update()
     {
-        layerMask = LayerMask.GetMask("Water", "Ground");
 
-        int waterLayerIndex = LayerMask.NameToLayer("Water");
-        int waterLayerMask = (1 << waterLayerIndex);
-
-
+        /*
         foreach (Transform t in raySources)
         {
             Vector3 rayDirection = Vector3.down;
@@ -148,9 +141,7 @@ public class PlayerWalk : MonoBehaviour
                 {
                     playerInWater = false;
                     return;
-
-                }
-                else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
+                } else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
                 {
                     playerInWater = true;
                     Debug.Log("Water Detected!");
@@ -159,9 +150,8 @@ public class PlayerWalk : MonoBehaviour
 
                 Debug.DrawRay(t.transform.position, rayDirection, Color.blue);
             }
-
-  
         }
+        */
 
         if (!stopOverride)
         {
@@ -171,7 +161,6 @@ public class PlayerWalk : MonoBehaviour
                 {
                     CastRayToGround();
                 }
-
 
                 if (Input.GetMouseButtonUp(0))
                 {
@@ -262,12 +251,16 @@ public class PlayerWalk : MonoBehaviour
 
             return;
         }
+
+        return;
     }
 
     float defaultStoppingDistance = 0f;
     public float stoppingDistance;
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
+
+    private float walkTowardSpeed;
 
     private Vector3 destination;
     private Vector3 sizeCalculated;
@@ -284,27 +277,30 @@ public class PlayerWalk : MonoBehaviour
             sizeCalculated = player.transform.localScale;
             destinationGizmo.transform.localScale = sizeCalculated;
         }
-        else if (selected != "Drink")
+
+        if (selected != "Drink")
         {
             destination = hitObject.transform.position;
             sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = sizeCalculated;
+
+            if (selected == "Pray")
+            {
+                destinationGizmo.transform.localScale = sizeCalculated / 3;
+            }
+
+            if (selected == "HarvestTree")
+            {
+                destinationGizmo.transform.localScale = sizeCalculated / 8;
+            }
+
+            if (selected == "Talk")
+            {
+                destinationGizmo.transform.localScale = sizeCalculated * 2;
+            }
         }
 
-        if (selected == "Pray")
-        {
-            destinationGizmo.transform.localScale = sizeCalculated / 3;
-        }
-
-        if (selected == "HarvestTree")
-        {
-            destinationGizmo.transform.localScale = sizeCalculated / 8;
-        }
-
-        if (selected == "Talk")
-        {
-            destinationGizmo.transform.localScale = sizeCalculated * 2;
-        }
+     
 
 
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
@@ -338,7 +334,8 @@ public class PlayerWalk : MonoBehaviour
             ChangeState(PLAYER_DRUNKWALK);
         }
 
-        speed = 23;
+        walkTowardSpeed = runThreshold + 1;
+
         agent.destination = destination;
         agent.speed = speed;
         agent.isStopped = false;

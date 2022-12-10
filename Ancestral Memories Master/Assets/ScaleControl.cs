@@ -40,6 +40,7 @@ public class ScaleControl : MonoBehaviour
 
         if (time >= 1f)
         {
+            scaleObject.transform.localScale = scaleDestination;
             isFullyGrown = true;
             yield break;
         }

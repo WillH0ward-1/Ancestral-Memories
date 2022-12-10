@@ -32,7 +32,7 @@ public class AnimalAI : MonoBehaviour
     [SerializeField] private bool shouldFlee = true;
     bool switchAction = false;
     float actionTimer = 0; 
-    [SerializeField] Transform player;
+    [SerializeField] private Player player;
     [SerializeField] float range = 20; //How far the Deer have to run to resume the usual activities
     float multiplier = 1;
     bool reverseFlee = false; //In case the AI is stuck, send it to one of the original Idle points
@@ -159,8 +159,8 @@ public class AnimalAI : MonoBehaviour
                     }
                     else
                     {
-                        Vector3 runTo = transform.position + ((transform.position - player.position) * multiplier);
-                        distance = (transform.position - player.position).sqrMagnitude;
+                        Vector3 runTo = transform.position + ((transform.position - player.transform.position) * multiplier);
+                        distance = (transform.position - player.transform.position).sqrMagnitude;
 
                         //Find the closest NavMesh edge
                         NavMeshHit hit;
@@ -262,8 +262,6 @@ public class AnimalAI : MonoBehaviour
         //Make sure the Player instance has a tag "Player"
         if (!other.CompareTag("Player"))
             return;
-
-        player = other.transform;
 
         actionTimer = Random.Range(0.24f, 0.8f);
         state = AIState.Idle;

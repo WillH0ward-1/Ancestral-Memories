@@ -7,9 +7,9 @@ public static class MeshGenerator {
 	public static MeshData GenerateTerrainMesh(float[,] heightMap, MeshSettings meshSettings, int levelOfDetail) {
 
 		int skipIncrement = (levelOfDetail == 0)?1:levelOfDetail * 2;
-		int numVertsPerLine = meshSettings.NumVertsPerLine;
+		int numVertsPerLine = meshSettings.numVertsPerLine;
 
-		Vector2 topLeft = new Vector2 (-1, 1) * meshSettings.MeshWorldSize / 2f;
+		Vector2 topLeft = new Vector2 (-1, 1) * meshSettings.meshWorldSize / 2f;
 
 		MeshData meshData = new MeshData (numVertsPerLine, skipIncrement, meshSettings.useFlatShading);
 
@@ -43,7 +43,7 @@ public static class MeshGenerator {
 
 					int vertexIndex = vertexIndicesMap [x, y];
 					Vector2 percent = new Vector2 (x - 1, y - 1) / (numVertsPerLine - 3);
-					Vector2 vertexPosition2D = topLeft + new Vector2(percent.x,-percent.y) * meshSettings.MeshWorldSize;
+					Vector2 vertexPosition2D = topLeft + new Vector2(percent.x,-percent.y) * meshSettings.meshWorldSize;
 					float height = heightMap [x, y];
 
 					if (isEdgeConnectionVertex) {

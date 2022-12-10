@@ -45,15 +45,9 @@ public class InteractCamera : MonoBehaviour
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
-                if (hit.distance >= maxSelectionDistance)
+                if (hit.distance >= maxSelectionDistance || hit.distance <= minSelectionDistance)
                 {
                     Debug.Log("Selection out of range!");
-                    return;
-                }
-
-                if (hit.distance <= minSelectionDistance)
-                {
-                    Debug.Log("Selection too close!");
                     return;
                 }
 

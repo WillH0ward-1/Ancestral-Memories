@@ -13,6 +13,8 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference DrownEventPath;
     [SerializeField]private Camera cam;
 
+    private PlayerWalk playerWalk;
+
     private string terrainType = "";
     public bool waterColliding = false;
 
@@ -24,10 +26,10 @@ public class PlayerSoundEffects : MonoBehaviour
     void PlayWalkEvent()
     {
 
-        if (waterColliding)
+        if (playerWalk.playerInWater)
         {
             terrainType = "Water";
-        } else if (!waterColliding)
+        } else if (!playerWalk.playerInWater)
         {
             terrainType = "Grass";
         }

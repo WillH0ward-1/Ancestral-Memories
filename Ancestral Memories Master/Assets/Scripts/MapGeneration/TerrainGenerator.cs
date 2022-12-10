@@ -17,6 +17,7 @@ public class TerrainGenerator : MonoBehaviour {
 	public TextureData textureSettings;
 
 	public NavMeshSurface surface;
+	[SerializeField] private MapObjGen mapObjectGen;
 
 	//public NavMeshPrefabInstance navMeshSurface;
 
@@ -77,11 +78,13 @@ public class TerrainGenerator : MonoBehaviour {
 		textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
 
 		float maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
-		meshWorldSize = meshSettings.MeshWorldSize;
+		meshWorldSize = meshSettings.meshWorldSize;
 
 		chunksVisibleInViewDst = Mathf.RoundToInt(maxViewDst / meshWorldSize);
 
 		UpdateVisibleChunks();
+
+		mapObjectGen.GenerateMapObjects();
 
 		GameObject tmp = FindChildGameObject(mapObject, terrainChunkName);
 		if (tmp != null)
@@ -89,17 +92,18 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 			CorruptionControl corruptionControl = tmp.AddComponent<CorruptionControl>();
-		    lerpTerrain = tmp.AddComponent<LerpTerrain>();
-			lerpTerrain.player = player;
-			rainControl.lerpTerrain = lerpTerrain;
-			Interactable interactable = tmp.AddComponent<Interactable>();
-			GameObject terrainObject = tmp;
-
-			mapObjGen.terrain = terrainObject;
-
 			corruptionControl.player = player;
 
-			
+			//lerpTerrain = tmp.AddComponent<LerpTerrain>();
+			//lerpTerrain.player = player;
+			//rainControl.lerpTerrain = lerpTerrain;
+			//Interactable interactable = tmp.AddComponent<Interactable>();
+			//GameObject terrainObject = tmp;
+			//mapObjGen.terrain = terrainObject;
+
+
+
+
 			//interactable.name = "Plant";
 			//interactable.options[0].title = "Plant";
 			//interactable.options[0].color = Color.white;

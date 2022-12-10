@@ -9,7 +9,7 @@ public class WeatherControl : MonoBehaviour
 {
     public EventReference windEvent;
 
-    private float windStrength = 0;
+    public float windStrength = 0;
 
     private int minWindStrength = 0;
     private int maxWindStrength = 1;

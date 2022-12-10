@@ -37,7 +37,7 @@ public class Flammable : MonoBehaviour
 
     Vector3 scale;
 
-    private void Awake()
+    private void Start()
     {
         flammableObject = transform.gameObject;
         mesh = GetComponent<MeshFilter>().mesh;

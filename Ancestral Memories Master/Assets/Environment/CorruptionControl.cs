@@ -6,24 +6,14 @@ using System.Linq;
 
 public class CorruptionControl : MonoBehaviour
 {
-
-    private Material corruptionMaterial;
-
-
-    Renderer meshRenderer;
-
     private float targetCorruption = 1f;
     private float currentCorruption = 0f;
-
-
-    private float targetAlpha = 0f;
-    private float currentAlpha = 1f;
 
     public Player player;
 
     // Start is called before the first frame update
 
-    void Start()
+    void Awake()
     {
         GetRenderers();
     }
@@ -39,13 +29,11 @@ public class CorruptionControl : MonoBehaviour
     private void OnEnable()
     {
         player.OnFaithChanged += Corruption;
-        player.OnFaithChanged += Alpha;
     }
 
     private void OnDisable()
     {
         player.OnFaithChanged -= Corruption;
-        player.OnFaithChanged -= Alpha;
     }
 
     float time = 0;
@@ -54,44 +42,30 @@ public class CorruptionControl : MonoBehaviour
     void Update()
     {
         currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, 2f * Time.deltaTime);
-        currentAlpha = Mathf.Lerp(currentAlpha, targetAlpha, 2f * Time.deltaTime);
+
     }
 
-    float newMin = 0;
-    float newMax = 1;
+    float newMin = 1;
+    float newMax = 0;
 
-    float newCorruptionMin = 1;
-    float newCorruptionMax = 0;
 
     private void Corruption(float corruption, float minCorruption, float maxCorruption)
     {
-        targetCorruption = corruption / maxCorruption;
-
         var t = Mathf.InverseLerp(minCorruption, maxCorruption, corruption);
-        float output = Mathf.Lerp(newCorruptionMin, newCorruptionMax, t);
+        float output = Mathf.Lerp(newMin, newMax, t);
 
         targetCorruption = output;
 
         foreach (Renderer r in rendererList)
         {
             r.material.SetFloat("_Corruption", currentCorruption);
+
+            r.material.SetFloat("_CorruptionMin", newMin);
+            r.material.SetFloat("_CorruptionMax", newMax);
+
         }
 
     }
+ 
 
-    private void Alpha(float alpha, float minAlpha, float maxAlpha)
-    {
-        targetAlpha = alpha / maxAlpha;
-
-        var t = Mathf.InverseLerp(minAlpha, maxAlpha, alpha);
-        float output = Mathf.Lerp(newMin, newMax, t);
-
-        targetAlpha = output;
-
-        foreach (Renderer r in rendererList)
-        {
-    
-            r.material.SetFloat("_Alpha", currentAlpha);
-        }
-    }
 }

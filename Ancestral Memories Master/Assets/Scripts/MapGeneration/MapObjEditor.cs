@@ -13,7 +13,7 @@ public class MapObjEditor : Editor
         if (GUILayout.Button("Generate"))
         {
 
-            (target as MapObjGen).Generate();
+            (target as MapObjGen).GenerateMapObjects();
         }
 
         if (GUILayout.Button("Destroy"))
