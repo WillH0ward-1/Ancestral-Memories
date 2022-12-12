@@ -114,7 +114,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{16c0fd56-e92f-4659-86e2-27967e2eb98b}">
 		<property name="volume">
-			<value>3.5</value>
+			<value>9</value>
 		</property>
 		<property name="name">
 			<value>Audio 1</value>
@@ -173,7 +173,7 @@
 			<value>-80</value>
 		</property>
 		<property name="attackTime">
-			<value>120</value>
+			<value>80</value>
 		</property>
 		<property name="holdTime">
 			<value>0</value>
@@ -190,14 +190,19 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{517d41c3-fc80-40ac-8a97-908a6c114ae8}">
 		<relationship name="effects">
+			<destination>{a6ecfe3e-1844-4c92-a180-7b424d4dd4b1}</destination>
 			<destination>{2bd74c9d-d12b-479c-af2f-437573174159}</destination>
 			<destination>{e64e6bea-84f2-419f-820c-54bd3087a7f6}</destination>
-			<destination>{d64e10ee-8317-4a76-b295-419baa5ed6c3}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{0717087a-e543-4d05-854c-d813dc6f7842}" />
 	<object class="MixerBusFader" id="{b0e6072e-7d53-49bc-9151-bb043762b7a4}" />
 	<object class="SpatialiserEffect" id="{72b33363-3f40-4e28-81eb-5350b056653b}" />
+	<object class="GainEffect" id="{a6ecfe3e-1844-4c92-a180-7b424d4dd4b1}">
+		<property name="gain">
+			<value>10</value>
+		</property>
+	</object>
 	<object class="MixerBusFader" id="{2bd74c9d-d12b-479c-af2f-437573174159}" />
 	<object class="ThreeEQEffect" id="{e64e6bea-84f2-419f-820c-54bd3087a7f6}">
 		<property name="lowGain">
@@ -214,20 +219,6 @@
 		</property>
 		<property name="crossoverSlope">
 			<value>0</value>
-		</property>
-	</object>
-	<object class="CompressorEffect" id="{d64e10ee-8317-4a76-b295-419baa5ed6c3}">
-		<property name="ratio">
-			<value>9.80000019</value>
-		</property>
-		<property name="attackTime">
-			<value>420</value>
-		</property>
-		<property name="releaseTime">
-			<value>10</value>
-		</property>
-		<property name="gain">
-			<value>1.5</value>
 		</property>
 	</object>
 </objects>

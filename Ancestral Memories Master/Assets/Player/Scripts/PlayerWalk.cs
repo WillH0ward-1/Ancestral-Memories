@@ -51,8 +51,8 @@ public class PlayerWalk : MonoBehaviour
     public CharacterBehaviours behaviours;
 
     public AreaManager areaManager;
-    public LayerMask walkableLayers;
 
+    public LayerMask walkableLayers;
     public LayerMask detectWaterLayers;
 
     private RaycastHit rayHit;
@@ -72,11 +72,13 @@ public class PlayerWalk : MonoBehaviour
         agent.isStopped = true;
 
         raySources.Add(playerHead);
-        
+
 
     }
 
-    private IEnumerator SetWaterDepth()
+    //Water detection WIP
+ 
+    private IEnumerator SetWaterDepth(float targetWaterDepth)
     {
         while (playerInWater)
         {
@@ -107,7 +109,7 @@ public class PlayerWalk : MonoBehaviour
             float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
             targetWaterDepth = output;
-            StartCoroutine(SetWaterDepth());
+            StartCoroutine(SetWaterDepth(targetWaterDepth));
             yield return null;
         }
 
@@ -128,7 +130,7 @@ public class PlayerWalk : MonoBehaviour
 
     void Update()
     {
-        /*
+
         foreach (Transform t in raySources)
         {
    
@@ -143,6 +145,7 @@ public class PlayerWalk : MonoBehaviour
                 {
                     playerInWater = false;
                     return;
+
                 } else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
                 {
                     playerInWater = true;
@@ -152,8 +155,10 @@ public class PlayerWalk : MonoBehaviour
 
                 Debug.DrawRay(t.transform.position, rayDirection, Color.blue);
             }
+
         }
-        */
+
+
  
 
 

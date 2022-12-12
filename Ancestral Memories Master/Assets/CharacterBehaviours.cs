@@ -344,17 +344,12 @@ public class CharacterBehaviours : MonoBehaviour
         }
     }
 
-
-
-
-
     public virtual string GetRandomAnimation(string[] animClips)
     {
         string randomAnimation = animClips[Random.Range(0, animClips.Length)];
 
         return randomAnimation;
     }
-
 
     public IEnumerator Dance(string randomDanceAnim)
     {

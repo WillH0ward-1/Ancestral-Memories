@@ -13,7 +13,7 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference DrownEventPath;
     [SerializeField]private Camera cam;
 
-    private PlayerWalk playerWalk;
+    [SerializeField] private PlayerWalk playerWalk;
 
     private string terrainType = "";
     public bool waterColliding = false;
