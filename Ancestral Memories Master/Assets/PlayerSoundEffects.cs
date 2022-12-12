@@ -18,25 +18,39 @@ public class PlayerSoundEffects : MonoBehaviour
     private string terrainType = "";
     public bool waterColliding = false;
 
+    private AreaManager areaManager;
+
+    private Rigidbody rigidBody;
+
     private void Awake()
     {
         waterColliding = false;
+        rigidBody = transform.parent.GetComponent<Rigidbody>();
     }
+
 
     void PlayWalkEvent()
     {
-
         if (playerWalk.playerInWater)
         {
             terrainType = "Water";
-        } else if (!playerWalk.playerInWater)
-        {
-            terrainType = "Grass";
         }
+
+        if (!playerWalk.playerInWater)
+        {
+            if (areaManager.currentRoom != "Outside")
+            {
+                terrainType = "Rock";
+            }
+            else
+            {
+                terrainType = "Grass";
+            }
+        } 
 
         EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
         walkEvent.setParameterByNameWithLabel("TerrainType", terrainType);
-        RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, GetComponent<Rigidbody>());
+        RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();
         walkEvent.release();
@@ -45,7 +59,7 @@ public class PlayerSoundEffects : MonoBehaviour
     void DrownEvent()
     {
         EventInstance drownEvent = RuntimeManager.CreateInstance(DrownEventPath);
-        RuntimeManager.AttachInstanceToGameObject(drownEvent, transform, GetComponent<Rigidbody>());
+        RuntimeManager.AttachInstanceToGameObject(drownEvent, transform, rigidBody);
 
         drownEvent.start();
         drownEvent.release();
@@ -65,7 +79,7 @@ public class PlayerSoundEffects : MonoBehaviour
 
         EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
         walkEvent.setParameterByNameWithLabel("TerrainType", terrainType);
-        RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, GetComponent<Rigidbody>());
+        RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();
         walkEvent.release();
@@ -79,7 +93,7 @@ public class PlayerSoundEffects : MonoBehaviour
     void HitTree()
     {
         EventInstance hitTreeEvent = RuntimeManager.CreateInstance(HitTreeEventPath);
-        RuntimeManager.AttachInstanceToGameObject(hitTreeEvent, transform, GetComponent<Rigidbody>());
+        RuntimeManager.AttachInstanceToGameObject(hitTreeEvent, transform, rigidBody);
 
         hitTreeEvent.start();
         hitTreeEvent.release();
@@ -94,7 +108,7 @@ public class PlayerSoundEffects : MonoBehaviour
     void ScreamingPainEvent()
     {
         EventInstance screamingPainEvent = RuntimeManager.CreateInstance(PlayerScreamEventPath);
-        RuntimeManager.AttachInstanceToGameObject(screamingPainEvent, transform, GetComponent<Rigidbody>());
+        RuntimeManager.AttachInstanceToGameObject(screamingPainEvent, transform, rigidBody);
 
         screamingPainEvent.start();
         screamingPainEvent.release();
@@ -104,7 +118,7 @@ public class PlayerSoundEffects : MonoBehaviour
     void WhooshEvent()
     {
         EventInstance whooshEvent = RuntimeManager.CreateInstance(WhooshEventPath);
-        RuntimeManager.AttachInstanceToGameObject(whooshEvent, transform, GetComponent<Rigidbody>());
+        RuntimeManager.AttachInstanceToGameObject(whooshEvent, transform, rigidBody);
 
         whooshEvent.start();
         whooshEvent.release();

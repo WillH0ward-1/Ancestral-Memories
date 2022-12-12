@@ -185,7 +185,7 @@
 	<object class="MixerBusFader" id="{74294495-d0b4-486b-bc5c-b71f205c4d51}" />
 	<object class="DistortionEffect" id="{5458830b-ab10-40f0-808d-a8f9862d30de}">
 		<property name="level">
-			<value>0.724999964</value>
+			<value>0.625</value>
 		</property>
 	</object>
 	<object class="ThreeEQEffect" id="{158d7649-232d-44c2-89e7-291753eec1a2}">
@@ -193,13 +193,16 @@
 			<value>-80</value>
 		</property>
 		<property name="midGain">
-			<value>-35</value>
+			<value>-24</value>
+		</property>
+		<property name="highGain">
+			<value>10</value>
 		</property>
 		<property name="lowCrossover">
 			<value>240</value>
 		</property>
 		<property name="highCrossover">
-			<value>15500</value>
+			<value>22000</value>
 		</property>
 	</object>
 </objects>

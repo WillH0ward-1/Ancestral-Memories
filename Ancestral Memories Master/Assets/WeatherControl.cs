@@ -19,17 +19,25 @@ public class WeatherControl : MonoBehaviour
 
     public bool windIsActive;
 
+    private MapObjGen mapObjGen;
+
+    private List<GameObject> mapObjectList;
+
+    [SerializeField] private List<Renderer> windAffectedRenderers;
+
     // Start is called before the first frame update
     void Start()
     {
         EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
         windStrength = currentWindStrength;
         StartCoroutine(WindStrength(windSFX));
+        mapObjectList = mapObjGen.mapObjectList;
     }
-
 
     private IEnumerator WindStrength(EventInstance windSFX)
     {
+ 
+
         windIsActive = true;
 
         windSFX.start();
@@ -40,6 +48,17 @@ public class WeatherControl : MonoBehaviour
 
             windSFX.setParameterByName("WindStrength", windStrength);
             Debug.Log("WindStrength:" + windStrength);
+
+            foreach (GameObject mapObject in mapObjGen.treeList)
+            {
+                Renderer[] renderers = mapObject.GetComponentsInChildren<Renderer>();
+
+                foreach (Renderer r in renderers)
+                {
+                    r.material.SetFloat("WindStrength", windStrength);
+                }
+            }
+
             yield return null;
         }
 
@@ -57,6 +76,9 @@ public class WeatherControl : MonoBehaviour
         yield break;
     }
 
+    float newMin = 0;
+    float newMax = 1;
+
     [SerializeField]
     private CharacterClass player;
 
@@ -65,8 +87,8 @@ public class WeatherControl : MonoBehaviour
 
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
-        var t = Mathf.InverseLerp(maxFaith, minFaith, faith);
-        float output = Mathf.Lerp(minWindStrength, maxWindStrength, t);
+        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
+        float output = Mathf.Lerp(newMin, newMax, t);
 
         targetWindStrength = output;
     }

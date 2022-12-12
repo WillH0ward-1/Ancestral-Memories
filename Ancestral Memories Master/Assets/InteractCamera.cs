@@ -21,6 +21,7 @@ public class InteractCamera : MonoBehaviour
     public Transform defaultTarget;
     Ray ray;
 
+
     private void Start()
     {
         cam = player.GetComponent<Player>().interactableCam;

@@ -195,12 +195,6 @@ public class CharacterClass : MonoBehaviour, IStats
         currentState = newState;
     }
 
-    public float GetAnimLength()
-    {
-        return activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-
-    }
-
     public virtual void Assign()
     {
         AssignAnimators();
@@ -245,7 +239,7 @@ public class CharacterClass : MonoBehaviour, IStats
     }
 
 
-    private IEnumerator CheckForRevive()
+    public IEnumerator CheckForRevive()
     {
 
         if (faith < 50) // In order to revive, currentFaith needs to be > x. 

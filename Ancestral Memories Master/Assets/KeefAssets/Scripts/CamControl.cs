@@ -11,6 +11,9 @@ public class CamControl : MonoBehaviour
     private Camera cam;
     public Camera movementCam;
     public bool cinematicActive = false;
+
+    public bool scrollOverride = false;
+
     public Vector3 cameraOffset;
 
     [Header("========================================================================================================================")]
@@ -79,7 +82,6 @@ public class CamControl : MonoBehaviour
 
     public void Start()
     {
-
         rpCamera.perspective = initZoom;
         cam.orthographicSize = initOrtho;
 
@@ -89,6 +91,7 @@ public class CamControl : MonoBehaviour
 
         cameraOffset = new Vector3(12, 2.5f, -8);
     }
+
 
     private Vector3 offset;
 
@@ -102,17 +105,25 @@ public class CamControl : MonoBehaviour
     [ExecuteInEditMode]
     void Update()
     {
-
         rpCamera.UpdateProjection(true);
 
-        if (!cinematicActive && !behaviours.behaviourIsActive)
+        if (!scrollOverride)
+        {
+            if (!cinematicActive && !behaviours.behaviourIsActive)
+            {
+                camFollowTarget = true;
+                camRotateAround = true;
+            }
+            else
+            {
+                camFollowTarget = false;
+                camRotateAround = false;
+            }
+        }
+        else
         {
             camFollowTarget = true;
             camRotateAround = true;
-        } else
-        {
-            camFollowTarget = false;
-            camRotateAround = false;
         }
     }
 
@@ -137,7 +148,6 @@ public class CamControl : MonoBehaviour
             transform.position = SmoothedPosition;
 
         }
-
     }
 
 

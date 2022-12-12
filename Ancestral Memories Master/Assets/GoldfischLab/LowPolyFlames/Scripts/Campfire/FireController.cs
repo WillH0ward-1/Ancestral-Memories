@@ -57,9 +57,6 @@ public class FireController : MonoBehaviour
         fireRoot = fireInstance.transform;
         fireInstance.transform.SetParent(transform, false);
         */
-
-        
-
     }
 
     float minFireDuration = 3;

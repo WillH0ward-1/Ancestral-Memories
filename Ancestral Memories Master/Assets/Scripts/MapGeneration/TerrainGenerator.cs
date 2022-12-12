@@ -33,8 +33,6 @@ public class TerrainGenerator : MonoBehaviour {
 
 	[SerializeField] private Interactable interactable;
 
-	[SerializeField] private MapObjGen mapObjGen;
-
 	int chunksVisibleInViewDst;
 
 	private string terrainChunkName = "Terrain Chunk";
@@ -84,8 +82,6 @@ public class TerrainGenerator : MonoBehaviour {
 
 		UpdateVisibleChunks();
 
-		mapObjectGen.GenerateMapObjects();
-
 		GameObject tmp = FindChildGameObject(mapObject, terrainChunkName);
 		if (tmp != null)
 		{
@@ -93,6 +89,8 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.layer = 8; // 'Ground' Layer
 			CorruptionControl corruptionControl = tmp.AddComponent<CorruptionControl>();
 			corruptionControl.player = player;
+
+			mapObjectGen.GenerateMapObjects();
 
 			//lerpTerrain = tmp.AddComponent<LerpTerrain>();
 			//lerpTerrain.player = player;
@@ -113,6 +111,8 @@ public class TerrainGenerator : MonoBehaviour {
 			//tmp.AddComponent<ParticleCollision>();
 
 		}
+
+		
 
 	}
 

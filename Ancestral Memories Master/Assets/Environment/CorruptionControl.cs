@@ -28,14 +28,14 @@ public class CorruptionControl : MonoBehaviour
 
     private void OnEnable()
     {
-        player.OnFaithChanged += Corruption;
+        player.OnFaithChanged += KarmaModifier;
     }
 
     private void OnDisable()
     {
-        player.OnFaithChanged -= Corruption;
+        player.OnFaithChanged -= KarmaModifier;
     }
-
+    
     float time = 0;
 
     // Update is called once per frame
@@ -45,23 +45,26 @@ public class CorruptionControl : MonoBehaviour
 
     }
 
-    float newMin = 1;
-    float newMax = 0;
+    [SerializeField] private float newMin = 0;
+    [SerializeField] private float newMax = 1;
 
-
-    private void Corruption(float corruption, float minCorruption, float maxCorruption)
+     
+    private void KarmaModifier(float karma, float minKarma, float maxKarma)
     {
-        var t = Mathf.InverseLerp(minCorruption, maxCorruption, corruption);
+        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         float output = Mathf.Lerp(newMin, newMax, t);
 
         targetCorruption = output;
 
         foreach (Renderer r in rendererList)
         {
-            r.material.SetFloat("_Corruption", currentCorruption);
+            r.sharedMaterial.SetFloat("_Karma", output);
 
-            r.material.SetFloat("_CorruptionMin", newMin);
-            r.material.SetFloat("_CorruptionMax", newMax);
+            r.sharedMaterial.SetFloat("_MinKarma", newMin);
+            r.sharedMaterial.SetFloat("_MaxKarma", newMax);
+
+            r.sharedMaterial.SetFloat("_newMin", newMin);
+            r.sharedMaterial.SetFloat("_newMax", newMax);
 
         }
 

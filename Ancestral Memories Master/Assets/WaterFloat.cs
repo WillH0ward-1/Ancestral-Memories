@@ -12,27 +12,63 @@ public class WaterFloat : MonoBehaviour
     [SerializeField]
     private float period = 1f;
 
+    [SerializeField] private float sinkDuration = 1f;
+
+    float bobObjectX;
+    float bobObjectY;
+    float bobObjectZ;
+
+    float targetY;
+
+    private void Awake()
+    {
+    
+    }
     public IEnumerator Float(GameObject bobObject)
     {
         isFloating = true;
 
+        bobObjectX = bobObject.transform.position.x;
+        bobObjectY = bobObject.transform.position.y;
+        bobObjectZ = bobObject.transform.position.z;
+
+
+        targetY = bobObjectY - bobObjectY / 5;
+
         float time = 0;
 
-        while (isFloating)
+        while (time <= 1f)
         {
-            time += Time.deltaTime;
+            time += Time.deltaTime / sinkDuration;
 
-            float theta = time / period;
-            float distance = amplitude * Mathf.Sin(theta);
+            Vector3 target = new Vector3(bobObjectX, targetY, bobObjectZ);
 
-            bobObject.transform.position = bobObject.transform.position + Vector3.up * distance;
+
+            bobObject.transform.position = Vector3.Lerp(bobObject.transform.position, target, time);
+
             yield return null;
         }
 
-        if (!isFloating)
-        {
-            isFloating = false;
-            yield break;
+        if (time >= 1f) {
+
+            time = 0;
+
+            while (isFloating)
+            {
+                time += Time.deltaTime;
+
+                float theta = time / period;
+                float distance = amplitude * Mathf.Sin(theta);
+
+                bobObject.transform.position = bobObject.transform.position + Vector3.up * distance;
+                yield return null;
+            }
+
+            if (!isFloating)
+            {
+                isFloating = false;
+                yield break;
+            }
         }
     }
 }

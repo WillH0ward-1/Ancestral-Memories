@@ -127,11 +127,11 @@ public class RainControl : MonoBehaviour
 
         while (time < rainDuration)
         {
-            if (areaManager.currentRoom == "InsideCave" || drought){
-                if (isRaining)
-                {
-                    StartCoroutine(StopRaining(emission, false));
-                }
+            if (isRaining && areaManager.currentRoom == "InsideCave" || drought)
+            {
+
+                StartCoroutine(StopRaining(emission, false));
+                
                 yield break;
             }
 
@@ -143,6 +143,9 @@ public class RainControl : MonoBehaviour
         {
             StartCoroutine(StopRaining(emission, true));
             yield break;
+        } else
+        {
+            StartCoroutine(StopRaining(emission, false));
         }
     }
 
@@ -152,23 +155,16 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator StopRaining(ParticleSystem.EmissionModule emission, bool retrigger)
     {
-        if (isRaining)
+        emission.enabled = false;
+        isRaining = false;
+        StartCoroutine(lerpTerrain.ToOasis(15f));
+
+        if (retrigger)
         {
-            emission.enabled = false;
-            isRaining = false;
-            StartCoroutine(lerpTerrain.ToOasis(15f));
 
-            if (retrigger)
-            {
-
-                StartCoroutine(ChanceOfRain(emission));
-                yield break;
-            } else
-            {
-                yield break;
-            }
-        }
-        else
+            StartCoroutine(ChanceOfRain(emission));
+            yield break;
+        } else
         {
             yield break;
         }

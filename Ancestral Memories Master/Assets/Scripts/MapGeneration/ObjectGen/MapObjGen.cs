@@ -40,6 +40,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] fish;
     [SerializeField] private GameObject[] animals;
     [SerializeField] private GameObject[] fireWood;
+    [SerializeField] private GameObject[] seaShells;
 
     [Header("========================================================================================================================")]
     [Header("Object Scaling")]
@@ -72,6 +73,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minFireWoodScale;
     [SerializeField] Vector3 maxFireWoodScale;
 
+    [SerializeField] Vector3 minSeaShellScale;
+    [SerializeField] Vector3 maxSeaShellScale;
+
 
     [Header("========================================================================================================================")]
 
@@ -96,6 +100,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumFishRadius = 70;
     [SerializeField] float minimumAnimalRadius = 70;
     [SerializeField] float minimumFireWoodRadius = 70;
+    [SerializeField] float minimumSeaShellRadius = 70;
 
     [Header("========================================================================================================================")]
 
@@ -123,6 +128,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string animalTag = "Animal";
     private readonly string mushroomTag = "Mushrooms";
     private readonly string fireWoodTag = "FireWood";
+    private readonly string seaShellTag = "SeaShell";
 
     [Header("========================================================================================================================")]
 
@@ -143,12 +149,30 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private Player player;
 
+
     public RadialMenu radialMenu;
 
     public Camera cam;
 
     [SerializeField] private Interactable interactable;
     [SerializeField] private Interactable interact;
+
+
+    [SerializeField] private GameObject emitter;
+    private GameObject emitterInstance;
+
+    private Mesh mesh;
+
+    int sampleDensity;
+
+    [SerializeField] int vertSampleFactor;
+
+    [SerializeField] private bool invertSpreadOrigin = false;
+
+    private FireController fireManager;
+
+    Vector3 scale;
+    private Vector3 mapCenter;
 
     //public Interactable treeInteraction;
 
@@ -157,6 +181,14 @@ public class MapObjGen : MonoBehaviour
     {
         return mapElements[Random.Range(0, mapElements.Length)];
     }
+
+    private void Awake()
+    {
+        mapCenter = Vector3.zero;
+    }
+
+
+    private Vector3[] vertices;
 
     public void GenerateMapObjects()
     {
@@ -183,6 +215,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler animalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAnimalRadius);
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
         PoissonDiscSampler fireWoodSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFireWoodRadius);
+        PoissonDiscSampler seaShellSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumSeaShellRadius);
 
         TreePoissonDisc(treeSampler);
         AppleTreePoissonDisc(appleTreeSampler);
@@ -193,12 +226,14 @@ public class MapObjGen : MonoBehaviour
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
         FireWoodPoissonDisc(fireWoodSampler);
+        SeaShellPoissonDisc(seaShellSampler);
 
-        //SetOffset();
         SetOffset();
 
         GroundCheck();
-        //SortTreeTypes(treeList);
+
+        vertices = meshData.vertices;
+
     }
 
     private List<Vector3> XspawnPositions;
@@ -209,15 +244,15 @@ public class MapObjGen : MonoBehaviour
 
     void GenerateOceanEmitters(float sampleWidth, float sampleHeight)
     {
-        float halfWidth = sampleWidth / 2;
-        float halfLength = sampleHeight / 2;
+        float Z = sampleWidth / 2;
+        float X = sampleHeight / 2;
         float initY = 0;
 
-        Vector3 positiveX = new(halfLength, initY, 0);
-        Vector3 positiveZ = new(0, initY, halfWidth);
+        Vector3 positiveX = new(X + xOffset, initY, 0);
+        Vector3 positiveZ = new(0, initY, Z += zOffset);
 
-        Vector3 negativeX = new(-halfLength, initY, 0);
-        Vector3 negativeZ = new(0, initY, -halfWidth);
+        Vector3 negativeX = new(-X - zOffset, initY, 0);
+        Vector3 negativeZ = new(0, initY, -Z);
 
         XspawnPositions.Add(positiveX);
         XspawnPositions.Add(negativeX);
@@ -225,7 +260,6 @@ public class MapObjGen : MonoBehaviour
         ZspawnPositions.Add(positiveZ);
         ZspawnPositions.Add(negativeZ);
 
-        
         foreach (Vector3 spawnPoint in XspawnPositions)
         {
             GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
@@ -239,14 +273,9 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(perimeterPoint);
             perimeterPoint.transform.SetParent(hierarchyRoot.transform);
         }
-
-
-
-
     }
 
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
-
     {
         foreach (Vector2 sample in animalSampler.Samples())
         {
@@ -265,6 +294,59 @@ public class MapObjGen : MonoBehaviour
 
             mapObjectList.Add(animalInstance);
 
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+    }
+
+    private int distanceFromCenter;
+
+    private float GetDistanceFromCenter(GameObject mapObject)
+    {
+        float distanceFromCenter = Vector3.Distance(mapObject.transform.position, mapCenter);
+
+        return distanceFromCenter;
+    }
+
+    private float minDistanceFromCenter;
+
+    void SeaShellPoissonDisc(PoissonDiscSampler seaShellSampler)
+    {
+        minDistanceFromCenter = sampleHeight / 2;
+
+        foreach (Vector2 sample in seaShellSampler.Samples())
+        {
+            GameObject randomSeaShell = GetRandomMapObject(seaShells);
+
+            GameObject seaShellInstance = Instantiate(randomSeaShell, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            seaShellInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            float distanceFromCenter = GetDistanceFromCenter(seaShellInstance);
+
+            if (distanceFromCenter <= minDistanceFromCenter)
+            {
+                if (Application.isEditor)
+                {
+                    Debug.Log("Object destroyed in Editor.");
+                    DestroyImmediate(seaShellInstance);
+                }
+                else
+                {
+                    Debug.Log("Object destroyed in game.");
+                    Destroy(seaShellInstance);
+                }
+
+                continue;
+            }
+
+            if (distanceFromCenter >= minDistanceFromCenter)
+            {
+
+                seaShellInstance.transform.SetParent(hierarchyRoot.transform);
+
+                mapObjectList.Add(seaShellInstance);
+            }
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
@@ -539,8 +621,10 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minRockScale.y, maxRockScale.y),
             Random.Range(minRockScale.z, maxRockScale.z));
 
-
             rockInstance.tag = rockTag;
+
+            corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
+            corruptionControl.player = player;
 
             int rockLayer = LayerMask.NameToLayer("Rocks");
             rockInstance.layer = rockLayer;
@@ -602,6 +686,44 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    public IEnumerator GenerateEmitterCheckers()
+    {
+
+        // Destroy water emitters on the map (where no water shall be except on rare occasion)
+        int sampleDensity = vertices.Length / vertSampleFactor;
+
+  
+        foreach (Vector3 v in vertices)
+        {
+            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
+            {
+                Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
+
+                if (downHit.collider.CompareTag("WaterSoundEmitter"))
+                {
+                    Debug.Log("Water Ahoy!");
+                    DestroyObject(downHit.transform);
+                }
+            }
+
+            static void DestroyObject(Transform emitter)
+            {
+                if (Application.isEditor)
+                {
+                    Debug.Log("Object destroyed in Editor.");
+                    DestroyImmediate(emitter);
+                }
+                else
+                {
+                    Debug.Log("Object destroyed in game.");
+                    Destroy(emitter);
+                }
+            }
+            yield return null;
+        }
+
+    }
+
     void FireWoodPoissonDisc(PoissonDiscSampler fireWoodSampler)
     {
         foreach (Vector2 sample in fireWoodSampler.Samples())
@@ -628,9 +750,6 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(fireWoodInstance);
         }
     }
-
-    private string spawnTag = "Spawn";
-
 
     void GroundCheck()
     {
@@ -682,8 +801,6 @@ public class MapObjGen : MonoBehaviour
         AnchorToGround();
     }
 
-
-
     void AddColliders()
     {
         foreach (GameObject mapObject in mapObjectList)
@@ -712,16 +829,15 @@ public class MapObjGen : MonoBehaviour
                 }
 
                 navMeshObstacle.carving = true;
-                //navMeshObstacle.carveOnlyStationary = true;
 
+                //navMeshObstacle.carveOnlyStationary = true;
                 //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
             }
+
             continue;
         }
 
         Debug.Log("Colliders Generated!");
-
-        //AddInteractivity();
     }
         
     void AnchorToGround()
@@ -730,14 +846,11 @@ public class MapObjGen : MonoBehaviour
 
         foreach (GameObject mapObject in mapObjectList)
         {
-
             int groundLayerIndex = LayerMask.NameToLayer("Ground");
             int groundLayerMask = (1 << groundLayerIndex);
 
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
-
             {
-
                 float distance = hitFloor.distance;
 
                 float x = mapObject.transform.position.x;

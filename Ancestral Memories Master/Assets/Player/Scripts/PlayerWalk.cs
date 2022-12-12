@@ -53,6 +53,8 @@ public class PlayerWalk : MonoBehaviour
     public AreaManager areaManager;
     public LayerMask walkableLayers;
 
+    public LayerMask detectWaterLayers;
+
     private RaycastHit rayHit;
 
     private float targetWaterDepth;
@@ -62,6 +64,7 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private List<Transform> raySources;
 
+
     void Awake()
     {
         agent.stoppingDistance = defaultStoppingDistance;
@@ -69,11 +72,11 @@ public class PlayerWalk : MonoBehaviour
         agent.isStopped = true;
 
         raySources.Add(playerHead);
-        layerMask = LayerMask.GetMask("Water", "Ground");
+        
 
     }
 
-    private IEnumerator WaterSFX()
+    private IEnumerator SetWaterDepth()
     {
         while (playerInWater)
         {
@@ -104,7 +107,7 @@ public class PlayerWalk : MonoBehaviour
             float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
             targetWaterDepth = output;
-            //StartCoroutine(WaterSFX());
+            StartCoroutine(SetWaterDepth());
             yield return null;
         }
 
@@ -116,28 +119,27 @@ public class PlayerWalk : MonoBehaviour
         yield break;
     }
 
-    private void Water(Vector3 playerHead, RaycastHit rayHit, float distance)
+    public bool playerInWater = false;
+
+    private void WaterDetected(Vector3 playerHead, RaycastHit rayHit, float distance)
     {
         StartCoroutine(GetWaterDepth(playerHead, rayHit, distance));
     }
 
-    public bool playerInWater = false;
-    private LayerMask layerMask;
-   
     void Update()
     {
-
         /*
         foreach (Transform t in raySources)
         {
+   
+            Vector3 raySource = new Vector3(t.transform.position.x, t.transform.position.y, t.transform.position.z); 
             Vector3 rayDirection = Vector3.down;
-            Vector3 playerHead = new Vector3(t.transform.position.x, t.transform.position.y, t.transform.position.z);
 
-            if (Physics.Raycast(t.transform.position, rayDirection, out RaycastHit rayHit, Mathf.Infinity, layerMask))
+            if (Physics.Raycast(t.transform.position, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
             {
                 float distance = rayHit.distance;
 
-                if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground"))
+                if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground") || rayHit.transform.gameObject.layer == LayerMask.NameToLayer("CaveGround"))
                 {
                     playerInWater = false;
                     return;
@@ -145,13 +147,15 @@ public class PlayerWalk : MonoBehaviour
                 {
                     playerInWater = true;
                     Debug.Log("Water Detected!");
-                    Water(playerHead, rayHit, distance);
+                    WaterDetected(raySource, rayHit, distance);
                 }
 
                 Debug.DrawRay(t.transform.position, rayDirection, Color.blue);
             }
         }
         */
+ 
+
 
         if (!stopOverride)
         {
@@ -180,7 +184,7 @@ public class PlayerWalk : MonoBehaviour
                     int caveGroundLayerIndex = LayerMask.NameToLayer("InsideCave");
                     int caveGroundLayerMask = (1 << caveGroundLayerIndex);
 
-                    if (Physics.Raycast(ray, out rayHit, Mathf.Infinity, walkableLayers))
+                    if (Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, walkableLayers))
                     {
                         Vector3 playerPosition = playerObject.transform.position;
 
@@ -271,6 +275,7 @@ public class PlayerWalk : MonoBehaviour
     {
         // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
 
+
         if (selected == "Drink")
         {
             destination = rayHit.point;
@@ -283,25 +288,27 @@ public class PlayerWalk : MonoBehaviour
             destination = hitObject.transform.position;
             sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = sizeCalculated;
-
-            if (selected == "Pray")
-            {
-                destinationGizmo.transform.localScale = sizeCalculated / 3;
-            }
-
-            if (selected == "HarvestTree")
-            {
-                destinationGizmo.transform.localScale = sizeCalculated / 8;
-            }
-
-            if (selected == "Talk")
-            {
-                destinationGizmo.transform.localScale = sizeCalculated * 2;
-            }
         }
 
-     
+        if (selected == "Look")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 2;
+        }
 
+        if (selected == "Pray")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 2;
+        }
+
+        if (selected == "HarvestTree")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 8;
+        }
+
+        if (selected == "Talk")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated * 2;
+        }
 
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();

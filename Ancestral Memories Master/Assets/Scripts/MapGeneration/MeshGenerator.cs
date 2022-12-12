@@ -242,3 +242,7 @@ public class MeshData {
 	}
 
 }
+
+
+// Code written by Sebastian Lague
+// https://github.com/SebLague/Procedural-Landmass-Generation/tree/master/Proc%20Gen%20E21/Assets
