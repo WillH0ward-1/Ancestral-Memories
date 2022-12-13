@@ -31,6 +31,7 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayWalkEvent()
     {
+        /*
         if (playerWalk.playerInWater)
         {
             terrainType = "Water";
@@ -46,10 +47,12 @@ public class PlayerSoundEffects : MonoBehaviour
             {
                 terrainType = "Grass";
             }
-        } 
+        }
+        */
+
 
         EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
-        walkEvent.setParameterByNameWithLabel("TerrainType", terrainType);
+        //walkEvent.setParameterByNameWithLabel("TerrainType", terrainType);
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();

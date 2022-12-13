@@ -493,6 +493,7 @@ public class MapObjGen : MonoBehaviour
                 }
 
                 ScaleControl appleGrowControl = apple.transform.GetComponent<ScaleControl>();
+             
 
                 apple.GetComponent<Rigidbody>().isKinematic = true;
 

@@ -76,6 +76,8 @@ public class PlayerWalk : MonoBehaviour
 
     }
 
+    /*
+
     //Water detection WIP
  
     private IEnumerator SetWaterDepth(float targetWaterDepth)
@@ -158,10 +160,10 @@ public class PlayerWalk : MonoBehaviour
 
         }
 
-
- 
-
-
+    */
+    private void Update()
+    {
+        
         if (!stopOverride)
         {
             if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
@@ -288,6 +290,11 @@ public class PlayerWalk : MonoBehaviour
             destinationGizmo.transform.localScale = sizeCalculated;
         }
 
+        if (selected == "Reflect")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 1;
+        }
+
         if (selected != "Drink")
         {
             destination = hitObject.transform.position;
@@ -297,12 +304,12 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "Look")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 2;
+            destinationGizmo.transform.localScale = sizeCalculated / 1;
         }
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 2;
+            destinationGizmo.transform.localScale = sizeCalculated / 5;
         }
 
         if (selected == "HarvestTree")

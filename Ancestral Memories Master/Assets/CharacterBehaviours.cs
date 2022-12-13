@@ -355,11 +355,8 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        while (behaviourIsActive)
-        {
-            player.GainFaith(0.01f);
-            yield return null;
-        }
+        float faithFactor = 0.1f;
+        StartCoroutine(FaithModify(faithFactor));
 
         player.ChangeAnimationState(randomDanceAnim);
         cinematicCam.ToActionZoom();
@@ -479,12 +476,6 @@ public class CharacterBehaviours : MonoBehaviour
     public IEnumerator Reflect()
     {
         behaviourIsActive = true;
-
-        while (behaviourIsActive)
-        {
-            player.GainFaith(0.001f);
-            yield return null;
-        }
 
         player.ChangeAnimationState(PLAYER_SITONFLOOR);
         yield return new WaitForSeconds(GetAnimLength());

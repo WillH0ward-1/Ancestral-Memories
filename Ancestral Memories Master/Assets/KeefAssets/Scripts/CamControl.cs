@@ -307,7 +307,7 @@ public class CamControl : MonoBehaviour
 
     float approxZoomDestination;
 
-    [SerializeField] float perspectiveDelay = 1;
+    //[SerializeField] float perspectiveDelay = 1;
 
 
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
@@ -328,7 +328,7 @@ public class CamControl : MonoBehaviour
             }
 
             currentOrthoZoom = cam.orthographicSize;
-            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time * perspectiveDelay));
+            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time));
 
             currentZoom = rpCamera.perspective;
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, func(time));
@@ -362,8 +362,6 @@ public class CamControl : MonoBehaviour
         float time = 0f;
         Vector3 newPosition = target.transform.position;
         Transform lookTarget = lookAtTarget.transform;
-
-        lerpParams.lerpType = LerpType.Linear;
 
         System.Func<float, float> func = Lerp.GetLerpFunction(lerpParams.lerpType);
 

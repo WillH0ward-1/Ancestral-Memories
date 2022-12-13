@@ -23,6 +23,7 @@ public class CorruptionControl : MonoBehaviour
     void GetRenderers()
     {
         Renderer[] objectRenderers = transform.GetComponentsInChildren<Renderer>();
+        
         rendererList = objectRenderers.ToList();
     }
 

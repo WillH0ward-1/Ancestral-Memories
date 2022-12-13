@@ -23,7 +23,9 @@ public class WeatherControl : MonoBehaviour
 
     private List<GameObject> mapObjectList;
 
-    [SerializeField] private List<Renderer> windAffectedRenderers;
+    Renderer[] renderers;
+
+   [SerializeField] private List<Renderer> windAffectedRenderers;
 
     // Start is called before the first frame update
     void Start()
@@ -31,7 +33,13 @@ public class WeatherControl : MonoBehaviour
         EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
         windStrength = currentWindStrength;
         StartCoroutine(WindStrength(windSFX));
-        mapObjectList = mapObjGen.mapObjectList;
+       
+        foreach (GameObject mapObject in mapObjGen.mapObjectList)
+        {
+             renderers = mapObject.GetComponentsInChildren<Renderer>();
+
+     
+        }
     }
 
     private IEnumerator WindStrength(EventInstance windSFX)
@@ -49,15 +57,13 @@ public class WeatherControl : MonoBehaviour
             windSFX.setParameterByName("WindStrength", windStrength);
             Debug.Log("WindStrength:" + windStrength);
 
-            foreach (GameObject mapObject in mapObjGen.treeList)
-            {
-                Renderer[] renderers = mapObject.GetComponentsInChildren<Renderer>();
 
-                foreach (Renderer r in renderers)
-                {
-                    r.material.SetFloat("WindStrength", windStrength);
-                }
+            foreach (Renderer r in renderers)
+            {
+                r.material.SetFloat("WindStrength", windStrength);
             }
+
+            
 
             yield return null;
         }

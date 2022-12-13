@@ -46,7 +46,7 @@ public class AnimalAI : MonoBehaviour
     //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
-    private CharacterBehaviours playerBehaviours;
+    [SerializeField] private CharacterBehaviours playerBehaviours;
 
     // Start is called before the first frame update
     void Start()
