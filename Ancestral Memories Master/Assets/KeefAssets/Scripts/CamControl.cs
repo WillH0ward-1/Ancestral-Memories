@@ -23,7 +23,7 @@ public class CamControl : MonoBehaviour
     private Transform camTarget;
     private bool camFollowTarget = true;
     private CharacterBehaviours behaviours;
-    [SerializeField] private bool isSpawning = false;
+    public bool isSpawning = false;
 
     [Header("========================================================================================================================")]
     [Header("Camera Target/Follow")]
@@ -87,9 +87,33 @@ public class CamControl : MonoBehaviour
 
         camTarget = player.transform;
 
-        ToSpawnZoom();
+        isSpawning = true;
+
+        StartCoroutine(WaitForMouseClick());
+
+
+
+        //ToSpawnZoom();
 
         cameraOffset = new Vector3(12, 2.5f, -8);
+    }
+
+    private bool waitForClick;
+
+    private IEnumerator WaitForMouseClick()
+    {
+        waitForClick = true;
+
+       while (waitForClick)
+       {
+            if (Input.GetMouseButtonDown(0))
+            {
+                ToSpawnZoom();
+                yield break;
+            }
+
+            yield return null;
+       }
     }
 
 
@@ -168,7 +192,7 @@ public class CamControl : MonoBehaviour
 
         else if (cinematicActive == false && !behaviours.isPsychdelicMode)
         {
-            rpCamera.rpCam.farClipPlane = 300;
+            rpCamera.rpCam.farClipPlane = 1000;
             rpCamera.rpCam.nearClipPlane = -65;
         }
     }

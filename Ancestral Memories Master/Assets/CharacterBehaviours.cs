@@ -460,7 +460,7 @@ public class CharacterBehaviours : MonoBehaviour
             yield break;
 
         }
-        else
+        else if (player.faith >= player.maxStat / 2)
         {
 
 

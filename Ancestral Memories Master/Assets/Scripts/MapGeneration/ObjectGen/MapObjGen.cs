@@ -358,7 +358,7 @@ public class MapObjGen : MonoBehaviour
     public List<GameObject> mapObjectList;
     public List<GameObject> treeList;
 
-    private Vector3 zeroScale = new Vector3(0, 0, 0);
+    private Vector3 zeroScale = new Vector3(0.001f, 0.001f, 0.001f);
 
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {

@@ -64,6 +64,7 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private List<Transform> raySources;
 
+    [SerializeField] private CamControl camControl;
 
     void Awake()
     {
@@ -166,7 +167,7 @@ public class PlayerWalk : MonoBehaviour
         
         if (!stopOverride)
         {
-            if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
+            if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing)
             {
                 if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
                 {
@@ -217,6 +218,8 @@ public class PlayerWalk : MonoBehaviour
                     agent.speed = speed;
                     walkAnimFactor = speed / animFactor;
 
+                    player.AdjustAnimationSpeed(walkAnimFactor);
+
                     if (speed < runThreshold)
                     {
                         if (!behaviours.isPsychdelicMode && !player.starving)
@@ -232,7 +235,7 @@ public class PlayerWalk : MonoBehaviour
                             ChangeState(PLAYER_DRUNKWALK);
                         }
 
-                        //player.AdjustAnimationSpeed(animSpeed);
+                        player.AdjustAnimationSpeed(walkAnimFactor);
                     }
 
                     if (speed > runThreshold)
@@ -248,7 +251,6 @@ public class PlayerWalk : MonoBehaviour
 
                     }
 
-                    //player.AdjustAnimationSpeed(walkAnimFactor);
 
                     Debug.Log("Cursor Distance:" + cursorDistance);
                     Debug.Log("Speed:" + agent.speed);
@@ -397,8 +399,12 @@ public class PlayerWalk : MonoBehaviour
         }
     }
 
+    [SerializeField] private float defaultAnimSpeed = 10f;
+
     public void StopAgent()
     {
+        player.AdjustAnimationSpeed(defaultAnimSpeed);
+
         if (!behaviours.isPsychdelicMode && !player.starving)
         {
             ChangeState(PLAYER_IDLE);
