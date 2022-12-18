@@ -41,6 +41,15 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] animals;
     [SerializeField] private GameObject[] fireWood;
     [SerializeField] private GameObject[] seaShells;
+    [SerializeField] private GameObject[] pedestals;
+
+    [Header("========================================================================================================================")]
+    [Header("Layer Masks")]
+    [Space(10)]
+
+    private LayerMask caveLayerMask;
+    private LayerMask groundLayerMask;
+    private LayerMask deadZoneLayerMask;
 
     [Header("========================================================================================================================")]
     [Header("Object Scaling")]
@@ -76,6 +85,8 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minSeaShellScale;
     [SerializeField] Vector3 maxSeaShellScale;
 
+    [SerializeField] Vector3 minPedestalScale;
+    [SerializeField] Vector3 maxPedestalScale;
 
     [Header("========================================================================================================================")]
 
@@ -101,6 +112,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumAnimalRadius = 70;
     [SerializeField] float minimumFireWoodRadius = 70;
     [SerializeField] float minimumSeaShellRadius = 70;
+    [SerializeField] float minimumPedestalRadius = 70;
 
     [Header("========================================================================================================================")]
 
@@ -129,6 +141,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string mushroomTag = "Mushrooms";
     private readonly string fireWoodTag = "FireWood";
     private readonly string seaShellTag = "SeaShell";
+    private readonly string pedestalTag = "Pedestal";
 
     [Header("========================================================================================================================")]
 
@@ -216,6 +229,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
         PoissonDiscSampler fireWoodSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFireWoodRadius);
         PoissonDiscSampler seaShellSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumSeaShellRadius);
+        PoissonDiscSampler pedestalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumPedestalRadius);
 
         TreePoissonDisc(treeSampler);
         AppleTreePoissonDisc(appleTreeSampler);
@@ -227,6 +241,7 @@ public class MapObjGen : MonoBehaviour
         MushroomPoissonDisc(mushroomSampler);
         FireWoodPoissonDisc(fireWoodSampler);
         SeaShellPoissonDisc(seaShellSampler);
+        PedestalPoissonDisc(pedestalSampler);
 
         SetOffset();
 
@@ -298,6 +313,42 @@ public class MapObjGen : MonoBehaviour
             //WaterCheck();
         }
     }
+
+    void PedestalPoissonDisc(PoissonDiscSampler pedestalSampler)
+    {
+        foreach (Vector2 sample in pedestalSampler.Samples())
+        {
+            GameObject randomPedestal = GetRandomMapObject(pedestals);
+
+            GameObject pedestalInstance = Instantiate(randomPedestal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            pedestalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            /*
+            new Vector3(
+            Random.Range(minTreeScale.x, maxTreeScale.x),
+            Random.Range(minTreeScale.y, maxTreeScale.y),
+            Random.Range(minTreeScale.z, maxTreeScale.z));
+            */
+
+            pedestalInstance.tag = pedestalTag;
+
+            //int pedestalLayer = LayerMask.NameToLayer("Pedestal");
+            //pedestalInstance.layer = pedestalLayer;
+
+            mapObjectList.Add(pedestalInstance);
+
+            pedestalInstance.transform.SetParent(hierarchyRoot.transform);
+
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+
+           // GrowTrees(treeInstance);
+
+        }
+    }
+
 
     private int distanceFromCenter;
 
@@ -758,7 +809,7 @@ public class MapObjGen : MonoBehaviour
         {
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
             {
-                Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
+                //Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
 
                 if (downHit.collider.CompareTag(waterTag))
                 {
@@ -771,6 +822,7 @@ public class MapObjGen : MonoBehaviour
                     DestroyObject();
                 }
             }
+
 
             void DestroyObject()
             {
@@ -802,53 +854,11 @@ public class MapObjGen : MonoBehaviour
         AnchorToGround();
     }
 
-    void AddColliders()
-    {
-        foreach (GameObject mapObject in mapObjectList)
-        {
-
-            if (!mapObject.CompareTag(grassTag) && !mapObject.CompareTag(fliesTag) && !mapObject.CompareTag(animalTag) && !mapObject.CompareTag(foliageTag) && !mapObject.CompareTag(mushroomTag))
-            {
-                mapObject.AddComponent<MeshCollider>();
-
-                navMeshObstacle = GetComponent<NavMeshObstacle>();
-                navMeshObstacle = mapObject.AddComponent<NavMeshObstacle>();
-
-                navMeshObstacle.enabled = true;
-                navMeshObstacle.center = new Vector3(0, 0, 0);
-                ;
-                navMeshObstacle.shape = NavMeshObstacleShape.Capsule;
-
-                if (mapObject.CompareTag(rockTag))
-                {
-                    navMeshObstacle.radius = 0.5f;
-                }
-
-                if (mapObject.CompareTag(treeTag))
-                {
-                    navMeshObstacle.radius = 0.2f;
-                }
-
-                navMeshObstacle.carving = true;
-
-                //navMeshObstacle.carveOnlyStationary = true;
-                //navMeshObstacle.size = new Vector3(obstacleSizeX, obstacleSizeY, obstacleSizeZ);
-            }
-
-            continue;
-        }
-
-        Debug.Log("Colliders Generated!");
-    }
         
     void AnchorToGround()
     {
-        //LayerMask groundMask = LayerMask.GetMask("Ground");
-
         foreach (GameObject mapObject in mapObjectList)
         {
-            int groundLayerIndex = LayerMask.NameToLayer("Ground");
-            int groundLayerMask = (1 << groundLayerIndex);
 
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
             {
@@ -867,46 +877,13 @@ public class MapObjGen : MonoBehaviour
             }
         }
 
-        foreach (GameObject mapObject in mapObjectList)
-        {
-
-            int groundLayerIndex = LayerMask.NameToLayer("Ground");
-            int groundLayerMask = (1 << groundLayerIndex);
-
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
-            {
-                float distance = hitFloor.distance;
-
-                float x = mapObject.transform.position.x;
-                float y = mapObject.transform.position.y - distance;
-                float z = mapObject.transform.position.z;
-
-                Vector3 newPosition = new Vector3(x, y, z);
-
-                mapObject.transform.position = newPosition;
-
-            }
-        }
-
         DestroyDeadZones();
     }
-
-
-    [SerializeField] private int layer = 10;
-    private int caveLayerMask;
 
     void DestroyDeadZones()
     {
         foreach (GameObject mapObject in mapObjectList)
         {
-            int deadZoneLayerIndex = LayerMask.NameToLayer("DeadZone");
-            int deadZoneLayerMask = (1<< deadZoneLayerIndex);
-
-            int caveLayerIndex = LayerMask.NameToLayer("Cave");
-            int caveLayerMask = (1 << caveLayerIndex);
- 
-            caveLayerMask = (1 << layer);
-    
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
             {
                 if (hitFloor.collider.CompareTag("DeadZone"))

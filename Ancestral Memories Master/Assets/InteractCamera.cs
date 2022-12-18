@@ -42,7 +42,7 @@ public class InteractCamera : MonoBehaviour
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (!Input.GetMouseButtonDown(0) && !behaviour.behaviourIsActive)
+        if (!behaviour.behaviourIsActive)
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
@@ -78,12 +78,10 @@ public class InteractCamera : MonoBehaviour
    
                         selected = false;
                         lookAtTarget.position = defaultTarget.transform.position;
-                        Debug.Log(lastHit + "selected");
 
                     }
 
                 }
-
 
                 if (!areaManager.traversing)
                 {

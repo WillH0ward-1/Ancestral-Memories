@@ -86,10 +86,14 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] private CheckIfUnderwater waterCheck;
 
+    private PulseEffectControl pulseControl;
+
     void Start()
     {
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
         waterCheck = player.GetComponent<CheckIfUnderwater>();
+
+        pulseControl = player.GetComponentInChildren<PulseEffectControl>();
     }
 
     public void ChooseBehaviour(string selected, GameObject hitObject)
@@ -305,7 +309,12 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield break;
     }
-    
+
+    private float faithFactor = 0.25f;
+
+    float minPulseTrigger = 1;
+    float maxPulseTrigger = 3;
+
     public IEnumerator Pray(GameObject hitObject)
     {
         cinematicCam.scrollOverride = true;
@@ -317,10 +326,23 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToPrayerZoom();
          
-        float faithFactor = 0.5f;
-        StartCoroutine(FaithModify(faithFactor));
+    
+        StartCoroutine(FaithModify());
 
-        god.StartGodRay(hitObject.transform, false);
+        //god.StartGodRay(hitObject.transform, false);
+
+        float time = 0;
+
+        while (!Input.GetMouseButtonDown(0))
+        {
+            speed = Random.Range(minPulseTrigger, maxPulseTrigger);
+            time += Time.deltaTime / speed;
+
+            yield return new WaitForSeconds(speed);
+
+            pulseControl.Pulse();
+            yield return null;
+        }
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -335,7 +357,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
-    private IEnumerator FaithModify(float faithFactor)
+    private IEnumerator FaithModify()
     {
         while (behaviourIsActive)
         {
@@ -355,8 +377,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        float faithFactor = 0.1f;
-        StartCoroutine(FaithModify(faithFactor));
+        StartCoroutine(FaithModify());
 
         player.ChangeAnimationState(randomDanceAnim);
         cinematicCam.ToActionZoom();
@@ -566,7 +587,6 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] private GameObject campFire;
 
-
     public IEnumerator KindleFire(GameObject hitObject)
     {
 
@@ -593,7 +613,12 @@ public class CharacterBehaviours : MonoBehaviour
 
         GameObject newFire = Instantiate(campFire, hitObject.transform.position, Quaternion.identity);
         hitObject.transform.SetParent(newFire.transform);
-        hitObject.GetComponent<Renderer>().enabled = false;
+
+        LookAtTarget faceCamera = newFire.GetComponentInChildren<LookAtTarget>();
+        faceCamera.target = cinematicCam.transform;
+
+        Destroy(hitObject);
+        //hitObject.GetComponent<Renderer>().enabled = false;
 
         SheatheItem();
 

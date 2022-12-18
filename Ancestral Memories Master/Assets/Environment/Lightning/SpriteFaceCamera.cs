@@ -7,6 +7,7 @@ public class SpriteFaceCamera : MonoBehaviour
 
     [SerializeField] private Camera cam;
 
+
     [ExecuteInEditMode]
     void LateUpdate()
     {

@@ -60,8 +60,9 @@ public class CheckIfUnderwater : MonoBehaviour
         } else if (isUnderwater == false)
         {
             StopCoroutine(behaviours.Drown());
-            yield break;
         }
+
+        yield break;
     }
 }
 

@@ -24,25 +24,25 @@ public class AnimalAI : MonoBehaviour
 
     [SerializeField] private float animationCrossFade = 2f;
 
-    //Trigger collider that represents the awareness area
     SphereCollider sphereCollider;
-    //NavMesh Agent
     NavMeshAgent agent;
 
     [SerializeField] private bool shouldFlee = true;
     bool switchAction = false;
     float actionTimer = 0; 
     [SerializeField] private Player player;
-    [SerializeField] float range = 20; //How far the Deer have to run to resume the usual activities
+    [SerializeField] float range = 20; 
     float multiplier = 1;
     bool reverseFlee = false; //In case the AI is stuck, send it to one of the original Idle points
 
     //Detect NavMesh edges to detect whether the AI is stuck
     Vector3 closestEdge;
     float distanceToEdge;
-    float distance; //Squared distance to the enemy
+    float distance;
+
     //How long the AI has been near the edge of NavMesh, if too long, send it to one of the random previousIdlePoints
     float timeStuck = 0;
+
     //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
@@ -70,6 +70,15 @@ public class AnimalAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (player.faith <= 50)
+        {
+            shouldFlee = true;
+        }
+        else if (player.faith >= 50)
+        {
+            shouldFlee = false;
+        }
+
         if (!playerBehaviours.dialogueIsActive)
         {
 

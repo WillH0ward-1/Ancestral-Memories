@@ -306,12 +306,12 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "Look")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 1;
+            destinationGizmo.transform.localScale = sizeCalculated / 0;
         }
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 5;
+            destinationGizmo.transform.localScale = sizeCalculated / 4;
         }
 
         if (selected == "HarvestTree")

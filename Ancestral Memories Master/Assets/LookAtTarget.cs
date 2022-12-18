@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class LookAtTarget : MonoBehaviour
 {
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] public Transform target;
+    float y;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+        y = gameObject.transform.rotation.eulerAngles.y;
+        y += 180;
+    }
+    void Update()
+    { 
+        gameObject.transform.LookAt(target.position);
+     
     }
 }

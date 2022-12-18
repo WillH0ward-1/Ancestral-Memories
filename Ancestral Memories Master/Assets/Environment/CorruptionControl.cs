@@ -64,8 +64,8 @@ public class CorruptionControl : MonoBehaviour
             r.sharedMaterial.SetFloat("_MinKarma", newMin);
             r.sharedMaterial.SetFloat("_MaxKarma", newMax);
 
-            r.sharedMaterial.SetFloat("_newMin", newMin);
-            r.sharedMaterial.SetFloat("_newMax", newMax);
+            r.sharedMaterial.SetFloat("_NewMin", newMin);
+            r.sharedMaterial.SetFloat("_NewMax", newMax);
 
         }
 
