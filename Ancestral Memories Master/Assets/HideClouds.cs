@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class HideClouds : MonoBehaviour
 {
-    [SerializeField] private CharacterBehaviours cinematicCam;
-
+    [SerializeField] private CharacterBehaviours behaviours;
+    [SerializeField] private Camera cinematicCam;
     private Renderer renderer;
 
     // Start is called before the first frame update
@@ -27,9 +27,9 @@ public class HideClouds : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (cinematicCam.isPsychdelicMode) {
+        if (behaviours.isPsychdelicMode) {
             renderer.enabled = false;
-        } else if (!cinematicCam.isPsychdelicMode)
+        } else if (!behaviours.isPsychdelicMode)
         {
             renderer.enabled = true;
         }

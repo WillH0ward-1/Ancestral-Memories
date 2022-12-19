@@ -10,37 +10,39 @@ public class GenerateEmitters : MonoBehaviour
     private Mesh mesh;
     private Vector3[] vertices;
 
-    private MapObjGen mapObjGen;
+    [SerializeField] private MapObjGen mapObjGen;
 
     [SerializeField] int vertSampleFactor;
+
+    public List<GameObject> emitters;
 
     private void Start()
     {
         mesh = GetComponent<MeshFilter>().mesh;
         vertices = mesh.vertices;
-
-        EmitterGen();
+        StartCoroutine(EmitterGen());
     }
 
     private IEnumerator EmitterGen()
     {
         int sampleDensity = vertices.Length / vertSampleFactor;
 
-        for (int i = 0; i < vertices.Length; i++)
+        for (int i = 0; i <= vertices.Length; i++)
         {
             // vertices[i] += Vector3.up * Time.deltaTime;
 
             if (i >= vertices.Length)
             {
-                mapObjGen.StartCoroutine(mapObjGen.GenerateEmitterCheckers());
+                
+                mapObjGen.StartCoroutine(mapObjGen.GenerateEmitterCheckers(emitters));
                 yield break;
             }
 
             emitterInstance = Instantiate(emitter, transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]), Quaternion.identity, transform.parent);
 
-            i += sampleDensity;
+            emitters.Add(emitterInstance);
 
-            yield return null;
+            i += sampleDensity;
         }
 
 

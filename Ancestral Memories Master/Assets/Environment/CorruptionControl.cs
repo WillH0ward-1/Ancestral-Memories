@@ -10,12 +10,14 @@ public class CorruptionControl : MonoBehaviour
     private float currentCorruption = 0f;
 
     public Player player;
-
+    private CharacterBehaviours behaviours;
     // Start is called before the first frame update
 
     void Awake()
     {
         GetRenderers();
+
+        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
 
     [SerializeField] List<Renderer> rendererList = new List<Renderer>();
@@ -66,6 +68,11 @@ public class CorruptionControl : MonoBehaviour
 
             r.sharedMaterial.SetFloat("_NewMin", newMin);
             r.sharedMaterial.SetFloat("_NewMax", newMax);
+
+            if (behaviours.isPsychdelicMode)
+            {
+                r.sharedMaterial.SetFloat("_WarpStrength", output);
+            }
 
         }
 

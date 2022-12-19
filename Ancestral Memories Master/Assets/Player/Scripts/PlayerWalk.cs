@@ -77,29 +77,9 @@ public class PlayerWalk : MonoBehaviour
 
     }
 
-    /*
+    
 
     //Water detection WIP
- 
-    private IEnumerator SetWaterDepth(float targetWaterDepth)
-    {
-        while (playerInWater)
-        {
-            if (!playerInWater)
-            {
-                yield break;
-            }
-
-            waterDepth = targetWaterDepth;
-
-            RuntimeManager.StudioSystem.setParameterByName("WaterDepth", waterDepth);
-            Debug.Log("WaterDepth:" + waterDepth);
-            yield return null;
-        }
-
-        yield break;
-
-    }
 
     float minParamDepth = 0;
     float maxParamDepth = 1;
@@ -108,11 +88,17 @@ public class PlayerWalk : MonoBehaviour
     {
         while (playerInWater)
         {
-            var t = Mathf.InverseLerp(playerHead.y, rayHit.point.y, distance);
+     
+            float t = Mathf.InverseLerp(playerHead.y, rayHit.point.y, distance);
             float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
             targetWaterDepth = output;
-            StartCoroutine(SetWaterDepth(targetWaterDepth));
+            waterDepth = targetWaterDepth;
+
+            RuntimeManager.StudioSystem.setParameterByName("WaterDepth", waterDepth);
+            Debug.Log("WaterDepth:" + waterDepth);
+            yield return null;
+
             yield return null;
         }
 
@@ -120,8 +106,6 @@ public class PlayerWalk : MonoBehaviour
         {
             yield break;
         }
-
-        yield break;
     }
 
     public bool playerInWater = false;
@@ -136,34 +120,31 @@ public class PlayerWalk : MonoBehaviour
 
         foreach (Transform t in raySources)
         {
-   
-            Vector3 raySource = new Vector3(t.transform.position.x, t.transform.position.y, t.transform.position.z); 
+
+            Vector3 raySource = new Vector3(t.transform.position.x, t.transform.position.y, t.transform.position.z);
             Vector3 rayDirection = Vector3.down;
 
-            if (Physics.Raycast(t.transform.position, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
+            if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
             {
                 float distance = rayHit.distance;
 
                 if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground") || rayHit.transform.gameObject.layer == LayerMask.NameToLayer("CaveGround"))
                 {
                     playerInWater = false;
-                    return;
 
-                } else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
+                }
+                else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
                 {
                     playerInWater = true;
                     Debug.Log("Water Detected!");
                     WaterDetected(raySource, rayHit, distance);
                 }
 
-                Debug.DrawRay(t.transform.position, rayDirection, Color.blue);
+                Debug.DrawRay(t.transform.position, rayDirection, Color.green);
             }
 
         }
 
-    */
-    private void Update()
-    {
         
         if (!stopOverride)
         {
@@ -290,6 +271,11 @@ public class PlayerWalk : MonoBehaviour
             destination = rayHit.point;
             sizeCalculated = player.transform.localScale;
             destinationGizmo.transform.localScale = sizeCalculated;
+        }
+
+        if (selected == "KindleFire")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated / 5;
         }
 
         if (selected == "Reflect")

@@ -62,7 +62,14 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{99ed5ff4-7e99-405d-832d-3c82ab0fc056}" />
+	<object class="EventAutomatableProperties" id="{99ed5ff4-7e99-405d-832d-3c82ab0fc056}">
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{976bf0b7-7db9-47c2-b1c3-062e491f4a9a}" />
 	<object class="GroupTrack" id="{8b7740d8-5acf-4398-800a-c5c6d9fccc5d}">
 		<relationship name="modules">
@@ -109,6 +116,12 @@
 		</property>
 		<property name="timelockedOffset">
 			<value>1.5</value>
+		</property>
+		<property name="volume">
+			<value>-26.5</value>
+		</property>
+		<property name="pitch">
+			<value>-12</value>
 		</property>
 		<property name="looping">
 			<value>true</value>
@@ -160,6 +173,10 @@
 	</object>
 	<object class="MixerBusPanner" id="{07c020d2-4e9d-4970-8085-2afae76711ae}" />
 	<object class="MixerBusFader" id="{215369e3-ade3-4fbc-8d08-5075e0a90b90}" />
-	<object class="SpatialiserEffect" id="{b92be712-e409-48cc-a153-97abef7ee035}" />
+	<object class="SpatialiserEffect" id="{b92be712-e409-48cc-a153-97abef7ee035}">
+		<property name="maximumDistance">
+			<value>150</value>
+		</property>
+	</object>
 	<object class="MixerBusFader" id="{84b09c45-c4e4-45d1-a4b3-76628339a6ef}" />
 </objects>

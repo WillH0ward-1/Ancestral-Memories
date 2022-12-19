@@ -7,7 +7,7 @@ public class Dialogue : MonoBehaviour
 {
 
     [SerializeField] private TextMeshProUGUI textComponent;
-    [SerializeField] private GameObject dialogueBox;
+    [SerializeField] private Transform dialogueBox;
 
     [SerializeField] private string[] lines;
     [SerializeField] private float textSpeed;
@@ -16,15 +16,16 @@ public class Dialogue : MonoBehaviour
 
     private int index;
 
-    private IEnumerator WaitForSkip()
+    private IEnumerator WaitForSkip(GameObject dialogueBoxInstance)
     {
         while (dialogueIsActive)
         {
-            if (Input.GetMouseButtonDown(0))
+
+            if (Input.GetMouseButtonDown(1))
             {
                 if (textComponent.text == lines[index])
                 {
-                    NextLine();
+                    NextLine(dialogueBoxInstance);
                 }
                 else
                 {
@@ -38,13 +39,26 @@ public class Dialogue : MonoBehaviour
         yield break;
     }
 
-    public void StartDialogue()
+    private Canvas canvas;
+
+    private void Start()
     {
+        canvas = transform.GetComponentInChildren<Canvas>();
+        canvas.enabled = false;
+    }
 
+    public void StartDialogue(GameObject other)
+    {
+        Dialogue dialogue = other.transform.GetComponent<Dialogue>();
+
+        dialogueBox = dialogue.transform.Find("DialogueBox");
+ 
         Debug.Log("Dialogue Started.");
-        dialogueBox = Instantiate(dialogueBox, transform);
 
+        lines = dialogue.lines;
         textComponent = dialogueBox.transform.GetComponentInChildren<TextMeshProUGUI>();
+
+        canvas.enabled = true;
 
         textComponent.text = string.Empty;
 
@@ -53,10 +67,10 @@ public class Dialogue : MonoBehaviour
         index = 0;
 
         StartCoroutine(TypeLine());
-        StartCoroutine(WaitForSkip());
+        StartCoroutine(WaitForSkip(dialogueBox.gameObject));
     }
 
-    void NextLine()
+    void NextLine(GameObject dialogueBoxInstance)
     {
        if (index < lines.Length - 1)
         {
@@ -67,7 +81,7 @@ public class Dialogue : MonoBehaviour
         } else
         {
             dialogueIsActive = false;
-            dialogueBox.SetActive(false);
+            dialogueBoxInstance.SetActive(false);
             //Destroy(dialogueBox);
         }
     }
@@ -81,3 +95,11 @@ public class Dialogue : MonoBehaviour
         }
     }
 }
+
+
+
+
+
+
+
+// Tutorial: Published by BMo - https://www.youtube.com/watch?v=8oTYabhj248&t=6s - Mar 19 2021

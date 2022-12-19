@@ -38,16 +38,16 @@ public class ScaleControl : MonoBehaviour
 
                 time += Time.deltaTime / duration;
 
-                localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, xAxisGrowMultiplier / duration);
-                localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, yAxisGrowMultiplier / duration);
-                localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, zAxisGrowMultiplier / duration);
+                localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time * xAxisGrowMultiplier);
+                localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time * yAxisGrowMultiplier);
+                localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time * zAxisGrowMultiplier);
 
                 scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
 
                 yield return null;
             }
 
-            if (time >= 1f)
+            if (time >= 1f || scaleObject.transform.localScale == scaleDestination)
             {
                 scaleObject.transform.localScale = scaleDestination;
                 isFullyGrown = true;

@@ -310,51 +310,60 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
+
     private float faithFactor = 0.25f;
 
     float minPulseTrigger = 1;
-    float maxPulseTrigger = 3;
+    float maxPulseTrigger = 1;
+
+    bool pulseActive = false;
 
     public IEnumerator Pray(GameObject hitObject)
     {
         cinematicCam.scrollOverride = true;
         behaviourIsActive = true;
+        pulseActive = true;
 
         player.ChangeAnimationState(PLAYER_PRAYER_START);
+        yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_PRAYER_START);
 
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToPrayerZoom();
-         
-    
+        StartCoroutine(PrayerPulseEffect());
         StartCoroutine(FaithModify());
 
         //god.StartGodRay(hitObject.transform, false);
 
-        float time = 0;
-
-        while (!Input.GetMouseButtonDown(0))
-        {
-            speed = Random.Range(minPulseTrigger, maxPulseTrigger);
-            time += Time.deltaTime / speed;
-
-            yield return new WaitForSeconds(speed);
-
-            pulseControl.Pulse();
-            yield return null;
-        }
-
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        pulseActive = false;
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
-
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_PRAYER_END);
 
         cinematicCam.scrollOverride = false;
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
+        
+    }
+
+    private IEnumerator PrayerPulseEffect()
+    {
+        while (pulseActive)
+        {
+            interval = Random.Range(minPulseTrigger, maxPulseTrigger);
+
+            yield return new WaitForSeconds(interval);
+
+            pulseControl.Pulse();
+            yield return null;
+        }
+
+        yield break;
+    
+        
     }
 
     private IEnumerator FaithModify()
@@ -538,7 +547,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] float minAnimationSpeed = 1;
     [SerializeField] float maxAnimationSpeed = 4;
-    float speed;
+    float interval;
 
     private float camMoveDuration = 1f;
 
@@ -551,18 +560,18 @@ public class CharacterBehaviours : MonoBehaviour
        
         float time = 0;
 
-        speed = Random.Range(minAnimationSpeed, maxAnimationSpeed);
+        interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 
-        while (time <= speed && !Input.GetMouseButtonDown(0))
+        while (time <= interval && !Input.GetMouseButtonDown(0))
         {
-            speed = Random.Range(minAnimationSpeed, maxAnimationSpeed);
+            interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 
             minAnimationSpeed = player.activeAnimator.speed;
 
             player.ChangeAnimationState(PLAYER_HARVEST_TREE);
-            player.activeAnimator.speed = Mathf.Lerp(minAnimationSpeed, speed, time);
+            player.activeAnimator.speed = Mathf.Lerp(minAnimationSpeed, interval, time);
 
-            time += Time.deltaTime / speed;
+            time += Time.deltaTime / interval;
 
             yield return null;
         }
@@ -595,7 +604,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_PRAYER_START);
 
         cinematicCam.ToActionZoom();
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
@@ -630,36 +639,36 @@ public class CharacterBehaviours : MonoBehaviour
     public IEnumerator Talk(GameObject hitObject)
     {
         GameObject DefaultCamPivot = player.transform.Find("DefaultCamPosition").gameObject;
-        GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
 
         GameObject lookAtTarget = hitObject;
         Debug.Log("HITOBJECT: " + hitObject);
 
-        behaviourIsActive = true;
         dialogueIsActive = true;
 
-        player.ChangeAnimationState(PLAYER_IDLE);
+        dialogue.StartDialogue(hitObject);
 
-        dialogue = hitObject.transform.GetComponent<Dialogue>();
-        dialogue.StartDialogue();
-
-        StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
-        cinematicCam.ToCinematicZoom();
-
-        player.transform.LookAt(hitObject.transform);
-        hitObject.transform.LookAt(player.transform);
+        if (!hitObject.CompareTag("Campfire"))
+        {
+            player.ChangeAnimationState(PLAYER_IDLE);
+            behaviourIsActive = true;
+            GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+            StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
+            player.transform.LookAt(hitObject.transform);
+            hitObject.transform.LookAt(player.transform);
+            cinematicCam.ToCinematicZoom();
+        }
 
         yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
 
-        lookAtTarget = player.transform.gameObject;
+        if (!hitObject.CompareTag("Campfire"))
+        {
+            behaviourIsActive = false;
+            player.ChangeAnimationState(PLAYER_IDLE);
+            lookAtTarget = player.transform.gameObject;
+            StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
+        }
 
-        StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
-
-        player.ChangeAnimationState(PLAYER_IDLE);
-
-        behaviourIsActive = false;
         dialogueIsActive = false;
-
         cinematicCam.ToGameZoom();
 
         yield break;
@@ -671,7 +680,7 @@ public class CharacterBehaviours : MonoBehaviour
     private float GetAnimLength()
     {
         animLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
-        return (animLength);
+        return animLength;
     }
 
   

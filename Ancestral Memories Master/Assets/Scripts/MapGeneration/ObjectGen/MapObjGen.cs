@@ -162,7 +162,6 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private Player player;
 
-
     public RadialMenu radialMenu;
 
     public Camera cam;
@@ -297,6 +296,11 @@ public class MapObjGen : MonoBehaviour
             GameObject randomAnimal = GetRandomMapObject(animals);
 
             GameObject animalInstance = Instantiate(randomAnimal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            AnimalAI animalAI = animalInstance.GetComponent<AnimalAI>();
+
+            animalAI.player = player;
+            animalAI.playerBehaviours = player.GetComponent<CharacterBehaviours>();
 
             animalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -738,27 +742,33 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    public IEnumerator GenerateEmitterCheckers()
+    [SerializeField] private float emitterYOffset = 10f;
+    [SerializeField] private LayerMask emitterLayerMask;
+
+    public IEnumerator GenerateEmitterCheckers(List<GameObject> emitters)
     {
-
-        // Destroy water emitters on the map (where no water shall be except on rare occasion)
-        int sampleDensity = vertices.Length / vertSampleFactor;
-
-  
-        foreach (Vector3 v in vertices)
+        foreach (GameObject emitter in emitters)
         {
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
-            {
-                Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
+            float emitterY = emitter.transform.position.y;
+            emitterY += emitterYOffset;
 
-                if (downHit.collider.CompareTag("WaterSoundEmitter"))
+            if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
+            {
+                Debug.DrawRay(emitter.transform.position, Vector3.down, Color.red);
+
+                if (downHit.collider.CompareTag("Ground") || downHit.collider.CompareTag("CaveGround"))
                 {
-                    Debug.Log("Water Ahoy!");
-                    DestroyObject(downHit.transform);
+                    DestroyObject(emitter);
+                } else if (downHit.collider.CompareTag("Water"))
+                {
+                    continue;
+                } else
+                {
+                    DestroyObject(emitter);
                 }
             }
 
-            static void DestroyObject(Transform emitter)
+            static void DestroyObject(GameObject emitter)
             {
                 if (Application.isEditor)
                 {

@@ -30,7 +30,7 @@ public class AnimalAI : MonoBehaviour
     [SerializeField] private bool shouldFlee = true;
     bool switchAction = false;
     float actionTimer = 0; 
-    [SerializeField] private Player player;
+    public Player player;
     [SerializeField] float range = 20; 
     float multiplier = 1;
     bool reverseFlee = false; //In case the AI is stuck, send it to one of the original Idle points
@@ -43,10 +43,11 @@ public class AnimalAI : MonoBehaviour
     //How long the AI has been near the edge of NavMesh, if too long, send it to one of the random previousIdlePoints
     float timeStuck = 0;
 
+
     //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
-    [SerializeField] private CharacterBehaviours playerBehaviours;
+    public CharacterBehaviours playerBehaviours;
 
     // Start is called before the first frame update
     void Start()
@@ -63,8 +64,6 @@ public class AnimalAI : MonoBehaviour
         state = AIState.Idle;
         actionTimer = Random.Range(0.1f, 2.0f);
         ChangeAnimationState(IDLE);
-
-        playerBehaviours = player.GetComponent<CharacterBehaviours>();
     }
 
     // Update is called once per frame
@@ -229,7 +228,7 @@ public class AnimalAI : MonoBehaviour
         {
             state = AIState.Idle;
             ChangeAnimationState(IDLE);
-            //agent.transform.LookAt(player.transform);
+            agent.transform.LookAt(player.transform);
         }
     }
 

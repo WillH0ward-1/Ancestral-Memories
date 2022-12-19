@@ -1,0 +1,183 @@
+﻿// original idea is from this qiita topic https://qiita.com/aa_debdeb/items/1d69d49333630b06f6ce
+#pragma kernel AddWave
+#pragma kernel Update
+#pragma kernel Replace
+
+RWTexture2D<float4> _LastWaveTexture;
+RWTexture2D<float4> _CurrWaveTexture;
+RWTexture2D<float4> _NextWaveTexture;
+RWStructuredBuffer<float> _WaveHeightResult;
+
+RWTexture2D<float4> _NearWaveTextureX;
+RWTexture2D<float4> _NearWaveTextureZ;
+RWTexture2D<float4> _NearWaveTexture_X;
+RWTexture2D<float4> _NearWaveTexture_Z;
+
+uniform float _WaveCoef;
+uniform float _DeltaSize;
+uniform float _WaveSpeed;
+uniform float _DampingForce;
+uniform float3 _UpVector;
+uniform int _AddWavePointsCount;
+uniform float4 _AddWavePoints[128];
+uniform int _AddWaveLinesCount;
+uniform float4 _AddWaveLines[128];
+
+[numthreads(32, 32, 1)]
+void AddWave(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    float width, height;
+    _CurrWaveTexture.GetDimensions(width, height);
+    float maxHeight = 1.0 / width;
+    float2 pos = float2(dispatchThreadId.x, dispatchThreadId.y) * 2.0 * maxHeight - float2(1.0, 1.0);
+    for (int idx = 0; idx < _AddWavePointsCount; idx++)
+    {
+        float4 point1 = _AddWavePoints[idx];
+        float rad = point1.z;
+        float dx1 = point1.x - pos.x;
+        float dy1 = point1.y - pos.y;
+        float r = sqrt(dx1 * dx1 + dy1 * dy1);
+        float d = r - rad;
+        if(0 > d)
+        {
+            float next = clamp(_CurrWaveTexture[dispatchThreadId.xy].x + point1.w * clamp(2 * d / rad, -1, 0), -2048 * maxHeight, 2048 * maxHeight);
+            _CurrWaveTexture[dispatchThreadId.xy] = float4(next, _CurrWaveTexture[dispatchThreadId.xy].y, 0, 0);
+        }
+    }
+    for (int idx2 = 0; idx2 < _AddWaveLinesCount; idx2+=2)
+    {
+        float4 point1 = _AddWaveLines[idx2];
+        float4 point2 = _AddWaveLines[idx2 + 1];
+        float rad = point1.z;
+
+        float4 abcd = point2 - point1;
+        float tt = -(abcd.x * (point1.x - pos.x) + abcd.y * (point1.y - pos.y));
+        float a2b2 = abcd.x * abcd.x + abcd.y * abcd.y;
+        float r = 0;
+        if (0 >= tt) 
+        {
+            float dx1 = point1.x - pos.x;
+            float dy1 = point1.y - pos.y;
+            r = sqrt(dx1 * dx1 + dy1 * dy1);
+        }
+        else if(a2b2 <= tt) 
+        {
+            float dx2 = point2.x - pos.x;
+            float dy2 = point2.y - pos.y;
+            r = sqrt(dx2 * dx2 + dy2 * dy2);
+        }
+        else 
+        {
+            float f = (abcd.x * (point1.y - pos.y) - abcd.y * (point1.x - pos.x));
+            r = sqrt(f * f / a2b2);
+        }
+        float d = r - rad;
+        if(0 > d)
+        {
+            float next = clamp(_CurrWaveTexture[dispatchThreadId.xy].x + point1.w * clamp(2 * d / rad, -1, 0), -2048 * maxHeight, 2048 * maxHeight);
+            _CurrWaveTexture[dispatchThreadId.xy] = float4(next, _CurrWaveTexture[dispatchThreadId.xy].y, 0, 0);
+        }
+    }
+}
+
+[numthreads(32, 32, 1)]
+void Update(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    float width, height;
+    _CurrWaveTexture.GetDimensions(width, height);
+
+    float4 last = _LastWaveTexture[dispatchThreadId.xy];
+    float4 current = _CurrWaveTexture[dispatchThreadId.xy];
+    float4 next = current;
+
+    if(0 != current.y) {
+        _NextWaveTexture[dispatchThreadId.xy] = current;
+        return;
+    }
+    float texX, tex_X, texZ, tex_Z, tex_Y;
+    _NearWaveTextureX.GetDimensions(texX, tex_Y);
+    _NearWaveTexture_X.GetDimensions(tex_X, tex_Y);
+    _NearWaveTextureZ.GetDimensions(texZ, tex_Y);
+    _NearWaveTexture_Z.GetDimensions(tex_Z, tex_Y);
+
+    uint2 sampleX = uint2(0, dispatchThreadId.y);
+    uint2 sample_X = uint2(uint(width - 1), dispatchThreadId.y);
+    uint2 sampleZ = uint2(dispatchThreadId.x, 0);
+    uint2 sample_Z = uint2(dispatchThreadId.x, uint(height - 1));
+    if (0.8 < _UpVector.x) {
+        sampleX = uint2(uint(width - 1), uint(height - 1 - dispatchThreadId.y));
+        sample_X = uint2(uint(width - 1), dispatchThreadId.y);
+        sampleZ = uint2(uint(width - 1), dispatchThreadId.x);
+        sample_Z = uint2(uint(width - 1), uint(width - 1 - dispatchThreadId.x));
+    }
+    else if (0.8 < _UpVector.y) {
+        //sampleX = uint2(0, dispatchThreadId.y);
+        //sample_X = uint2(uint(width - 1), dispatchThreadId.y);
+        //sampleZ = uint2(dispatchThreadId.x, 0);
+        //sample_Z = uint2(dispatchThreadId.x, uint(height - 1));
+    }
+    else if (0.8 < _UpVector.z) {
+        sampleX = uint2(dispatchThreadId.y, uint(height - 1));
+        sample_X = uint2(uint(height - 1 - dispatchThreadId.y), uint(height - 1));
+        sampleZ = uint2(dispatchThreadId.x, 0);
+        sample_Z = uint2(dispatchThreadId.x, uint(height - 1));
+    }
+    else if (-0.8 > _UpVector.x) {
+        sampleX = uint2(0, dispatchThreadId.y);
+        sample_X = uint2(0, uint(height - 1 - dispatchThreadId.y));
+        sampleZ = uint2(0, uint(width - 1 - dispatchThreadId.x));
+        sample_Z = uint2(0, dispatchThreadId.x);
+    }
+    else if (-0.8 >_UpVector.y) {
+        sampleX = uint2(uint(width - 1), uint(height - 1 - dispatchThreadId.y));
+        sample_X = uint2(0, uint(height - 1 - dispatchThreadId.y));
+        sampleZ = uint2(dispatchThreadId.x, 0);
+        sample_Z = uint2(dispatchThreadId.x, uint(height - 1));
+    }
+    else if (-0.8 > _UpVector.z) {
+        sampleX = uint2(uint(height - 1 - dispatchThreadId.y), 0);
+        sample_X = uint2(dispatchThreadId.y, 0);
+        sampleZ = uint2(dispatchThreadId.x, 0);
+        sample_Z = uint2(dispatchThreadId.x, uint(height - 1));
+    }
+
+    float maskX = dispatchThreadId.x == uint(width - 1) ? (width == texX ? _NearWaveTextureX[sampleX].y : 0) : _CurrWaveTexture[dispatchThreadId.xy + uint2(1, 0)].y;
+    float mask_X = dispatchThreadId.x == 0 ? (width == tex_X ? _NearWaveTexture_X[sample_X].y : 0) : _CurrWaveTexture[dispatchThreadId.xy + uint2(-1, 0)].y;
+    float maskZ = dispatchThreadId.y == uint(height - 1) ? (height == texZ ? _NearWaveTextureZ[sampleZ].y : 0) : _CurrWaveTexture[dispatchThreadId.xy + uint2(0, 1)].y;
+    float mask_Z = dispatchThreadId.y == 0 ? (height == tex_Z ? _NearWaveTexture_Z[sample_Z].y : 0) : _CurrWaveTexture[dispatchThreadId.xy + uint2(0, -1)].y;
+
+    float currentX = maskX == 0 ? (dispatchThreadId.x == uint(width - 1) ? (width == texX ? _NearWaveTextureX[sampleX].x : last.x) : _CurrWaveTexture[dispatchThreadId.xy + uint2(1, 0)].x) : current.x;
+    float current_X = mask_X == 0 ? (dispatchThreadId.x == 0 ? (width == tex_X ? _NearWaveTexture_X[sample_X].x : last.x) : _CurrWaveTexture[dispatchThreadId.xy + uint2(-1, 0)].x) : current.x;
+    float currentZ = maskZ == 0 ? (dispatchThreadId.y == uint(height - 1) ? (height == texZ ? _NearWaveTextureZ[sampleZ].x : last.x) : _CurrWaveTexture[dispatchThreadId.xy + uint2(0, 1)].x) : current.x;
+    float current_Z = mask_Z == 0 ? (dispatchThreadId.y == 0 ? (height == tex_Z ? _NearWaveTexture_Z[sample_Z].x : last.x) : _CurrWaveTexture[dispatchThreadId.xy + uint2(0, -1)].x) : current.x;
+
+    // Wave equation
+    next.x = 2.0 * current.x - last.x
+        + (_WaveSpeed * _WaveSpeed * _WaveCoef * _WaveCoef) / (_DeltaSize * _DeltaSize)
+        * (
+            + current_X
+            + currentX
+            + current_Z
+            + currentZ
+            - 4.0 * current.x 
+        )
+        // _DampingForce force
+        - _DampingForce * _WaveSpeed * (current.x - last.x)
+        // Restoring force
+        -0.0001 * _WaveSpeed * (current.x)
+        ;
+    float maxHeight = 1.0 / width;
+    next.x = clamp(next.x, -2048 * maxHeight, 2048 * maxHeight);
+    _NextWaveTexture[dispatchThreadId.xy] = next;
+    _WaveHeightResult[dispatchThreadId.y * width + dispatchThreadId.x] = -next.x;
+}
+
+[numthreads(32, 32, 1)]
+void Replace(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    float4 current = _CurrWaveTexture[dispatchThreadId.xy];
+    float4 next = _NextWaveTexture[dispatchThreadId.xy];
+
+    _LastWaveTexture[dispatchThreadId.xy] = current;
+    _CurrWaveTexture[dispatchThreadId.xy] = next;
+}
