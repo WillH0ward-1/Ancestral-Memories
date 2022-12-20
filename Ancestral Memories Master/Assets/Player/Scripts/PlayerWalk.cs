@@ -20,6 +20,8 @@ public class PlayerWalk : MonoBehaviour
     public CharacterClass player;
     public GameObject playerObject;
 
+    [SerializeField] private PlayerSoundEffects playerSFX;
+
     private string currentState;
 
     const string PLAYER_IDLE = "Player_idle";
@@ -84,28 +86,29 @@ public class PlayerWalk : MonoBehaviour
     float minParamDepth = 0;
     float maxParamDepth = 1;
 
+    private string paramID;
+
+
     private IEnumerator GetWaterDepth(Vector3 playerHead, RaycastHit rayHit, float distance)
     {
+        float t = Mathf.InverseLerp(playerHead.y, rayHit.point.y, distance);
+        float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
+
         while (playerInWater)
         {
-     
-            float t = Mathf.InverseLerp(playerHead.y, rayHit.point.y, distance);
-            float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
-
+        
             targetWaterDepth = output;
             waterDepth = targetWaterDepth;
 
-            RuntimeManager.StudioSystem.setParameterByName("WaterDepth", waterDepth);
+            playerSFX.UpdateWaterDepth(waterDepth);
+
             Debug.Log("WaterDepth:" + waterDepth);
             yield return null;
 
             yield return null;
         }
 
-        if (!playerInWater)
-        {
-            yield break;
-        }
+        yield break;
     }
 
     public bool playerInWater = false;
@@ -115,40 +118,63 @@ public class PlayerWalk : MonoBehaviour
         StartCoroutine(GetWaterDepth(playerHead, rayHit, distance));
     }
 
-    void Update()
+    private int GroundIndex = 0;
+    private int RockIndex = 1;
+    private int WaterIndex = 2;
+
+    IEnumerator DetectGroundType()
     {
-
-        foreach (Transform t in raySources)
+        while (Input.GetMouseButton(0))
         {
-
-            Vector3 raySource = new Vector3(t.transform.position.x, t.transform.position.y, t.transform.position.z);
-            Vector3 rayDirection = Vector3.down;
-
-            if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
+            foreach (Transform rayTransform in raySources)
             {
-                float distance = rayHit.distance;
 
-                if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground") || rayHit.transform.gameObject.layer == LayerMask.NameToLayer("CaveGround"))
+                Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
+                Vector3 rayDirection = Vector3.down;
+
+                if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
                 {
-                    playerInWater = false;
+                    float distance = rayHit.distance;
 
-                }
-                else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
-                {
-                    playerInWater = true;
-                    Debug.Log("Water Detected!");
-                    WaterDetected(raySource, rayHit, distance);
+                    if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground"))
+                    {
+                        playerInWater = false;
+                        playerSFX.UpdateGroundType(GroundIndex);
+                    }
+                    else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
+                    {
+                        playerInWater = true;
+                        Debug.Log("Water Detected!");
+                        WaterDetected(raySource, rayHit, distance);
+                        playerSFX.UpdateGroundType(WaterIndex);
+                    }
+                    else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("CaveGround"))
+                    {
+                        playerInWater = false;
+                        playerSFX.UpdateGroundType(RockIndex);
+                    }
+
+                    //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
                 }
 
-                Debug.DrawRay(t.transform.position, rayDirection, Color.green);
             }
 
+            yield return null;
         }
+    }
+
+    void DetectGround()
+    {
+        StartCoroutine(DetectGroundType());
+    }
+
+    void Update()
+    {
 
         
         if (!stopOverride)
         {
-            if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing)
+            if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
             {
                 if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
                 {
@@ -165,6 +191,7 @@ public class PlayerWalk : MonoBehaviour
 
                 void CastRayToGround()
                 {
+                    DetectGround();
                     Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
                     int groundLayerIndex = LayerMask.NameToLayer("Ground");
@@ -265,7 +292,6 @@ public class PlayerWalk : MonoBehaviour
     {
         // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
 
-
         if (selected == "Drink")
         {
             destination = rayHit.point;
@@ -281,13 +307,6 @@ public class PlayerWalk : MonoBehaviour
         if (selected == "Reflect")
         {
             destinationGizmo.transform.localScale = sizeCalculated / 1;
-        }
-
-        if (selected != "Drink")
-        {
-            destination = hitObject.transform.position;
-            sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-            destinationGizmo.transform.localScale = sizeCalculated;
         }
 
         if (selected == "Look")
@@ -344,7 +363,7 @@ public class PlayerWalk : MonoBehaviour
         walkTowardSpeed = runThreshold + 1;
 
         agent.destination = destination;
-        agent.speed = speed;
+        agent.speed = walkTowardSpeed;
         agent.isStopped = false;
 
         yield return new WaitUntil(() => trigger.hitDestination);

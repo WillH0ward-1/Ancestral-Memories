@@ -1,6 +1,8 @@
 using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
+using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerSoundEffects : MonoBehaviour
 {
@@ -15,12 +17,13 @@ public class PlayerSoundEffects : MonoBehaviour
 
     [SerializeField] private PlayerWalk playerWalk;
 
-    private string terrainType = "";
     public bool waterColliding = false;
 
     private AreaManager areaManager;
 
     private Rigidbody rigidBody;
+
+    private EventInstance walkEvent;
 
     private void Awake()
     {
@@ -28,6 +31,15 @@ public class PlayerSoundEffects : MonoBehaviour
         rigidBody = transform.parent.GetComponent<Rigidbody>();
     }
 
+    public void UpdateGroundType(int index)
+    {
+        walkEvent.setParameterByName("TerrainType", index);
+    }
+
+    public void UpdateWaterDepth(float depth)
+    {
+        walkEvent.setParameterByName("WaterDepth", depth);
+    }
 
     void PlayWalkEvent()
     {
@@ -51,8 +63,9 @@ public class PlayerSoundEffects : MonoBehaviour
         */
 
 
-        EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
-        //walkEvent.setParameterByNameWithLabel("TerrainType", terrainType);
+        walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
+
+        
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();
@@ -71,17 +84,7 @@ public class PlayerSoundEffects : MonoBehaviour
     void HitGround()
     {
 
-        if (waterColliding)
-        {
-            terrainType = "Water";
-        }
-        else if (!waterColliding)
-        {
-            terrainType = "Grass";
-        }
-
         EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
-        walkEvent.setParameterByNameWithLabel("TerrainType", terrainType);
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();

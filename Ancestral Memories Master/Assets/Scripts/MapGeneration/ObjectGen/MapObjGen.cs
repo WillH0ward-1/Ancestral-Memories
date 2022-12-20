@@ -47,9 +47,9 @@ public class MapObjGen : MonoBehaviour
     [Header("Layer Masks")]
     [Space(10)]
 
-    private LayerMask caveLayerMask;
-    private LayerMask groundLayerMask;
-    private LayerMask deadZoneLayerMask;
+    [SerializeField] private LayerMask caveLayerMask;
+    [SerializeField] private LayerMask groundLayerMask;
+    [SerializeField] private LayerMask deadZoneLayerMask;
 
     [Header("========================================================================================================================")]
     [Header("Object Scaling")]
@@ -245,6 +245,7 @@ public class MapObjGen : MonoBehaviour
         SetOffset();
 
         GroundCheck();
+        DestroyDeadZones();
 
         vertices = meshData.vertices;
 
@@ -300,8 +301,7 @@ public class MapObjGen : MonoBehaviour
             AnimalAI animalAI = animalInstance.GetComponent<AnimalAI>();
 
             animalAI.player = player;
-            animalAI.playerBehaviours = player.GetComponent<CharacterBehaviours>();
-
+        
             animalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
             animalInstance.tag = animalTag;
@@ -742,14 +742,18 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    private float emitterY;
     [SerializeField] private float emitterYOffset = 10f;
     [SerializeField] private LayerMask emitterLayerMask;
+
+    public Transform emitterHierarchyRoot;
 
     public IEnumerator GenerateEmitterCheckers(List<GameObject> emitters)
     {
         foreach (GameObject emitter in emitters)
         {
-            float emitterY = emitter.transform.position.y;
+
+            emitterY = emitter.transform.position.y;
             emitterY += emitterYOffset;
 
             if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
@@ -815,6 +819,7 @@ public class MapObjGen : MonoBehaviour
 
     void GroundCheck()
     {
+
         foreach (GameObject mapObject in mapObjectList)
         {
             if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
@@ -867,6 +872,7 @@ public class MapObjGen : MonoBehaviour
         
     void AnchorToGround()
     {
+
         foreach (GameObject mapObject in mapObjectList)
         {
 
@@ -887,7 +893,6 @@ public class MapObjGen : MonoBehaviour
             }
         }
 
-        DestroyDeadZones();
     }
 
     void DestroyDeadZones()
@@ -903,15 +908,6 @@ public class MapObjGen : MonoBehaviour
                 }
             }
 
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitCave, Mathf.Infinity, caveLayerMask))
-            {
-                if (hitCave.collider.CompareTag("Cave"))
-                {
-                    //Debug.Log("Cannot generate objects in cave!");
-
-                    DestroyObject();
-                }
-            }
 
             void DestroyObject()
             {

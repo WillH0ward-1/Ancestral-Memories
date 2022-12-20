@@ -42,7 +42,7 @@ public class InteractCamera : MonoBehaviour
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (!behaviour.behaviourIsActive)
+        if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {

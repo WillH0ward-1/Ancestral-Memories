@@ -44,7 +44,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float psychedelicZoom = 0;
     [SerializeField] private float frontFaceZoom = 0;
     [SerializeField] private float toRoomZoom = 0;
-
+    [SerializeField] private float dialogueZoom = 0;
 
     [Header("========================================================================================================================")]
     [Header("Target Orthographic Size")]
@@ -58,6 +58,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float psychedelicOrtho = 0;
     [SerializeField] private float frontFaceOrtho = 0;
     [SerializeField] private float toRoomOrtho = 0;
+    [SerializeField] private float dialogueOrtho = 0;
 
     [Header("========================================================================================================================")]
     [Header("Zoom Duration")]
@@ -70,6 +71,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toCinematicZoomDuration = 1f;
     [SerializeField] private float toPsychedelicZoomDuration = 60f;
     [SerializeField] private float toNewRoomZoomDuration = 1f;
+    [SerializeField] private float toDialogueZoomDuration = 1f;
 
     [Header("========================================================================================================================")]
 
@@ -251,6 +253,15 @@ public class CamControl : MonoBehaviour
         zoomDestination = cutSceneZoom;
         orthoDestination = cutSceneOrtho;
         StartCoroutine(Zoom(toCinematicZoomDuration, zoomDestination, orthoDestination));
+    }
+
+    public void ToDialogueZoom()
+    {
+        cinematicActive = false;
+        SetCamClipPlane();
+        zoomDestination = dialogueZoom;
+        orthoDestination = dialogueOrtho;
+        StartCoroutine(Zoom(toDialogueZoomDuration, zoomDestination, orthoDestination));
     }
 
     public void ToPsychedelicZoom()

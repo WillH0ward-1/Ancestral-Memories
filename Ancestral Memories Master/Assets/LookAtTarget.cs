@@ -6,15 +6,59 @@ public class LookAtTarget : MonoBehaviour
 {
     [SerializeField] public Transform target;
     float y;
+    private Renderer meshRenderer;
+
+    private Dialogue dialogue;
+
+    private float distanceFromFire;
+
+    [SerializeField] private bool inRange;
 
     private void Start()
     {
+
+        meshRenderer = transform.GetComponent<Renderer>();
+        meshRenderer.enabled = false;
+
         y = gameObject.transform.rotation.eulerAngles.y;
         y += 180;
+        dialogue = transform.root.GetComponent<Dialogue>();
+
     }
+
     void Update()
     { 
         gameObject.transform.LookAt(target.position);
-     
+
+        if (!dialogue.dialogueIsActive)
+        {
+            meshRenderer.enabled = false;
+        } else if (dialogue.dialogueIsActive)
+        {
+            if (inRange)
+            {
+                meshRenderer.enabled = true;
+            } else
+            {
+                meshRenderer.enabled = false;
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.transform.CompareTag("Player"))
+        {
+            inRange = true;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.transform.CompareTag("Player"))
+        {
+            inRange = false;
+            meshRenderer.enabled = false;
+        }
     }
 }

@@ -4,25 +4,41 @@ using UnityEngine;
 
 public class HideGodFace : MonoBehaviour
 {
-    public bool GodSpeaking;
+    public bool outOfRange = false;
+    private Dialogue dialogue;
 
+    private Renderer meshRenderer;
     // Start is called before the first frame update
-
+    private void Start()
+    {
+        meshRenderer = gameObject.GetComponent<Renderer>();
+    }
     void OnTriggerEnter(Collider other)
     {
+        outOfRange = false;
+        dialogue = other.transform.root.GetComponent<Dialogue>();
+
         if (other.transform.CompareTag("GodFaceFire"))
         {
-            gameObject.GetComponent<Renderer>().enabled = false;
-            other.transform.GetComponent<Renderer>().enabled = true;
+            meshRenderer.enabled = false;
         } 
     }
 
-    private void OnTriggerExit(Collider other)
+    private void Update()
     {
+        if (!dialogue.dialogueIsActive)
+        {
+            meshRenderer.enabled = false;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        outOfRange = true;
+
         if (other.transform.CompareTag("GodFaceFire"))
         {
             gameObject.GetComponent<Renderer>().enabled = true;
-            other.transform.GetComponent<Renderer>().enabled = false;
         }
     }
 

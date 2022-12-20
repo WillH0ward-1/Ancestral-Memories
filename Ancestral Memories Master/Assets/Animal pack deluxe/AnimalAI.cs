@@ -47,7 +47,7 @@ public class AnimalAI : MonoBehaviour
     //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
-    public CharacterBehaviours playerBehaviours;
+    private CharacterBehaviours playerBehaviours;
 
     // Start is called before the first frame update
     void Start()
@@ -64,6 +64,10 @@ public class AnimalAI : MonoBehaviour
         state = AIState.Idle;
         actionTimer = Random.Range(0.1f, 2.0f);
         ChangeAnimationState(IDLE);
+
+        playerBehaviours = player.GetComponent<CharacterBehaviours>();
+
+
     }
 
     // Update is called once per frame

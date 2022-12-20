@@ -5,33 +5,34 @@ using UnityEngine;
 public class HideClouds : MonoBehaviour
 {
     [SerializeField] private CharacterBehaviours behaviours;
-    [SerializeField] private Camera cinematicCam;
-    private Renderer renderer;
+    [SerializeField] private CamControl camControl;
+
+    private Renderer meshRenderer;
 
     // Start is called before the first frame update
     void Start()
     {
-        renderer = gameObject.GetComponent<Renderer>();
+        meshRenderer = gameObject.GetComponent<Renderer>();
     }
 
     public void TurnOffClouds()
     {
-        renderer.enabled = false;
+        meshRenderer.enabled = false;
     }
 
     public void TurnOnClouds()
     {
-        renderer.enabled = false;
+        meshRenderer.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (behaviours.isPsychdelicMode) {
-            renderer.enabled = false;
-        } else if (!behaviours.isPsychdelicMode)
+        if (camControl.currentZoom < 0) {
+            meshRenderer.enabled = false;
+        } else if (camControl.currentZoom >= 0)
         {
-            renderer.enabled = true;
+            meshRenderer.enabled = true;
         }
     }
 }

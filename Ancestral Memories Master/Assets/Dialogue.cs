@@ -12,20 +12,54 @@ public class Dialogue : MonoBehaviour
     [SerializeField] private string[] lines;
     [SerializeField] private float textSpeed;
 
+    private Player thisPlayer;
+
     public bool dialogueIsActive;
 
     private int index;
 
-    private IEnumerator WaitForSkip(GameObject dialogueBoxInstance)
+    private GameObject dialogueBoxInstance;
+
+    float distance;
+    float distanceThreshold = 20;
+
+    private bool outOfRange;
+
+    private IEnumerator CheckPlayerInRange()
     {
         while (dialogueIsActive)
         {
+            Debug.Log(distance);
+            distance = Vector3.Distance(thisPlayer.transform.root.position, transform.root.position);
 
+            if (distance >= distanceThreshold)
+            {
+     
+                outOfRange = true;
+                StopAllCoroutines();
+                dialogueIsActive = false;
+                Destroy(dialogueBoxInstance);
+
+            } else if (distance <= distanceThreshold)
+            {
+                outOfRange = false;
+            }
+
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    private IEnumerator WaitForSkip()
+    {
+        while (dialogueIsActive)
+        {
             if (Input.GetMouseButtonDown(1))
             {
                 if (textComponent.text == lines[index])
                 {
-                    NextLine(dialogueBoxInstance);
+                    NextLine(lines);
                 }
                 else
                 {
@@ -40,54 +74,70 @@ public class Dialogue : MonoBehaviour
     }
 
     private Canvas canvas;
+    private Canvas canvasInstance;
 
     private void Start()
     {
-        canvas = transform.GetComponentInChildren<Canvas>();
+        dialogueBox = transform.Find("DialogueBox");
+        canvas = dialogueBox.transform.GetComponentInChildren<Canvas>();
         canvas.enabled = false;
     }
 
-    public void StartDialogue(GameObject other)
+    public void StartDialogue(Dialogue dialogue, Player player)
     {
-        Dialogue dialogue = other.transform.GetComponent<Dialogue>();
+        if (!dialogue.transform.root.CompareTag("CampFire"))
+        {
+            thisPlayer = player;
+            StartCoroutine(CheckPlayerInRange());
+        }
 
-        dialogueBox = dialogue.transform.Find("DialogueBox");
- 
-        Debug.Log("Dialogue Started.");
+        if (dialogueBox != null)
+        {
+            Debug.Log("Dialogue Started.");
 
-        lines = dialogue.lines;
-        textComponent = dialogueBox.transform.GetComponentInChildren<TextMeshProUGUI>();
+            lines = dialogue.lines;
 
-        canvas.enabled = true;
+            dialogueBoxInstance = Instantiate(dialogueBox.gameObject, dialogue.transform.root);
+            textComponent = dialogueBoxInstance.transform.GetComponentInChildren<TextMeshProUGUI>();
+            canvasInstance = dialogueBoxInstance.transform.GetComponentInChildren<Canvas>();
+            canvasInstance.enabled = true;
 
-        textComponent.text = string.Empty;
+            textComponent.text = string.Empty;
 
-        dialogueIsActive = true;
+            dialogueIsActive = true;
 
-        index = 0;
+            index = 0;
 
-        StartCoroutine(TypeLine());
-        StartCoroutine(WaitForSkip(dialogueBox.gameObject));
+            StartCoroutine(TypeLine());
+        }
+        else if (dialogueBox == null)
+        {
+
+            Debug.Log("Dialogue Error: No DialogueBox found in NPC.");
+            return;
+        }
     }
 
-    void NextLine(GameObject dialogueBoxInstance)
+    void NextLine(string[] lines)
     {
        if (index < lines.Length - 1)
-        {
+       {
+
             index++;
             textComponent.text = string.Empty;
             StartCoroutine(TypeLine());
-
-        } else
+        }
+        else
         {
             dialogueIsActive = false;
-            dialogueBoxInstance.SetActive(false);
-            //Destroy(dialogueBox);
+            Destroy(dialogueBoxInstance);
         }
     }
 
     IEnumerator TypeLine()
     {
+        StartCoroutine(WaitForSkip());
+
         foreach (char c in lines[index].ToCharArray())
         {
             textComponent.text += c;

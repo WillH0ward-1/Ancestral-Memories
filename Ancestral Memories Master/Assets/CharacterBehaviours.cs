@@ -638,39 +638,46 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Talk(GameObject hitObject)
     {
-        GameObject DefaultCamPivot = player.transform.Find("DefaultCamPosition").gameObject;
-
-        GameObject lookAtTarget = hitObject;
+      
         Debug.Log("HITOBJECT: " + hitObject);
 
         dialogueIsActive = true;
+        dialogue = hitObject.transform.root.GetComponent<Dialogue>();
 
-        dialogue.StartDialogue(hitObject);
+        dialogue.StartDialogue(dialogue, player);
+        cinematicCam.ToDialogueZoom();
 
-        if (!hitObject.CompareTag("Campfire"))
+        if (!hitObject.transform.root.CompareTag("Campfire") && !hitObject.transform.root.CompareTag("Animal"))
         {
+            GameObject lookAtTarget = hitObject;
+
             player.ChangeAnimationState(PLAYER_IDLE);
             behaviourIsActive = true;
+
+            GameObject DefaultCamPivot = player.transform.Find("DefaultCamPosition").gameObject;
             GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+
             StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
             player.transform.LookAt(hitObject.transform);
             hitObject.transform.LookAt(player.transform);
-            cinematicCam.ToCinematicZoom();
-        }
+            cinematicCam.ToDialogueZoom();
 
-        yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
+            yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
 
-        if (!hitObject.CompareTag("Campfire"))
-        {
             behaviourIsActive = false;
             player.ChangeAnimationState(PLAYER_IDLE);
             lookAtTarget = player.transform.gameObject;
             StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
+
+            dialogueIsActive = false;
+            cinematicCam.ToGameZoom();
+            yield break;
         }
+
+        yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
 
         dialogueIsActive = false;
         cinematicCam.ToGameZoom();
-
         yield break;
 
     }

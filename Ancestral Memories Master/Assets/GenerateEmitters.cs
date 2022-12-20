@@ -18,7 +18,7 @@ public class GenerateEmitters : MonoBehaviour
 
     private void Start()
     {
-        mesh = GetComponent<MeshFilter>().mesh;
+        mesh = transform.GetComponent<MeshFilter>().mesh;
         vertices = mesh.vertices;
         StartCoroutine(EmitterGen());
     }
@@ -33,12 +33,11 @@ public class GenerateEmitters : MonoBehaviour
 
             if (i >= vertices.Length)
             {
-                
                 mapObjGen.StartCoroutine(mapObjGen.GenerateEmitterCheckers(emitters));
                 yield break;
             }
 
-            emitterInstance = Instantiate(emitter, transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]), Quaternion.identity, transform.parent);
+            emitterInstance = Instantiate(emitter, transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]), Quaternion.identity, mapObjGen.emitterHierarchyRoot);
 
             emitters.Add(emitterInstance);
 
