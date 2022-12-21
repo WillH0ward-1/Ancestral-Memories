@@ -1,0 +1,75 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using FMODUnity;
+using FMOD.Studio;
+
+public class BirdDensity : MonoBehaviour
+{
+    [SerializeField] private FlockController birds;
+
+    public int birdDensity = 0;
+
+    private int currentBirdDensity = 0;
+    private int targetBirdDensity;
+
+    public bool birdsActive;
+
+    private MapObjGen mapObjGen;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        birds._childAmount = birdDensity;
+        birds._childAmount = currentBirdDensity;
+
+        StartCoroutine(GetBirdDensity());
+    }
+
+    private IEnumerator GetBirdDensity()
+    {
+
+        birdsActive = true;
+
+
+        while (birdsActive)
+        {
+            birds._childAmount = targetBirdDensity;
+
+            Debug.Log("Bird Density:" + birdDensity);
+
+            yield return null;
+        }
+
+        if (!birdsActive)
+        {
+            StartCoroutine(KillBirds());
+            yield break;
+        }
+    }
+
+    private IEnumerator KillBirds()
+    {
+        birdDensity = 0;
+        birdsActive = false;
+        yield break;
+    }
+
+    float newMin = 0;
+    float newMax = 250;
+
+    [SerializeField]
+    private CharacterClass player;
+
+    private void OnEnable() => player.OnFaithChanged += BirdDensityFactor;
+    private void OnDisable() => player.OnFaithChanged -= BirdDensityFactor;
+
+    private void BirdDensityFactor(float faith, float minFaith, float maxFaith)
+    {
+        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
+        int output = (int)Mathf.Lerp(newMax, newMin, t);
+
+        targetBirdDensity = output;
+    }
+
+}

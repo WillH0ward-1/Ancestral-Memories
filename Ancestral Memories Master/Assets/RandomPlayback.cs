@@ -7,31 +7,35 @@ using FMOD.Studio;
 
 public class RandomPlayback : MonoBehaviour
 {
-    [SerializeField] private EventReference SeagullPlaybackEvent;
+    [SerializeField] private EventReference randomPlaybackEvent;
 
     int length;
 
-   float minRetriggerTime = 5;
-   float maxRetriggerTime = 15;
+    float minRetriggerTime = 3;
+    float maxRetriggerTime = 7;
 
     private void Awake()
     {
-        StartCoroutine(PlaySeagullFX());
+        StartCoroutine(PlaybackRandom());
     }
 
-    private IEnumerator PlaySeagullFX()
-    {
-        EventInstance seaGullEvent = RuntimeManager.CreateInstance(SeagullPlaybackEvent);
-        RuntimeManager.AttachInstanceToGameObject(seaGullEvent, transform, GetComponent<Rigidbody>());
+    private IEnumerator PlaybackRandom() { 
 
-        seaGullEvent.start();
-        seaGullEvent.release();
-
-        yield return new WaitUntil(() => PlaybackState(seaGullEvent) != FMOD.Studio.PLAYBACK_STATE.PLAYING);
         yield return new WaitForSeconds(Random.Range(minRetriggerTime, maxRetriggerTime));
+
+        EventInstance eventInstance = RuntimeManager.CreateInstance(randomPlaybackEvent);
+        RuntimeManager.AttachInstanceToGameObject(eventInstance, transform, GetComponent<Rigidbody>());
+
+        eventInstance.start();
+        eventInstance.release();
+
+        yield return new WaitUntil(() => PlaybackState(eventInstance) != PLAYBACK_STATE.PLAYING);
+
+        StartCoroutine(PlaybackRandom());
     }
 
-    FMOD.Studio.PLAYBACK_STATE PlaybackState(EventInstance instance)
+
+    PLAYBACK_STATE PlaybackState(EventInstance instance)
     {
         instance.getPlaybackState(out PLAYBACK_STATE playBackState);
         return playBackState;

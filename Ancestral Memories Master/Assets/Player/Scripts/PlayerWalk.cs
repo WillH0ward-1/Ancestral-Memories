@@ -54,6 +54,10 @@ public class PlayerWalk : MonoBehaviour
 
     public AreaManager areaManager;
 
+    public LayerMask caveGroundLayer;
+    public LayerMask grassGroundLayer;
+    public LayerMask waterLayer;
+
     public LayerMask walkableLayers;
     public LayerMask detectWaterLayers;
 
@@ -63,6 +67,8 @@ public class PlayerWalk : MonoBehaviour
     private float waterDepth;
 
     [SerializeField] private Transform playerHead;
+    [SerializeField] private Transform leftFoot;
+    [SerializeField] private Transform rightFoot;
 
     [SerializeField] private List<Transform> raySources;
 
@@ -75,11 +81,11 @@ public class PlayerWalk : MonoBehaviour
         agent.isStopped = true;
 
         raySources.Add(playerHead);
+        raySources.Add(leftFoot);
+        raySources.Add(rightFoot);
 
 
     }
-
-    
 
     //Water detection WIP
 
@@ -89,21 +95,27 @@ public class PlayerWalk : MonoBehaviour
     private string paramID;
 
 
-    private IEnumerator GetWaterDepth(Vector3 playerHead, RaycastHit rayHit, float distance)
+    private IEnumerator GetWaterDepth(Transform raySource)
     {
-        float t = Mathf.InverseLerp(playerHead.y, rayHit.point.y, distance);
-        float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
+
+        Vector3 rayDirection = Vector3.down;
 
         while (playerInWater)
         {
-        
-            targetWaterDepth = output;
-            waterDepth = targetWaterDepth;
+            if (Physics.Raycast(playerHead.transform.position, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
+            {
+                distance = Vector3.Distance(playerHead.transform.position, rayHit.point);
 
-            playerSFX.UpdateWaterDepth(waterDepth);
+                float t = Mathf.InverseLerp(playerHead.transform.position.y, rayHit.point.y, distance);
+                float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
-            Debug.Log("WaterDepth:" + waterDepth);
-            yield return null;
+                targetWaterDepth = output;
+                waterDepth = targetWaterDepth;
+
+                playerSFX.UpdateWaterDepth(raySource, waterDepth);
+
+                Debug.Log("WaterDepth:" + waterDepth);
+            }
 
             yield return null;
         }
@@ -113,59 +125,53 @@ public class PlayerWalk : MonoBehaviour
 
     public bool playerInWater = false;
 
-    private void WaterDetected(Vector3 playerHead, RaycastHit rayHit, float distance)
+    private void WaterDetected(Transform raySource)
     {
-        StartCoroutine(GetWaterDepth(playerHead, rayHit, distance));
+        StartCoroutine(GetWaterDepth(raySource));
     }
 
     private int GroundIndex = 0;
     private int RockIndex = 1;
     private int WaterIndex = 2;
 
-    IEnumerator DetectGroundType()
+    public void DetectGroundType()
     {
-        while (Input.GetMouseButton(0))
+        foreach (Transform rayTransform in raySources)
         {
-            foreach (Transform rayTransform in raySources)
+
+            Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
+            Vector3 rayDirection = Vector3.down;
+
+            if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
             {
-
-                Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
-                Vector3 rayDirection = Vector3.down;
-
-                if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
+                if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
                 {
-                    float distance = rayHit.distance;
-
-                    if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Ground"))
-                    {
-                        playerInWater = false;
-                        playerSFX.UpdateGroundType(GroundIndex);
-                    }
-                    else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("Water"))
-                    {
-                        playerInWater = true;
-                        Debug.Log("Water Detected!");
-                        WaterDetected(raySource, rayHit, distance);
-                        playerSFX.UpdateGroundType(WaterIndex);
-                    }
-                    else if (rayHit.transform.gameObject.layer == LayerMask.NameToLayer("CaveGround"))
-                    {
-                        playerInWater = false;
-                        playerSFX.UpdateGroundType(RockIndex);
-                    }
-
-                    //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
+                    Debug.Log("Water Detected!");
+                    playerInWater = true;
+                    WaterDetected(rayTransform);
+                }
+                else if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
+                {
+                    playerInWater = false;
+                    playerSFX.UpdateGroundType(rayTransform, GroundIndex);
                 }
 
+                else if (rayHit.transform.gameObject.layer == waterLayer && !rayTransform.CompareTag("PlayerHead"))
+                {
+                    Debug.Log("Water Detected!");
+                    playerInWater = true;
+                    playerSFX.UpdateGroundType(rayTransform, WaterIndex);
+                }
+                else if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
+                {
+                    playerInWater = false;
+                    playerSFX.UpdateGroundType(rayTransform, RockIndex);
+                }
+
+                //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
             }
-
-            yield return null;
         }
-    }
-
-    void DetectGround()
-    {
-        StartCoroutine(DetectGroundType());
+        
     }
 
     void Update()
@@ -174,7 +180,7 @@ public class PlayerWalk : MonoBehaviour
         
         if (!stopOverride)
         {
-            if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
+            if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing)
             {
                 if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
                 {
@@ -191,7 +197,7 @@ public class PlayerWalk : MonoBehaviour
 
                 void CastRayToGround()
                 {
-                    DetectGround();
+                   
                     Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
                     int groundLayerIndex = LayerMask.NameToLayer("Ground");
@@ -296,6 +302,13 @@ public class PlayerWalk : MonoBehaviour
         {
             destination = rayHit.point;
             sizeCalculated = player.transform.localScale;
+            destinationGizmo.transform.localScale = sizeCalculated;
+        }
+
+        if (selected != "Drink")
+        {
+            destination = hitObject.transform.position;
+            sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = sizeCalculated;
         }
 

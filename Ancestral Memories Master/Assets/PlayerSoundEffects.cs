@@ -17,28 +17,62 @@ public class PlayerSoundEffects : MonoBehaviour
 
     [SerializeField] private PlayerWalk playerWalk;
 
-    public bool waterColliding = false;
-
     private AreaManager areaManager;
 
     private Rigidbody rigidBody;
 
     private EventInstance walkEvent;
+    private EventInstance rightFootStepEvent;
+    private EventInstance leftFootStepEvent;
 
     private void Awake()
     {
-        waterColliding = false;
         rigidBody = transform.parent.GetComponent<Rigidbody>();
     }
 
-    public void UpdateGroundType(int index)
+    public void UpdateGroundType(Transform raySource, int index)
     {
-        walkEvent.setParameterByName("TerrainType", index);
+        if (raySource.transform.CompareTag("LeftFoot"))
+        {
+            leftFootStepEvent.setParameterByName("TerrainType", index);
+
+        } else if (raySource.transform.CompareTag("RightFoot"))
+        {
+            rightFootStepEvent.setParameterByName("TerrainType", index);
+
+        }
     }
 
-    public void UpdateWaterDepth(float depth)
+    public void UpdateWaterDepth(Transform raySource, float depth)
     {
-        walkEvent.setParameterByName("WaterDepth", depth);
+        leftFootStepEvent.setParameterByName("WaterDepth", depth);
+        rightFootStepEvent.setParameterByName("WaterDepth", depth);
+
+    }
+
+    void CheckGroundType()
+    {
+        playerWalk.DetectGroundType();
+    }
+
+    void PlayLeftFootStep()
+    {
+        
+        leftFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
+        RuntimeManager.AttachInstanceToGameObject(leftFootStepEvent, transform, rigidBody);
+
+        leftFootStepEvent.start();
+        leftFootStepEvent.release();
+    }
+
+    void PlayRightFootStep()
+    {
+
+        rightFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
+        RuntimeManager.AttachInstanceToGameObject(rightFootStepEvent, transform, rigidBody);
+
+        rightFootStepEvent.start();
+        rightFootStepEvent.release();
     }
 
     void PlayWalkEvent()
