@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using Deform;
 
 public class MapObjGen : MonoBehaviour
 {
@@ -290,6 +291,7 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
     {
         foreach (Vector2 sample in animalSampler.Samples())
@@ -310,6 +312,12 @@ public class MapObjGen : MonoBehaviour
             animalInstance.layer = animalsLayer;
 
             animalInstance.transform.SetParent(hierarchyRoot.transform);
+
+            LerpDeformation deform = animalInstance.GetComponent<LerpDeformation>();
+            CorruptionControl corruption = animalInstance.GetComponent<CorruptionControl>();
+
+            deform.player = player;
+            corruption.player = player;
 
             mapObjectList.Add(animalInstance);
 

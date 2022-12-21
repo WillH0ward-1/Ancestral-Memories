@@ -134,42 +134,67 @@ public class PlayerWalk : MonoBehaviour
     private int RockIndex = 1;
     private int WaterIndex = 2;
 
-    public void DetectGroundType()
+    private bool checkActive = false;
+
+    private string currentGround;
+    private string lastGround;
+
+    public IEnumerator DetectGroundType()
     {
-        foreach (Transform rayTransform in raySources)
+        Debug.Log("Detect Ground Type");
+
+        checkActive = true;
+
+        while (checkActive)
         {
-
-            Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
-            Vector3 rayDirection = Vector3.down;
-
-            if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
+            foreach (Transform rayTransform in raySources)
             {
-                if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
+
+                Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
+                Vector3 rayDirection = Vector3.down;
+
+                Gizmos.DrawRay(raySource, rayDirection);
+
+                if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
                 {
-                    Debug.Log("Water Detected!");
-                    playerInWater = true;
-                    WaterDetected(rayTransform);
-                }
-                else if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
-                {
-                    playerInWater = false;
-                    playerSFX.UpdateGroundType(rayTransform, GroundIndex);
+                    if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
+                    {
+                        playerInWater = true;
+                        WaterDetected(rayTransform);
+                        playerSFX.UpdateGroundType(rayTransform, WaterIndex);
+
+                        Debug.Log("RayTransform:" + rayTransform);
+                        Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+                        //currentGround = "Water";
+                    }
+                    else if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
+                    {
+                        playerInWater = false;
+                        playerSFX.UpdateGroundType(rayTransform, GroundIndex);
+                        Debug.Log("RayTransform:" + rayTransform);
+                        Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+                        //currentGround = "Grass";
+                    }
+
+                    else if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
+                    {
+                        playerInWater = false;
+                        playerSFX.UpdateGroundType(rayTransform, RockIndex);
+                        Debug.Log("RayTransform:" + rayTransform);
+                        Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+
+                        //currentGround = "Rock";
+                    }
+               
+                    //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
                 }
 
-                else if (rayHit.transform.gameObject.layer == waterLayer && !rayTransform.CompareTag("PlayerHead"))
-                {
-                    Debug.Log("Water Detected!");
-                    playerInWater = true;
-                    playerSFX.UpdateGroundType(rayTransform, WaterIndex);
-                }
-                else if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
-                {
-                    playerInWater = false;
-                    playerSFX.UpdateGroundType(rayTransform, RockIndex);
-                }
-
-                //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
+                checkActive = false;
+                yield break;
             }
+
+            yield return null;
+            
         }
         
     }
@@ -199,12 +224,6 @@ public class PlayerWalk : MonoBehaviour
                 {
                    
                     Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-
-                    int groundLayerIndex = LayerMask.NameToLayer("Ground");
-                    int groundLayerMask = (1 << groundLayerIndex);
-
-                    int caveGroundLayerIndex = LayerMask.NameToLayer("InsideCave");
-                    int caveGroundLayerMask = (1 << caveGroundLayerIndex);
 
                     if (Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, walkableLayers))
                     {

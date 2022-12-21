@@ -13,7 +13,7 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference WhooshEventPath;
     [SerializeField] private EventReference PlayerScreamEventPath;
     [SerializeField] private EventReference DrownEventPath;
-    [SerializeField]private Camera cam;
+    [SerializeField] private Camera cam;
 
     [SerializeField] private PlayerWalk playerWalk;
 
@@ -52,7 +52,7 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void CheckGroundType()
     {
-        playerWalk.DetectGroundType();
+        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
     }
 
     void PlayLeftFootStep()
@@ -128,6 +128,10 @@ public class PlayerSoundEffects : MonoBehaviour
     float duration = 0;
     [SerializeField] float minShakeDuration = 1;
     [SerializeField] float maxShakeDuration = 2;
+
+    [SerializeField] float minShakeMultiplier = 1;
+    [SerializeField] float maxShakeMultiplier = 2;
+
     float shakeMultiplier = 1;
 
     void HitTree()
@@ -139,7 +143,9 @@ public class PlayerSoundEffects : MonoBehaviour
         hitTreeEvent.release();
 
         Shake camShake = cam.GetComponent<Shake>();
+        shakeMultiplier = Random.Range(shakeMultiplier, shakeMultiplier);
         duration = Random.Range(minShakeDuration, maxShakeDuration);
+
         StartCoroutine(camShake.ScreenShake(duration, shakeMultiplier));
         //shakeMultiplier = Random.Range(1, 1.1);
     }

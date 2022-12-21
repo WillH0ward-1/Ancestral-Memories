@@ -7,21 +7,20 @@ using Unity.Mathematics;
 public class LerpDeformation : MonoBehaviour
 {
 
-    [SerializeField]
-    private CharacterClass player;
+    public CharacterClass player;
 
     public float maxVal = 0f;
     public float minVal = -0.2f;
 
     private float currentDeform;
 
-    [SerializeField] Deform.InflateDeformer inflate;
+    [SerializeField] private Deform.InflateDeformer inflate;
 
     private void OnEnable() => player.OnHungerChanged += HungerChanged;
     private void OnDisable() => player.OnHungerChanged -= HungerChanged;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
 
