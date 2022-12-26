@@ -69,9 +69,9 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toFrontFaceZoomDuration = 1f;
     [SerializeField] private float toGameZoomDuration = 1f;
     [SerializeField] private float toCinematicZoomDuration = 1f;
-    [SerializeField] private float toPsychedelicZoomDuration = 60f;
     [SerializeField] private float toNewRoomZoomDuration = 1f;
     [SerializeField] private float toDialogueZoomDuration = 1f;
+    public float toPsychedelicZoomDuration = 60f;
 
     [Header("========================================================================================================================")]
 
@@ -224,6 +224,7 @@ public class CamControl : MonoBehaviour
         SetCamClipPlane();
         zoomDestination = prayerZoom;
         orthoDestination = prayerOrtho;
+        StopCoroutine(Zoom(0, 0, 0));
         StartCoroutine(Zoom(toPrayerZoomDuration, zoomDestination, orthoDestination));
     }
 
@@ -243,6 +244,7 @@ public class CamControl : MonoBehaviour
         SetCamClipPlane();
         zoomDestination = gameModeZoom;
         orthoDestination = gameModeOrtho;
+        StopCoroutine(Zoom(0, 0, 0));
         StartCoroutine(Zoom(toGameZoomDuration, zoomDestination, orthoDestination));
     }
 
@@ -357,11 +359,6 @@ public class CamControl : MonoBehaviour
 
         while (time <= 1f)
         {
-            if (behaviours.isPsychdelicMode && Input.GetMouseButton(0))
-            {
-                zoomMultiplier = 0.1f;
-            }
-
             currentOrthoZoom = cam.orthographicSize;
             cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time));
 

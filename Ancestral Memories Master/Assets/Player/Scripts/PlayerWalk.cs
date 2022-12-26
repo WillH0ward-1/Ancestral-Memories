@@ -35,6 +35,8 @@ public class PlayerWalk : MonoBehaviour
     const string PLAYER_STARVINGWALK = "Player_starvingWalk";
     const string PLAYER_STARVINGCRITICAL = "Player_starvingCritical";
 
+    const string PLAYER_CURIOUSIDLE = "Player_curiousIdle";
+
     const string PLAYER_DRUNKIDLE = "Player_drunkIdle";
     const string PLAYER_DRUNKWALK = "Player_drunkWalk";
     const string PLAYER_DRUNKRUN = "Player_drunkRun";
@@ -333,7 +335,12 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "KindleFire")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 5;
+            destinationGizmo.transform.localScale = sizeCalculated / 3;
+        }
+
+        if (selected == "Eat")
+        {
+            destinationGizmo.transform.localScale = sizeCalculated * 2;
         }
 
         if (selected == "Reflect")
@@ -393,7 +400,7 @@ public class PlayerWalk : MonoBehaviour
         }
 
         walkTowardSpeed = runThreshold + 1;
-
+        player.AdjustAnimationSpeed(defaultAnimSpeed);
         agent.destination = destination;
         agent.speed = walkTowardSpeed;
         agent.isStopped = false;
@@ -436,7 +443,7 @@ public class PlayerWalk : MonoBehaviour
         }
     }
 
-    [SerializeField] private float defaultAnimSpeed = 10f;
+    [SerializeField] private float defaultAnimSpeed = 1f;
 
     public void StopAgent()
     {

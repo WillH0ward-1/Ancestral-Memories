@@ -13,6 +13,7 @@ public class HideGodFace : MonoBehaviour
     {
         meshRenderer = gameObject.GetComponent<Renderer>();
     }
+
     void OnTriggerEnter(Collider other)
     {
         outOfRange = false;
@@ -26,9 +27,15 @@ public class HideGodFace : MonoBehaviour
 
     private void Update()
     {
-        if (!dialogue.dialogueIsActive)
+        if (dialogue != null)
         {
-            meshRenderer.enabled = false;
+            if (!dialogue.dialogueIsActive)
+            {
+                meshRenderer.enabled = false;
+            }
+        } else
+        {
+            return;
         }
     }
 

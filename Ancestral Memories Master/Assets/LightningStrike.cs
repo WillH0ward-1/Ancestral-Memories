@@ -42,10 +42,11 @@ public class LightningStrike : MonoBehaviour
     {
         if (areaManager.currentRoom != insideCave && !behaviours.behaviourIsActive)
         {
-            StartCoroutine(behaviours.Electrocution());
+            behaviours.StartCoroutine(behaviours.Electrocution());
             StartCoroutine(Strike(target));
         } else
         {
+            Debug.Log("Cannot strike!");
             return;
         }
 

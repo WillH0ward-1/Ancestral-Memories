@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GenerateEmitters : MonoBehaviour
 {
+    /*
     [SerializeField] private GameObject emitter;
     private GameObject emitterInstance;
 
@@ -20,10 +21,9 @@ public class GenerateEmitters : MonoBehaviour
     {
         mesh = transform.GetComponent<MeshFilter>().mesh;
         vertices = mesh.vertices;
-        StartCoroutine(EmitterGen());
     }
 
-    private IEnumerator EmitterGen()
+    public IEnumerator EmitterGen()
     {
         int sampleDensity = vertices.Length / vertSampleFactor;
 
@@ -46,6 +46,7 @@ public class GenerateEmitters : MonoBehaviour
 
 
     }
+    */
 }
        
 

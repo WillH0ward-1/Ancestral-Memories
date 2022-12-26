@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class Shake : MonoBehaviour
 {
     private FMOD.Studio.EventInstance instance;
@@ -12,10 +11,12 @@ public class Shake : MonoBehaviour
     public float shakeDuration = 1f;
     public float shakeStrengthMultiplier;
 
+    public bool screenShakeEnabled = false;
+
     private void Start()
     {
         instance = FMODUnity.RuntimeManager.CreateInstance("event:/Earthquake");
-        StartCoroutine(SmoothScreenShake(shakeDuration, shakeStrengthMultiplier));
+        //StartCoroutine(Float(transform.gameObject));
     }
 
 
@@ -38,23 +39,43 @@ public class Shake : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator SmoothScreenShake(float duration, float strengthMultiplier)
+    [SerializeField]
+    private float amplitude = 0.2f;
+
+    [SerializeField]
+    private float period = 1f;
+
+    private bool shaking = false;
+
+    float bobObjectX;
+    float bobObjectY;
+    float bobObjectZ;
+
+    float targetY;
+
+    public IEnumerator Float(GameObject bobObject)
     {
-        Vector3 startPosition = transform.position;
+        shaking = true;
 
-        float time = 0f;
+        bobObjectX = bobObject.transform.position.x;
+        bobObjectY = bobObject.transform.position.y;
+        bobObjectZ = bobObject.transform.position.z;
 
-        while (time < 1f)
+        targetY = bobObjectY - bobObjectY / 5;
+
+        float time = 0;
+        while (shaking)
         {
-            time += Time.deltaTime / duration;
-            float strength = curve.Evaluate(time / duration);
-            strength *= strengthMultiplier;
-            transform.position += Vector3.Lerp(transform.position, startPosition + Random.insideUnitSphere * strength, time);
+            time += Time.deltaTime;
+
+            float theta = time / period;
+            float distance = amplitude * Mathf.Sin(theta);
+            bobObject.transform.position = bobObject.transform.position + (Vector3.up * distance);
+
             yield return null;
         }
 
-        transform.position = startPosition;
-
         yield break;
+    
     }
 }

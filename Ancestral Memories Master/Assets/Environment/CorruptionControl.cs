@@ -72,6 +72,8 @@ public class CorruptionControl : MonoBehaviour
             if (behaviours.isPsychdelicMode)
             {
                 r.sharedMaterial.SetFloat("_WarpStrength", output);
+                r.sharedMaterial.SetFloat("_MinWarpStrength", newMin);
+                r.sharedMaterial.SetFloat("_MaxWarpStrength", newMax);
             }
 
         }

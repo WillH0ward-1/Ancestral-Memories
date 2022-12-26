@@ -17,10 +17,25 @@
 	<object class="MixerBusEffectChain" id="{48db36d5-866b-46b9-a51e-4e6ce9fdcceb}">
 		<relationship name="effects">
 			<destination>{498cd0c4-b6e6-4fb8-b1f4-56441e7f56ee}</destination>
-			<destination>{6431bb87-37a2-4a5a-b8bc-50c01951f8d3}</destination>
+			<destination>{6d437bbb-2b90-44aa-9215-19efbad3351b}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{1a60a013-9e62-4d3e-808d-60db07e785e8}" />
 	<object class="MixerBusFader" id="{498cd0c4-b6e6-4fb8-b1f4-56441e7f56ee}" />
-	<object class="FlangerEffect" id="{6431bb87-37a2-4a5a-b8bc-50c01951f8d3}" />
+	<object class="PitchShifterEffect" id="{6d437bbb-2b90-44aa-9215-19efbad3351b}">
+		<relationship name="modulators">
+			<destination>{c38c98fd-23b3-4411-86b3-a30c1d5a4b09}</destination>
+		</relationship>
+	</object>
+	<object class="LFOModulator" id="{c38c98fd-23b3-4411-86b3-a30c1d5a4b09}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="depth">
+			<value>66.5</value>
+		</property>
+		<property name="direction">
+			<value>100</value>
+		</property>
+	</object>
 </objects>

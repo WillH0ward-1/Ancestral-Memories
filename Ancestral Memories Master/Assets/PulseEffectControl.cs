@@ -15,6 +15,11 @@ public class PulseEffectControl : MonoBehaviour
     private ScaleControl scaleControl;
     private GameObject pulseObject;
 
+    [SerializeField] private float minShake;
+    [SerializeField] private float maxShake;
+
+    [SerializeField] private Shake camShake;
+
     void Start()
     {
         scaleControl = scaleObject.GetComponent<ScaleControl>(); 
@@ -22,10 +27,12 @@ public class PulseEffectControl : MonoBehaviour
 
     public void Pulse()
     {
+        float shakeDuration = Random.Range(minShake, maxShake);
+
         pulseObject = Instantiate(scaleObject, player.transform);
         scaleControl = pulseObject.GetComponent<ScaleControl>();
-
-        StartCoroutine(scaleControl.LerpScale(pulseObject, scaleStart, scaleDestination, duration, delay));
+        camShake.StartCoroutine(camShake.ScreenShake(shakeDuration, duration));
+        scaleControl.StartCoroutine(scaleControl.LerpScale(pulseObject, scaleStart, scaleDestination, duration, delay));
         StartCoroutine(WaitUntilGrown(pulseObject));
     }
 

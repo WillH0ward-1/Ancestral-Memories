@@ -88,16 +88,24 @@ public class CharacterBehaviours : MonoBehaviour
 
     private PulseEffectControl pulseControl;
 
+    private float defaultAnimSpeed = 1;
+    private float animSpeed = 1;
+
+    private PlayerSoundEffects playerAudioSFX;
+
     void Start()
     {
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
         waterCheck = player.GetComponent<CheckIfUnderwater>();
-
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
+        //animSpeed = player.activeAnimator.speed;
     }
 
     public void ChooseBehaviour(string selected, GameObject hitObject)
     {
+        animSpeed = defaultAnimSpeed;
+        player.AdjustAnimationSpeed(animSpeed);
+
         switch (selected)
         {
             case "Exit":
@@ -110,6 +118,8 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(Look());
                 break;
             case "Reflect":
+                animSpeed = defaultAnimSpeed * 2;
+                player.AdjustAnimationSpeed(animSpeed);
                 StartCoroutine(Reflect());
                 break;
             case "Dance":
@@ -121,7 +131,7 @@ public class CharacterBehaviours : MonoBehaviour
             case "Heal":
                 break;
             case "Eat":
-                StartCoroutine(PickMushroom());
+                StartCoroutine(PickMushroom(hitObject));
                 break;
             case "Drink":
                 StartCoroutine(Drink());
@@ -133,6 +143,8 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(PickupApple());
                 break;
             case "KindleFire":
+                animSpeed = defaultAnimSpeed * 2;
+                player.AdjustAnimationSpeed(animSpeed);
                 StartCoroutine(KindleFire(hitObject));
                 break;
             case "Talk":
@@ -197,8 +209,9 @@ public class CharacterBehaviours : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator Electrocution() { 
-    
+    public IEnumerator Electrocution() {
+
+        animSpeed = defaultAnimSpeed;
         behaviourIsActive = true;
 
         playerWalk.StopAgentOverride();
@@ -362,8 +375,6 @@ public class CharacterBehaviours : MonoBehaviour
         }
 
         yield break;
-    
-        
     }
 
     private IEnumerator FaithModify()
@@ -406,9 +417,13 @@ public class CharacterBehaviours : MonoBehaviour
     public GameObject backFacingPivot;
     public GameObject lookAtTarget;
 
-    public IEnumerator PickMushroom()
+    [SerializeField] private PickUpObject pickUpManager;
+
+    public IEnumerator PickMushroom(GameObject hitObject)
     {
         behaviourIsActive = true;
+
+        pickUpManager.pickedUpObject = hitObject;
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
@@ -418,8 +433,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
-
-        behaviourIsActive = false;
+        yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_STANDINGEAT);
 
         if (DetectIfPsychedelic())
         {
@@ -427,12 +441,13 @@ public class CharacterBehaviours : MonoBehaviour
             cinematicCam.ToPsychedelicZoom();
         } else if (!DetectIfPsychedelic())
         {
-
             isPsychdelicMode = false;
             cinematicCam.ToGameZoom();
             
         }
 
+        behaviourIsActive = false;
+        //pickUpManager.DestroyPickup();
         yield break;
 
     }

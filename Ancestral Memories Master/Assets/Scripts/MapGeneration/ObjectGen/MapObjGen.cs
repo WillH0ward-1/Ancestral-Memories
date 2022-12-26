@@ -43,6 +43,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] fireWood;
     [SerializeField] private GameObject[] seaShells;
     [SerializeField] private GameObject[] pedestals;
+    [SerializeField] private GameObject[] cave;
 
     [Header("========================================================================================================================")]
     [Header("Layer Masks")]
@@ -89,6 +90,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minPedestalScale;
     [SerializeField] Vector3 maxPedestalScale;
 
+    [SerializeField] Vector3 minCaveScale;
+    [SerializeField] Vector3 maxCaveScale;
+
     [Header("========================================================================================================================")]
 
     [Header("Object Rotation")]
@@ -114,6 +118,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumFireWoodRadius = 70;
     [SerializeField] float minimumSeaShellRadius = 70;
     [SerializeField] float minimumPedestalRadius = 70;
+    [SerializeField] float minimumCaveRadius = 70;
 
     [Header("========================================================================================================================")]
 
@@ -170,29 +175,57 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private Interactable interactable;
     [SerializeField] private Interactable interact;
 
-
-    [SerializeField] private GameObject emitter;
-    private GameObject emitterInstance;
-
-    private Mesh mesh;
-
-    int sampleDensity;
-
     [SerializeField] int vertSampleFactor;
 
     [SerializeField] private bool invertSpreadOrigin = false;
 
-    private FireController fireManager;
-
-    Vector3 scale;
     private Vector3 mapCenter;
 
     //public Interactable treeInteraction;
 
+    [Header("========================================================================================================================")]
+    [Header("Sound Emitters")]
+    [Space(10)]
 
-    public GameObject GetRandomMapObject(GameObject[] mapElements)
+    [SerializeField] private Transform EmittersContainer;
+
+    [SerializeField] private GameObject waterSoundEmitter;
+    [SerializeField] private Transform waterEmitterTransform;
+    [SerializeField] private Transform waterEmitterRoot;
+
+    [SerializeField] private List<GameObject> waterEmitters;
+
+    private void Start()
     {
-        return mapElements[Random.Range(0, mapElements.Length)];
+
+       
+
+    }
+
+    private GameObject emitterInstance;
+
+
+    public IEnumerator EmitterGen(GameObject emitter, List<GameObject> emitters, Transform emitterParent)
+    {
+        Vector3[] verts = emitterParent.GetComponent<MeshFilter>().mesh.vertices;
+        int sampleDensity = verts.Length / vertSampleFactor;
+
+        int i = 0;
+
+        for (i = 0; i <= verts.Length; i++)
+        {
+            // vertices[i] += Vector3.up * Time.deltaTime;
+
+            emitterInstance = Instantiate(emitter, emitterParent.transform.localToWorldMatrix.MultiplyPoint3x4(verts[i]), Quaternion.identity, waterEmitterRoot);
+
+            emitters.Add(emitterInstance);
+
+            i += sampleDensity;
+        }
+
+        StartCoroutine(GenerateEmitterCheckers(emitters));
+        yield break;
+        
     }
 
     private void Awake()
@@ -200,8 +233,7 @@ public class MapObjGen : MonoBehaviour
         mapCenter = Vector3.zero;
     }
 
-
-    private Vector3[] vertices;
+    private Vector3[] waterEmitterVerts;
 
     public void GenerateMapObjects()
     {
@@ -230,6 +262,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler fireWoodSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFireWoodRadius);
         PoissonDiscSampler seaShellSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumSeaShellRadius);
         PoissonDiscSampler pedestalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumPedestalRadius);
+        PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
 
         TreePoissonDisc(treeSampler);
         AppleTreePoissonDisc(appleTreeSampler);
@@ -242,20 +275,21 @@ public class MapObjGen : MonoBehaviour
         FireWoodPoissonDisc(fireWoodSampler);
         SeaShellPoissonDisc(seaShellSampler);
         PedestalPoissonDisc(pedestalSampler);
+        CavePoissonDisc(caveSampler);
 
         SetOffset();
 
         GroundCheck();
-        DestroyDeadZones();
+        StartCoroutine(EmitterGen(waterSoundEmitter, waterEmitters, waterEmitterTransform));
 
-        vertices = meshData.vertices;
+        DestroyDeadZones();
 
     }
 
     private List<Vector3> XspawnPositions;
     private List<Vector3> ZspawnPositions;
 
-    [SerializeField] GameObject EmitterHierarchyParent;
+    /*[SerializeField] GameObject EmitterHierarchyParent;
     [SerializeField] GameObject OceanSoundEmitter;
 
     void GenerateOceanEmitters(float sampleWidth, float sampleHeight)
@@ -289,6 +323,12 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(perimeterPoint);
             perimeterPoint.transform.SetParent(hierarchyRoot.transform);
         }
+    }
+    */
+
+    public GameObject GetRandomMapObject(GameObject[] mapElements)
+    {
+        return mapElements[Random.Range(0, mapElements.Length)];
     }
 
 
@@ -433,6 +473,9 @@ public class MapObjGen : MonoBehaviour
             GameObject treeInstance = Instantiate(randomTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            CorruptionControl corruptionControl = treeInstance.GetComponent<CorruptionControl>();
+            corruptionControl.player = player;
 
             /*
             new Vector3(
@@ -644,6 +687,31 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    void CavePoissonDisc(PoissonDiscSampler caveSampler)
+    {
+        foreach (Vector2 sample in caveSampler.Samples())
+        {
+            GameObject randomCave = GetRandomMapObject(cave);
+
+            GameObject caveInstance = Instantiate(randomCave, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            caveInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            caveInstance.transform.localScale = new Vector3(
+            Random.Range(minGrassScale.x, maxGrassScale.x),
+            Random.Range(minGrassScale.y, maxGrassScale.y),
+            Random.Range(minGrassScale.z, maxGrassScale.z));
+
+            caveInstance.tag = grassTag;
+
+            caveInstance.transform.SetParent(hierarchyRoot.transform);
+
+            caveInstance.AddComponent<NavMeshModifier>();
+
+            mapObjectList.Add(caveInstance);
+        }
+    }
+
     void FoliagePoissonDisc(PoissonDiscSampler foliageSamples)
     {
         foreach (Vector2 sample in foliageSamples.Samples())
@@ -750,54 +818,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    private float emitterY;
-    [SerializeField] private float emitterYOffset = 10f;
-    [SerializeField] private LayerMask emitterLayerMask;
-
-    public Transform emitterHierarchyRoot;
-
-    public IEnumerator GenerateEmitterCheckers(List<GameObject> emitters)
-    {
-        foreach (GameObject emitter in emitters)
-        {
-
-            emitterY = emitter.transform.position.y;
-            emitterY += emitterYOffset;
-
-            if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
-            {
-                Debug.DrawRay(emitter.transform.position, Vector3.down, Color.red);
-
-                if (downHit.collider.CompareTag("Ground") || downHit.collider.CompareTag("CaveGround"))
-                {
-                    DestroyObject(emitter);
-                } else if (downHit.collider.CompareTag("Water"))
-                {
-                    continue;
-                } else
-                {
-                    DestroyObject(emitter);
-                }
-            }
-
-            static void DestroyObject(GameObject emitter)
-            {
-                if (Application.isEditor)
-                {
-                    Debug.Log("Object destroyed in Editor.");
-                    DestroyImmediate(emitter);
-                }
-                else
-                {
-                    Debug.Log("Object destroyed in game.");
-                    Destroy(emitter);
-                }
-            }
-            yield return null;
-        }
-
-    }
-
     void FireWoodPoissonDisc(PoissonDiscSampler fireWoodSampler)
     {
         foreach (Vector2 sample in fireWoodSampler.Samples())
@@ -824,7 +844,7 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(fireWoodInstance);
         }
     }
-
+    
     void GroundCheck()
     {
 
@@ -933,6 +953,51 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    private float emitterY;
+    [SerializeField] private float emitterYOffset = 10f;
+    [SerializeField] private LayerMask emitterLayerMask;
+
+    public IEnumerator GenerateEmitterCheckers(List<GameObject> emitters)
+    {
+        foreach (GameObject emitter in emitters)
+        {
+            emitterY = emitter.transform.position.y;
+
+            emitter.transform.position = new Vector3(emitter.transform.position.x, emitterY += emitterYOffset, emitter.transform.position.z);
+
+            if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
+            {
+                Debug.DrawRay(emitter.transform.position, Vector3.down, Color.red);
+
+                if (downHit.collider.CompareTag("Water"))
+                {
+                    continue;
+                }
+                else if (!downHit.collider.CompareTag("Water"))
+                {
+                    DestroyObject(emitter);
+                }
+            }
+
+            void DestroyObject(GameObject emitter)
+            {
+                if (Application.isEditor)
+                {
+                    Debug.Log("Object destroyed in Editor.");
+                    DestroyImmediate(emitter);
+                }
+                else
+                {
+                    Debug.Log("Object destroyed in game.");
+                    Destroy(emitter);
+                }
+            }
+        }
+
+        yield break;
+
+    }
+
     void SetOffset()
     {
         mapObject.transform.position = new Vector3(xOffset, initY, zOffset);
@@ -965,12 +1030,12 @@ public class MapObjGen : MonoBehaviour
                 }
             }
 
-            while (EmitterHierarchyParent.transform.childCount != 0)
+            while (EmittersContainer.childCount != 0)
             {
-                foreach (Transform child in EmitterHierarchyParent.transform)
+                foreach (Transform child in EmittersContainer)
                 {
                     DestroyImmediate(child.gameObject);
-                    if (EmitterHierarchyParent.transform.childCount != 0)
+                    if (EmittersContainer.childCount != 0)
                     {
                         continue;
                     }

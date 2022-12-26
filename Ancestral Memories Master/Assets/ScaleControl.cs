@@ -35,6 +35,10 @@ public class ScaleControl : MonoBehaviour
 
             while (time <= 1f) //&& rain.isRaining)
             {
+                if (scaleObject == null)
+                {
+                    yield break;
+                }
 
                 time += Time.deltaTime / duration;
 

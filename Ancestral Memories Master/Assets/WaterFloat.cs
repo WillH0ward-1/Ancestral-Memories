@@ -43,7 +43,6 @@ public class WaterFloat : MonoBehaviour
 
             Vector3 target = new Vector3(bobObjectX, targetY, bobObjectZ);
 
-
             bobObject.transform.position = Vector3.Lerp(bobObject.transform.position, target, time);
 
             yield return null;
@@ -59,7 +58,6 @@ public class WaterFloat : MonoBehaviour
 
                 float theta = time / period;
                 float distance = amplitude * Mathf.Sin(theta);
-
                 bobObject.transform.position = bobObject.transform.position + Vector3.up * distance;
                 yield return null;
             }

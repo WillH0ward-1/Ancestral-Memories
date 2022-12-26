@@ -127,11 +127,14 @@ public class RainControl : MonoBehaviour
 
     float minRainStrength = 1;
     float maxRainStrength = 100;
+
     float rainStrengthTarget;
     float emissionRate;
 
     public IEnumerator StartRaining()
     {
+        emissionRate = 0;
+
         emission.enabled = true;
         isRaining = true;
         drought = false;
@@ -146,11 +149,10 @@ public class RainControl : MonoBehaviour
         
         while (time < 1f)
         {
+            time += Time.deltaTime / rainDuration;
             rainStrengthTarget = weather.windStrength * 100;
-
             emissionRate = Mathf.Lerp(emissionRate, rainStrengthTarget, time);
 
-            time += Time.deltaTime / rainDuration;
             yield return null;
             
         }
@@ -173,6 +175,7 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator StopRaining(bool retrigger)
     {
+        emissionRate = 0;
         emission.enabled = false;
         isRaining = false;
         //StartCoroutine(lerpTerrain.ToOasis(15f));

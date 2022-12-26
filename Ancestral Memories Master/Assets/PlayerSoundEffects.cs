@@ -13,6 +13,9 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference WhooshEventPath;
     [SerializeField] private EventReference PlayerScreamEventPath;
     [SerializeField] private EventReference DrownEventPath;
+    [SerializeField] private EventReference UprootPlantEventPath;
+    [SerializeField] private EventReference EatEventPath;
+
     [SerializeField] private Camera cam;
 
     [SerializeField] private PlayerWalk playerWalk;
@@ -57,7 +60,6 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayLeftFootStep()
     {
-        
         leftFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(leftFootStepEvent, transform, rigidBody);
 
@@ -67,7 +69,6 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayRightFootStep()
     {
-
         rightFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(rightFootStepEvent, transform, rigidBody);
 
@@ -77,29 +78,7 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayWalkEvent()
     {
-        /*
-        if (playerWalk.playerInWater)
-        {
-            terrainType = "Water";
-        }
-
-        if (!playerWalk.playerInWater)
-        {
-            if (areaManager.currentRoom != "Outside")
-            {
-                terrainType = "Rock";
-            }
-            else
-            {
-                terrainType = "Grass";
-            }
-        }
-        */
-
-
         walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
-
-        
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();
@@ -113,6 +92,25 @@ public class PlayerSoundEffects : MonoBehaviour
 
         drownEvent.start();
         drownEvent.release();
+    }
+
+    public void UprootPlantEvent()
+    {
+        EventInstance pickPlantEvent = RuntimeManager.CreateInstance(UprootPlantEventPath);
+        RuntimeManager.AttachInstanceToGameObject(pickPlantEvent, transform, rigidBody);
+
+        pickPlantEvent.start();
+        pickPlantEvent.release();
+    }
+
+
+    void EatEvent()
+    {
+        EventInstance eatEvent = RuntimeManager.CreateInstance(EatEventPath);
+        RuntimeManager.AttachInstanceToGameObject(eatEvent, transform, rigidBody);
+
+        eatEvent.start();
+        eatEvent.release();
     }
 
     void HitGround()
