@@ -35,11 +35,11 @@ public class PlayerSoundEffects : MonoBehaviour
 
     public void UpdateGroundType(Transform raySource, int index)
     {
-        if (raySource.transform.CompareTag("LeftFoot"))
+        if (raySource.CompareTag("LeftFoot"))
         {
             leftFootStepEvent.setParameterByName("TerrainType", index);
 
-        } else if (raySource.transform.CompareTag("RightFoot"))
+        } else if (raySource.CompareTag("RightFoot"))
         {
             rightFootStepEvent.setParameterByName("TerrainType", index);
 
@@ -55,11 +55,13 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void CheckGroundType()
     {
-        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
+        
     }
 
     void PlayLeftFootStep()
     {
+        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
+
         leftFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(leftFootStepEvent, transform, rigidBody);
 
@@ -69,6 +71,8 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayRightFootStep()
     {
+        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
+
         rightFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(rightFootStepEvent, transform, rigidBody);
 

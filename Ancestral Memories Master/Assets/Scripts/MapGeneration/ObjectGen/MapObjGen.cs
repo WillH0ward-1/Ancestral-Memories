@@ -474,7 +474,7 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            CorruptionControl corruptionControl = treeInstance.GetComponent<CorruptionControl>();
+            corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
             corruptionControl.player = player;
 
             /*
@@ -526,7 +526,7 @@ public class MapObjGen : MonoBehaviour
             //treeInstance.tag = treeTag;
 
             int appleTreeLayer = LayerMask.NameToLayer("AppleTree");
-            appleTreeInstance.layer = appleTreeLayer;
+//            appleTreeInstance.layer = appleTreeLayer;
 
             mapObjectList.Add(appleTreeInstance);
 

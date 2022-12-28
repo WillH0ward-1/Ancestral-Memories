@@ -108,7 +108,7 @@ public class PlayerWalk : MonoBehaviour
             {
                 distance = Vector3.Distance(playerHead.transform.position, rayHit.point);
 
-                float t = Mathf.InverseLerp(playerHead.transform.position.y, rayHit.point.y, distance);
+                float t = Mathf.InverseLerp(rayHit.point.y, playerHead.transform.position.y, distance);
                 float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
                 targetWaterDepth = output;
@@ -155,7 +155,7 @@ public class PlayerWalk : MonoBehaviour
                 Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
                 Vector3 rayDirection = Vector3.down;
 
-                Gizmos.DrawRay(raySource, rayDirection);
+                //Gizmos.DrawRay(raySource, rayDirection);
 
                 if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
                 {

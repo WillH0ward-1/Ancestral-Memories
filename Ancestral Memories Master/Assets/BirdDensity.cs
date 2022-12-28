@@ -55,8 +55,8 @@ public class BirdDensity : MonoBehaviour
         yield break;
     }
 
-    float newMin = 0;
-    float newMax = 250;
+    [SerializeField] float minBirdDensity = 2;
+    [SerializeField] float maxBirdDensity = 250;
 
     [SerializeField]
     private CharacterClass player;
@@ -67,7 +67,7 @@ public class BirdDensity : MonoBehaviour
     private void BirdDensityFactor(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        int output = (int)Mathf.Lerp(newMax, newMin, t);
+        int output = (int)Mathf.Lerp(maxBirdDensity, minBirdDensity, t);
 
         targetBirdDensity = output;
     }

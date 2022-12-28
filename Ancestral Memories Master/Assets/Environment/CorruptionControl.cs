@@ -13,7 +13,7 @@ public class CorruptionControl : MonoBehaviour
     private CharacterBehaviours behaviours;
     // Start is called before the first frame update
 
-    void Awake()
+    void Start()
     {
         GetRenderers();
 
