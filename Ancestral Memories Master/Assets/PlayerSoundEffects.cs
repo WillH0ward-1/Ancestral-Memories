@@ -15,6 +15,7 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference DrownEventPath;
     [SerializeField] private EventReference UprootPlantEventPath;
     [SerializeField] private EventReference EatEventPath;
+    [SerializeField] private EventReference VomitEventPath;
 
     [SerializeField] private Camera cam;
 
@@ -96,6 +97,16 @@ public class PlayerSoundEffects : MonoBehaviour
 
         drownEvent.start();
         drownEvent.release();
+    }
+
+
+    void Vomit()
+    {
+        EventInstance vomitEvent = RuntimeManager.CreateInstance(VomitEventPath);
+        RuntimeManager.AttachInstanceToGameObject(vomitEvent, transform, rigidBody);
+
+        vomitEvent.start();
+        vomitEvent.release();
     }
 
     public void UprootPlantEvent()

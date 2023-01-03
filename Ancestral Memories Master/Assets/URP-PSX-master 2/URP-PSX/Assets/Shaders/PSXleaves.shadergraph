@@ -610,6 +610,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "25d8ed0448b14085aea6119c1d713580"
+                },
+                "m_SlotId": 2
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "fd9ccbe68cd74d79baacf004b4830f22"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "27d2791ed154ae8e8056cb44a9e60f55"
                 },
                 "m_SlotId": 0
@@ -1366,34 +1380,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "c40d6f66eea64a85adba1a85e7846678"
-                },
-                "m_SlotId": 1
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "8b08ca1bcc9d43f38bcc7681ca86e588"
-                },
-                "m_SlotId": 0
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "c40d6f66eea64a85adba1a85e7846678"
-                },
-                "m_SlotId": 3
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "fd9ccbe68cd74d79baacf004b4830f22"
-                },
-                "m_SlotId": 0
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "c44a7dbfc3b5ed8283d39f180641fc72"
                 },
                 "m_SlotId": 1
@@ -1709,7 +1695,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2605.0,
-            "y": 1801.0,
+            "y": 1795.0,
             "width": 128.0,
             "height": 101.0
         }
@@ -2412,7 +2398,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2430.0,
-            "y": 1727.0,
+            "y": 1721.0,
             "width": 150.0,
             "height": 34.0
         }
@@ -2657,7 +2643,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2844.0,
-            "y": 1655.9998779296875,
+            "y": 1650.0,
             "width": 186.0,
             "height": 142.0
         }
@@ -3700,7 +3686,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "4474462575de461388a3a635798fde27",
     "m_Id": 0,
-    "m_DisplayName": "CorruptionMin",
+    "m_DisplayName": "MinKarma",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -3944,11 +3930,11 @@
     "m_Guid": {
         "m_GuidSerialized": "2d998f1e-c8fe-4f0c-ac92-7c56109fe35c"
     },
-    "m_Name": "CorruptionMax",
+    "m_Name": "MaxKarma",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "CorruptionMax",
-    "m_DefaultReferenceName": "_CorruptionMax",
-    "m_OverrideReferenceName": "",
+    "m_RefNameGeneratedByDisplayName": "MaxKarma",
+    "m_DefaultReferenceName": "_MaxKarma",
+    "m_OverrideReferenceName": "_MaxKarma",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
@@ -4016,8 +4002,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 3065.0,
-            "y": 1656.0,
+            "x": 3858.0,
+            "y": 1493.0,
             "width": 208.0,
             "height": 326.0
         }
@@ -4132,10 +4118,10 @@
     "m_Guid": {
         "m_GuidSerialized": "2ca1ad6f-bd5e-4e8b-bfd8-026c5dada0e6"
     },
-    "m_Name": "Karma",
+    "m_Name": "LeafDensity",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Karma",
-    "m_DefaultReferenceName": "_Karma",
+    "m_RefNameGeneratedByDisplayName": "LeafDensity",
+    "m_DefaultReferenceName": "_LeafDensity",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -4145,7 +4131,7 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
-    "m_Value": 1.0,
+    "m_Value": 0.0,
     "m_FloatType": 1,
     "m_RangeValues": {
         "x": 0.0,
@@ -4664,7 +4650,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2459.0,
-            "y": 1868.0,
+            "y": 1862.0,
             "width": 121.0,
             "height": 34.0
         }
@@ -5584,7 +5570,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2430.0,
-            "y": 1767.0,
+            "y": 1761.0,
             "width": 153.0,
             "height": 34.0
         }
@@ -6809,9 +6795,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 2679.0,
-            "y": 1535.0,
-            "width": 109.0,
+            "x": 2650.0,
+            "y": 1518.0001220703125,
+            "width": 138.0,
             "height": 34.0
         }
     },
@@ -7257,7 +7243,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "a96ee851cd6843d58cd163515fa9f4cf",
     "m_Id": 0,
-    "m_DisplayName": "CorruptionMax",
+    "m_DisplayName": "MaxKarma",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -7631,7 +7617,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2458.0,
-            "y": 1834.0,
+            "y": 1828.0,
             "width": 118.0,
             "height": 34.0
         }
@@ -8110,7 +8096,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "c20765a5ec5b4057aea585b4ea240e00",
     "m_Id": 0,
-    "m_DisplayName": "Karma",
+    "m_DisplayName": "LeafDensity",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -8503,9 +8489,9 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 2605.0,
-            "y": 1698.0001220703125,
+            "y": 1692.0,
             "width": 128.0,
-            "height": 100.9998779296875
+            "height": 101.0
         }
     },
     "m_Slots": [
@@ -8959,10 +8945,10 @@
     "m_Guid": {
         "m_GuidSerialized": "2806b455-36b9-4313-8454-5fb32cc253a8"
     },
-    "m_Name": "CorruptionMin",
+    "m_Name": "MinKarma",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "CorruptionMin",
-    "m_DefaultReferenceName": "_CorruptionMin",
+    "m_RefNameGeneratedByDisplayName": "MinKarma",
+    "m_DefaultReferenceName": "_MinKarma",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -9684,8 +9670,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 2903.0,
-            "y": 1817.0,
+            "x": 3719.999755859375,
+            "y": 1615.9998779296875,
             "width": 138.0,
             "height": 34.0
         }

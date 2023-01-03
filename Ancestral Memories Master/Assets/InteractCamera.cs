@@ -52,7 +52,7 @@ public class InteractCamera : MonoBehaviour
                     return;
                 }
 
-                lastHit = hit.collider.gameObject;
+                lastHit = hit.transform.gameObject;
 
                 if (Input.GetMouseButtonDown(1))
                 {
@@ -62,6 +62,12 @@ public class InteractCamera : MonoBehaviour
 
                         Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
 
+
+                        if (hit.collider == null)
+                        {
+                            return;
+                        }
+
                         interactable.SpawnMenu(lastHit, hit);
 
                         if (hit.collider.transform.CompareTag("Player"))
@@ -70,14 +76,6 @@ public class InteractCamera : MonoBehaviour
                             lookAtTarget.position = cam.WorldToScreenPoint(hit.point);
                             Debug.Log(lastHit + "selected");
                         }
-
-                    }
-
-                    else if (Input.GetMouseButtonUp(1))
-                    {
-   
-                        selected = false;
-                        lookAtTarget.position = defaultTarget.transform.position;
 
                     }
 
@@ -91,6 +89,9 @@ public class InteractCamera : MonoBehaviour
                     lookAtTarget.position = defaultTarget.transform.position;
                 }
             }
+        } else if (behaviour.behaviourIsActive || behaviour.dialogueIsActive)
+        {
+            lookAtTarget.position = defaultTarget.transform.position;
         }
     }
 }

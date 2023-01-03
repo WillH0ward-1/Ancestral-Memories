@@ -328,7 +328,11 @@ public class CharacterClass : MonoBehaviour, IStats
             {
                 faith = maxStat;
                 Debug.Log("Player has max faith!");
-                StartCoroutine(TransendenceTimer());
+
+                if (!isBlessed)
+                {
+                    StartCoroutine(TransendenceTimer());
+                }
             }
         }
     }

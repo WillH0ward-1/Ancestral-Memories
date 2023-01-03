@@ -10,33 +10,38 @@ public class CorruptionControl : MonoBehaviour
     private float currentCorruption = 0f;
 
     public Player player;
-    private CharacterBehaviours behaviours;
-    // Start is called before the first frame update
+    public CharacterBehaviours behaviours;
 
-    void Start()
+    public bool CorruptionModifierActive = false;
+
+    void Awake()
     {
-        GetRenderers();
-
-        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
+        Renderer[] objectRenderers = transform.GetComponentsInChildren<MeshRenderer>();
+        rendererList = objectRenderers.ToList();
+        //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
 
     [SerializeField] List<Renderer> rendererList = new List<Renderer>();
 
-    void GetRenderers()
-    {
-        Renderer[] objectRenderers = transform.GetComponentsInChildren<Renderer>();
-        
-        rendererList = objectRenderers.ToList();
-    }
-
     private void OnEnable()
     {
-        player.OnFaithChanged += KarmaModifier;
+        if (CorruptionModifierActive)
+        {
+            player.OnFaithChanged += KarmaModifier;
+        }
+
+        return;
+
     }
 
     private void OnDisable()
     {
-        player.OnFaithChanged -= KarmaModifier;
+        if (CorruptionModifierActive)
+        {
+            player.OnFaithChanged -= KarmaModifier;
+        }
+
+        return;
     }
     
     float time = 0;
@@ -61,19 +66,23 @@ public class CorruptionControl : MonoBehaviour
 
         foreach (Renderer r in rendererList)
         {
-            r.sharedMaterial.SetFloat("_Karma", output);
-
-            r.sharedMaterial.SetFloat("_MinKarma", newMin);
-            r.sharedMaterial.SetFloat("_MaxKarma", newMax);
-
-            r.sharedMaterial.SetFloat("_NewMin", newMin);
-            r.sharedMaterial.SetFloat("_NewMax", newMax);
-
-            if (behaviours.isPsychdelicMode)
+            foreach (Material m in r.sharedMaterials)
             {
-                r.sharedMaterial.SetFloat("_WarpStrength", output);
-                r.sharedMaterial.SetFloat("_MinWarpStrength", newMin);
-                r.sharedMaterial.SetFloat("_MaxWarpStrength", newMax);
+                m.SetFloat("_Karma", output);
+                m.SetFloat("_LeafDensity", output);
+
+                m.SetFloat("_MinKarma", newMin);
+                m.SetFloat("_MaxKarma", newMax);
+
+                m.SetFloat("_NewMin", newMin);
+                m.SetFloat("_NewMax", newMax);
+
+                if (behaviours.isPsychdelicMode)
+                {
+                    m.SetFloat("_WarpStrength", output);
+                    m.SetFloat("_MinWarpStrength", newMin);
+                    m.SetFloat("_MaxWarpStrength", newMax);
+                }
             }
 
         }

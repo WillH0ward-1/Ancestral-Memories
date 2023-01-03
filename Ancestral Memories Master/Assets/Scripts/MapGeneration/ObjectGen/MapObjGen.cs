@@ -172,16 +172,11 @@ public class MapObjGen : MonoBehaviour
 
     public Camera cam;
 
-    [SerializeField] private Interactable interactable;
-    [SerializeField] private Interactable interact;
-
     [SerializeField] int vertSampleFactor;
 
     [SerializeField] private bool invertSpreadOrigin = false;
 
     private Vector3 mapCenter;
-
-    //public Interactable treeInteraction;
 
     [Header("========================================================================================================================")]
     [Header("Sound Emitters")]
@@ -194,6 +189,13 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private Transform waterEmitterRoot;
 
     [SerializeField] private List<GameObject> waterEmitters;
+
+    [Header("========================================================================================================================")]
+    [Header("Behaviours Reference")]
+    [Space(10)]
+
+
+    [SerializeField] private CharacterBehaviours behaviours;
 
     private void Start()
     {
@@ -265,17 +267,17 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
 
         TreePoissonDisc(treeSampler);
-        AppleTreePoissonDisc(appleTreeSampler);
-        GrassPoissonDisc(grassSampler);
-        FoliagePoissonDisc(foliageSampler);
-        RocksPoissonDisc(rockSampler);
-        FliesPoissonDisc(fliesSampler);
-        AnimalPoissonDisc(animalSampler);
-        MushroomPoissonDisc(mushroomSampler);
-        FireWoodPoissonDisc(fireWoodSampler);
-        SeaShellPoissonDisc(seaShellSampler);
-        PedestalPoissonDisc(pedestalSampler);
-        CavePoissonDisc(caveSampler);
+        //AppleTreePoissonDisc(appleTreeSampler);
+        //GrassPoissonDisc(grassSampler);
+        //FoliagePoissonDisc(foliageSampler);
+        //RocksPoissonDisc(rockSampler);
+        //FliesPoissonDisc(fliesSampler);
+        //AnimalPoissonDisc(animalSampler);
+        //MushroomPoissonDisc(mushroomSampler);
+        //FireWoodPoissonDisc(fireWoodSampler);
+        //SeaShellPoissonDisc(seaShellSampler);
+        //PedestalPoissonDisc(pedestalSampler);
+        //CavePoissonDisc(caveSampler);
 
         SetOffset();
 
@@ -340,7 +342,7 @@ public class MapObjGen : MonoBehaviour
 
             GameObject animalInstance = Instantiate(randomAnimal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            AnimalAI animalAI = animalInstance.GetComponent<AnimalAI>();
+            AnimalAI animalAI = animalInstance.transform.GetComponent<AnimalAI>();
 
             animalAI.player = player;
         
@@ -462,6 +464,7 @@ public class MapObjGen : MonoBehaviour
     public List<GameObject> treeList;
 
     private Vector3 zeroScale = new Vector3(0.001f, 0.001f, 0.001f);
+    //private CorruptionControl corruptionControl;
 
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
@@ -474,8 +477,24 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
+            CorruptionControl corruptionControl = treeInstance.AddComponent<CorruptionControl>();
+
             corruptionControl.player = player;
+            corruptionControl.behaviours = behaviours;
+
+            if (corruptionControl.CorruptionModifierActive != true)
+            {
+                corruptionControl.CorruptionModifierActive = true;
+            }
+
+
+            //corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
+            //corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
+            //corruptionControl.player = player;
+
+            //leafControl = treeInstance.transform.GetComponentInChildren<LeafControl>();
+            //leafControl.player = player;
+
 
             /*
             new Vector3(
@@ -561,7 +580,7 @@ public class MapObjGen : MonoBehaviour
     float appleGrowthDelay;
     float treeGrowthDelay;
 
-    [SerializeField] private CorruptionControl corruptionControl;
+    private LeafControl leafControl;
 
     private void GrowTrees(GameObject tree)
     {
@@ -569,10 +588,7 @@ public class MapObjGen : MonoBehaviour
 
         ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
 
-        corruptionControl = tree.transform.GetComponent<CorruptionControl>();
-        corruptionControl.player = player;
-
-        TreeShaders treeshader = tree.GetComponent<TreeShaders>();
+        //LeafControl treeshader = tree.GetComponent<LeafControl>();
 
         treeGrowDuration = Random.Range(minTreeGrowDuration, maxTreeGrowDuration);
         appleGrowDuration = Random.Range(minAppleGrowDuration, maxAppleGrowDuration);
@@ -599,7 +615,6 @@ public class MapObjGen : MonoBehaviour
                 }
 
                 ScaleControl appleGrowControl = apple.transform.GetComponent<ScaleControl>();
-             
 
                 apple.GetComponent<Rigidbody>().isKinematic = true;
 
@@ -755,8 +770,9 @@ public class MapObjGen : MonoBehaviour
 
             rockInstance.tag = rockTag;
 
-            corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
+            CorruptionControl corruptionControl = rockInstance.transform.gameObject.AddComponent<CorruptionControl>();
             corruptionControl.player = player;
+            corruptionControl.behaviours = behaviours;
 
             int rockLayer = LayerMask.NameToLayer("Rocks");
             rockInstance.layer = rockLayer;

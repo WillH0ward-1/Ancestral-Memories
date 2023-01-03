@@ -62,7 +62,7 @@ public class RainControl : MonoBehaviour
                 //triggerDrought = true;
             }
 
-            while (time < rainWaitDuration)
+            while (time <= rainWaitDuration)
             {
                 time += Time.deltaTime;
                 yield return null;
@@ -81,6 +81,8 @@ public class RainControl : MonoBehaviour
                     yield break;
                 }
             }
+
+            yield break;
         } 
     }
 
@@ -147,17 +149,16 @@ public class RainControl : MonoBehaviour
 
         float time = 0;
         
-        while (time < 1f)
+        while (time <= 1f)
         {
             time += Time.deltaTime / rainDuration;
             rainStrengthTarget = weather.windStrength * 100;
             emissionRate = Mathf.Lerp(emissionRate, rainStrengthTarget, time);
 
             yield return null;
-            
         }
 
-        if (time >= rainDuration)
+        if (time >= 1f)
         {
             StartCoroutine(StopRaining(true));
             yield break;

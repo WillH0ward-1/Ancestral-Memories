@@ -47,6 +47,9 @@
         },
         {
             "m_Id": "6697f0c3b7a243a58cdf7b005580d626"
+        },
+        {
+            "m_Id": "37f62e48917a4154b441067fab887288"
         }
     ],
     "m_Keywords": [],
@@ -188,6 +191,9 @@
         },
         {
             "m_Id": "301f0f9e5f7d4e89833f1e9d2d4d19a5"
+        },
+        {
+            "m_Id": "6d1495db59584b82b7f0d2d016d89c41"
         }
     ],
     "m_GroupDatas": [],
@@ -457,6 +463,20 @@
                     "m_Id": "405dcbb1f37d4c30b96f91d5fddc9907"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "6d1495db59584b82b7f0d2d016d89c41"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "3114c925c5f84a179c969a87388cd697"
+                },
+                "m_SlotId": 3
             }
         },
         {
@@ -1723,6 +1743,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "2b6c9eee93d14d4baeb5bf19cbba3d53",
+    "m_Id": 0,
+    "m_DisplayName": "Dithering",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "2c3de65cac544f7e8380861783d1de98",
     "m_Id": 0,
@@ -1868,6 +1903,9 @@
         },
         {
             "m_Id": "6697f0c3b7a243a58cdf7b005580d626"
+        },
+        {
+            "m_Id": "37f62e48917a4154b441067fab887288"
         }
     ]
 }
@@ -2139,6 +2177,34 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "37f62e48917a4154b441067fab887288",
+    "m_Guid": {
+        "m_GuidSerialized": "124d6a37-3324-4dc0-ab73-8c654aeaf5b1"
+    },
+    "m_Name": "Dithering",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Dithering",
+    "m_DefaultReferenceName": "_Dithering",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": 0.0,
+    "m_FloatType": 0,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
     }
 }
 
@@ -2489,10 +2555,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 2518.59375,
-            "y": 274.61328125,
-            "width": 207.9998779296875,
-            "height": 302.0000305175781
+            "x": 2570.000244140625,
+            "y": 276.0,
+            "width": 208.0,
+            "height": 302.00006103515627
         }
     },
     "m_Slots": [
@@ -2962,6 +3028,42 @@
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "6d1495db59584b82b7f0d2d016d89c41",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 2545.000244140625,
+            "y": 15.99999713897705,
+            "width": 123.0,
+            "height": 34.0000114440918
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "2b6c9eee93d14d4baeb5bf19cbba3d53"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "37f62e48917a4154b441067fab887288"
     }
 }
 

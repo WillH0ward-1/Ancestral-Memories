@@ -9,6 +9,7 @@ public class AudioReactive : MonoBehaviour
     [SerializeField] private float[] mFFTSpectrum;
     [SerializeField] const int WindowSize = 1024;
 
+
     void Start()
     {
         mLineRenderer = gameObject.AddComponent<LineRenderer>();

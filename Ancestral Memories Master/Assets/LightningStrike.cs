@@ -32,12 +32,6 @@ public class LightningStrike : MonoBehaviour
 
     // Start is called before the first frame update
 
-    private void Awake()
-    {
-        lightningLight = transform.GetComponentInChildren<Light>();
-        lightningLight.enabled = false;
-    }
-
     public void StrikeLightning(Transform target)
     {
         if (areaManager.currentRoom != insideCave && !behaviours.behaviourIsActive)
@@ -59,14 +53,17 @@ public class LightningStrike : MonoBehaviour
     {
         maxScale = new Vector3(0.5f, Random.Range(-1f, -20f), 0.5f);
 
-        lightningLight.enabled = true;
-        lightningLight.intensity = 0f;
-
         Debug.Log("Lightning!");
 
         GameObject lightning = Instantiate(lightningPrefab, target.transform.position, Quaternion.identity, target.transform);
         lightningSFX = lightning.GetComponent<LightningSoundEffects>();
         lightningSFX.PlayLightningStrike(target.transform.gameObject);
+
+        lightningLight = lightningPrefab.transform.GetComponentInChildren<Light>();
+        lightningLight.enabled = false;
+
+        lightningLight.enabled = true;
+        lightningLight.intensity = 0f;
 
         lightning.transform.position = new Vector3(target.position.x, target.position.y + yOffset, target.position.z);
         lightning.transform.localScale = minScale;

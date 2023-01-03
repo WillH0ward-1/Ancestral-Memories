@@ -31,7 +31,7 @@ public class WeatherControl : MonoBehaviour
     void Start()
     {
         EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
-        windStrength = currentWindStrength;
+        windStrength = 0;
         StartCoroutine(WindStrength(windSFX));
        
         foreach (GameObject mapObject in mapObjGen.mapObjectList)
@@ -82,8 +82,8 @@ public class WeatherControl : MonoBehaviour
         yield break;
     }
 
-    float newMin = 0;
-    float newMax = 1;
+    [SerializeField] float newMin = 0;
+    [SerializeField] float newMax = 1;
 
     [SerializeField]
     private CharacterClass player;
@@ -94,7 +94,7 @@ public class WeatherControl : MonoBehaviour
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float output = Mathf.Lerp(newMax, newMin, t);
+        float output = Mathf.Lerp(newMin, newMax, t);
 
         targetWindStrength = output;
     }

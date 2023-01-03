@@ -15,8 +15,8 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private EventReference rainSFX;
     private EventInstance instance;
 
-    private float stability = 0;
-    private float instability = 1;
+    [SerializeField] private float stability = 0;
+    [SerializeField] private float instability = 1;
 
     private float harmonicStability;
 
@@ -27,12 +27,11 @@ public class ParticleCollision : MonoBehaviour
 
     private StudioGlobalParameterTrigger globalParams;
 
+    public LayerMask groundLayerMask;
+
     private void OnParticleCollision(GameObject other)
     {
         Debug.Log("Particle hit ground!");
-
-        int groundLayerIndex = LayerMask.NameToLayer("Ground");
-        int groundLayerMask = (1 << groundLayerIndex);
 
         var ray = Physics.Raycast(transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask);
 
@@ -51,10 +50,10 @@ public class ParticleCollision : MonoBehaviour
             //rainDropInstance = RuntimeManager.CreateInstance(rainSFX);
             // rainDropInstance.start();
 
-            instance = RuntimeManager.CreateInstance(rainSFX);
-            instance.start();
+            emitter.EventInstance.start();
 
-   
+            //instance = RuntimeManager.CreateInstance(rainSFX);
+            //instance.start();
 
             //emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
         }
@@ -68,13 +67,14 @@ public class ParticleCollision : MonoBehaviour
 
     private void Awake()
     {
-        harmonicStabilityActive = true;
         StartCoroutine(HarmonicStability());
 
     }
 
     private IEnumerator HarmonicStability()
     {
+        harmonicStabilityActive = true;
+
         while (harmonicStabilityActive)
         {
             if (!harmonicStabilityActive)
@@ -85,7 +85,6 @@ public class ParticleCollision : MonoBehaviour
             harmonicStability = targetHarmonicStability;
 
             RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
-            Debug.Log("WindStrength:" + harmonicStability);
             yield return null;
         }
   

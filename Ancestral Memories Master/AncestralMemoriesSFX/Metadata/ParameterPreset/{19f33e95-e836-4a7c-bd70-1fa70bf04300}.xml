@@ -21,5 +21,13 @@
 		<property name="isExposedRecursively">
 			<value>false</value>
 		</property>
+		<relationship name="automators">
+			<destination>{a6e37817-db02-4c1b-ba3b-d09565e10401}</destination>
+		</relationship>
+	</object>
+	<object class="Automator" id="{a6e37817-db02-4c1b-ba3b-d09565e10401}">
+		<property name="nameOfPropertyBeingAutomated">
+			<value>cursorPosition</value>
+		</property>
 	</object>
 </objects>

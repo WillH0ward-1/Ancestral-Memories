@@ -187,12 +187,11 @@ public class PlayerWalk : MonoBehaviour
 
                         //currentGround = "Rock";
                     }
-               
+
+                    checkActive = false;
+                    yield break;
                     //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
                 }
-
-                checkActive = false;
-                yield break;
             }
 
             yield return null;
@@ -203,8 +202,6 @@ public class PlayerWalk : MonoBehaviour
 
     void Update()
     {
-
-        
         if (!stopOverride)
         {
             if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing)
@@ -480,7 +477,7 @@ public class PlayerWalk : MonoBehaviour
         player.ChangeAnimationState(newState);
     }
 
-    bool stopOverride = false;
+    [SerializeField] private bool stopOverride = false;
 
     public void StopAgentOverride()
     {

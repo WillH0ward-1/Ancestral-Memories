@@ -45,6 +45,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float frontFaceZoom = 0;
     [SerializeField] private float toRoomZoom = 0;
     [SerializeField] private float dialogueZoom = 0;
+    [SerializeField] private float panoramaZoom = 0;
 
     [Header("========================================================================================================================")]
     [Header("Target Orthographic Size")]
@@ -59,6 +60,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float frontFaceOrtho = 0;
     [SerializeField] private float toRoomOrtho = 0;
     [SerializeField] private float dialogueOrtho = 0;
+    [SerializeField] private float panoramaOrtho = 0;
 
     [Header("========================================================================================================================")]
     [Header("Zoom Duration")]
@@ -71,33 +73,38 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toCinematicZoomDuration = 1f;
     [SerializeField] private float toNewRoomZoomDuration = 1f;
     [SerializeField] private float toDialogueZoomDuration = 1f;
+    [SerializeField] private float toPanoramaZoomDuration = 1f;
+
     public float toPsychedelicZoomDuration = 60f;
 
     [Header("========================================================================================================================")]
-
     [Header("Camera Rotation")]
 
     public bool camRotateAround = false;
     [SerializeField] private float speed = 3.5f;
-    [SerializeField] private float smooth = 3.5f;
+    [SerializeField] private float smoothFactor = 3.5f;
 
+    [Header("========================================================================================================================")]
+    [Header("Panorama Mode")]
+
+    public bool panoramaScroll = false;
+    private Quaternion camTurnAngle;
+    [SerializeField] private float panoramaScrollSpeed = 0.125f;
+    [SerializeField] private float panoramaRotateSpeed;
+    [SerializeField] private float panoramaSmoothFactor = 3.5f;
 
     public void Start()
     {
         rpCamera.perspective = initZoom;
         cam.orthographicSize = initOrtho;
-
         camTarget = player.transform;
-
+        panoramaScroll = false;
         isSpawning = true;
 
+        //ToSpawnZoom();
         StartCoroutine(WaitForMouseClick());
 
-
-
-        //ToSpawnZoom();
-
-        cameraOffset = new Vector3(12, 2.5f, -8);
+        //cameraOffset = new Vector3(12, 2.5f, -8);
     }
 
     private bool waitForClick;
@@ -111,11 +118,13 @@ public class CamControl : MonoBehaviour
             if (Input.GetMouseButtonDown(0))
             {
                 ToSpawnZoom();
-                yield break;
+                waitForClick = false;
             }
 
             yield return null;
        }
+
+        yield break;
     }
 
 
@@ -155,17 +164,15 @@ public class CamControl : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (camRotateAround)
+        if (camRotateAround && !panoramaScroll)
         {
-            Quaternion camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * speed, Vector3.up);
+            camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * speed, Vector3.up);
             cameraOffset = camTurnAngle * cameraOffset;
-
             Vector3 newPos = player.transform.position + cameraOffset;
-
-            transform.position = Vector3.Slerp(transform.position, newPos, smooth);
+            transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor);
             transform.LookAt(player.transform.position);
         }
-
+        
         if (camFollowTarget)
         {
             // Smooth camera follow
@@ -176,7 +183,46 @@ public class CamControl : MonoBehaviour
         }
     }
 
+    [SerializeField] private AudioListenerManager audioListener;
 
+    [SerializeField] private float attenuationSwitchSpeed = 1f;
+
+    public IEnumerator PanoramaZoom()
+    {
+        audioListener.StartCoroutine(audioListener.MoveAudioListener(cam.transform.gameObject, attenuationSwitchSpeed));
+
+        while (panoramaScroll == true)
+        {
+            float target = cam.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * panoramaScrollSpeed; // Use this when using Orthographic Camera.
+
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, target, panoramaSmoothFactor);
+
+
+            if (cam.orthographicSize >= maxOrthoZoom)
+            {
+                cam.orthographicSize = maxOrthoZoom;
+            }
+
+            if (cam.orthographicSize <= minOrthoZoom)
+            {
+                cam.orthographicSize = minOrthoZoom;
+            }
+
+            camTurnAngle = Quaternion.AngleAxis(Time.deltaTime * panoramaRotateSpeed, Vector3.up);
+            cameraOffset = camTurnAngle * cameraOffset;
+            Vector3 newPos = player.transform.position + cameraOffset;
+            transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor);
+            transform.LookAt(player.transform.position);
+
+            yield return null;
+        }
+
+        yield break;
+
+    }
+
+    public float maxOrthoZoom;
+    public float minOrthoZoom;
 
     void SetCamClipPlane()
     {
@@ -207,6 +253,16 @@ public class CamControl : MonoBehaviour
         zoomDestination = spawnZoom;
         orthoDestination = spawnOrtho;
         StartCoroutine(Zoom(toSpawnZoomDuration, zoomDestination, orthoDestination));
+    }
+
+    public void ToPanoramaZoom()
+    {
+        cinematicActive = false;
+        SetCamClipPlane();
+        zoomDestination = panoramaZoom;
+        orthoDestination = panoramaOrtho;
+
+        StartCoroutine(Zoom(toPanoramaZoomDuration, zoomDestination, orthoDestination));
     }
 
     public void ToActionZoom()
@@ -411,8 +467,6 @@ public class CamControl : MonoBehaviour
             cam.transform.LookAt(lookTarget);
             yield break;
         }
-
-
     }
 
     public AreaManager area;

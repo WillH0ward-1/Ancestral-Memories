@@ -16,7 +16,9 @@ public class TerrainGenerator : MonoBehaviour {
 	public HeightMapSettings heightMapSettings;
 	public TextureData textureSettings;
 
-	public NavMeshSurface surface;
+	public GameObject NavMeshContainer;
+	public NavMeshSurface[] surfaces;
+
 	[SerializeField] private MapObjGen mapObjectGen;
 
 	//public NavMeshPrefabInstance navMeshSurface;
@@ -38,6 +40,8 @@ public class TerrainGenerator : MonoBehaviour {
 	private string terrainChunkName = "Terrain Chunk";
 
 	[SerializeField] private Player player;
+	[SerializeField] private CharacterBehaviours behaviours;
+	[SerializeField] private CorruptionControl corruptionControl;
 	[SerializeField] private LerpTerrain lerpTerrain;
 
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
@@ -45,7 +49,11 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private void Awake()
 	{
-		surface.BuildNavMesh();
+	    surfaces = NavMeshContainer.GetComponentsInChildren<NavMeshSurface>();
+
+		foreach (NavMeshSurface surface in surfaces) {
+			surface.BuildNavMesh();
+		}
 		//mapObjGen.meshWorldSize = meshSettings.MeshWorldSize;
 	}
 
@@ -87,8 +95,16 @@ public class TerrainGenerator : MonoBehaviour {
 		{
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
-			CorruptionControl corruptionControl = tmp.AddComponent<CorruptionControl>();
+
+		    corruptionControl = tmp.AddComponent<CorruptionControl>();
+
 			corruptionControl.player = player;
+			corruptionControl.behaviours = behaviours;
+
+			if (corruptionControl.CorruptionModifierActive != true)
+			{
+				corruptionControl.CorruptionModifierActive = true;
+			}
 
 			mapObjectGen.GenerateMapObjects();
 
