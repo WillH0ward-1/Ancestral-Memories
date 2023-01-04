@@ -186,6 +186,8 @@ public class CharacterBehaviours : MonoBehaviour
     int randTarget = 1;
     private bool isSkeleton = false;
 
+    [SerializeField] private PlayFlute fluteControl;
+
     private IEnumerator PlayMusic()
     {
         cinematicCam.scrollOverride = true;
@@ -193,11 +195,15 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
-        cinematicCam.ToSpawnZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        cinematicCam.ToPrayerZoom();
 
-        Debug.Log("Click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+
+        fluteControl.EnableFluteControl();
+       
+
+        Debug.Log("Right click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(1));
 
         player.ChangeAnimationState(PLAYER_IDLE);
 
@@ -310,18 +316,17 @@ public class CharacterBehaviours : MonoBehaviour
         firstPersonController.SetActive(firstPersonCamActive);
         */
 
-        //behaviourIsActive = true;
-        cinematicCam.panoramaScroll = true;
+        behaviourIsActive = true;
 
         cinematicCam.ToPanoramaZoom();
-
-        cinematicCam.StartCoroutine(cinematicCam.PanoramaZoom());
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        //behaviourIsActive = false;
+        behaviourIsActive = false;
         cinematicCam.panoramaScroll = false;
+
+        cinematicCam.ToGameZoom();
 
         /*cinematicCamActive = !cinematicCamActive;
        firstPersonCamActive = !firstPersonCamActive;
@@ -604,8 +609,9 @@ public class CharacterBehaviours : MonoBehaviour
         tool.Wield(wieldedStoneAxe, sheathedStoneAxe);
 
         behaviourIsActive = true;
+        StartCoroutine(LoseFaith());
 
-       
+
         float time = 0;
 
         interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);

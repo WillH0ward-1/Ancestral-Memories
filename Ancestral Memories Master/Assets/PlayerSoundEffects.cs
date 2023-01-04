@@ -3,6 +3,7 @@ using FMODUnity;
 using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class PlayerSoundEffects : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference EatEventPath;
     [SerializeField] private EventReference VomitEventPath;
 
+    [SerializeField] private EventReference FluteEventPath;
+
     [SerializeField] private Camera cam;
 
     [SerializeField] private PlayerWalk playerWalk;
@@ -28,6 +31,8 @@ public class PlayerSoundEffects : MonoBehaviour
     private EventInstance walkEvent;
     private EventInstance rightFootStepEvent;
     private EventInstance leftFootStepEvent;
+
+    private EventInstance fluteEventInstance;
 
     private void Awake()
     {
@@ -88,6 +93,19 @@ public class PlayerSoundEffects : MonoBehaviour
 
         walkEvent.start();
         walkEvent.release();
+    }
+
+    [NonSerialized] public EventInstance fluteEventRef;
+
+    public void PlayFluteEvent()
+    {
+        EventInstance fluteEvent = RuntimeManager.CreateInstance(FluteEventPath);
+        RuntimeManager.AttachInstanceToGameObject(fluteEvent, transform, rigidBody);
+
+        fluteEventRef = fluteEvent;
+
+        fluteEventRef.start();
+        fluteEventRef.release();
     }
 
     void DrownEvent()
@@ -156,8 +174,8 @@ public class PlayerSoundEffects : MonoBehaviour
         hitTreeEvent.release();
 
         Shake camShake = cam.GetComponent<Shake>();
-        shakeMultiplier = Random.Range(shakeMultiplier, shakeMultiplier);
-        duration = Random.Range(minShakeDuration, maxShakeDuration);
+        shakeMultiplier = UnityEngine.Random.Range(shakeMultiplier, shakeMultiplier);
+        duration = UnityEngine.Random.Range(minShakeDuration, maxShakeDuration);
 
         StartCoroutine(camShake.ScreenShake(duration, shakeMultiplier));
         //shakeMultiplier = Random.Range(1, 1.1);

@@ -8,6 +8,8 @@ public class LeafFallControl : MonoBehaviour
 
     [SerializeField] public int emissionRate = 0; // 0 - 100
 
+    public WeatherControl weather;
+
     public void Start()
     {
         leaves = transform.GetComponent<ParticleSystem>();

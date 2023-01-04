@@ -39,6 +39,7 @@ public class RainControl : MonoBehaviour
     private void Awake()
     {
         triggerDrought = false;
+
     }
     
     public IEnumerator ChanceOfRain()
@@ -153,7 +154,7 @@ public class RainControl : MonoBehaviour
         {
             time += Time.deltaTime / rainDuration;
             rainStrengthTarget = weather.windStrength * 100;
-            emissionRate = Mathf.Lerp(emissionRate, rainStrengthTarget, time);
+            emission.rateOverTime = Mathf.Lerp(emission.rateOverTime.constant, rainStrengthTarget, time);
 
             yield return null;
         }
@@ -163,11 +164,6 @@ public class RainControl : MonoBehaviour
             StartCoroutine(StopRaining(true));
             yield break;
         } 
-    }
-
-    private void Update()
-    {
-        emission.rateOverTime = emissionRate;
     }
 
     private bool retrigger = false;

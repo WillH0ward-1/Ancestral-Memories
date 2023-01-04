@@ -63,8 +63,11 @@
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{d4e6b0a2-48a1-45bc-8eb1-87f23d3357ba}">
+		<property name="isPersistent">
+			<value>true</value>
+		</property>
 		<property name="maxVoices">
-			<value>30</value>
+			<value>60</value>
 		</property>
 		<property name="dopplerEnabled">
 			<value>true</value>
@@ -242,10 +245,10 @@
 	</object>
 	<object class="SpatialiserEffect" id="{4c5235cc-7c8a-4f1e-b4d4-3b97122b605d}">
 		<property name="minimumDistance">
-			<value>9</value>
+			<value>2.60000014</value>
 		</property>
 		<property name="maximumDistance">
-			<value>600</value>
+			<value>55</value>
 		</property>
 	</object>
 	<object class="MixerSend" id="{e249df18-4ece-4c13-b6be-ece56b16f2f4}">

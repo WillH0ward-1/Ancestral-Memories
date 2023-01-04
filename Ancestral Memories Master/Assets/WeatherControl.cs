@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
-
+using System.Linq;
 
 public class WeatherControl : MonoBehaviour
 {
@@ -15,7 +15,9 @@ public class WeatherControl : MonoBehaviour
     private int maxWindStrength = 1;
 
     private float currentWindStrength = 0;
-    private float targetWindStrength;
+
+    [SerializeField] private float targetWindStrength;
+    [SerializeField] private float targetLeafShakeStrength;
 
     public bool windIsActive;
 
@@ -23,29 +25,34 @@ public class WeatherControl : MonoBehaviour
 
     private List<GameObject> mapObjectList;
 
-    Renderer[] renderers;
+    private Renderer[] windAffectedRenderers;
 
-   [SerializeField] private List<Renderer> windAffectedRenderers;
+    //[SerializeField] private List<Renderer> windAffectedRenderers;
 
     // Start is called before the first frame update
+
+    public List<Transform> windAffectedRendererList = new List<Transform>();
+
     void Start()
     {
+        ListCleanup();
         EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
         windStrength = 0;
         StartCoroutine(WindStrength(windSFX));
-       
-        foreach (GameObject mapObject in mapObjGen.mapObjectList)
-        {
-             renderers = mapObject.GetComponentsInChildren<Renderer>();
-
      
+    }
+
+    void ListCleanup()
+    {
+        for (var i = windAffectedRendererList.Count - 1; i > -1; i--)
+        {
+            if (windAffectedRendererList[i] == null)
+                windAffectedRendererList.RemoveAt(i);
         }
     }
 
     private IEnumerator WindStrength(EventInstance windSFX)
     {
- 
-
         windIsActive = true;
 
         windSFX.start();
@@ -57,13 +64,13 @@ public class WeatherControl : MonoBehaviour
             windSFX.setParameterByName("WindStrength", windStrength);
             Debug.Log("WindStrength:" + windStrength);
 
-
-            foreach (Renderer r in renderers)
+            foreach (Transform t in windAffectedRendererList)
             {
-                r.material.SetFloat("WindStrength", windStrength);
+                foreach (Material m in t.GetComponentInChildren<Renderer>().sharedMaterials)
+                {
+                    m.SetFloat("_NoiseFactor", targetLeafShakeStrength);
+                }
             }
-
-            
 
             yield return null;
         }
@@ -85,6 +92,9 @@ public class WeatherControl : MonoBehaviour
     [SerializeField] float newMin = 0;
     [SerializeField] float newMax = 1;
 
+    [SerializeField] float leafShakeMin = 0;
+    [SerializeField] float leafShakeMax = 1000;
+
     [SerializeField]
     private CharacterClass player;
 
@@ -95,8 +105,10 @@ public class WeatherControl : MonoBehaviour
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
         float output = Mathf.Lerp(newMin, newMax, t);
+        float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
 
         targetWindStrength = output;
+        targetLeafShakeStrength = leafOutput;
     }
 
 }

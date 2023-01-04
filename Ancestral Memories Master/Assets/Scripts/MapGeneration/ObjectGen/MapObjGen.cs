@@ -466,6 +466,8 @@ public class MapObjGen : MonoBehaviour
     private Vector3 zeroScale = new Vector3(0.001f, 0.001f, 0.001f);
     //private CorruptionControl corruptionControl;
 
+    public WeatherControl weather;
+
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
 
@@ -515,7 +517,7 @@ public class MapObjGen : MonoBehaviour
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
-
+            weather.windAffectedRendererList.Add(treeInstance.transform);
             GrowTrees(treeInstance);
 
         }

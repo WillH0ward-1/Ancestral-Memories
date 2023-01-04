@@ -1580,6 +1580,11 @@ namespace FMOD.Studio
             throw new NotImplementedException();
         }
 
+        public void stop(FMODUnity.STOP_MODE allowFadeout)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 
