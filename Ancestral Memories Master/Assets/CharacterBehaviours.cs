@@ -71,6 +71,9 @@ public class CharacterBehaviours : MonoBehaviour
 
     const string PLAYER_PLAYFLUTE = "Player_PlayFlute";
 
+
+    const string PLAYER_SLEEPING = "Player_SleepingOnFloor";
+  
     public string[] danceAnimClips;
 
     private float animationLength;
@@ -150,6 +153,9 @@ public class CharacterBehaviours : MonoBehaviour
             case "Talk":
                 StartCoroutine(Talk(hitObject));
                 break;
+            case "Sleep":
+                StartCoroutine(Sleep(hitObject));
+                break;
             case "PlayMusic":
                 StartCoroutine(PlayMusic());
                 break;
@@ -207,6 +213,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_IDLE);
 
+        fluteControl.StopAll();
         cinematicCam.scrollOverride = false;
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
@@ -296,6 +303,8 @@ public class CharacterBehaviours : MonoBehaviour
     public bool cinematicCamActive = true;
     public bool firstPersonCamActive = false;
 
+    [SerializeField] AudioListenerManager audioListener;
+
     private void Awake()
     {
 
@@ -320,11 +329,16 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToPanoramaZoom();
 
+        audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
+
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         behaviourIsActive = false;
         cinematicCam.panoramaScroll = false;
+
+
+        audioListener.SetDefaultAttenuation();
 
         cinematicCam.ToGameZoom();
 
@@ -375,6 +389,37 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.ToGameZoom();
         yield break;
         
+    }
+
+    public IEnumerator Sleep(GameObject hitObject)
+    {
+        cinematicCam.scrollOverride = true;
+        behaviourIsActive = true;
+
+        if (player.hunger <= 25)
+        {
+            player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
+            yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_FALLFLATONFLOOR);
+
+        } else
+        {
+            player.ChangeAnimationState(PLAYER_TOCROUCH);
+            yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_TOCROUCH);
+
+        }
+
+        player.ChangeAnimationState(PLAYER_SLEEPING);
+
+        Debug.Log("Do you want to sleep?");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        cinematicCam.scrollOverride = false;
+        behaviourIsActive = false;
+
+        cinematicCam.ToGameZoom();
+
+        yield break;
+
     }
 
     private IEnumerator PrayerPulseEffect()

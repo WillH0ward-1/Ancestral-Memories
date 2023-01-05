@@ -199,7 +199,6 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{2e0e02e2-ef91-4637-a035-14bdb19abcf3}">
 		<relationship name="effects">
-			<destination>{2f32280b-9fee-4fda-a235-7078fbb7dd77}</destination>
 			<destination>{341890a9-5d99-4196-81ae-b7771d5ade6c}</destination>
 		</relationship>
 	</object>
@@ -226,14 +225,6 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{102b52c8-fa1a-4dad-8dfc-6098324e1bf8}" />
-	<object class="PitchShifterEffect" id="{2f32280b-9fee-4fda-a235-7078fbb7dd77}">
-		<property name="fftSize">
-			<value>1840</value>
-		</property>
-		<property name="overlap">
-			<value>1</value>
-		</property>
-	</object>
 	<object class="MixerBusFader" id="{341890a9-5d99-4196-81ae-b7771d5ade6c}" />
 	<object class="MixerBusFader" id="{47b34666-c4a2-4673-aa47-dcfa2d4e7093}" />
 	<object class="AutomationCurve" id="{a07b3e35-19da-44ca-87f8-295a76902959}">
@@ -276,7 +267,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>-0.5</value>
+			<value>0</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{336e1187-a62f-4515-b38b-f72467fea8c6}">
