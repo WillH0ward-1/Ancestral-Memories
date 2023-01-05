@@ -17,7 +17,6 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference UprootPlantEventPath;
     [SerializeField] private EventReference EatEventPath;
     [SerializeField] private EventReference VomitEventPath;
-
     [SerializeField] private EventReference FluteEventPath;
 
     [SerializeField] private Camera cam;

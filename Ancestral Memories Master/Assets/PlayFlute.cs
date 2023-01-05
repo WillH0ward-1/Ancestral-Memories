@@ -29,6 +29,8 @@ public class PlayFlute : MonoBehaviour
 
     bool isPlaying = false;
 
+    [SerializeField] private float interval = 0;
+    [SerializeField] private float maxInterval = 0.1f;
     /*
     private void Awake()
     {
@@ -49,7 +51,6 @@ public class PlayFlute : MonoBehaviour
 
         while (Input.GetMouseButton(0))
         {
-          
             if (Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0)
             {
                 interval = 0;
@@ -94,12 +95,6 @@ public class PlayFlute : MonoBehaviour
         }
 
     }
-  
-
-    bool ignoreNotes = false;
-
-    [SerializeField] private float interval = 0;
-    [SerializeField] private float maxInterval = 2;
 
     private IEnumerator NoteDelay()
     {

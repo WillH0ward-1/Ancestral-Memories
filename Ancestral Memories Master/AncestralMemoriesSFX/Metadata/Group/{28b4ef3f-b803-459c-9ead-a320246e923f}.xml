@@ -18,6 +18,7 @@
 		<relationship name="effects">
 			<destination>{4b2831d0-3d68-464b-adcd-9ca658a453a5}</destination>
 			<destination>{19dbf688-4b40-4822-9725-cb0bc78728b3}</destination>
+			<destination>{c2739c09-5151-4b7a-82f7-bb40e6538fdf}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{dcac0dd0-01c8-4926-a92b-95469c7de34f}" />
@@ -26,5 +27,13 @@
 		<property name="wetLevel">
 			<value>-80</value>
 		</property>
+	</object>
+	<object class="MixerSend" id="{c2739c09-5151-4b7a-82f7-bb40e6538fdf}">
+		<property name="inputFormat">
+			<value>2</value>
+		</property>
+		<relationship name="mixerReturn">
+			<destination>{df3ec69b-0b29-4f91-97b4-a0b8aa147fa2}</destination>
+		</relationship>
 	</object>
 </objects>

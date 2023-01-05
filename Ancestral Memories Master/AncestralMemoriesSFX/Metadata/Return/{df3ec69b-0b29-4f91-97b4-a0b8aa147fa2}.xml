@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.01.00">
+	<object class="MixerReturn" id="{df3ec69b-0b29-4f91-97b4-a0b8aa147fa2}">
+		<property name="name">
+			<value>CaveReverbWet</value>
+		</property>
+		<relationship name="effectChain">
+			<destination>{245a795e-7d5e-4642-972d-18ef56297142}</destination>
+		</relationship>
+		<relationship name="panner">
+			<destination>{08a22fdb-68f8-4a55-bd54-205ce91cfb45}</destination>
+		</relationship>
+		<relationship name="output">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusEffectChain" id="{245a795e-7d5e-4642-972d-18ef56297142}">
+		<relationship name="effects">
+			<destination>{06a9f31c-d786-478c-8cc3-7701d01957bc}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusPanner" id="{08a22fdb-68f8-4a55-bd54-205ce91cfb45}" />
+	<object class="MixerBusFader" id="{06a9f31c-d786-478c-8cc3-7701d01957bc}" />
+</objects>
