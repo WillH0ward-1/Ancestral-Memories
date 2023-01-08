@@ -7,7 +7,10 @@ using System;
 
 public class PlayerSoundEffects : MonoBehaviour
 {
-    private PARAMETER_ID ParamID;
+    [SerializeField] private Camera cam;
+    private Rigidbody rigidBody;
+    private AreaManager areaManager;
+    [SerializeField] private PlayerWalk playerWalk;
 
     [SerializeField] private EventReference WalkEventPath;
     [SerializeField] private EventReference HitTreeEventPath;
@@ -18,14 +21,6 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference EatEventPath;
     [SerializeField] private EventReference VomitEventPath;
     [SerializeField] private EventReference FluteEventPath;
-
-    [SerializeField] private Camera cam;
-
-    [SerializeField] private PlayerWalk playerWalk;
-
-    private AreaManager areaManager;
-
-    private Rigidbody rigidBody;
 
     private EventInstance walkEvent;
     private EventInstance rightFootStepEvent;
@@ -155,13 +150,6 @@ public class PlayerSoundEffects : MonoBehaviour
         walkEvent.release();
     }
 
-    float duration = 0;
-    [SerializeField] float minShakeDuration = 1;
-    [SerializeField] float maxShakeDuration = 2;
-
-    [SerializeField] float minShakeMultiplier = 1;
-    [SerializeField] float maxShakeMultiplier = 2;
-
     float shakeMultiplier = 1;
 
     void HitTree()
@@ -174,7 +162,14 @@ public class PlayerSoundEffects : MonoBehaviour
 
         Shake camShake = cam.GetComponent<Shake>();
         shakeMultiplier = UnityEngine.Random.Range(shakeMultiplier, shakeMultiplier);
-        duration = UnityEngine.Random.Range(minShakeDuration, maxShakeDuration);
+
+        float minShakeDuration = 1;
+        float maxShakeDuration = 2;
+
+        float duration = UnityEngine.Random.Range(minShakeDuration, maxShakeDuration);
+
+        //float minShakeMultiplier = 1;
+        //float maxShakeMultiplier = 2;
 
         StartCoroutine(camShake.ScreenShake(duration, shakeMultiplier));
         //shakeMultiplier = Random.Range(1, 1.1);

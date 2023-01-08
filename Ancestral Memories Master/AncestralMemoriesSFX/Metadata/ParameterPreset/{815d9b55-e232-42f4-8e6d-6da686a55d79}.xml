@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.01.00">
+	<object class="ParameterPreset" id="{815d9b55-e232-42f4-8e6d-6da686a55d79}">
+		<property name="name">
+			<value>WaterWaveStrength</value>
+		</property>
+		<relationship name="folder">
+			<destination>{706adfaf-2af0-4187-9688-0367b5d8fe4f}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{d3e603a6-40fa-47cb-b112-b51858ecfebe}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{d3e603a6-40fa-47cb-b112-b51858ecfebe}">
+		<property name="isGlobal">
+			<value>true</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="isExposedRecursively">
+			<value>false</value>
+		</property>
+	</object>
+</objects>

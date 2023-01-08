@@ -45,12 +45,16 @@ public class ParticleCollision : MonoBehaviour
             screenCoords.y > 0 &&
             screenCoords.y < 1;
 
+        // Credit for above: ScottsGameSounds
+
         if (onScreen)
         {
-            //rainDropInstance = RuntimeManager.CreateInstance(rainSFX);
-            // rainDropInstance.start();
+            EventInstance rainDropInstance = RuntimeManager.CreateInstance(rainSFX);
+            rainDropInstance.start();
+            rainDropInstance.release();
 
-            emitter.EventInstance.start();
+            //emitter.EventInstance.start();
+            //emitter.EventInstance.release();
 
             //instance = RuntimeManager.CreateInstance(rainSFX);
             //instance.start();
@@ -106,6 +110,4 @@ public class ParticleCollision : MonoBehaviour
 
 
     }
-
-
 }

@@ -15,13 +15,18 @@ public class BirdDensity : MonoBehaviour
 
     public bool birdsActive;
 
-    private MapObjGen mapObjGen;
+    [SerializeField] private Camera cam;
+    [SerializeField] private MeshSettings meshSettings;
 
     // Start is called before the first frame update
     void Start()
     {
+        birds.cam = cam;
         birds._childAmount = birdDensity;
         birds._childAmount = currentBirdDensity;
+
+        birds._spawnSphereDepth = meshSettings.meshWorldSize;
+        birds._spawnSphereHeight = meshSettings.meshWorldSize / 3;
 
         StartCoroutine(GetBirdDensity());
     }

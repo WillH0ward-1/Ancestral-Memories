@@ -121,6 +121,9 @@
 		<relationship name="automators">
 			<destination>{edab5761-5424-4eeb-af95-8b4cfcd16b43}</destination>
 		</relationship>
+		<relationship name="parameters">
+			<destination>{fcbacb95-a908-46ac-a0eb-f538933db464}</destination>
+		</relationship>
 		<relationship name="event">
 			<destination>{f0b059bf-8d24-45d6-828f-b22e1c4ee99a}</destination>
 		</relationship>
@@ -167,6 +170,11 @@
 		</property>
 		<relationship name="automationCurves">
 			<destination>{ad2c649c-1b7f-4ddc-a799-3ad1d2d0fe89}</destination>
+		</relationship>
+	</object>
+	<object class="ParameterProperty" id="{fcbacb95-a908-46ac-a0eb-f538933db464}">
+		<relationship name="parameter">
+			<destination>{5e1950cd-d13a-4d06-95cf-d4e1085c71ad}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{86ebf4d2-89c8-4f4c-aec2-4a42baf85dbb}">

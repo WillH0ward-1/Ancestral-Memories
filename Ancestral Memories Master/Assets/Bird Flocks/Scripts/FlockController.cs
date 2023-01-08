@@ -60,7 +60,9 @@ public class FlockController:MonoBehaviour{
     public bool _groupChildToFlock;			// Parents fish transform to school transform
     public Vector3 _startPosOffset;
     public Transform _thisT;					// Reference to the transform component
-    
+
+    public Camera cam;
+
     public void Start() {
     	_thisT = transform;
     	///FIX FOR UPDATING FROM OLDER VERSION
@@ -81,9 +83,11 @@ public class FlockController:MonoBehaviour{
     public void AddChild(int amount){
     	if(_groupChildToNewTransform)InstantiateGroup();
     	for(int i=0;i<amount;i++){
-    		FlockChild obj = (FlockChild)Instantiate(_childPrefab);	
-    	    obj._spawner = this;
-    	    _roamers.Add(obj);
+    		FlockChild obj = (FlockChild)Instantiate(_childPrefab);
+            obj.transform.GetComponentInChildren<CrowAudioManager>().cam = cam;
+
+            obj._spawner = this;
+            _roamers.Add(obj);
     	   AddChildToParent(obj.transform);
     	}	
     }

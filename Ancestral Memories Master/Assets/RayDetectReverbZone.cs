@@ -6,19 +6,19 @@ using FMODUnity;
 
 public class RayDetectReverbZone : MonoBehaviour
 {
-
     private ReverbManager reverbManager;
 
     private PlayerSoundEffects playerSFX;
-    
-    [SerializeField] private GameObject attenuationObject;
-    [SerializeField] private GameObject reverbReflectorEmitter;
+
+
+    [SerializeField] private GameObject rayOrigin;
+    [SerializeField] private GameObject reverbZoneWall;
 
     [SerializeField] private LayerMask layer;
     [SerializeField] private bool inRange;
     [SerializeField] private float distance;
 
-    [SerializeField] private bool raycasting = false;
+    [SerializeField] private bool castActive = false;
 
     float minDistance = 0;
     float maxDistance = 1;
@@ -30,17 +30,16 @@ public class RayDetectReverbZone : MonoBehaviour
 
     private void Awake()
     {
-        raycasting = false;
-        attenuationObject = transform.gameObject;
+        castActive = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.CompareTag("NearReverbZone"))
+        if (other.transform.CompareTag("ReverbZone"))
         {
             inRange = true;
 
-            if (!raycasting)
+            if (!castActive)
             {
                 StartCoroutine(CastRay());
             }
@@ -49,33 +48,44 @@ public class RayDetectReverbZone : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.transform.CompareTag("NearReverbZone"))
+        if (other.transform.CompareTag("ReverbZone"))
         {
             inRange = false;
-            raycasting = false;
+            castActive = false;
         }
     }
 
+    [SerializeField] private float sphereCastRadius = 1;
+
     private IEnumerator CastRay()
     {
-        raycasting = true;
+        castActive = true;
 
         while (inRange)
         {
-            float x1 = attenuationObject.transform.localPosition.x;
-            float z1 = attenuationObject.transform.localPosition.z;
-
-            float x2 = reverbReflectorEmitter.transform.localPosition.x;
-            float z2 = reverbReflectorEmitter.transform.localPosition.z;
-
-
-            distance = Vector2.Distance(new Vector2(x1, z1), new Vector2(x2, z2));
-
-            if (Physics.Raycast(transform.position, Vector3.forward, out RaycastHit rayHit, Mathf.Infinity, layer))
+            if (Physics.SphereCast(transform.position, sphereCastRadius, Vector3.forward, out RaycastHit rayHit, layer))
             {
-                Vector3 attenuationObjectPos = attenuationObject.transform.position;
+                //Gizmos.DrawSp(transform.position, Vector3.forward);
 
-                var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
+                print(rayHit.transform);
+
+                distance = Vector3.Distance(rayOrigin.transform.position, rayHit.transform.position);
+
+                float rayHitPosX = rayHit.transform.position.x;
+                float rayHitPosY = rayHit.transform.position.y;
+                float rayHitPosZ = rayHit.transform.position.z;
+
+                float rayOriginX = rayOrigin.transform.position.x;
+                float rayOriginY = rayOrigin.transform.position.y;
+                float rayOriginZ = rayOrigin.transform.position.z;
+
+                rayHitPosX -= rayOriginX;
+                rayHitPosY -= rayOriginY;
+                rayHitPosZ -= rayOriginZ;
+
+                Vector3 rayPos = new(rayHitPosX, rayHitPosY, rayHitPosZ);
+
+                var t = Mathf.InverseLerp(0, distance, distance);
                 float output = Mathf.Lerp(reverbIntensityMin, reverbIntensityMax, t);
                 targetIntensity = output;
 

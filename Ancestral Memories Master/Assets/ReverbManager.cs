@@ -13,6 +13,7 @@ public class ReverbManager : MonoBehaviour
     private void Awake()
     {
         emitter = transform.GetComponent<StudioEventEmitter>();
+        reverbInstance = emitter.EventInstance;
     }
 
 }

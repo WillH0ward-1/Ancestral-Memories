@@ -75,9 +75,6 @@
 	</object>
 	<object class="MarkerTrack" id="{137c4228-513d-40eb-bf74-770716261fa8}" />
 	<object class="GroupTrack" id="{b65193ba-2378-4c24-b617-c1c46d6d9243}">
-		<relationship name="automationTracks">
-			<destination>{5585d679-40d1-47c0-bb77-e23b8d94141b}</destination>
-		</relationship>
 		<relationship name="modules">
 			<destination>{7ee06a63-4f1d-4c9f-8788-10f6f15b4d87}</destination>
 		</relationship>
@@ -123,11 +120,6 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{f7d78b96-6296-4a80-97fa-d38cfbeaf32b}" />
-	<object class="AutomationTrack" id="{5585d679-40d1-47c0-bb77-e23b8d94141b}">
-		<relationship name="automator">
-			<destination>{1c1b9dab-7b61-48e0-b887-79c8c38842db}</destination>
-		</relationship>
-	</object>
 	<object class="MultiSound" id="{7ee06a63-4f1d-4c9f-8788-10f6f15b4d87}">
 		<property name="length">
 			<value>0.34000000000000002</value>
@@ -139,7 +131,7 @@
 			<value>10</value>
 		</property>
 		<property name="pitch">
-			<value>0.400000006</value>
+			<value>3.4000001</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{c9c94f1e-f71a-485c-afdf-ce9daf9e6e36}</destination>
@@ -229,7 +221,6 @@
 			<destination>{d2bf6477-a336-463e-a758-5ffc9fb91159}</destination>
 			<destination>{cbb98158-4fd2-4b7f-b075-f921045e3176}</destination>
 			<destination>{c9199774-6ba9-4c61-82d5-00297b613b8c}</destination>
-			<destination>{c48362e3-cb68-49df-98e2-d165d84db6e0}</destination>
 			<destination>{48883ad0-e800-4eae-96c4-f294661839d5}</destination>
 		</relationship>
 	</object>
@@ -294,20 +285,12 @@
 			<value>22000</value>
 		</property>
 	</object>
-	<object class="MixerSend" id="{c48362e3-cb68-49df-98e2-d165d84db6e0}">
-		<property name="inputFormat">
-			<value>1</value>
-		</property>
-		<relationship name="mixerReturn">
-			<destination>{cbdda855-a249-4968-9ea0-188570299b7e}</destination>
-		</relationship>
-	</object>
 	<object class="ChorusEffect" id="{48883ad0-e800-4eae-96c4-f294661839d5}">
 		<property name="rate">
 			<value>0.0799999982</value>
 		</property>
 		<property name="depth">
-			<value>70</value>
+			<value>100</value>
 		</property>
 	</object>
 	<object class="Automator" id="{7b63781d-a401-4400-938d-c6244cfda229}">
