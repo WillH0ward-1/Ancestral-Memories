@@ -44,13 +44,13 @@ public class CrowAudioManager : MonoBehaviour
         return true;
     }
 
+    /*
     private void Update()
     {
         var targetRender = target.GetComponent<Renderer>();
 
         if (IsVisible(cam, target) && animation.clip.name == flock._spawner._flapAnimation)
         {
-
             Debug.Log("On Screen!");
             
         }
@@ -62,7 +62,7 @@ public class CrowAudioManager : MonoBehaviour
 
         return;
     }
-
+    */
 
 
     public void PlayWingFlap()

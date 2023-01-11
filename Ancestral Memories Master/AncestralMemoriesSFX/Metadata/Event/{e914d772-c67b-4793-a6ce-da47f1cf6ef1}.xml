@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.01.00">
 	<object class="Event" id="{e914d772-c67b-4793-a6ce-da47f1cf6ef1}">
 		<property name="name">
-			<value>Birds</value>
+			<value>BirdChirps</value>
 		</property>
 		<property name="outputFormat">
 			<value>2</value>
@@ -34,6 +34,9 @@
 		<relationship name="parameters">
 			<destination>{1872a226-a6f5-4722-a245-0666b5a8b04a}</destination>
 		</relationship>
+		<relationship name="banks">
+			<destination>{312af681-03fa-4f0a-97ac-af4d02c4f20c}</destination>
+		</relationship>
 	</object>
 	<object class="EventMixer" id="{70731320-45eb-4b1f-be08-fea038d3723f}">
 		<relationship name="masterBus">
@@ -59,7 +62,11 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{b8825257-be7a-4c79-8739-57a36e506146}" />
+	<object class="EventAutomatableProperties" id="{b8825257-be7a-4c79-8739-57a36e506146}">
+		<property name="maxVoices">
+			<value>35</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{cfd1e522-f3f9-41f0-9d11-c0f203dd8b00}" />
 	<object class="GroupTrack" id="{a59be7f8-92f2-4302-aab2-2e79a55c835f}">
 		<relationship name="automationTracks">
@@ -115,26 +122,35 @@
 		<property name="length">
 			<value>10</value>
 		</property>
+		<property name="volume">
+			<value>2.5</value>
+		</property>
+		<property name="pitch">
+			<value>-1.60000002</value>
+		</property>
 		<property name="polyphony">
-			<value>14</value>
+			<value>1</value>
 		</property>
 		<property name="minimumTimeBetweenSounds">
-			<value>950</value>
+			<value>42</value>
 		</property>
 		<property name="maximumTimeBetweenSounds">
-			<value>8000</value>
+			<value>7000</value>
 		</property>
 		<property name="spawnRate">
 			<value>500</value>
 		</property>
 		<property name="maximumScatterDistance">
-			<value>6.4000001</value>
+			<value>25</value>
 		</property>
 		<property name="pitchRandomization">
-			<value>4.5999999</value>
+			<value>3.79999995</value>
 		</property>
 		<relationship name="automators">
 			<destination>{f4c9536e-6f67-4706-876c-512419783976}</destination>
+		</relationship>
+		<relationship name="modulators">
+			<destination>{e0ea2e3a-677d-442f-88c6-28a0f52ec137}</destination>
 		</relationship>
 		<relationship name="sound">
 			<destination>{6cf851ff-63f4-469d-82f1-b0027e3800f5}</destination>
@@ -187,10 +203,17 @@
 			<destination>{46e035da-86cf-47ac-b89b-3483c2dacef8}</destination>
 		</relationship>
 	</object>
+	<object class="RandomizerModulator" id="{e0ea2e3a-677d-442f-88c6-28a0f52ec137}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>22</value>
+		</property>
+	</object>
 	<object class="MultiSound" id="{6cf851ff-63f4-469d-82f1-b0027e3800f5}">
 		<relationship name="sounds">
 			<destination>{01045064-3cf4-43c7-b296-0872748034e7}</destination>
-			<destination>{8d5a573e-6f58-4f35-9af0-a9d6b1b65051}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{7426f270-02ed-4879-ad0d-ac8cd5f532d4}">
@@ -211,8 +234,11 @@
 		</relationship>
 	</object>
 	<object class="MultiSound" id="{01045064-3cf4-43c7-b296-0872748034e7}">
+		<property name="volume">
+			<value>-8</value>
+		</property>
 		<property name="pitch">
-			<value>-0.300000012</value>
+			<value>-0.699999988</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{559d264f-d687-4f8d-8e45-8ebf77d1f706}</destination>
@@ -231,14 +257,13 @@
 			<destination>{ebd237b1-4ae1-4a6f-a547-cc37d4bfd700}</destination>
 		</relationship>
 	</object>
-	<object class="MultiSound" id="{8d5a573e-6f58-4f35-9af0-a9d6b1b65051}" />
 	<object class="MixerBusFader" id="{a5fdb6e1-02de-4b38-b42d-125647514a6c}" />
 	<object class="AutomationPoint" id="{3fd4a333-ffcd-43ab-b6a6-32a0b74db504}">
 		<property name="position">
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>500</value>
+			<value>270</value>
 		</property>
 		<property name="curveShape">
 			<value>0.477478802</value>
@@ -257,7 +282,7 @@
 			<value>pitch</value>
 		</property>
 		<property name="amount">
-			<value>5.5</value>
+			<value>27</value>
 		</property>
 	</object>
 	<object class="SingleSound" id="{6fd5a9b4-4d8e-41e1-afbf-2d027878d20f}">

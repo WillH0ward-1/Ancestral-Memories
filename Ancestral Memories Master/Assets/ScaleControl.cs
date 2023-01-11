@@ -4,11 +4,20 @@ using UnityEngine;
 
 public class ScaleControl : MonoBehaviour
 {
-    public bool isFullyGrown = false;
-
     [SerializeField] private float xAxisGrowMultiplier = 1;
     [SerializeField] private float yAxisGrowMultiplier = 1;
     [SerializeField] private float zAxisGrowMultiplier = 1;
+
+    public bool isFullyGrown = false;
+    public bool isGrowing = false;
+
+    public GameObject scaleObjectRef;
+    public float durationRef;
+    public Vector3 scaleStartRef;
+    public Vector3 scaleDestinationRef;
+    public float delayRef;
+
+    public float growthPercent;
 
     //[SerializeField] private RainControl rain;
 
@@ -20,8 +29,14 @@ public class ScaleControl : MonoBehaviour
         }
         else if (scaleObject != null)
         {
-
             isFullyGrown = false;
+            isGrowing = true;
+
+            durationRef = duration;
+            scaleObjectRef = scaleObject;
+            scaleStartRef = scaleStart;
+            scaleDestinationRef = scaleDestination;
+            delayRef = delay;
 
             scaleObject.transform.localScale = scaleStart;
 
@@ -42,11 +57,14 @@ public class ScaleControl : MonoBehaviour
 
                 time += Time.deltaTime / duration;
 
-                localScaleX = Mathf.Lerp(localScaleX, scaleDestination.x, time * xAxisGrowMultiplier);
-                localScaleY = Mathf.Lerp(localScaleY, scaleDestination.y, time * yAxisGrowMultiplier);
-                localScaleZ = Mathf.Lerp(localScaleZ, scaleDestination.z, time * zAxisGrowMultiplier);
+                growthPercent = time;
+
+                localScaleX = Mathf.Lerp(scaleStart.x, scaleDestination.x, time * xAxisGrowMultiplier);
+                localScaleY = Mathf.Lerp(scaleStart.y, scaleDestination.y, time * yAxisGrowMultiplier);
+                localScaleZ = Mathf.Lerp(scaleStart.z, scaleDestination.z, time * zAxisGrowMultiplier);
 
                 scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
+
 
                 yield return null;
             }
@@ -55,6 +73,7 @@ public class ScaleControl : MonoBehaviour
             {
                 scaleObject.transform.localScale = scaleDestination;
                 isFullyGrown = true;
+                isGrowing = false;
                 yield break;
             }
         }

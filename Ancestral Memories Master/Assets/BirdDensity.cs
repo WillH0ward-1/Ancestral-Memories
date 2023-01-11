@@ -26,7 +26,7 @@ public class BirdDensity : MonoBehaviour
         birds._childAmount = currentBirdDensity;
 
         birds._spawnSphereDepth = meshSettings.meshWorldSize;
-        birds._spawnSphereHeight = meshSettings.meshWorldSize / 3;
+        birds._spawnSphereHeight = meshSettings.meshWorldSize;
 
         StartCoroutine(GetBirdDensity());
     }
