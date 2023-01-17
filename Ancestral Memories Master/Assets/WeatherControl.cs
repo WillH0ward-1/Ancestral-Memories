@@ -27,6 +27,7 @@ public class WeatherControl : MonoBehaviour
 
     private Renderer[] windAffectedRenderers;
 
+
     //[SerializeField] private List<Renderer> windAffectedRenderers;
 
     // Start is called before the first frame update
@@ -36,6 +37,7 @@ public class WeatherControl : MonoBehaviour
     void Start()
     {
         ListCleanup();
+
         EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
         windStrength = 0;
         StartCoroutine(WindStrength(windSFX));
@@ -51,17 +53,17 @@ public class WeatherControl : MonoBehaviour
         }
     }
 
-    private IEnumerator WindStrength(EventInstance windSFX)
+    private IEnumerator WindStrength(EventInstance windSFXInstance)
     {
         windIsActive = true;
 
-        windSFX.start();
+        windSFXInstance.start();
 
         while (windIsActive)
         {
             windStrength = targetWindStrength;
 
-            windSFX.setParameterByName("WindStrength", windStrength);
+            windSFXInstance.setParameterByName("WindStrength", windStrength);
             Debug.Log("WindStrength:" + windStrength);
 
             foreach (Transform t in windAffectedRendererList)
@@ -77,7 +79,7 @@ public class WeatherControl : MonoBehaviour
 
         if (!windIsActive)
         {
-            StartCoroutine(StopWind(windSFX));
+            StartCoroutine(StopWind(windSFXInstance));
             yield break;
         }
     }

@@ -69,6 +69,9 @@ public class RayDetectReverbZone : MonoBehaviour
 
                 print(rayHit.transform);
 
+                reverbManager.emitter.EventInstance.start();
+                reverbManager.emitter.EventInstance.release();
+
                 distance = Vector3.Distance(rayOrigin.transform.position, rayHit.transform.position);
 
                 float rayHitPosX = rayHit.transform.position.x;
@@ -89,7 +92,7 @@ public class RayDetectReverbZone : MonoBehaviour
                 float output = Mathf.Lerp(reverbIntensityMin, reverbIntensityMax, t);
                 targetIntensity = output;
 
-                reverbManager.reverbInstance.setParameterByName("ReverbIntensity", targetIntensity);
+                reverbManager.emitter.EventInstance.setParameterByName("ReverbIntensity", targetIntensity);
             }
 
             yield return null;

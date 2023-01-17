@@ -4,46 +4,227 @@ using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System;
-
+using FMOD;
 
 public class MusicManager : MonoBehaviour
 {
     [SerializeField] private EventReference MusicEventPath;
+    private StudioGlobalParameterTrigger globalParamTrigger;
 
     [SerializeField] private AreaManager areaManager;
     [SerializeField] private PlayerWalk playerWalk;
-    
-    [NonSerialized] public int ModeMajor = 0;
-    [NonSerialized] public int ModeNaturalMinor = 1;
-    [NonSerialized] public int ModeDorian = 2;
-    [NonSerialized] public int ModePhrygian = 3;
-    [NonSerialized] public int ModeLydian = 4;
-    [NonSerialized] public int ModeMixolydian = 5;
-    [NonSerialized] public int ModeLocrian = 6;
-    [NonSerialized] public int ModeKlezmer = 7;
-    [NonSerialized] public int ModeSeAsian = 8;
+
+    public string currentlyPlaying;
+
+    public enum Modes
+    {
+        Major,
+        NaturalMinor,
+        Dorian,
+        Phrygian,
+        Lydian,
+        Mixolydian,
+        Locrian,
+        Klezmer,
+        SeAsian,
+        Chromatic
+    }
+
+    public enum GameStates
+    {
+        Menu,
+        Spawning,
+        Exploring,
+        Praying,
+        FluteMode,
+        Reflecting,
+        Pause,
+        Death
+    }
+
+    public float psychedeliaParam;
+
+    public enum Locations
+    {
+        Outside,
+        InsideCave,
+    }
+
+    public string currentGameState;
 
     private EventInstance musicInstance;
+    private PARAMETER_ID musicParameterID;
 
-    private int currentMode;
+    private FMOD.Studio.EventDescription musicEventDescription;
+
+    public bool sequence;
+
+    public float minInterval;
+    public float maxInterval;
+
+    [SerializeField] private int currentMode;
+
+    [SerializeField] private bool musicFaithMode = false;
+    private bool modulated = false;
+
+    [SerializeField] float faith;
+
+    private StudioEventEmitter studioEventEmitter;
 
     private void Start()
     {
+
+        //StartCoroutine(IntroLoop());
+
+        // musicParameterID = musicParameterDescription.id;
+        //globalParamTrigger = transform.GetComponent<StudioGlobalParameterTrigger>();
+       // globalParamTrigger.TriggerEvent = EmitterGameEvent.ObjectStart;
+        //globalParamTrigger.Parameter = "Mode";
+
+        //studioEventEmitter = transform.GetComponent<StudioEventEmitter>();
+
+        //globalParamTrigger.Value = 5;
+
         PlayMusic();
-        Modulate(ModeMajor);
+        StartCoroutine(IntroLoop());
+
+        //globalParamTrigger.Value = (float)GetLabelIndex(musicInstance);
+
+
+        //StartCoroutine(MusicFaithModifier());
     }
 
-    public void Modulate(int newMode)
+    private void Update()
     {
-        if (newMode != currentMode)
+        
+    }
+
+    public IEnumerator IntroLoop()
+    {
+        RuntimeManager.StudioSystem.setParameterByName("State", currentMode);
+
+        minInterval = 7;
+        maxInterval = 10;
+
+        ManualModulate(Modes.Major);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.NaturalMinor);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Lydian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Phrygian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Mixolydian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Locrian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Klezmer);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        StartCoroutine(IntroLoop());
+
+        yield break;
+    }
+
+    public IEnumerator Exploring()
+    {
+        minInterval = 5;
+        maxInterval = 10;
+
+        ManualModulate(Modes.Lydian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Mixolydian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        StartCoroutine(Exploring());
+
+        yield break;
+    }
+
+    public IEnumerator Dialogue()
+    {
+        minInterval = 5;
+        maxInterval = 10;
+
+        ManualModulate(Modes.Lydian);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
+
+        ManualModulate(Modes.Mixolydian);
+
+        yield break;
+    }
+
+    public void ManualModulate(Modes newMode)
+    {
+        currentlyPlaying = newMode.ToString();
+        currentMode = (int)newMode;
+
+        if (autoModulating)
+        {
+            StopCoroutine(FaithModulate(0));
+            autoModulating = false;
+        }
+
+        RuntimeManager.StudioSystem.setParameterByName("Mode", currentMode);
+
+    }
+
+    private bool autoModulating = false;
+
+    public IEnumerator FaithModulate(int newMode)
+    {
+        autoModulating = true;
+
+        float minKarma = 0;
+        float maxKarma = 100;
+
+        while (autoModulating)
         {
             currentMode = newMode;
 
-            musicInstance.setParameterByName("Mode", currentMode);
+            //faith = player.faith;
+
+            musicInstance.getDescription(
+             out EventDescription description
+             );
+
+            description.getParameterDescriptionCount(
+            out int count
+            );
+
+            float newMin = 0;
+            float newMax = count;
+
+            if (newMode != currentMode)
+            {
+                var t = Mathf.InverseLerp(minKarma, maxKarma, faith);
+                int output = (int)Mathf.Lerp(newMin, newMax, t);
+
+                //musicInstance.setParameterByNameWithLabel("Mode", newMode);
+
+            }
+
+            yield return null;
         }
 
-        return;
-
+        yield break;
     }
 
     void PlayMusic()
@@ -52,6 +233,7 @@ public class MusicManager : MonoBehaviour
 
         musicInstance.start();
         musicInstance.release();
+
     }
 
     void StopMusic()
@@ -62,3 +244,4 @@ public class MusicManager : MonoBehaviour
 
 
 }
+

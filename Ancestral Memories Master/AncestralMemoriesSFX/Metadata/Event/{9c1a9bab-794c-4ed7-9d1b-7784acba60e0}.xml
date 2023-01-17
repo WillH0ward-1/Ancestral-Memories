@@ -8,7 +8,7 @@
 			<value>2</value>
 		</property>
 		<relationship name="folder">
-			<destination>{dc5fc090-4198-4f06-a620-bb20d7df4751}</destination>
+			<destination>{28376160-7fe4-40b5-ae19-0cd6aa928bf1}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{30b295ae-bab4-4d09-bf79-8545808ef8a8}</destination>
@@ -35,7 +35,7 @@
 			<destination>{1f7bf4d0-f5fe-4ba2-b9a2-0e69abb57500}</destination>
 		</relationship>
 		<relationship name="banks">
-			<destination>{312af681-03fa-4f0a-97ac-af4d02c4f20c}</destination>
+			<destination>{a1b47bcc-1e37-451a-9ac6-3bfd82ea4d28}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixer" id="{30b295ae-bab4-4d09-bf79-8545808ef8a8}">
@@ -135,17 +135,20 @@
 		</relationship>
 	</object>
 	<object class="SoundScatterer" id="{dde6f326-93c6-485b-ba9f-5050e13e2dae}">
-		<property name="triggerConditionMode">
-			<value>1</value>
+		<property name="triggerProbability">
+			<value>0</value>
 		</property>
 		<property name="length">
 			<value>10</value>
+		</property>
+		<property name="delayType">
+			<value>0</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
 		<property name="minimumTimeBetweenSounds">
-			<value>950</value>
+			<value>2500</value>
 		</property>
 		<property name="maximumTimeBetweenSounds">
 			<value>7500</value>
@@ -170,9 +173,6 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{8e181957-0d9f-4d06-99fc-6da06243ddad}">
-		<property name="volume">
-			<value>-4.5</value>
-		</property>
 		<property name="name">
 			<value>Crow</value>
 		</property>
@@ -230,7 +230,6 @@
 	<object class="MultiSound" id="{008af8f7-ebc6-4a2d-9a2e-f439cb60800e}">
 		<relationship name="sounds">
 			<destination>{271321ba-45b7-4a5e-89cf-97bad9726251}</destination>
-			<destination>{8a5e08bf-4b1d-4b1e-a26c-d32cdba1d40c}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{3c096881-6f3c-409e-af4c-647a392f7c5d}">
@@ -306,7 +305,6 @@
 			<destination>{345c6fdf-c2aa-481f-b6a3-00467b84105f}</destination>
 		</relationship>
 	</object>
-	<object class="MultiSound" id="{8a5e08bf-4b1d-4b1e-a26c-d32cdba1d40c}" />
 	<object class="MixerBusFader" id="{8967ea55-d879-4f08-94e5-8919d1aac72f}" />
 	<object class="AutomationPoint" id="{6c11ae8f-b192-40a2-8f1d-b4d9f21bed8e}">
 		<property name="position">
@@ -340,7 +338,7 @@
 			<value>0.98803848870056499</value>
 		</property>
 		<property name="value">
-			<value>500</value>
+			<value>115.000008</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{639b5972-1ee8-4c3b-a727-19544687f4d6}">

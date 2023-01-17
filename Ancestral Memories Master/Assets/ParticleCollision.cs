@@ -59,7 +59,7 @@ public class ParticleCollision : MonoBehaviour
             //instance = RuntimeManager.CreateInstance(rainSFX);
             //instance.start();
 
-            //emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
+            emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
         }
 
         //lightningStrikeEvent.setVolume();

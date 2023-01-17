@@ -12,8 +12,6 @@ public class TreeAudioSFX : MonoBehaviour
     private ScaleControl scaleControl;
     bool isPlaying = true;
 
-    [SerializeField] private Player player;
-
     public float treeGrowTime;
 
 
@@ -26,24 +24,12 @@ public class TreeAudioSFX : MonoBehaviour
     private EventInstance treeGrowSFXInstance;
     private EventInstance birdChirpInstance;
 
+    public TreeDeathManager treeFallManager;
 
     void Awake()
     {
-
         scaleControl = transform.GetComponentInChildren<ScaleControl>();
         rigidBody = transform.GetComponent<Rigidbody>();
-    }
-
-    private void Start()
-    {
-        StartCoroutine(WaitForStart());
-    }
-
-    private IEnumerator WaitForStart()
-    {
-        yield return new WaitUntil(() => scaleControl.isGrowing);
-
-        StartCoroutine(StartTreeGrowthSFX());
     }
 
     private void StartTreeBirds()
@@ -58,14 +44,14 @@ public class TreeAudioSFX : MonoBehaviour
     [SerializeField] private float newMin = 0;
     [SerializeField] private float newMax = 1;
 
-    private IEnumerator StartTreeGrowthSFX()
+    public IEnumerator StartTreeGrowthSFX()
     {
         if (!scaleControl.isFullyGrown)
         {
             PlayTreeGrowthSFX();
         }
 
-        while (scaleControl.isGrowing && !scaleControl.isFullyGrown)
+        while (!scaleControl.isFullyGrown && !treeFallManager.treeDead)
         {
             float output = scaleControl.growthPercent;
 
@@ -86,9 +72,12 @@ public class TreeAudioSFX : MonoBehaviour
             yield return null;
         }
 
-        if (scaleControl.isFullyGrown && !scaleControl.isGrowing)
+        if (treeFallManager.treeDead)
         {
             StopTreeGrowthSFX();
+            StopBirdSFX();
+
+            yield break;
         }
 
         yield break;
@@ -101,13 +90,35 @@ public class TreeAudioSFX : MonoBehaviour
         RuntimeManager.AttachInstanceToGameObject(treeGrowSFXInstance, transform, rigidBody);
 
         treeGrowSFXInstance.start();
-  
+        treeGrowSFXInstance.release();
+    }
+
+    PLAYBACK_STATE PlaybackState(EventInstance instance) 
+    {
+        instance.getPlaybackState(out PLAYBACK_STATE state);
+        return state;
     }
 
     void StopTreeGrowthSFX()
     {
-        treeGrowSFXInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
-        treeGrowSFXInstance.release();
+        if (PlaybackState(treeGrowSFXInstance) != PLAYBACK_STATE.STOPPED)
+        {
+            treeGrowSFXInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            treeGrowSFXInstance.release();
+        }
+
+        return;
+    }
+
+    void StopBirdSFX()
+    {
+        if (PlaybackState(birdChirpInstance) != PLAYBACK_STATE.STOPPED)
+        {
+            birdChirpInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
+            birdChirpInstance.release();
+        }
+
+        return;
     }
 
 }

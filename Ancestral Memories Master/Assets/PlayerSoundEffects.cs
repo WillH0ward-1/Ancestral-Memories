@@ -175,6 +175,24 @@ public class PlayerSoundEffects : MonoBehaviour
         //shakeMultiplier = Random.Range(1, 1.1);
     }
 
+    private int killThreshold = 6;
+    public int numberOfHits = 0;
+
+    public GameObject targetTree;
+
+    public void HitCount()
+    {
+        numberOfHits++;
+
+        if (numberOfHits >= killThreshold)
+        {
+            targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall(3);
+
+            numberOfHits = 0;
+            return;
+        }
+    }
+
 
     void ScreamingPainEvent()
     {

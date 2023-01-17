@@ -16,7 +16,7 @@ public class CorruptionControl : MonoBehaviour
 
     void Awake()
     {
-        Renderer[] objectRenderers = transform.GetComponentsInChildren<MeshRenderer>();
+        Renderer[] objectRenderers = transform.GetComponentsInChildren<Renderer>();
         rendererList = objectRenderers.ToList();
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }

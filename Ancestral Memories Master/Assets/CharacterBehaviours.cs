@@ -96,11 +96,14 @@ public class CharacterBehaviours : MonoBehaviour
 
     private PlayerSoundEffects playerAudioSFX;
 
+    public MusicManager musicManager;
+
     void Start()
     {
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
         waterCheck = player.GetComponent<CheckIfUnderwater>();
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
+        playerAudioSFX = player.GetComponentInChildren<PlayerSoundEffects>();
         //animSpeed = player.activeAnimator.speed;
     }
 
@@ -129,7 +132,7 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(Dance(GetRandomAnimation(danceAnimClips)));
                 break;
             case "HarvestTree":
-                StartCoroutine(HarvestTree());
+                StartCoroutine(HarvestTree(hitObject));
                 break;
             case "Heal":
                 break;
@@ -329,7 +332,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToPanoramaZoom();
 
-        audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
+        //audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -337,8 +340,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = false;
         cinematicCam.panoramaScroll = false;
 
-
-        audioListener.SetDefaultAttenuation();
+        //audioListener.SetDefaultAttenuation();
 
         cinematicCam.ToGameZoom();
 
@@ -360,6 +362,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     bool pulseActive = false;
 
+    public AuraParticleControl auraParticles;
+
     public IEnumerator Pray(GameObject hitObject)
     {
         cinematicCam.scrollOverride = true;
@@ -372,7 +376,10 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToPrayerZoom();
-        StartCoroutine(PrayerPulseEffect());
+
+        auraParticles.StartParticles();
+
+        //StartCoroutine(PrayerPulseEffect());
         StartCoroutine(GainFaith());
 
         //god.StartGodRay(hitObject.transform, false);
@@ -380,6 +387,8 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
         pulseActive = false;
+
+        auraParticles.StopParticles();
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
         yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_PRAYER_END);
@@ -648,9 +657,13 @@ public class CharacterBehaviours : MonoBehaviour
     float interval;
 
     private float camMoveDuration = 1f;
-
-    public IEnumerator HarvestTree()
+    
+    public IEnumerator HarvestTree(GameObject hitObject)
     {
+        //killThreshold = hitObject.transform.localScale.x;
+        playerAudioSFX.numberOfHits = 0;
+        playerAudioSFX.targetTree = hitObject;
+
         tool.Wield(wieldedStoneAxe, sheathedStoneAxe);
 
         behaviourIsActive = true;
@@ -675,8 +688,8 @@ public class CharacterBehaviours : MonoBehaviour
             yield return null;
         }
 
-        cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.ToActionZoom();
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));

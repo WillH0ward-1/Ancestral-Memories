@@ -1585,6 +1585,11 @@ namespace FMOD.Studio
             throw new NotImplementedException();
         }
 
+        public RESULT getDescription(out RESULT musicEventDescription)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 

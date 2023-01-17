@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using FMODUnity;
 using UnityEngine;
 
 public class CamControl : MonoBehaviour
@@ -96,6 +97,11 @@ public class CamControl : MonoBehaviour
     public float maxOrthoZoom;
     public float minOrthoZoom;
 
+    [Header("Music Manager")]
+    [Header("========================================================================================================================")]
+
+    public MusicManager musicManager;
+
     public void Start()
     {
         rpCamera.perspective = initZoom;
@@ -114,12 +120,16 @@ public class CamControl : MonoBehaviour
 
     private IEnumerator WaitForMouseClick()
     {
+        StartCoroutine(musicManager.IntroLoop());
+
         waitForClick = true;
 
        while (waitForClick)
        {
             if (Input.GetMouseButtonDown(0))
             {
+                StartCoroutine(musicManager.Exploring());
+
                 ToSpawnZoom();
                 waitForClick = false;
             }
@@ -426,7 +436,6 @@ public class CamControl : MonoBehaviour
 
     //[SerializeField] float perspectiveDelay = 1;
 
-
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
     {
 
@@ -446,6 +455,15 @@ public class CamControl : MonoBehaviour
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, func(time));
 
             time += Time.deltaTime / duration;
+
+            if (zoomDestination == psychedelicZoom)
+            {
+
+                var t = Mathf.InverseLerp(currentZoom, zoomDestination, func(time));
+                float output = Mathf.Lerp(1, 0, t);
+
+                RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
+            }
 
             yield return null;
         }

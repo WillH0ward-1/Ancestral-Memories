@@ -197,6 +197,16 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private CharacterBehaviours behaviours;
 
+    [Header("========================================================================================================================")]
+    [Header("Weather")]
+    [Space(10)]
+
+
+    [SerializeField] private RainControl rainControl;
+
+
+    [SerializeField] private TreeDeathManager treeFallManager;
+
     private void Start()
     {
 
@@ -273,7 +283,7 @@ public class MapObjGen : MonoBehaviour
         //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
         //AnimalPoissonDisc(animalSampler);
-        //MushroomPoissonDisc(mushroomSampler);
+        MushroomPoissonDisc(mushroomSampler);
         //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
@@ -514,6 +524,10 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.SetParent(hierarchyRoot.transform);
 
+            TreeDeathManager treeDeathManager = treeInstance.GetComponent<TreeDeathManager>();
+            treeDeathManager.mapObjGen = this;
+
+            //treeSFX.treeFallManager = treeFallManager;
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
@@ -584,11 +598,17 @@ public class MapObjGen : MonoBehaviour
 
     private LeafControl leafControl;
 
-    private void GrowTrees(GameObject tree)
+    public void GrowTrees(GameObject tree)
     {
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
         ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
+
+        TreeDeathManager treeDeathManager = tree.transform.GetComponent<TreeDeathManager>();
+
+        treeDeathManager.scaleControl = treeGrowControl;
+
+        treeGrowControl.rainControl = rainControl;
 
         //LeafControl treeshader = tree.GetComponent<LeafControl>();
 
@@ -800,6 +820,9 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minMushroomScale.y, maxMushroomScale.y),
             Random.Range(minMushroomScale.z, maxMushroomScale.z));
 
+            ScaleControl mushroomGrowControl = mushroomInstance.transform.GetComponent<ScaleControl>();
+
+            mushroomGrowControl.rainControl = rainControl;
 
             mushroomInstance.tag = mushroomTag;
 

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Shake : MonoBehaviour
 {
-    private FMOD.Studio.EventInstance instance;
 
     public bool start = false;
     public AnimationCurve curve;
@@ -15,7 +14,7 @@ public class Shake : MonoBehaviour
 
     private void Start()
     {
-        instance = FMODUnity.RuntimeManager.CreateInstance("event:/Earthquake");
+        //instance = FMODUnity.RuntimeManager.CreateInstance("event:/Earthquake");
         //StartCoroutine(Float(transform.gameObject));
     }
 
