@@ -8,44 +8,48 @@ public class HideGodFace : MonoBehaviour
     private Dialogue dialogue;
 
     private Renderer meshRenderer;
+
+    [SerializeField] public Transform target;
+
+    [SerializeField] private Camera mainCam;
+
     // Start is called before the first frame update
     private void Start()
     {
+        target = mainCam.transform;
         meshRenderer = gameObject.GetComponent<Renderer>();
     }
 
     void OnTriggerEnter(Collider other)
     {
-        outOfRange = false;
-        dialogue = other.transform.root.GetComponent<Dialogue>();
-
         if (other.transform.CompareTag("GodFaceFire"))
         {
-            meshRenderer.enabled = false;
+            outOfRange = false;
+            dialogue = other.transform.root.GetComponent<Dialogue>();
         } 
-    }
-
-    private void Update()
-    {
-        if (dialogue != null)
-        {
-            if (!dialogue.dialogueIsActive)
-            {
-                meshRenderer.enabled = false;
-            }
-        } else
-        {
-            return;
-        }
     }
 
     void OnTriggerExit(Collider other)
     {
-        outOfRange = true;
-
         if (other.transform.CompareTag("GodFaceFire"))
         {
-            gameObject.GetComponent<Renderer>().enabled = true;
+            outOfRange = true;
+        }
+    }
+
+    private void Update()
+    {
+        gameObject.transform.LookAt(target.position);
+
+        if (dialogue.dialogueActive && outOfRange)
+        {
+            meshRenderer.enabled = true;
+        }
+        else if (!dialogue.dialogueActive)
+        {
+
+            meshRenderer.enabled = false;
+
         }
     }
 

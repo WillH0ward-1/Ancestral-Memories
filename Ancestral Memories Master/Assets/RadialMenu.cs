@@ -104,7 +104,7 @@ public class RadialMenu : MonoBehaviour
                 Destroy(gameObject);
                 return;
             }
-
+            
         }
     }
 

@@ -12,9 +12,9 @@ public class Dialogue : MonoBehaviour
     [SerializeField] private string[] lines;
     [SerializeField] private float textSpeed;
 
-    private Player thisPlayer;
+    private Player player;
 
-    public bool dialogueIsActive;
+    public bool dialogueActive;
 
     private int index;
 
@@ -27,17 +27,16 @@ public class Dialogue : MonoBehaviour
 
     private IEnumerator CheckPlayerInRange()
     {
-        while (dialogueIsActive)
+        while (dialogueActive)
         {
             Debug.Log(distance);
-            distance = Vector3.Distance(thisPlayer.transform.root.position, transform.root.position);
+            distance = Vector3.Distance(player.transform.root.position, transform.root.position);
 
             if (distance >= distanceThreshold)
             {
-     
                 outOfRange = true;
                 StopAllCoroutines();
-                dialogueIsActive = false;
+                dialogueActive = false;
                 Destroy(dialogueBoxInstance);
 
             } else if (distance <= distanceThreshold)
@@ -51,26 +50,25 @@ public class Dialogue : MonoBehaviour
         yield break;
     }
 
-    private IEnumerator WaitForSkip()
+    void Update()
     {
-        while (dialogueIsActive)
+        if (dialogueActive)
         {
             if (Input.GetMouseButtonDown(1))
             {
                 if (textComponent.text == lines[index])
                 {
-                    NextLine(lines);
+                    NextLine();
                 }
                 else
                 {
+                    clickPromptObject.SetActive(true);
                     StopAllCoroutines();
                     textComponent.text = lines[index];
+
                 }
             }
-            yield return null;
         }
-
-        yield break;
     }
 
     private Canvas canvas;
@@ -83,13 +81,17 @@ public class Dialogue : MonoBehaviour
         canvas.enabled = false;
     }
 
+    private GameObject clickPromptObject;
+
     public void StartDialogue(Dialogue dialogue, Player player)
     {
+        /*
         if (!dialogue.transform.root.CompareTag("CampFire"))
         {
-            thisPlayer = player;
-            StartCoroutine(CheckPlayerInRange());
+            this.player = player;
+            //StartCoroutine(CheckPlayerInRange());
         }
+        */
 
         if (dialogueBox != null)
         {
@@ -100,15 +102,16 @@ public class Dialogue : MonoBehaviour
             dialogueBoxInstance = Instantiate(dialogueBox.gameObject, dialogue.transform.root);
             textComponent = dialogueBoxInstance.transform.GetComponentInChildren<TextMeshProUGUI>();
             canvasInstance = dialogueBoxInstance.transform.GetComponentInChildren<Canvas>();
+
+            clickPromptObject = dialogueBoxInstance.transform.GetComponentInChildren<ClickPrompt>().transform.gameObject;
+            clickPromptObject.SetActive(false);
+
             canvasInstance.enabled = true;
 
             textComponent.text = string.Empty;
 
-            dialogueIsActive = true;
+            StartDialogue();
 
-            index = 0;
-
-            StartCoroutine(TypeLine());
         }
         else if (dialogueBox == null)
         {
@@ -118,31 +121,45 @@ public class Dialogue : MonoBehaviour
         }
     }
 
-    void NextLine(string[] lines)
+    void StartDialogue()
+    {
+
+        index = 0;
+        dialogueActive = true;
+        StartCoroutine(TypeLine());
+    }
+
+    void NextLine()
     {
        if (index < lines.Length - 1)
        {
-
             index++;
             textComponent.text = string.Empty;
             StartCoroutine(TypeLine());
         }
         else
         {
-            dialogueIsActive = false;
+            dialogueActive = false;
+   
+            //canvasInstance.enabled = false;
             Destroy(dialogueBoxInstance);
         }
     }
 
     IEnumerator TypeLine()
     {
-        StartCoroutine(WaitForSkip());
+
+        clickPromptObject.SetActive(false);
 
         foreach (char c in lines[index].ToCharArray())
         {
             textComponent.text += c;
             yield return new WaitForSeconds(textSpeed);
         }
+
+        clickPromptObject.SetActive(true);
+
+
     }
 }
 

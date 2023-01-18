@@ -104,6 +104,8 @@ public class CharacterBehaviours : MonoBehaviour
         waterCheck = player.GetComponent<CheckIfUnderwater>();
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
         playerAudioSFX = player.GetComponentInChildren<PlayerSoundEffects>();
+        vomit.Stop();
+        
         //animSpeed = player.activeAnimator.speed;
     }
 
@@ -161,6 +163,9 @@ public class CharacterBehaviours : MonoBehaviour
                 break;
             case "PlayMusic":
                 StartCoroutine(PlayMusic());
+                break;
+            case "ResetGame":
+                StartCoroutine(ResetGame());
                 break;
             //Look();
             default:
@@ -517,7 +522,6 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
-        yield return new WaitWhile(() => player.activeAnimator.runtimeAnimatorController.name == PLAYER_STANDINGEAT);
 
         if (DetectIfPsychedelic())
         {
@@ -527,11 +531,12 @@ public class CharacterBehaviours : MonoBehaviour
         {
             isPsychdelicMode = false;
             cinematicCam.ToGameZoom();
+
             
         }
 
         behaviourIsActive = false;
-        //pickUpManager.DestroyPickup();
+        pickUpManager.DestroyPickup();
         yield break;
 
     }
@@ -608,6 +613,11 @@ public class CharacterBehaviours : MonoBehaviour
             yield break;
         }
 
+    }
+
+    public IEnumerator ResetGame()
+    {
+        yield return null;
     }
 
     public IEnumerator Reflect()
@@ -770,7 +780,7 @@ public class CharacterBehaviours : MonoBehaviour
             hitObject.transform.LookAt(player.transform);
             cinematicCam.ToDialogueZoom();
 
-            yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
+            yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
             behaviourIsActive = false;
             player.ChangeAnimationState(PLAYER_IDLE);
@@ -781,12 +791,14 @@ public class CharacterBehaviours : MonoBehaviour
             cinematicCam.ToGameZoom();
             yield break;
         }
+        else
+        {
+            yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
-        yield return new WaitUntil(() => dialogue.dialogueIsActive == false);
-
-        dialogueIsActive = false;
-        cinematicCam.ToGameZoom();
-        yield break;
+            dialogueIsActive = false;
+            cinematicCam.ToGameZoom();
+            yield break;
+        }
 
     }
 

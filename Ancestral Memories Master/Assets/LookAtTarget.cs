@@ -16,7 +16,6 @@ public class LookAtTarget : MonoBehaviour
 
     private void Start()
     {
-
         meshRenderer = transform.GetComponent<Renderer>();
         meshRenderer.enabled = false;
 
@@ -30,26 +29,27 @@ public class LookAtTarget : MonoBehaviour
     { 
         gameObject.transform.LookAt(target.position);
 
-        if (!dialogue.dialogueIsActive)
+        if (!dialogue.dialogueActive)
         {
             meshRenderer.enabled = false;
-        } else if (dialogue.dialogueIsActive)
+        }
+        else if (dialogue.dialogueActive && inRange)
         {
-            if (inRange)
-            {
-                meshRenderer.enabled = true;
-            } else
-            {
-                meshRenderer.enabled = false;
-            }
+
+            meshRenderer.enabled = true;
+
+        } else { 
+            meshRenderer.enabled = false;
         }
     }
+
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.transform.CompareTag("Player"))
         {
             inRange = true;
+            target = other.transform.GetComponent<CharacterBehaviours>().cinematicCam.transform;
         }
     }
 

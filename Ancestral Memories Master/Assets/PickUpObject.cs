@@ -43,10 +43,9 @@ public class PickUpObject : MonoBehaviour
 
     public void DestroyPickup()
     {
-        if (!pickedUpObject.CompareTag("Player"))
-        {
-            Destroy(pickedUpObject);
-        }
+
+        Destroy(pickedUpObject);
+        
     }
 
   

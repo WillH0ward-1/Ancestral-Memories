@@ -40,14 +40,18 @@ public class InteractCamera : MonoBehaviour
     [SerializeField] private float maxSelectionDistance = 5f;
     [SerializeField] private float minSelectionDistance = 0f;
 
+    private GameObject currentHitObject;
+
     void Update()
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
 
+        
         if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
         {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
+                currentHitObject = hit.transform.gameObject;
 
                 if (Input.GetMouseButtonDown(1))
                 {
@@ -86,7 +90,7 @@ public class InteractCamera : MonoBehaviour
                             return;
                         }
 
-                        interactable.SpawnMenu(lastHit, hit);
+                        interactable.SpawnMenu(currentHitObject, hit);
 
                         if (hit.collider.transform.CompareTag("Player"))
                         {

@@ -312,65 +312,82 @@ public class PlayerWalk : MonoBehaviour
     private float walkTowardSpeed;
 
     private Vector3 destination;
-    private Vector3 sizeCalculated;
+    private Vector3 boundsSize;
+
+    public bool showDestinationGizmos = false;
 
     [SerializeField] private GameObject destinationGizmo;
+
+    private GameObject destinationGizmoInstance;
+    private DestinationGizmo trigger;
+
+    private Renderer gizmoRenderer;
 
     public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal, RaycastHit rayHit)
     {
         // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
+        // Needs refactoring... 
 
         if (selected == "Drink")
         {
             destination = rayHit.point;
-            sizeCalculated = player.transform.localScale;
-            destinationGizmo.transform.localScale = sizeCalculated;
+            boundsSize = player.transform.localScale;
+            destinationGizmo.transform.localScale = boundsSize;
         }
 
         if (selected != "Drink")
         {
             destination = hitObject.transform.position;
-            sizeCalculated = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-            destinationGizmo.transform.localScale = sizeCalculated;
+            boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+            destinationGizmo.transform.localScale = boundsSize;
         }
 
         if (selected == "KindleFire")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 3;
+            destinationGizmo.transform.localScale = boundsSize / 3;
         }
 
         if (selected == "Eat")
         {
-            destinationGizmo.transform.localScale = sizeCalculated * 2;
+            destinationGizmo.transform.localScale = boundsSize * 2;
         }
 
         if (selected == "Reflect")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 1;
+            destinationGizmo.transform.localScale = boundsSize / 1;
         }
 
         if (selected == "Look")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 0;
+            destinationGizmo.transform.localScale = boundsSize / 0;
         }
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 4;
+            destinationGizmo.transform.localScale = boundsSize / 4;
         }
 
         if (selected == "HarvestTree")
         {
-            destinationGizmo.transform.localScale = sizeCalculated / 8;
+            destinationGizmo.transform.localScale = boundsSize / 8;
         }
 
         if (selected == "Talk")
         {
-            destinationGizmo.transform.localScale = sizeCalculated * 2;
+            destinationGizmo.transform.localScale = boundsSize * 2;
         }
 
-        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
-        DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
+        destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
+        trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
+        gizmoRenderer = destinationGizmoInstance.transform.GetComponent<Renderer>();
+
+        if (!showDestinationGizmos)
+        {
+            gizmoRenderer.enabled = false;
+        }
+        else { 
+            gizmoRenderer.enabled = true;
+        }
 
         if (Input.GetMouseButtonDown(0) && !areaManager.traversing)
         {
@@ -381,7 +398,10 @@ public class PlayerWalk : MonoBehaviour
 
             behaviours.SheatheItem();
 
-            Destroy(destinationGizmoInstance);
+            if (destinationGizmoInstance)
+            {
+                Destroy(destinationGizmoInstance);
+            }
 
             yield break;
         }
@@ -401,7 +421,8 @@ public class PlayerWalk : MonoBehaviour
         }
 
         walkTowardSpeed = runThreshold + 1;
-        player.AdjustAnimationSpeed(defaultAnimSpeed);
+        walkAnimFactor = walkTowardSpeed / animFactor;
+        player.AdjustAnimationSpeed(walkAnimFactor);
         agent.destination = destination;
         agent.speed = walkTowardSpeed;
         agent.isStopped = false;
