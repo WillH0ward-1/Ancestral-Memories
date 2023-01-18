@@ -140,17 +140,14 @@
 		<property name="spawnRate">
 			<value>500</value>
 		</property>
-		<property name="maximumScatterDistance">
-			<value>25</value>
+		<property name="minimumScatterDistance">
+			<value>0</value>
 		</property>
-		<property name="pitchRandomization">
-			<value>3.79999995</value>
+		<property name="maximumScatterDistance">
+			<value>0</value>
 		</property>
 		<relationship name="automators">
 			<destination>{f4c9536e-6f67-4706-876c-512419783976}</destination>
-		</relationship>
-		<relationship name="modulators">
-			<destination>{e0ea2e3a-677d-442f-88c6-28a0f52ec137}</destination>
 		</relationship>
 		<relationship name="sound">
 			<destination>{6cf851ff-63f4-469d-82f1-b0027e3800f5}</destination>
@@ -158,7 +155,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{35038a97-356b-41fb-8b9a-ebfe7dbd8faf}">
 		<property name="volume">
-			<value>-4.5</value>
+			<value>-3</value>
 		</property>
 		<property name="name">
 			<value>Birds</value>
@@ -203,14 +200,6 @@
 			<destination>{46e035da-86cf-47ac-b89b-3483c2dacef8}</destination>
 		</relationship>
 	</object>
-	<object class="RandomizerModulator" id="{e0ea2e3a-677d-442f-88c6-28a0f52ec137}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>22</value>
-		</property>
-	</object>
 	<object class="MultiSound" id="{6cf851ff-63f4-469d-82f1-b0027e3800f5}">
 		<relationship name="sounds">
 			<destination>{01045064-3cf4-43c7-b296-0872748034e7}</destination>
@@ -223,7 +212,11 @@
 	</object>
 	<object class="MixerBusPanner" id="{397e004f-209a-490e-a6f8-f81ef6da32e2}" />
 	<object class="MixerBusFader" id="{87438c66-2dd5-4f3e-9677-8dcdb4d6fe90}" />
-	<object class="SpatialiserEffect" id="{5a77e5ab-968c-430f-8859-96908490bce0}" />
+	<object class="SpatialiserEffect" id="{5a77e5ab-968c-430f-8859-96908490bce0}">
+		<property name="maximumDistance">
+			<value>100</value>
+		</property>
+	</object>
 	<object class="AutomationCurve" id="{46e035da-86cf-47ac-b89b-3483c2dacef8}">
 		<relationship name="parameter">
 			<destination>{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}</destination>
@@ -242,6 +235,7 @@
 		</property>
 		<relationship name="modulators">
 			<destination>{559d264f-d687-4f8d-8e45-8ebf77d1f706}</destination>
+			<destination>{d5d497a9-59f8-4d23-8f18-9262b26d5c68}</destination>
 		</relationship>
 		<relationship name="sounds">
 			<destination>{6fd5a9b4-4d8e-41e1-afbf-2d027878d20f}</destination>
@@ -282,7 +276,12 @@
 			<value>pitch</value>
 		</property>
 		<property name="amount">
-			<value>27</value>
+			<value>11</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{d5d497a9-59f8-4d23-8f18-9262b26d5c68}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>startOffset</value>
 		</property>
 	</object>
 	<object class="SingleSound" id="{6fd5a9b4-4d8e-41e1-afbf-2d027878d20f}">

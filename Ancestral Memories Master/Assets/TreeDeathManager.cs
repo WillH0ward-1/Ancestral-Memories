@@ -38,7 +38,8 @@ public class TreeDeathManager : MonoBehaviour
         
         treeFalling = false;
 
-        StartCoroutine(PullUnderground(deathSinkSpeed));
+        StartCoroutine(Regrow());
+        // StartCoroutine(PullUnderground(deathSinkSpeed));
 
         yield break;
     }
@@ -49,8 +50,13 @@ public class TreeDeathManager : MonoBehaviour
     public IEnumerator PullUnderground(float duration)
     {
         float time = 0;
-   
-        float yDestination = -10;
+
+        yPos = transform.position.y - 10;
+
+        Vector3 newPos = new Vector3(transform.localPosition.x, yPos, transform.localPosition.y);
+        yPos = transform.position.y - 10;
+
+        Vector3 position = transform.localPosition;
 
         while (time <= 1)
         {
@@ -58,7 +64,7 @@ public class TreeDeathManager : MonoBehaviour
 
             yPos = transform.position.y;
 
-            yPos = Mathf.Lerp(transform.position.y, yDestination, time);
+            transform.localPosition = Vector3.Lerp(position, newPos, time);
 
             yield return null;
         }
@@ -71,7 +77,6 @@ public class TreeDeathManager : MonoBehaviour
     public IEnumerator Regrow()
     {
         yield return new WaitForSeconds(regrowBuffer);
-
         treeDead = false;
         transform.gameObject.transform.localRotation = new Quaternion(0, 0, 0, 0);
         mapObjGen.GrowTrees(transform.gameObject);

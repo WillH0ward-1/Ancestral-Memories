@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class ScaleControl : MonoBehaviour
 {
-    [SerializeField] private float xAxisGrowMultiplier = 1;
-    [SerializeField] private float yAxisGrowMultiplier = 1;
-    [SerializeField] private float zAxisGrowMultiplier = 1;
+    [SerializeField] private float xAxisGrowMultiplier = 1f;
+    [SerializeField] private float yAxisGrowMultiplier = 1f;
+    [SerializeField] private float zAxisGrowMultiplier = 1f;
 
     public bool isFullyGrown = false;
 
@@ -23,6 +23,8 @@ public class ScaleControl : MonoBehaviour
 
     public RainControl rainControl;
     public TreeAudioSFX treeAudio;
+
+    public bool ignoreLayer = false;
 
 
     //[SerializeField] private RainControl rain;
@@ -52,12 +54,12 @@ public class ScaleControl : MonoBehaviour
 
         else if (scaleObject != null)
         {
+            isFullyGrown = false;
+
             if (scaleObject.transform.CompareTag("Trees") && !treeKillManager.treeFalling)
             {
                 treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
             }
-
-            isFullyGrown = false;
        
             durationRef = duration;
             scaleObjectRef = scaleObject;
@@ -69,25 +71,26 @@ public class ScaleControl : MonoBehaviour
 
             yield return new WaitForSeconds(delay);
 
-            time = 0;
+            time = 0f;
 
             float localScaleX = scaleObject.transform.localScale.x;
             float localScaleY = scaleObject.transform.localScale.y;
             float localScaleZ = scaleObject.transform.localScale.z;
 
-            float rainMultiplier = 1;
+            float rainMultiplier = 1f;
+            float initialMultiplier = 1f;
 
             while (time <= 1f) //&& rain.isRaining)
             {
                 if (rainControl.isRaining) //&& transform.CompareTag("Trees"))
                 {
-                    rainMultiplier = 20;
+                    rainMultiplier = 20f;
                 } else
                 {
-                    rainMultiplier = 1;
+                    rainMultiplier = 1f;
                 }
                 
-                time += Time.deltaTime * rainMultiplier / duration;
+                time += Time.deltaTime * rainMultiplier * initialMultiplier / duration;
 
                 growthPercent = time;
 
@@ -104,6 +107,17 @@ public class ScaleControl : MonoBehaviour
                 }
 
                 scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
+
+                if (growthPercent <= 0.25f)
+                {
+                    ignoreLayer = true;
+                    initialMultiplier = 25f;
+                }
+                else if (growthPercent >= 0.25f)
+                {
+                    ignoreLayer = false;
+                    initialMultiplier = 1;
+                }
 
                 yield return null;
 
@@ -122,7 +136,6 @@ public class ScaleControl : MonoBehaviour
 
                 yield break;
             }
-
         }
     }
 }

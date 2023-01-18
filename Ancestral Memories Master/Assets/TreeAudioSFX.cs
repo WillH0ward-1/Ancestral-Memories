@@ -10,7 +10,6 @@ public class TreeAudioSFX : MonoBehaviour
 {
 
     private ScaleControl scaleControl;
-    bool isPlaying = true;
 
     public float treeGrowTime;
 
@@ -30,15 +29,6 @@ public class TreeAudioSFX : MonoBehaviour
     {
         scaleControl = transform.GetComponentInChildren<ScaleControl>();
         rigidBody = transform.GetComponent<Rigidbody>();
-    }
-
-    private void StartTreeBirds()
-    {
-        birdChirpInstance = RuntimeManager.CreateInstance(BirdChirpEventPath);
-        RuntimeManager.AttachInstanceToGameObject(birdChirpInstance, transform, rigidBody);
-
-        birdChirpInstance.start();
-        birdChirpInstance.release();
     }
 
     [SerializeField] private float newMin = 0;
@@ -64,7 +54,7 @@ public class TreeAudioSFX : MonoBehaviour
 
             birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
 
-            if (scaleControl.growthPercent >= 0.5)
+            if (scaleControl.growthPercent >= 0.7)
             {
                 StartTreeBirds();
             }
@@ -103,11 +93,20 @@ public class TreeAudioSFX : MonoBehaviour
     {
         if (PlaybackState(treeGrowSFXInstance) != PLAYBACK_STATE.STOPPED)
         {
-            treeGrowSFXInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            treeGrowSFXInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
             treeGrowSFXInstance.release();
         }
 
         return;
+    }
+
+    private void StartTreeBirds()
+    {
+        birdChirpInstance = RuntimeManager.CreateInstance(BirdChirpEventPath);
+        RuntimeManager.AttachInstanceToGameObject(birdChirpInstance, transform, rigidBody);
+
+        birdChirpInstance.start();
+        birdChirpInstance.release();
     }
 
     void StopBirdSFX()

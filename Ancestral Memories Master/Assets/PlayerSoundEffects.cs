@@ -180,13 +180,16 @@ public class PlayerSoundEffects : MonoBehaviour
 
     public GameObject targetTree;
 
+    public bool tree;
     public void HitCount()
     {
         numberOfHits++;
 
         if (numberOfHits >= killThreshold)
         {
-            targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall(3);
+
+
+            targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall();
 
             numberOfHits = 0;
             return;

@@ -599,10 +599,12 @@ public class MapObjGen : MonoBehaviour
     private LeafControl leafControl;
 
     public void GrowTrees(GameObject tree)
-    {
+    { 
+
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
         ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
+        treeGrowControl.ignoreLayer = true;
 
         TreeDeathManager treeDeathManager = tree.transform.GetComponent<TreeDeathManager>();
 

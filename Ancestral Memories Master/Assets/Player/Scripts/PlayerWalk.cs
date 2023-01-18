@@ -132,9 +132,12 @@ public class PlayerWalk : MonoBehaviour
         StartCoroutine(GetWaterDepth(raySource));
     }
 
-    private int GroundIndex = 0;
-    private int RockIndex = 1;
-    private int WaterIndex = 2;
+    public enum GroundTypes
+    {
+        GroundIndex,
+        RockIndex,
+        WaterIndex,
+    }
 
     private bool checkActive = false;
 
@@ -163,7 +166,7 @@ public class PlayerWalk : MonoBehaviour
                     {
                         playerInWater = true;
                         WaterDetected(rayTransform);
-                        playerSFX.UpdateGroundType(rayTransform, WaterIndex);
+                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
 
                         Debug.Log("RayTransform:" + rayTransform);
                         Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
@@ -172,7 +175,7 @@ public class PlayerWalk : MonoBehaviour
                     else if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
                     {
                         playerInWater = false;
-                        playerSFX.UpdateGroundType(rayTransform, GroundIndex);
+                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
                         Debug.Log("RayTransform:" + rayTransform);
                         Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
                         //currentGround = "Grass";
@@ -181,17 +184,18 @@ public class PlayerWalk : MonoBehaviour
                     else if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
                     {
                         playerInWater = false;
-                        playerSFX.UpdateGroundType(rayTransform, RockIndex);
+                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
                         Debug.Log("RayTransform:" + rayTransform);
                         Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
 
                         //currentGround = "Rock";
                     }
-
-                    checkActive = false;
-                    yield break;
                     //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
                 }
+
+
+                checkActive = false;
+                yield break;
             }
 
             yield return null;

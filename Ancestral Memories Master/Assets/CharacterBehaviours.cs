@@ -674,7 +674,9 @@ public class CharacterBehaviours : MonoBehaviour
 
         interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 
-        while (time <= interval && !Input.GetMouseButtonDown(0))
+        cinematicCam.ToActionZoom();
+
+        while (time <= interval && !Input.GetMouseButtonDown(0) && !hitObject.transform.GetComponentInChildren<TreeDeathManager>().treeDead)
         {
             interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 
@@ -687,12 +689,6 @@ public class CharacterBehaviours : MonoBehaviour
 
             yield return null;
         }
-
-        //cinematicCam.ToActionZoom();
-        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
-
-        Debug.Log("Click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.activeAnimator.speed = 1f;
 
