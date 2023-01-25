@@ -7,6 +7,7 @@ public class KillBuffer : MonoBehaviour
     public TreeDeathManager treeDeathManager;
     public float lifeTime = 60;
 
+    
     private void Awake()
     {
         treeDeathManager = transform.GetComponent<TreeDeathManager>();

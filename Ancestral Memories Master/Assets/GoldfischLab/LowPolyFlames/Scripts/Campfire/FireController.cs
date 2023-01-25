@@ -86,18 +86,18 @@ public class FireController : MonoBehaviour
 
         float time = 0;
 
-        while (time <= duration)
+        while (time <= 1f)
         {
-            time += Time.deltaTime;
+            time += Time.deltaTime / duration;
 
-            fireLightIntensity = Mathf.Lerp(fireLightIntensity, targetLightIntensity, time / duration);
+            fireLightIntensity = Mathf.Lerp(fireLightIntensity, targetLightIntensity, time);
             fireLight.intensity = fireLightIntensity;
-            emission.rateOverTime = Mathf.Lerp(emissionRate, targetEmissionRate, time / duration);
+            emission.rateOverTime = Mathf.Lerp(emissionRate, targetEmissionRate, time);
 
             yield return null;
         }
 
-        if (time >= duration)
+        if (time >= 1f)
         {
             float fireLength = Random.Range(minFireDuration, maxFireDuration);
             yield return new WaitForSeconds(fireLength);

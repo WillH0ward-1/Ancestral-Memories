@@ -24,7 +24,7 @@ public class ScaleControl : MonoBehaviour
     public RainControl rainControl;
     public TreeAudioSFX treeAudio;
 
-    public bool ignoreLayer = false;
+    private Interactable interactable;
 
 
     //[SerializeField] private RainControl rain;
@@ -40,6 +40,8 @@ public class ScaleControl : MonoBehaviour
         {
             return;
         }
+
+        interactable = transform.GetComponent<Interactable>();
     }
 
     float time;
@@ -110,12 +112,13 @@ public class ScaleControl : MonoBehaviour
 
                 if (growthPercent <= 0.25f)
                 {
-                    ignoreLayer = true;
+                    interactable.enabled = false;
                     initialMultiplier = 25f;
                 }
+
                 else if (growthPercent >= 0.25f)
                 {
-                    ignoreLayer = false;
+                    interactable.enabled = true;
                     initialMultiplier = 1;
                 }
 
@@ -123,9 +126,9 @@ public class ScaleControl : MonoBehaviour
 
             }
 
-            if (time >= 1f || scaleObject.transform.localScale == scaleDestination)
+            if (time >= 1f)
             {
-                //scaleObject.transform.localScale = scaleDestination;
+                scaleObject.transform.localScale = scaleDestination;
 
                 isFullyGrown = true;
 

@@ -187,8 +187,6 @@ public class PlayerSoundEffects : MonoBehaviour
 
         if (numberOfHits >= killThreshold)
         {
-
-
             targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall();
 
             numberOfHits = 0;

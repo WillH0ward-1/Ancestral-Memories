@@ -8,14 +8,6 @@ using FMOD;
 
 public class MusicManager : MonoBehaviour
 {
-    [SerializeField] private EventReference MusicEventPath;
-    private StudioGlobalParameterTrigger globalParamTrigger;
-
-    [SerializeField] private AreaManager areaManager;
-    [SerializeField] private PlayerWalk playerWalk;
-
-    public string currentlyPlaying;
-
     public enum Modes
     {
         Major,
@@ -42,8 +34,6 @@ public class MusicManager : MonoBehaviour
         Death
     }
 
-    public float psychedeliaParam;
-
     public enum Locations
     {
         Outside,
@@ -52,24 +42,25 @@ public class MusicManager : MonoBehaviour
 
     public string currentGameState;
 
+    [SerializeField] private EventReference MusicEventPath;
+    private StudioEventEmitter studioEventEmitter;
     private EventInstance musicInstance;
-    private PARAMETER_ID musicParameterID;
 
-    private FMOD.Studio.EventDescription musicEventDescription;
+    private float minInterval;
+    private float maxInterval;
 
-    public bool sequence;
+    [SerializeField] private float output = 0;
+    [SerializeField] private int faithModulateOutput;
+    [SerializeField] private int parameterCount = 0;
 
-    public float minInterval;
-    public float maxInterval;
-
+    [SerializeField] private string currentlyPlaying;
     [SerializeField] private int currentMode;
 
-    [SerializeField] private bool musicFaithMode = false;
-    private bool modulated = false;
+    private bool autoModulating = false;
 
-    [SerializeField] float faith;
-
-    private StudioEventEmitter studioEventEmitter;
+    [SerializeField] private AreaManager areaManager;
+    [SerializeField] private PlayerWalk playerWalk;
+    [SerializeField] private Player player;
 
     private void Start()
     {
@@ -86,7 +77,11 @@ public class MusicManager : MonoBehaviour
         //globalParamTrigger.Value = 5;
 
         PlayMusic();
-        StartCoroutine(IntroLoop());
+
+        musicInstance.getDescription(out EventDescription description);
+        description.getParameterDescriptionCount(out int count);
+        parameterCount = count;
+        newMax = parameterCount;
 
         //globalParamTrigger.Value = (float)GetLabelIndex(musicInstance);
 
@@ -99,9 +94,22 @@ public class MusicManager : MonoBehaviour
         
     }
 
-    public IEnumerator IntroLoop()
+
+    public IEnumerator WaitForBreak(IEnumerator running)
     {
-        RuntimeManager.StudioSystem.setParameterByName("State", currentMode);
+        if (autoModulating)
+        {
+            StopCoroutine(running);
+        }
+        
+        yield break;
+    }
+
+    public IEnumerator MusicIntro()
+    {
+        StartCoroutine(WaitForBreak(MusicIntro()));
+
+       // RuntimeManager.StudioSystem.setParameterByName("State", currentMode);
 
         minInterval = 7;
         maxInterval = 10;
@@ -134,13 +142,15 @@ public class MusicManager : MonoBehaviour
 
         yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
 
-        StartCoroutine(IntroLoop());
+        StartCoroutine(MusicIntro());
 
         yield break;
     }
 
-    public IEnumerator Exploring()
+    public IEnumerator MusicExploring()
     {
+        StartCoroutine(WaitForBreak(MusicExploring()));
+
         minInterval = 5;
         maxInterval = 10;
 
@@ -152,13 +162,15 @@ public class MusicManager : MonoBehaviour
 
         yield return new WaitForSeconds(UnityEngine.Random.Range(minInterval, maxInterval));
 
-        StartCoroutine(Exploring());
+        StartCoroutine(MusicExploring());
 
         yield break;
     }
 
-    public IEnumerator Dialogue()
+    public IEnumerator MusicDialogue()
     {
+        StartCoroutine(WaitForBreak(MusicDialogue()));
+
         minInterval = 5;
         maxInterval = 10;
 
@@ -176,55 +188,59 @@ public class MusicManager : MonoBehaviour
         currentlyPlaying = newMode.ToString();
         currentMode = (int)newMode;
 
-        if (autoModulating)
-        {
-            StopCoroutine(FaithModulate(0));
-            autoModulating = false;
-        }
+        autoModulating = false;
 
         RuntimeManager.StudioSystem.setParameterByName("Mode", currentMode);
 
     }
 
-    private bool autoModulating = false;
-
-    public IEnumerator FaithModulate(int newMode)
+    public IEnumerator FaithModulate()
     {
         autoModulating = true;
 
-        float minKarma = 0;
-        float maxKarma = 100;
-
         while (autoModulating)
         {
-            currentMode = newMode;
-
             //faith = player.faith;
 
-            musicInstance.getDescription(
-             out EventDescription description
-             );
+            currentMode = faithModulateOutput;
 
-            description.getParameterDescriptionCount(
-            out int count
-            );
-
-            float newMin = 0;
-            float newMax = count;
-
-            if (newMode != currentMode)
-            {
-                var t = Mathf.InverseLerp(minKarma, maxKarma, faith);
-                int output = (int)Mathf.Lerp(newMin, newMax, t);
-
-                //musicInstance.setParameterByNameWithLabel("Mode", newMode);
-
-            }
+            RuntimeManager.StudioSystem.setParameterByName("Mode", currentMode);
+            //musicInstance.setParameterByNameWithLabel("Mode", newMode);
 
             yield return null;
         }
 
         yield break;
+    }
+
+    float newMin;
+    float newMax;
+
+    private void OnEnable()
+    {
+
+        player.OnFaithChanged += KarmaModifier;
+
+        return;
+
+    }
+
+    private void OnDisable()
+    {
+
+        player.OnFaithChanged -= KarmaModifier;
+
+        return;
+    }
+
+    private void KarmaModifier(float karma, float minKarma, float maxKarma)
+    {
+        float newMin = 0;
+
+
+        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
+        output = Mathf.Lerp(newMin, newMax, t);
+        faithModulateOutput = (int)Mathf.Floor(output);
     }
 
     void PlayMusic()
@@ -241,7 +257,6 @@ public class MusicManager : MonoBehaviour
         musicInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
         musicInstance.release();
     }
-
 
 }
 

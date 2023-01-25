@@ -63,6 +63,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public float hunger;
     public float faith;
     public float evolution;
+    public float psych;
 
     public bool starving = false;
     public bool hasStarved = false;
@@ -102,6 +103,7 @@ public class CharacterClass : MonoBehaviour, IStats
         health = maxStat;
         hunger = maxStat;
         faith = minStat;
+        psych = minStat;
         evolution = minStat;        
 
         isDiseased = false;
@@ -288,10 +290,37 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual event Action<float, float, float> OnFaithChanged;
     public virtual event Action<float, float, float> OnHungerChanged;
+    public virtual event Action<float, float, float> OnPsychChanged;
 
     public bool isBlessed = false;
 
     [SerializeField] private DisasterManager naturalDisaster;
+
+    public virtual void GainPsych(float psychFactor)
+    {
+        OnPsychChanged?.Invoke(psych, minStat, maxStat);
+
+        psych += psychFactor;
+
+        if (psych <= minStat)
+        {
+            psych = minStat;
+
+        }
+    }
+
+    public virtual void DepletePsych(float psychFactor)
+    {
+        OnPsychChanged?.Invoke(psych, minStat, maxStat);
+
+        psych -= psychFactor;
+
+        if (psych <= minStat)
+        {
+            psych = minStat;
+              
+        }
+    }
 
     public virtual void DepleteFaith(float faithDamage)
     {

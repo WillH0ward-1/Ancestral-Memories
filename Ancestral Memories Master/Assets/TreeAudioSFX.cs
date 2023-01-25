@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-
 public class TreeAudioSFX : MonoBehaviour
 {
 
@@ -22,25 +21,27 @@ public class TreeAudioSFX : MonoBehaviour
 
     private EventInstance treeGrowSFXInstance;
     private EventInstance birdChirpInstance;
-
+    private Interactable interactable;
     public TreeDeathManager treeFallManager;
 
     void Awake()
     {
         scaleControl = transform.GetComponentInChildren<ScaleControl>();
         rigidBody = transform.GetComponent<Rigidbody>();
+
+        interactable = transform.GetComponent<Interactable>();
     }
 
     [SerializeField] private float newMin = 0;
     [SerializeField] private float newMax = 1;
 
+    [SerializeField] private float enableInteractThreshold = 0.7f;
+
     public IEnumerator StartTreeGrowthSFX()
     {
-        if (!scaleControl.isFullyGrown)
-        {
-            PlayTreeGrowthSFX();
-        }
 
+        PlayTreeGrowthSFX();
+        
         while (!scaleControl.isFullyGrown && !treeFallManager.treeDead)
         {
             float output = scaleControl.growthPercent;
@@ -56,7 +57,11 @@ public class TreeAudioSFX : MonoBehaviour
 
             if (scaleControl.growthPercent >= 0.7)
             {
+                interactable.enabled = true;
                 StartTreeBirds();
+            } else
+            {
+                interactable.enabled = false;
             }
 
             yield return null;
@@ -67,7 +72,6 @@ public class TreeAudioSFX : MonoBehaviour
             StopTreeGrowthSFX();
             StopBirdSFX();
 
-            yield break;
         }
 
         yield break;

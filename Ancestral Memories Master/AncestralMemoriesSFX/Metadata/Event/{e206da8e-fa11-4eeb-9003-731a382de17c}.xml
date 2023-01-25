@@ -50,9 +50,6 @@
 		<relationship name="timeline">
 			<destination>{bfcb9aa1-cef8-417f-8569-d48277af8564}</destination>
 		</relationship>
-		<relationship name="parameters">
-			<destination>{f73686e9-5afa-41b2-8198-03f562a46f0d}</destination>
-		</relationship>
 		<relationship name="banks">
 			<destination>{6b2e74f9-c99a-44b8-99c7-1e3761f6e45b}</destination>
 		</relationship>
@@ -66,6 +63,7 @@
 		<relationship name="automationTracks">
 			<destination>{e39d0200-27de-467d-b79e-299965aec304}</destination>
 			<destination>{08717a85-441b-44d4-8142-36c746fd835f}</destination>
+			<destination>{d22233a5-47f9-44ca-a2d7-ce1e7fcd289d}</destination>
 		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{9e8f19e9-727f-478a-91ba-3938077e019b}</destination>
@@ -352,17 +350,13 @@
 			<destination>{af52f6ea-7c65-4681-9e8d-089a76f6b9f2}</destination>
 		</relationship>
 	</object>
-	<object class="ParameterProxy" id="{f73686e9-5afa-41b2-8198-03f562a46f0d}">
-		<relationship name="preset">
-			<destination>{1a2e8baa-e11c-48c1-b38a-0ca3646203d1}</destination>
-		</relationship>
-	</object>
 	<object class="EventMixerMaster" id="{9e8f19e9-727f-478a-91ba-3938077e019b}">
 		<property name="pitch">
 			<value>-0.699999988</value>
 		</property>
 		<relationship name="automators">
 			<destination>{25219440-75cd-4c45-990d-6e56f22b5b7d}</destination>
+			<destination>{2a145f94-2ce0-46b8-97fa-68e20e868775}</destination>
 		</relationship>
 		<relationship name="modulators">
 			<destination>{053d99d3-7458-45ca-a46e-cfa20a64446b}</destination>
@@ -387,6 +381,11 @@
 			<destination>{25219440-75cd-4c45-990d-6e56f22b5b7d}</destination>
 		</relationship>
 	</object>
+	<object class="AutomationTrack" id="{d22233a5-47f9-44ca-a2d7-ce1e7fcd289d}">
+		<relationship name="automator">
+			<destination>{2a145f94-2ce0-46b8-97fa-68e20e868775}</destination>
+		</relationship>
+	</object>
 	<object class="MixerBusEffectChain" id="{82bb9774-2b0b-4c7a-9ade-845c82c3d23f}">
 		<relationship name="effects">
 			<destination>{b8728858-b5ef-47ab-b9da-08c535d3a3a9}</destination>
@@ -402,8 +401,8 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-8</value>
+		<property name="pitch">
+			<value>-0.300000012</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -446,9 +445,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-15.5</value>
-		</property>
 		<property name="pitch">
 			<value>-0.200000003</value>
 		</property>
@@ -486,9 +482,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-14.5</value>
 		</property>
 		<property name="pitch">
 			<value>-12.5</value>
@@ -531,9 +524,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-7.5</value>
-		</property>
 		<property name="polyphony">
 			<value>14</value>
 		</property>
@@ -550,9 +540,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-1</value>
 		</property>
 		<property name="polyphony">
 			<value>4</value>
@@ -585,9 +572,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-14.5</value>
 		</property>
 		<property name="pitch">
 			<value>-12.5</value>
@@ -630,9 +614,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-7.5</value>
-		</property>
 		<property name="pitch">
 			<value>-0.300000012</value>
 		</property>
@@ -671,9 +652,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-9</value>
-		</property>
 		<property name="pitch">
 			<value>-12.5</value>
 		</property>
@@ -711,9 +689,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-9</value>
 		</property>
 		<property name="pitch">
 			<value>-12.5</value>
@@ -780,7 +755,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{df2419ac-4759-4adb-bb04-26b041567bfe}">
 		<property name="volume">
-			<value>-10.5</value>
+			<value>-80</value>
 		</property>
 		<property name="name">
 			<value>Piano</value>
@@ -798,9 +773,6 @@
 	<object class="SoundScatterer" id="{09d51a1c-5203-4f1e-b5cd-65376932f710}">
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-2</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -878,9 +850,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>1</value>
-		</property>
 		<property name="polyphony">
 			<value>2</value>
 		</property>
@@ -915,9 +884,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-10.5</value>
 		</property>
 		<property name="polyphony">
 			<value>3</value>
@@ -954,9 +920,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-6.5</value>
-		</property>
 		<property name="polyphony">
 			<value>4</value>
 		</property>
@@ -991,9 +954,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-16</value>
 		</property>
 		<property name="pitch">
 			<value>-0.200000003</value>
@@ -1035,9 +995,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-8.5</value>
 		</property>
 		<property name="polyphony">
 			<value>4</value>
@@ -1144,7 +1101,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{1cd99c04-5165-471e-aa37-b5380a968510}">
 		<property name="volume">
-			<value>-15</value>
+			<value>-26</value>
 		</property>
 		<property name="name">
 			<value>Strings</value>
@@ -1167,9 +1124,6 @@
 	<object class="SoundScatterer" id="{b73e6372-bb05-435f-8d59-1dedca3784f5}">
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-14.5</value>
 		</property>
 		<property name="pitch">
 			<value>0.300000012</value>
@@ -1205,9 +1159,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-16</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -1247,9 +1198,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-15.5</value>
-		</property>
 		<property name="polyphony">
 			<value>2</value>
 		</property>
@@ -1284,9 +1232,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-16</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -1323,9 +1268,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-13.5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1361,9 +1303,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-16</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1396,9 +1335,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-13</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1427,9 +1363,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-16</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -1462,9 +1395,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-22.5</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -1501,6 +1431,9 @@
 		<property name="polyphony">
 			<value>1</value>
 		</property>
+		<property name="spawnDelayType">
+			<value>1</value>
+		</property>
 		<property name="minimumTimeBetweenSounds">
 			<value>84</value>
 		</property>
@@ -1508,7 +1441,7 @@
 			<value>950</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>3</value>
+			<value>4</value>
 		</property>
 		<property name="spawnRate">
 			<value>40</value>
@@ -1528,7 +1461,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{0fdf3dd9-4878-4e99-beda-27f90e9191c5}">
 		<property name="volume">
-			<value>-80</value>
+			<value>-47</value>
 		</property>
 		<property name="name">
 			<value>ChoirPad</value>
@@ -1565,7 +1498,7 @@
 			<value>8000</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>1</value>
+			<value>5</value>
 		</property>
 		<property name="spawnRate">
 			<value>500</value>
@@ -1593,9 +1526,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-3.5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1606,10 +1536,10 @@
 			<value>20000</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>1</value>
+			<value>5</value>
 		</property>
 		<property name="spawnRate">
-			<value>0</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1634,9 +1564,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-0.5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1647,7 +1574,10 @@
 			<value>20000</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>7</value>
+			<value>5</value>
+		</property>
+		<property name="spawnRate">
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1678,8 +1608,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>80</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1704,9 +1637,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-1</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1715,6 +1645,12 @@
 		</property>
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
+		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
+		<property name="spawnRate">
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1739,9 +1675,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-0.5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1751,8 +1684,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>80</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1780,8 +1716,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>4500</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>0</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1803,9 +1742,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-6</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1815,8 +1751,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>0</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1838,9 +1777,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-4</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1850,8 +1786,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>80</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1876,6 +1815,9 @@
 		<property name="polyphony">
 			<value>1</value>
 		</property>
+		<property name="spawnDelayType">
+			<value>1</value>
+		</property>
 		<property name="minimumTimeBetweenSounds">
 			<value>84</value>
 		</property>
@@ -1883,7 +1825,10 @@
 			<value>7000</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>3</value>
+			<value>5</value>
+		</property>
+		<property name="spawnRate">
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -1936,6 +1881,9 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
 			<value>500</value>
 		</property>
@@ -1959,9 +1907,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -1978,7 +1923,7 @@
 			<value>5</value>
 		</property>
 		<property name="spawnRate">
-			<value>0</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2003,9 +1948,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-8</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -2016,10 +1958,10 @@
 			<value>20000</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>7</value>
+			<value>5</value>
 		</property>
 		<property name="spawnRate">
-			<value>405</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2050,8 +1992,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>80</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2085,6 +2030,12 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>4000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
+		<property name="spawnRate">
+			<value>500</value>
+		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
 		</property>
@@ -2117,8 +2068,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>8000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>80</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2146,8 +2100,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>4500</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>0</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2169,9 +2126,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-6</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -2181,8 +2135,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>5000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>0</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2204,9 +2161,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-11.5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -2216,8 +2170,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>7000</value>
 		</property>
+		<property name="spawnQuantizationInterval">
+			<value>5</value>
+		</property>
 		<property name="spawnRate">
-			<value>80</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2242,6 +2199,9 @@
 		<property name="polyphony">
 			<value>1</value>
 		</property>
+		<property name="spawnDelayType">
+			<value>1</value>
+		</property>
 		<property name="minimumTimeBetweenSounds">
 			<value>84</value>
 		</property>
@@ -2249,10 +2209,10 @@
 			<value>950</value>
 		</property>
 		<property name="spawnQuantizationInterval">
-			<value>3</value>
+			<value>4</value>
 		</property>
 		<property name="spawnRate">
-			<value>40</value>
+			<value>500</value>
 		</property>
 		<property name="minimumScatterDistance">
 			<value>0</value>
@@ -2269,7 +2229,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{0b3d07c9-c885-4e3d-a7d3-6b58dc103cef}">
 		<property name="volume">
-			<value>-80</value>
+			<value>-32</value>
 		</property>
 		<property name="name">
 			<value>BellPad</value>
@@ -2303,9 +2263,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>1.5</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -2345,9 +2302,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-3.5</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -2382,9 +2336,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-0.5</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -2453,9 +2404,6 @@
 		<property name="length">
 			<value>10</value>
 		</property>
-		<property name="volume">
-			<value>-1</value>
-		</property>
 		<property name="polyphony">
 			<value>1</value>
 		</property>
@@ -2487,9 +2435,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-0.5</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -2580,9 +2525,6 @@
 		</property>
 		<property name="length">
 			<value>10</value>
-		</property>
-		<property name="volume">
-			<value>-4</value>
 		</property>
 		<property name="polyphony">
 			<value>1</value>
@@ -3512,7 +3454,7 @@
 			<destination>{bfcb9aa1-cef8-417f-8569-d48277af8564}</destination>
 		</relationship>
 		<relationship name="markerTrack">
-			<destination>{9465f56c-ddae-450d-aa42-caed50d98ce1}</destination>
+			<destination>{9e809e5c-cfab-4bfc-9e1f-2428653bb9d6}</destination>
 		</relationship>
 		<relationship name="destination">
 			<destination>{004f4fba-e84b-4fc2-9ab2-6883790e68c0}</destination>
@@ -3547,6 +3489,14 @@
 		</property>
 		<relationship name="automationCurves">
 			<destination>{d7061727-03d7-478e-a900-956ed8249b34}</destination>
+		</relationship>
+	</object>
+	<object class="Automator" id="{2a145f94-2ce0-46b8-97fa-68e20e868775}">
+		<property name="nameOfPropertyBeingAutomated">
+			<value>volume</value>
+		</property>
+		<relationship name="automationCurves">
+			<destination>{b83ff063-b09d-42ee-bb42-c8c12b2b0495}</destination>
 		</relationship>
 	</object>
 	<object class="LFOModulator" id="{053d99d3-7458-45ca-a46e-cfa20a64446b}">
@@ -5644,6 +5594,15 @@
 			<destination>{aa494e83-c176-4296-828d-568f73499d9c}</destination>
 		</relationship>
 	</object>
+	<object class="AutomationCurve" id="{b83ff063-b09d-42ee-bb42-c8c12b2b0495}">
+		<relationship name="parameter">
+			<destination>{7ec1f509-3f1a-4ba6-a1ba-53af3aba522a}</destination>
+		</relationship>
+		<relationship name="automationPoints">
+			<destination>{4dc3618f-3741-498b-952d-404c4acb4cc3}</destination>
+			<destination>{bf804146-222b-40b2-894c-dc859d850742}</destination>
+		</relationship>
+	</object>
 	<object class="Automator" id="{22977848-1690-4234-8e2d-075432f48c71}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>depth</value>
@@ -5673,6 +5632,9 @@
 		</relationship>
 	</object>
 	<object class="SingleSound" id="{c0870df1-1139-4a42-afe1-785f33fd14f4}">
+		<property name="pitch">
+			<value>0.100000001</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{dd6a2cd3-23b7-494d-97a9-105cc18d3f7c}</destination>
 		</relationship>
@@ -5688,6 +5650,9 @@
 		</relationship>
 	</object>
 	<object class="SingleSound" id="{d06ca8d5-5ad1-473d-a57a-bf800632ec74}">
+		<property name="pitch">
+			<value>0.100000001</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{f805beb7-97be-410e-ba13-25dea5382e40}</destination>
 		</relationship>
@@ -5698,11 +5663,17 @@
 		</relationship>
 	</object>
 	<object class="SingleSound" id="{ff54c5d6-bf33-45fc-8926-f4e7674398ee}">
+		<property name="pitch">
+			<value>0.100000001</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{7ecf4eb6-130f-4d87-bbc0-c3650e005d7e}</destination>
 		</relationship>
 	</object>
 	<object class="SingleSound" id="{80f7d553-03ed-48b7-b087-9d6043441c5f}">
+		<property name="pitch">
+			<value>0.100000001</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{dd1d7812-9308-434c-b3b1-36fdb1b1aff8}</destination>
 		</relationship>
@@ -8251,7 +8222,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>1</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.0286132284</value>
@@ -8262,7 +8233,26 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>4</value>
+			<value>5</value>
+		</property>
+	</object>
+	<object class="AutomationPoint" id="{4dc3618f-3741-498b-952d-404c4acb4cc3}">
+		<property name="position">
+			<value>1</value>
+		</property>
+		<property name="value">
+			<value>-7</value>
+		</property>
+	</object>
+	<object class="AutomationPoint" id="{bf804146-222b-40b2-894c-dc859d850742}">
+		<property name="position">
+			<value>0</value>
+		</property>
+		<property name="value">
+			<value>0</value>
+		</property>
+		<property name="curveShape">
+			<value>-0.34443301</value>
 		</property>
 	</object>
 	<object class="AutomationCurve" id="{a7e7a367-77bf-4163-a1ad-10c817fea96b}">
@@ -8333,7 +8323,7 @@
 			<value>0.98728813559322037</value>
 		</property>
 		<property name="value">
-			<value>-13</value>
+			<value>-11</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{0c2b1053-7a35-4f98-a536-76b9499724df}">
@@ -8341,7 +8331,7 @@
 			<value>0.0014124293785310734</value>
 		</property>
 		<property name="value">
-			<value>-11</value>
+			<value>-9</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.288678437</value>
@@ -8360,7 +8350,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>-12</value>
+			<value>-8.338274</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{713ddf2c-700a-46a9-92f6-ee3606327865}">
@@ -8368,7 +8358,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>-23.0881805</value>
+			<value>-18.5</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.279465795</value>

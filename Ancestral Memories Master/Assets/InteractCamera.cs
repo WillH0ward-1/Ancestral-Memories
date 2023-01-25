@@ -58,15 +58,6 @@ public class InteractCamera : MonoBehaviour
                     lastHit = hit.transform.gameObject;
                     outlineControl = lastHit.transform.GetComponent<OutlineControl>();
 
-                    if (lastHit.transform.CompareTag("Trees") || lastHit.transform.CompareTag("Mushrooms"))
-                    {
-                        if (lastHit.transform.GetComponent<ScaleControl>().ignoreLayer)
-                        {
-                            return;
-                        }
-                    }
-
-
                     if (!Input.GetMouseButtonUp(1) && !behaviour.behaviourIsActive)
                     {
 

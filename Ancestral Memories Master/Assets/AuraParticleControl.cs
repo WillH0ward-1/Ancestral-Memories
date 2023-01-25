@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.ParticleSystem;
 
 public class AuraParticleControl : MonoBehaviour
 { 
@@ -11,47 +12,64 @@ public class AuraParticleControl : MonoBehaviour
 
     [SerializeField] AreaManager areaManager;
 
-    private ParticleSystem.EmissionModule emission;
+    private EmissionModule emission;
 
-    ParticleSystem.MinMaxCurve gravityModifier;
+    [SerializeField] private float rateOverTime;
+    [SerializeField] private float gravityModifier;
+    [SerializeField] private float simulationSpeed;
+    [SerializeField] private float noiseStrength;
+    [SerializeField] private float vertexDistance;
 
     float time = 0;
 
-    [SerializeField] private float auraDensityMin = 0;
-    [SerializeField] private float auraDensityMax = 128;
 
-    [SerializeField] private float auraGravityMin = 0;
-    [SerializeField] private float auraGravityMax = -1;
+    [SerializeField] private float auraDensityMin = 0f;
+    [SerializeField] private float auraDensityMax = 128f;
+
+    [SerializeField] private float auraGravityMin = -0.4f;
+    [SerializeField] private float auraGravityMax = 0.1f;
+
+    [SerializeField] private float auraSpeedMin = 0.25f;
+    [SerializeField] private float auraSpeedMax = 50f;
+
+    [SerializeField] private float auraNoiseStrengthMin = 0f;
+    [SerializeField] private float auraNoiseStrengthMax = 25f;
+
+    [SerializeField] private float vertexDistanceMin = 0f;
+    [SerializeField] private float vertexDistanceMax = 5f;
 
     float auraDensityOutput;
+    float auraSpeedOutput;
     float auraGravityOutput;
+    float auraNoiseOutput;
+    float vertexDistanceOutput;
 
-    ParticleSystem.MinMaxCurve rate;
-
-    void Start()
+    void Awake()
     {
+        auraParticles = transform.GetComponent<ParticleSystem>();
+
         emission = auraParticles.emission;
+
         gravityModifier = auraParticles.main.gravityModifier.constant;
-
-        rate = emission.rateOverTime;
-
+        noiseStrength = auraParticles.noise.strength.constant;
+        rateOverTime = auraParticles.emission.rateOverTime.constant;
+        simulationSpeed = auraParticles.main.simulationSpeed;
+        vertexDistance = auraParticles.trails.minVertexDistance;
         emission.enabled = false;
-
     }
 
     private void OnEnable()
     {
-
         player.OnFaithChanged += KarmaModifier;
+        player.OnPsychChanged += PsychedeliaModifier;
         return;
-
     }
 
     private void OnDisable()
     {
-
         player.OnFaithChanged -= KarmaModifier;
-        
+        player.OnPsychChanged -= PsychedeliaModifier;
+
         return;
     }
 
@@ -69,15 +87,29 @@ public class AuraParticleControl : MonoBehaviour
 
     private void Update()
     {
-        rate.constant = auraDensityOutput;
-        gravityModifier = auraGravityOutput;
+        if (emission.enabled)
+        {
+            gravityModifier = auraGravityOutput;
+            noiseStrength = auraNoiseOutput;
+            rateOverTime = auraDensityOutput;
+            simulationSpeed = auraSpeedOutput;
+            vertexDistance = vertexDistanceOutput;
+        }
     }
 
     private void KarmaModifier(float karma, float minKarma, float maxKarma)
     {
         var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         auraDensityOutput = Mathf.Lerp(auraDensityMin, auraDensityMax, t);
-        auraGravityOutput = Mathf.Lerp(auraGravityMin, auraGravityMax, t);
+        auraGravityOutput = Mathf.Lerp(auraGravityMax, auraGravityMin, t);
+        auraSpeedOutput = Mathf.Lerp(auraGravityMin, auraGravityMax, t);
+        auraNoiseOutput = Mathf.Lerp(auraNoiseStrengthMax, auraNoiseStrengthMin, t);
+    }
+
+    private void PsychedeliaModifier(float psychedelia, float minPsychedelia, float maxPsychedelia)
+    {
+        var t = Mathf.InverseLerp(minPsychedelia, maxPsychedelia, psychedelia);
+        vertexDistanceOutput = Mathf.Lerp(vertexDistanceMin, vertexDistanceMax, t);
     }
 
 }

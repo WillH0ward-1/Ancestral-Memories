@@ -1,58 +1,51 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WaterSystem.Data;
 
 public class WaterWaveControl : MonoBehaviour
 {
 
-    [SerializeField]
-    private CharacterClass player;
+    [SerializeField] private CharacterClass player;
+    [SerializeField] private WaterSurfaceData waterSettings;
 
 
-    private float targetDeform = 1f;
-    private float currentDeform = 1f;
+    [SerializeField] private float newMin = 2f;
+    [SerializeField] private float newMax = 50f;
+    [SerializeField] private float output;
 
-    private float waveSpeed = 1f;
-    private float waveSpeedMultiplier = 1f;
+    [SerializeField] private float waveLength;
 
-    [SerializeField] float offset;
-
-    private bool wavesActive = true;
-
-    //private void OnEnable() => player.OnHungerChanged += HungerChanged;
-    //private void OnDisable() => player.OnHungerChanged -= HungerChanged;
-
-    // Start is called before the first frame update
     void Start()
     {
-        //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        wavesActive = true;
-        offset = transform.GetComponentInChildren<Deform.RippleDeformer>().Offset;
-        StartCoroutine(AnimateWaves());
+        waterSettings = transform.GetComponent<WaterSurfaceData>();
+        waveLength = waterSettings._basicWaveSettings.wavelength;
     }
 
-
-    private IEnumerator AnimateWaves()
+    private void Update()
     {
-
-        while (wavesActive)
-        {
-            waveSpeed++;
-            offset += waveSpeed * waveSpeedMultiplier;
-            yield return null;
-        }
-
-        yield break;
+        waveLength = output;
     }
 
-    /*
-    private void HungerChanged(int hunger, int maxHunger)
+    private void OnEnable()
     {
-        float x = 1;
-        float t = Mathf.InverseLerp(hunger, maxHunger, x);
-        float output = Mathf.Lerp(minVal, maxVal, t);
+        player.OnFaithChanged += KarmaModifier;
 
-        targetDeform = (float)output / maxHunger;
+        return;
     }
-    */
+
+    private void OnDisable()
+    {
+        player.OnFaithChanged -= KarmaModifier;
+
+        return;
+    }
+
+    private void KarmaModifier(float karma, float minKarma, float maxKarma)
+    {
+        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
+        output = Mathf.Lerp(newMax, newMin, t);
+    }
+
+
 }

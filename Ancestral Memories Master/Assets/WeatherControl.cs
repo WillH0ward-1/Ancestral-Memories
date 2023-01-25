@@ -95,7 +95,7 @@ public class WeatherControl : MonoBehaviour
     [SerializeField] float newMax = 1;
 
     [SerializeField] float leafShakeMin = 0;
-    [SerializeField] float leafShakeMax = 1000;
+    [SerializeField] float leafShakeMax = 100;
 
     [SerializeField]
     private CharacterClass player;

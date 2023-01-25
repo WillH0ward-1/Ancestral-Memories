@@ -9,12 +9,22 @@ public class TreeDeathManager : MonoBehaviour
     public MapObjGen mapObjGen;
     public ScaleControl scaleControl;
 
-    public Vector3 newScale;
+    [SerializeField] private Vector3 newScale;
 
-    public float fallDuration = 1;
+    [SerializeField] private float fallDuration = 0.1f;
+
+    private Interactable interactable;
+
+    private void Awake()
+    {
+        scaleControl = transform.GetComponent<ScaleControl>();
+        interactable = transform.GetComponent<Interactable>();
+    }
 
     public void Fall()
     {
+        interactable.enabled = false;
+
         StartCoroutine(FallToGround());
     }
 
@@ -26,18 +36,20 @@ public class TreeDeathManager : MonoBehaviour
 
     private IEnumerator FallToGround()
     {
+
         treeDead = true;
+
         treeFalling = true;
+        newScale = new Vector3(transform.localScale.x / 5, yVal, transform.localScale.y / 5);
 
-        newScale = new Vector3(transform.localScale.x / 2, yVal, transform.localScale.y / 2);
+        StopCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, transform.localScale, 0, 0));
+        scaleControl.StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, newScale, fallDuration, 0));
 
-        // StopCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, transform.localScale, 0, 0));
-        StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, newScale, fallDuration, 0.1f));
-
-        yield return new WaitUntil(() => scaleControl.isFullyGrown);
+        yield return new WaitForSeconds(fallDuration);
         
         treeFalling = false;
 
+        StopCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, transform.localScale, 0, 0));
         StartCoroutine(Regrow());
         // StartCoroutine(PullUnderground(deathSinkSpeed));
 
@@ -52,7 +64,7 @@ public class TreeDeathManager : MonoBehaviour
         float time = 0;
 
         yPos = transform.position.y - 10;
-
+         
         Vector3 newPos = new Vector3(transform.localPosition.x, yPos, transform.localPosition.y);
         yPos = transform.position.y - 10;
 

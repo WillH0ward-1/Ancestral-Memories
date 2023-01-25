@@ -1,5 +1,6 @@
 //You are free to use this script in Free or Commercial projects
 //sharpcoderblog.com @2019
+//https://sharpcoderblog.com/blog/unity-3d-deer-ai-tutorial
 
 using UnityEngine;
 using UnityEngine.AI;
@@ -19,10 +20,10 @@ public class AnimalAI : MonoBehaviour
     [SerializeField] public AIState state = AIState.Idle;
     [SerializeField] private int awarenessArea = 15;
     [SerializeField] private float walkingSpeed = 3.5f;
-    [SerializeField] private float runningSpeed = 7f;
+    [SerializeField] private float runningSpeed = 11;
     public Animator animator;
 
-    [SerializeField] private float animationCrossFade = 2f;
+    [SerializeField] private float animationCrossFade = 0.5f;
 
     SphereCollider sphereCollider;
     NavMeshAgent agent;
@@ -31,18 +32,20 @@ public class AnimalAI : MonoBehaviour
     bool switchAction = false;
     float actionTimer = 0; 
     public Player player;
-    [SerializeField] float range = 20; 
-    float multiplier = 1;
-    bool reverseFlee = false; //In case the AI is stuck, send it to one of the original Idle points
+    public Transform other;
 
-    //Detect NavMesh edges to detect whether the AI is stuck
+    [SerializeField] float range = 20;
+    [SerializeField] float fleeDistanceMultiplier = 1;
+    bool reverseFlee = false; // If stuck, send back to a previous Idle point
+
+    //Detect whether the AI is stuck
     Vector3 closestEdge;
     float distanceToEdge;
     float distance;
 
     //How long the AI has been near the edge of NavMesh, if too long, send it to one of the random previousIdlePoints
     float timeStuck = 0;
-
+    private Interactable interactable;
 
     //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
@@ -65,8 +68,9 @@ public class AnimalAI : MonoBehaviour
         actionTimer = Random.Range(0.1f, 2.0f);
         ChangeAnimationState(IDLE);
 
-        playerBehaviours = player.GetComponent<CharacterBehaviours>();
 
+        playerBehaviours = player.GetComponent<CharacterBehaviours>();
+        interactable = transform.GetComponent<Interactable>();
 
     }
 
@@ -76,15 +80,16 @@ public class AnimalAI : MonoBehaviour
         if (player.faith <= 50)
         {
             shouldFlee = true;
+            interactable.enabled = false;
         }
         else if (player.faith >= 50)
         {
             shouldFlee = false;
+            interactable.enabled = true;
         }
 
         if (!playerBehaviours.dialogueIsActive)
         {
-
             //Wait for the next course of action
             if (actionTimer > 0)
             {
@@ -99,7 +104,7 @@ public class AnimalAI : MonoBehaviour
             {
                 if (switchAction)
                 {
-                    if (player && shouldFlee)
+                    if (inRange && shouldFlee)
                     {
                         //Run away
                         agent.SetDestination(RandomNavSphere(transform.position, Random.Range(1, 2.4f)));
@@ -156,7 +161,7 @@ public class AnimalAI : MonoBehaviour
                 agent.speed = runningSpeed;
 
                 //Run away
-                if (player)
+                if (inRange)
                 {
                     if (reverseFlee)
                     {
@@ -171,7 +176,7 @@ public class AnimalAI : MonoBehaviour
                     }
                     else
                     {
-                        Vector3 runTo = transform.position + ((transform.position - player.transform.position) * multiplier);
+                        Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeDistanceMultiplier);
                         distance = (transform.position - player.transform.position).sqrMagnitude;
 
                         //Find the closest NavMesh edge
@@ -269,16 +274,8 @@ public class AnimalAI : MonoBehaviour
 
     private string currentState;
 
-    void OnTriggerEnter(Collider other)
-    {
-        //Make sure the Player instance has a tag "Player"
-        if (!other.CompareTag("Player"))
-            return;
+    public bool inRange = false;
 
-        actionTimer = Random.Range(0.24f, 0.8f);
-        state = AIState.Idle;
-        ChangeAnimationState(IDLE);
-    }
 
     public virtual void ChangeAnimationState(string newState)
     {

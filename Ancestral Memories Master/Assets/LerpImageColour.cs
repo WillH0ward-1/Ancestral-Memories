@@ -9,11 +9,10 @@ public class LerpImageColour : MonoBehaviour
     private Color colour;
     private Color targetColour;
 
-    [SerializeField] private float colourFactor = 10f;
+    [SerializeField] private float colourFactor = 0.1f;
     [SerializeField] private float duration = 1f;
 
-    // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
         image = transform.GetComponent<Image>();
         colour = image.color;
@@ -24,6 +23,7 @@ public class LerpImageColour : MonoBehaviour
         float a = colour.a;
 
         targetColour = new Color(r, g, b, a);
+
         StartCoroutine(GlowUp());
     }
 
@@ -31,7 +31,7 @@ public class LerpImageColour : MonoBehaviour
     {
         float time = 0;
 
-        while (time < 1f)
+        while (time <= 1f)
         {
             time += Time.deltaTime / (duration / 2);
             image.color = Color.Lerp(colour, targetColour, time);
@@ -51,7 +51,7 @@ public class LerpImageColour : MonoBehaviour
     {
         float time = 0;
 
-        while (time < 1f)
+        while (time <= 1f)
         {
             time += Time.deltaTime / (duration / 2);
             image.color = Color.Lerp(targetColour, colour, time);

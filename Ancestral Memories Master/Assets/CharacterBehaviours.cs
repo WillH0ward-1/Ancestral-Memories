@@ -760,45 +760,34 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("HITOBJECT: " + hitObject);
 
         dialogueIsActive = true;
-        dialogue = hitObject.transform.root.GetComponent<Dialogue>();
+        dialogue = hitObject.transform.GetComponent<Dialogue>();
 
         dialogue.StartDialogue(dialogue, player);
+
+        //GameObject lookAtTarget = hitObject;
+
+        player.ChangeAnimationState(PLAYER_IDLE);
+        behaviourIsActive = true;
+
+        //GameObject DefaultCamPivot = player.transform.root.Find("DefaultCamPosition").gameObject;
+        //GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+
+        //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
+        player.transform.LookAt(hitObject.transform);
+        //hitObject.transform.LookAt(player.transform);
         cinematicCam.ToDialogueZoom();
 
-        if (!hitObject.transform.root.CompareTag("Campfire") && !hitObject.transform.root.CompareTag("Animal"))
-        {
-            GameObject lookAtTarget = hitObject;
+        yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
-            player.ChangeAnimationState(PLAYER_IDLE);
-            behaviourIsActive = true;
+        behaviourIsActive = false;
+        player.ChangeAnimationState(PLAYER_IDLE);
+        //lookAtTarget = player.transform.gameObject;
+        //StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
 
-            GameObject DefaultCamPivot = player.transform.Find("DefaultCamPosition").gameObject;
-            GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+        dialogueIsActive = false;
+        cinematicCam.ToGameZoom();
+        yield break;
 
-            StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
-            player.transform.LookAt(hitObject.transform);
-            hitObject.transform.LookAt(player.transform);
-            cinematicCam.ToDialogueZoom();
-
-            yield return new WaitUntil(() => dialogue.dialogueActive == false);
-
-            behaviourIsActive = false;
-            player.ChangeAnimationState(PLAYER_IDLE);
-            lookAtTarget = player.transform.gameObject;
-            StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
-
-            dialogueIsActive = false;
-            cinematicCam.ToGameZoom();
-            yield break;
-        }
-        else
-        {
-            yield return new WaitUntil(() => dialogue.dialogueActive == false);
-
-            dialogueIsActive = false;
-            cinematicCam.ToGameZoom();
-            yield break;
-        }
 
     }
 

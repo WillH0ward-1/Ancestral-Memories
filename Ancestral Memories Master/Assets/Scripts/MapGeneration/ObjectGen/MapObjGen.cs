@@ -282,7 +282,7 @@ public class MapObjGen : MonoBehaviour
         //FoliagePoissonDisc(foliageSampler);
         //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
-        //AnimalPoissonDisc(animalSampler);
+        AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
         //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
@@ -290,6 +290,7 @@ public class MapObjGen : MonoBehaviour
         //CavePoissonDisc(caveSampler);
 
         SetOffset();
+        EnableNavMeshAgents(npcList);
 
         GroundCheck();
         StartCoroutine(EmitterGen(waterSoundEmitter, waterEmitters, waterEmitterTransform));
@@ -366,16 +367,32 @@ public class MapObjGen : MonoBehaviour
             animalInstance.transform.SetParent(hierarchyRoot.transform);
 
             LerpDeformation deform = animalInstance.GetComponent<LerpDeformation>();
+            deform.enabled = false;
+
             CorruptionControl corruption = animalInstance.GetComponent<CorruptionControl>();
+            NavMeshAgent agent = animalInstance.GetComponent<NavMeshAgent>();
 
             deform.player = player;
             corruption.player = player;
 
+            deform.enabled = true;
+
             mapObjectList.Add(animalInstance);
+            npcList.Add(animalInstance);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
+    }
+
+    void EnableNavMeshAgents(List<GameObject> list)
+    {
+        foreach (GameObject instance in list)
+        {
+            NavMeshAgent navMeshAgent = instance.GetComponent<NavMeshAgent>();
+            navMeshAgent.enabled = true;
+        }
+        
     }
 
     void PedestalPoissonDisc(PoissonDiscSampler pedestalSampler)
@@ -446,7 +463,7 @@ public class MapObjGen : MonoBehaviour
                     Debug.Log("Object destroyed in Editor.");
                     DestroyImmediate(seaShellInstance);
                 }
-                else
+                else if (!Application.isEditor)
                 {
                     Debug.Log("Object destroyed in game.");
                     Destroy(seaShellInstance);
@@ -470,8 +487,9 @@ public class MapObjGen : MonoBehaviour
     [Header("Generated Objects")]
     [Space(10)]
 
-    public List<GameObject> mapObjectList;
+    public List<GameObject> mapObjectList; 
     public List<GameObject> treeList;
+    public List<GameObject> npcList;
 
     private Vector3 zeroScale = new Vector3(0.001f, 0.001f, 0.001f);
     //private CorruptionControl corruptionControl;
@@ -599,18 +617,28 @@ public class MapObjGen : MonoBehaviour
     private LeafControl leafControl;
 
     public void GrowTrees(GameObject tree)
-    { 
+    {
 
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
         ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
-        treeGrowControl.ignoreLayer = true;
-
         TreeDeathManager treeDeathManager = tree.transform.GetComponent<TreeDeathManager>();
+        DirtExplode dirt = tree.transform.GetComponentInChildren<DirtExplode>();
 
         treeDeathManager.scaleControl = treeGrowControl;
-
         treeGrowControl.rainControl = rainControl;
+
+        ParticleSystem dirtExplodeParticles = dirt.transform.GetComponent<ParticleSystem>();
+        CorruptionControl corruptionControl = dirt.transform.GetComponent<CorruptionControl>();
+        corruptionControl.player = player;
+        corruptionControl.behaviours = behaviours;
+        corruptionControl.enabled = true;
+
+        dirtExplodeParticles.transform.localScale = new Vector3(1, 1, 1);
+        dirtExplodeParticles.transform.localPosition = new Vector3(0, 0, 0);
+        ParticleSystem.EmissionModule emission = dirtExplodeParticles.emission;
+
+        emission.enabled = false;
 
         //LeafControl treeshader = tree.GetComponent<LeafControl>();
 
@@ -619,7 +647,8 @@ public class MapObjGen : MonoBehaviour
 
         appleGrowthDelay = Random.Range(minAppleGrowDelay, maxAppleGrowDelay);
         treeGrowthDelay = Random.Range(minTreeGrowDelay, maxTreeGrowDelay);
-
+        StartCoroutine(
+                WaitForGrowDelay(dirtExplodeParticles, emission, treeGrowthDelay));
         if (!tree.transform.CompareTag("AppleTree"))
         {
             StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
@@ -651,6 +680,24 @@ public class MapObjGen : MonoBehaviour
 
         }
        //StartCoroutine(treeShader.GrowLeaves(30f));
+    }
+
+    private IEnumerator WaitForGrowDelay(ParticleSystem dirtExplodeParticles, ParticleSystem.EmissionModule emission, float treeGrowthDelay)
+    {
+        yield return new WaitForSeconds(treeGrowthDelay);
+        emission.enabled = true;
+        dirtExplodeParticles.Play();
+        StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
+
+        yield break;
+    }
+
+    private IEnumerator ParticleTimeOut(ParticleSystem dirtExplodeParticles)
+    {
+        yield return new WaitForSeconds(dirtExplodeParticles.main.duration);
+        dirtExplodeParticles.Stop();
+
+        yield break;
     }
 
     [SerializeField] private float minDecayDuration = 5f;
@@ -909,7 +956,6 @@ public class MapObjGen : MonoBehaviour
                 }
             }
 
-
             void DestroyObject()
             {
                 if (Application.isEditor)
@@ -917,7 +963,7 @@ public class MapObjGen : MonoBehaviour
                     Debug.Log("Object destroyed in Editor.");
                     DestroyImmediate(mapObject);
                 }
-                else
+                else if (!Application.isEditor)
                 {
                     Debug.Log("Object destroyed in game.");
                     Destroy(mapObject);
@@ -943,7 +989,6 @@ public class MapObjGen : MonoBehaviour
         
     void AnchorToGround()
     {
-
         foreach (GameObject mapObject in mapObjectList)
         {
 

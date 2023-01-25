@@ -120,7 +120,7 @@ public class CamControl : MonoBehaviour
 
     private IEnumerator WaitForMouseClick()
     {
-        StartCoroutine(musicManager.IntroLoop());
+        musicManager.StartCoroutine(musicManager.MusicIntro());
 
         waitForClick = true;
 
@@ -128,7 +128,7 @@ public class CamControl : MonoBehaviour
        {
             if (Input.GetMouseButtonDown(0))
             {
-                StartCoroutine(musicManager.Exploring());
+                musicManager.StartCoroutine(musicManager.FaithModulate());
 
                 ToSpawnZoom();
                 waitForClick = false;
@@ -458,12 +458,14 @@ public class CamControl : MonoBehaviour
 
             if (zoomDestination == psychedelicZoom)
             {
-
                 var t = Mathf.InverseLerp(currentZoom, zoomDestination, func(time));
                 float output = Mathf.Lerp(1, 0, t);
+                float psychOutput = Mathf.Lerp(player.minStat, player.maxStat, t);
+                player.GainPsych(psychOutput);
 
                 RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
             }
+
 
             yield return null;
         }
