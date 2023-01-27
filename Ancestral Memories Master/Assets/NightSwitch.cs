@@ -48,7 +48,7 @@ public class NightSwitch : MonoBehaviour
 
     public IEnumerator ToDaySky()
     {
-        material = transform.GetComponent<MeshRenderer>().material;
+        material = transform.GetComponent<MeshRenderer>().sharedMaterial;
         darknessAmount = material.GetFloat("_NightFilter");
 
         currentDarkAmount = darknessAmount;

@@ -15,7 +15,7 @@ public class LerpDeformation : MonoBehaviour
     private float currentDeform;
 
     [SerializeField] private Deform.InflateDeformer inflate;
-
+    [SerializeField] private Deform.InflateDeformer[] inflateDeformers;
     private void OnEnable()
     {
         player.OnHungerChanged += HungerChanged;
@@ -31,6 +31,8 @@ public class LerpDeformation : MonoBehaviour
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
 
+        inflateDeformers = transform.GetComponentsInChildren<Deform.InflateDeformer>();
+
         inflate = transform.GetComponentInChildren<Deform.InflateDeformer>();
 
         inflate.Factor = targetDeform;
@@ -39,9 +41,11 @@ public class LerpDeformation : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-
         currentDeform = targetDeform;
-        inflate.Factor = currentDeform;  
+        foreach (Deform.InflateDeformer deformer in inflateDeformers)
+        {
+            deformer.Factor = currentDeform;
+        }
     }
 
     private float targetDeform;

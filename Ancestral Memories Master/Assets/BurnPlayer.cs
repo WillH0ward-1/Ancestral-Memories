@@ -8,25 +8,22 @@ public class BurnPlayer : MonoBehaviour
     private float currentBurn;
     private float targetBurn;
 
-    [SerializeField] private float minBurn = 0;
-    [SerializeField] private float maxBurn = 16;
+    [SerializeField] private float burn;
+    [SerializeField] private float minBurn = 64;
+    [SerializeField] private float maxBurn = 0;
 
-    [SerializeField] private float burnSpeed = 1;
+    [SerializeField] private float burnSpeed = 5;
 
-    public float burnIntensity;
     public Renderer[] renderers = new Renderer[0];
-    public Material auraMaterial;
 
-    private bool playerInFire;
+    [SerializeField] private bool playerInFire;
 
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
         playerInFire = false;
-        burnIntensity = auraMaterial.GetFloat("_AuraIntensity");
-        burnIntensity = maxBurn;
 
-        renderers = GetComponentsInChildren<Renderer>();
+        renderers = GetComponentsInChildren<SkinnedMeshRenderer>();
 
     }
 
@@ -41,11 +38,12 @@ public class BurnPlayer : MonoBehaviour
             targetBurn = maxBurn;
             StartCoroutine(Burn(targetBurn));
         }
+
     }
 
     private void OnCollisionExit(Collision other)
     {
-        if (other.transform.CompareTag("Player"))
+        if (other.transform.CompareTag("Fire"))
         {
             Debug.Log("Fire Exited!");
 
@@ -62,14 +60,16 @@ public class BurnPlayer : MonoBehaviour
     {
         float time = 0;
 
-        foreach (Renderer renderer in renderers)
-        {
-            renderer.sharedMaterial.SetFloat("_ColourPrecision", currentBurn);
-        }
-
         while (time <= 1f)
         {
-            currentBurn = Mathf.Lerp(currentBurn, targetBurn, time);
+            currentBurn = Mathf.Lerp(burn, targetBurn, time);
+
+            foreach (Renderer renderer in renderers)
+            {
+                burn = renderer.sharedMaterial.GetFloat("_ColourPrecision");
+                burn = currentBurn;
+            }
+
             time += Time.deltaTime / burnSpeed;
         }
 

@@ -352,10 +352,6 @@ public class MapObjGen : MonoBehaviour
             GameObject randomAnimal = GetRandomMapObject(animals);
 
             GameObject animalInstance = Instantiate(randomAnimal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
-
-            AnimalAI animalAI = animalInstance.transform.GetComponent<AnimalAI>();
-
-            animalAI.player = player;
         
             animalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -366,13 +362,18 @@ public class MapObjGen : MonoBehaviour
 
             animalInstance.transform.SetParent(hierarchyRoot.transform);
 
-            LerpDeformation deform = animalInstance.GetComponent<LerpDeformation>();
+            LerpDeformation deform = animalInstance.transform.GetComponentInChildren<LerpDeformation>();
+
+            deform.player = player;
+
             deform.enabled = false;
 
             CorruptionControl corruption = animalInstance.GetComponent<CorruptionControl>();
             NavMeshAgent agent = animalInstance.GetComponent<NavMeshAgent>();
 
-            deform.player = player;
+            AnimalAI animalAI = animalInstance.transform.GetComponentInChildren<AnimalAI>();
+
+            animalAI.player = player;
             corruption.player = player;
 
             deform.enabled = true;
@@ -507,7 +508,9 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            CorruptionControl corruptionControl = treeInstance.AddComponent<CorruptionControl>();
+            treeInstance.AddComponent<CorruptionControl>();
+
+            CorruptionControl corruptionControl = treeInstance.GetComponent<CorruptionControl>();
 
             corruptionControl.player = player;
             corruptionControl.behaviours = behaviours;
@@ -687,7 +690,7 @@ public class MapObjGen : MonoBehaviour
         yield return new WaitForSeconds(treeGrowthDelay);
         emission.enabled = true;
         dirtExplodeParticles.Play();
-        StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
+        //StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
 
         yield break;
     }
@@ -1059,6 +1062,7 @@ public class MapObjGen : MonoBehaviour
 
                 if (downHit.collider.CompareTag("Water"))
                 {
+                    emitter.transform.position = new Vector3(emitter.transform.position.x, emitterY -= emitterYOffset, emitter.transform.position.z);
                     continue;
                 }
                 else if (!downHit.collider.CompareTag("Water"))

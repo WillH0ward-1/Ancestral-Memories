@@ -312,14 +312,14 @@ public class PlayerWalk : MonoBehaviour
     private float walkTowardSpeed;
 
     private Vector3 destination;
-    private Vector3 boundsSize;
+    private Vector3 defaultBoundsSize;
 
     public bool showDestinationGizmos = false;
 
     [SerializeField] private GameObject destinationGizmo;
 
     private GameObject destinationGizmoInstance;
-    private DestinationGizmo trigger;
+   // private DestinationGizmo trigger;
 
     private Renderer gizmoRenderer;
 
@@ -331,54 +331,54 @@ public class PlayerWalk : MonoBehaviour
         if (selected == "Drink")
         {
             destination = rayHit.point;
-            boundsSize = player.transform.localScale;
+            Vector3 boundsSize = player.transform.localScale;
             destinationGizmo.transform.localScale = boundsSize;
         }
 
         if (selected != "Drink")
         {
             destination = hitObject.transform.position;
-            boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+            Vector3 boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = boundsSize;
         }
 
         if (selected == "KindleFire")
         {
-            destinationGizmo.transform.localScale = boundsSize / 3;
+            destinationGizmo.transform.localScale = defaultBoundsSize / 3;
         }
 
         if (selected == "Eat")
         {
-            destinationGizmo.transform.localScale = boundsSize * 2;
+            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
         }
 
         if (selected == "Reflect")
         {
-            destinationGizmo.transform.localScale = boundsSize / 1;
+            destinationGizmo.transform.localScale = defaultBoundsSize / 1;
         }
 
         if (selected == "Look")
         {
-            destinationGizmo.transform.localScale = boundsSize / 0;
+            destinationGizmo.transform.localScale = defaultBoundsSize / 0;
         }
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = boundsSize / 4;
+            destinationGizmo.transform.localScale = defaultBoundsSize / 4;
         }
 
         if (selected == "HarvestTree")
         {
-            destinationGizmo.transform.localScale = boundsSize / 8;
+            destinationGizmo.transform.localScale = defaultBoundsSize / 8;
         }
 
         if (selected == "Talk")
         {
-            destinationGizmo.transform.localScale = boundsSize * 2;
+            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
         }
 
         destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
-        trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
+        DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
         gizmoRenderer = destinationGizmoInstance.transform.GetComponent<Renderer>();
 
         if (!showDestinationGizmos)

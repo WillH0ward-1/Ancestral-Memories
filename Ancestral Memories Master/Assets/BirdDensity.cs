@@ -18,6 +18,8 @@ public class BirdDensity : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] private MeshSettings meshSettings;
 
+    [SerializeField] private LightingManager todManager;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -73,7 +75,13 @@ public class BirdDensity : MonoBehaviour
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
         int output = (int)Mathf.Lerp(maxBirdDensity, minBirdDensity, t);
 
-        targetBirdDensity = output;
+        if (!todManager.isNightTime)
+        {
+            targetBirdDensity = output;
+        } else
+        {
+            targetBirdDensity = 0;
+        }
     }
 
 }

@@ -40,13 +40,15 @@ public class RainControl : MonoBehaviour
     {
         triggerDrought = false;
 
+        //weather = transform.GetComponent<WeatherControl>();
+
     }
     
     public IEnumerator ChanceOfRain()
     {
         triggerDrought = false;
 
-        if (isRaining)
+        if (isRaining || areaManager.currentRoom != "Outside")
         {
             yield break;
         }
@@ -136,34 +138,40 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator StartRaining()
     {
-        emissionRate = 0;
-
-        emission.enabled = true;
-        isRaining = true;
-        drought = false;
-
-        rainDuration = Random.Range(minRainDuration, maxRainDuration);
-
-
-        //rainStrength = Random.Range(minRainStrength, maxRainStrength);
-        //StartCoroutine(lerpTerrain.ToWetOasis(15));
-
-        float time = 0;
-        
-        while (time <= 1f)
+        if (areaManager.currentRoom == "Outside")
         {
-            time += Time.deltaTime / rainDuration;
-            rainStrengthTarget = weather.windStrength * 100;
-            emission.rateOverTime = Mathf.Lerp(emission.rateOverTime.constant, rainStrengthTarget, time);
+            emissionRate = 0;
 
-            yield return null;
-        }
+            emission.enabled = true;
+            isRaining = true;
+            drought = false;
 
-        if (time >= 1f)
+            rainDuration = Random.Range(minRainDuration, maxRainDuration);
+
+
+            //rainStrength = Random.Range(minRainStrength, maxRainStrength);
+            //StartCoroutine(lerpTerrain.ToWetOasis(15));
+
+            float time = 0;
+
+            while (time <= 1f && areaManager.currentRoom == "Outside")
+            {
+                time += Time.deltaTime / rainDuration;
+                rainStrengthTarget = weather.windStrength * 100;
+                emission.rateOverTime = Mathf.Lerp(emission.rateOverTime.constant, rainStrengthTarget, time);
+
+                yield return null;
+            }
+
+            if (time >= 1f || areaManager.currentRoom != "Outside")
+            {
+                StartCoroutine(StopRaining(true));
+                yield break;
+            }
+        } else
         {
-            StartCoroutine(StopRaining(true));
             yield break;
-        } 
+        }
     }
 
     private bool retrigger = false;

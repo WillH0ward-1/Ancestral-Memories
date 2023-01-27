@@ -36,10 +36,7 @@ public class ScaleControl : MonoBehaviour
             treeKillManager = transform.GetComponent<TreeDeathManager>();
             killBuffer = transform.GetComponent<KillBuffer>();
             treeAudio = transform.GetComponent<TreeAudioSFX>();
-        } else
-        {
-            return;
-        }
+        } 
 
         interactable = transform.GetComponent<Interactable>();
     }

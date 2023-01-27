@@ -436,11 +436,11 @@ public class CamControl : MonoBehaviour
 
     //[SerializeField] float perspectiveDelay = 1;
 
+    private System.Func<float, float> func;
+
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
     {
-
-        lerpParams.lerpType = LerpType.EaseInOutCubic;
-        System.Func<float, float> func = Lerp.GetLerpFunction(lerpParams.lerpType);
+        func = Lerp.GetLerpFunction(lerpParams.lerpType);
 
         float zoomMultiplier = 0;
 
@@ -458,14 +458,8 @@ public class CamControl : MonoBehaviour
 
             if (zoomDestination == psychedelicZoom)
             {
-                var t = Mathf.InverseLerp(currentZoom, zoomDestination, func(time));
-                float output = Mathf.Lerp(1, 0, t);
-                float psychOutput = Mathf.Lerp(player.minStat, player.maxStat, t);
-                player.GainPsych(psychOutput);
-
-                RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
+                StartCoroutine(PsychedelicFX(time));
             }
-
 
             yield return null;
         }
@@ -490,6 +484,23 @@ public class CamControl : MonoBehaviour
             }
         }
        
+    }
+
+    private IEnumerator PsychedelicFX(float time)
+    {
+        while (behaviours.isPsychdelicMode)
+        {
+            var t = Mathf.InverseLerp(currentZoom, zoomDestination, func(time));
+            float output = Mathf.Lerp(1, 0, t);
+            float psychOutput = Mathf.Lerp(player.minStat, player.maxStat, t);
+            player.GainPsych(psychOutput);
+
+            RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
+
+            yield return null;
+        }
+
+        yield break;
     }
 
     public GameObject defaultCamPosition;

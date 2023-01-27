@@ -106,7 +106,7 @@ public class TreeAudioSFX : MonoBehaviour
 
     private void StartTreeBirds()
     {
-        birdChirpInstance = RuntimeManager.CreateInstance(BirdChirpEventPath);
+        EventInstance birdChirpInstance = RuntimeManager.CreateInstance(BirdChirpEventPath);
         RuntimeManager.AttachInstanceToGameObject(birdChirpInstance, transform, rigidBody);
 
         birdChirpInstance.start();

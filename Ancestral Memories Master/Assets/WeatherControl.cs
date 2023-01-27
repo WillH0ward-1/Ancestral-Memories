@@ -7,26 +7,19 @@ using System.Linq;
 
 public class WeatherControl : MonoBehaviour
 {
-    public EventReference windEvent;
+    public EventReference wind2DEvent;
+
+    public GameObject windZone;
 
     public float windStrength = 0;
-
-    private int minWindStrength = 0;
-    private int maxWindStrength = 1;
-
-    private float currentWindStrength = 0;
-
     [SerializeField] private float targetWindStrength;
     [SerializeField] private float targetLeafShakeStrength;
 
-    public bool windIsActive;
+    public bool wind2DActive;
 
-    private MapObjGen mapObjGen;
+    [SerializeField] private Renderer[] windAffectedRenderers;
 
-    private List<GameObject> mapObjectList;
-
-    private Renderer[] windAffectedRenderers;
-
+    [SerializeField] private Transform windZones;
 
     //[SerializeField] private List<Renderer> windAffectedRenderers;
 
@@ -38,10 +31,12 @@ public class WeatherControl : MonoBehaviour
     {
         ListCleanup();
 
-        EventInstance windSFX = RuntimeManager.CreateInstance(windEvent);
-        windStrength = 0;
-        StartCoroutine(WindStrength(windSFX));
-     
+        //
+        EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
+        //windStrength = 0;
+        StartCoroutine(WindStrength(windAudio2DInstance));
+
+        StartCoroutine(SpawnBuffer());
     }
 
     void ListCleanup()
@@ -53,17 +48,80 @@ public class WeatherControl : MonoBehaviour
         }
     }
 
-    private IEnumerator WindStrength(EventInstance windSFXInstance)
+    [SerializeField] private float minSpawnBuffer = 5;
+    [SerializeField] private float maxSpawnBuffer = 15;
+
+    [SerializeField] private float minLifeTime = 15;
+    [SerializeField] private float maxLifeTime = 40;
+
+    private IEnumerator SpawnBuffer()
     {
-        windIsActive = true;
+        yield return new WaitForSeconds(Random.Range(minSpawnBuffer, maxSpawnBuffer));
 
-        windSFXInstance.start();
+        SpawnWindZone();
 
-        while (windIsActive)
+        yield break;
+    }
+
+    [SerializeField] private float spawnRadius = 5;
+
+    private void SpawnWindZone()
+    {
+        StartCoroutine(SpawnBuffer());
+
+        Vector3 newPosition = player.transform.position * Random.insideUnitCircle * spawnRadius;
+
+        GameObject windZoneObject = Instantiate(windZone, newPosition, Quaternion.identity, windZones);
+        EventInstance wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>().EventInstance;
+
+        StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
+        StartCoroutine(WindTimeout(windZoneObject));
+    }
+
+    private IEnumerator UpdateWind(GameObject windZoneObject, EventInstance instance)
+    {
+        bool active = true;
+
+        while (active)
         {
-            windStrength = targetWindStrength;
+            if (windZoneObject == null)
+            {
+                active = false;
+            }
 
-            windSFXInstance.setParameterByName("WindStrength", windStrength);
+            instance.setParameterByName("WindStrength", windStrength);
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    private void Update()
+    {
+        windStrength = targetWindStrength;
+    }
+
+    private IEnumerator WindTimeout(GameObject instance)
+    {
+        yield return new WaitForSeconds(Random.Range(minLifeTime, maxLifeTime));
+
+        Destroy(instance);
+
+        //StartCoroutine(SpawnBuffer());
+        yield break;
+    }
+
+    private IEnumerator WindStrength(EventInstance wind2DInstance)
+    {
+        wind2DActive = true;
+
+        // wind2DInstance.start();
+
+        while (wind2DActive)
+        {
+
+            wind2DInstance.setParameterByName("WindStrength", windStrength);
+
             Debug.Log("WindStrength:" + windStrength);
 
             foreach (Transform t in windAffectedRendererList)
@@ -77,9 +135,9 @@ public class WeatherControl : MonoBehaviour
             yield return null;
         }
 
-        if (!windIsActive)
+        if (!wind2DActive)
         {
-            StartCoroutine(StopWind(windSFXInstance));
+            StartCoroutine(StopWind(wind2DInstance));
             yield break;
         }
     }
@@ -87,7 +145,7 @@ public class WeatherControl : MonoBehaviour
     private IEnumerator StopWind(EventInstance windSFX)
     {
         windSFX.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-        windIsActive = false;
+        wind2DActive = false;
         yield break;
     }
 
