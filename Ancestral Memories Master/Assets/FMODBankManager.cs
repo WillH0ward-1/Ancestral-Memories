@@ -42,7 +42,7 @@ public class FMODBankManager : MonoBehaviour
     private void Awake()
     {
         LoadBank("Master");
-        //LoadBank("Music");
+        LoadBank("Music");
         LoadBank("Player");
         LoadBank("Weather");
         LoadBank("Tree");

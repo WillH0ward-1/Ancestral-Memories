@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{2b47f9d5-f62f-4a89-a2e0-21d069766293}">
 		<property name="name">
 			<value>BiteCrunch</value>
@@ -62,7 +62,11 @@
 			<destination>{b09f4bbc-4289-4b74-ba7d-71242fe77377}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{fbf09edd-9615-4780-8fe4-76eb25bc1a04}" />
+	<object class="EventAutomatableProperties" id="{fbf09edd-9615-4780-8fe4-76eb25bc1a04}">
+		<property name="maximumDistance">
+			<value>6</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{02e7e423-d746-4557-ad50-ffcd43dbabad}" />
 	<object class="GroupTrack" id="{c99450d8-d34d-4186-8c67-d696bfc55e5f}">
 		<relationship name="mixerGroup">

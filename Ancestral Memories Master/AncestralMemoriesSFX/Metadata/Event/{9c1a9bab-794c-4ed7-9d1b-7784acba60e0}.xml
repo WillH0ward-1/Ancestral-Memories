@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{9c1a9bab-794c-4ed7-9d1b-7784acba60e0}">
 		<property name="name">
 			<value>Crow</value>
@@ -72,6 +72,9 @@
 		</property>
 		<property name="dopplerScale">
 			<value>500</value>
+		</property>
+		<property name="maximumDistance">
+			<value>70</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{86527add-46dd-4eb3-9661-0201bfebfef3}" />
@@ -430,9 +433,17 @@
 			<destination>{7ec1f509-3f1a-4ba6-a1ba-53af3aba522a}</destination>
 		</relationship>
 		<relationship name="automationPoints">
-			<destination>{04d1017c-5821-4e1c-a777-724abd8ea90f}</destination>
 			<destination>{4ea26075-8ec1-4ce2-a4fa-ba2b199928a0}</destination>
+			<destination>{04d1017c-5821-4e1c-a777-724abd8ea90f}</destination>
 		</relationship>
+	</object>
+	<object class="AutomationPoint" id="{4ea26075-8ec1-4ce2-a4fa-ba2b199928a0}">
+		<property name="position">
+			<value>0.98728813559322037</value>
+		</property>
+		<property name="value">
+			<value>0</value>
+		</property>
 	</object>
 	<object class="AutomationPoint" id="{04d1017c-5821-4e1c-a777-724abd8ea90f}">
 		<property name="position">
@@ -443,14 +454,6 @@
 		</property>
 		<property name="curveShape">
 			<value>0.198450804</value>
-		</property>
-	</object>
-	<object class="AutomationPoint" id="{4ea26075-8ec1-4ce2-a4fa-ba2b199928a0}">
-		<property name="position">
-			<value>0.98728813559322037</value>
-		</property>
-		<property name="value">
-			<value>0</value>
 		</property>
 	</object>
 </objects>

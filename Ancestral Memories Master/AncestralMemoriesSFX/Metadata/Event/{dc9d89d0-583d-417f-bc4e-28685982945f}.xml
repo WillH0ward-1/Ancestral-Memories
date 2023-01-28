@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{dc9d89d0-583d-417f-bc4e-28685982945f}">
 		<property name="name">
 			<value>Vomit</value>
@@ -62,7 +62,11 @@
 			<destination>{b09f4bbc-4289-4b74-ba7d-71242fe77377}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{3a0564fd-8d83-49cc-bf98-46e4848aa037}" />
+	<object class="EventAutomatableProperties" id="{3a0564fd-8d83-49cc-bf98-46e4848aa037}">
+		<property name="maximumDistance">
+			<value>8.40000057</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{06ef3382-055b-4e21-8061-bf7539b8add2}" />
 	<object class="GroupTrack" id="{5f43063a-07de-4556-9923-9965d44a96cb}">
 		<relationship name="mixerGroup">

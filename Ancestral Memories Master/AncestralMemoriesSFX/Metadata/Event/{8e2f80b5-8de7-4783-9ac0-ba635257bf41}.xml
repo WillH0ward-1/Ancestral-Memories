@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{8e2f80b5-8de7-4783-9ac0-ba635257bf41}">
 		<property name="name">
 			<value>GrassRustle</value>
@@ -105,8 +105,8 @@
 			<value>16.5</value>
 		</property>
 		<relationship name="modulators">
-			<destination>{8c5f520b-43bd-474c-ba75-109586d5c17f}</destination>
 			<destination>{c5c40285-c999-4ea4-bc16-e5513176660a}</destination>
+			<destination>{8c5f520b-43bd-474c-ba75-109586d5c17f}</destination>
 		</relationship>
 		<relationship name="audioFile">
 			<destination>{9b561661-fd2b-4596-8de0-8c95bbb6d365}</destination>
@@ -137,6 +137,14 @@
 	</object>
 	<object class="MixerBusPanner" id="{ceefa452-0e28-49d6-a6bc-987a7873c592}" />
 	<object class="MixerBusFader" id="{1333daa2-b3e3-4cfe-9ecc-4c0f1218d5a5}" />
+	<object class="RandomizerModulator" id="{c5c40285-c999-4ea4-bc16-e5513176660a}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>29.5</value>
+		</property>
+	</object>
 	<object class="ADSRModulator" id="{8c5f520b-43bd-474c-ba75-109586d5c17f}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>volume</value>
@@ -152,14 +160,6 @@
 		</property>
 		<property name="finalValue">
 			<value>-80</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{c5c40285-c999-4ea4-bc16-e5513176660a}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>29.5</value>
 		</property>
 	</object>
 	<object class="ADSRModulator" id="{b1f62cda-b4f9-4f67-9afe-15b9fbe50964}">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{05071471-0055-42f0-86f8-f4526acb579e}">
 		<property name="name">
 			<value>Drown</value>
@@ -60,10 +60,10 @@
 	<object class="MarkerTrack" id="{f75471c7-0944-4c04-a0d0-8acb38cc6e10}" />
 	<object class="GroupTrack" id="{4b45abb9-00e7-4af3-8546-df6bfc5fbd56}">
 		<relationship name="modules">
+			<destination>{cb38e5aa-fc08-4da7-ba49-9fedfd5546c5}</destination>
+			<destination>{bd868a52-e908-460d-adb1-c8664c50e1e6}</destination>
 			<destination>{9209b7d3-fd20-4224-a4cc-fd51c7788758}</destination>
 			<destination>{04a3e8a5-070e-4624-80b5-47021b761726}</destination>
-			<destination>{bd868a52-e908-460d-adb1-c8664c50e1e6}</destination>
-			<destination>{cb38e5aa-fc08-4da7-ba49-9fedfd5546c5}</destination>
 		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{3f7a914c-7555-474b-891b-c5dccc9dbd47}</destination>
@@ -71,10 +71,10 @@
 	</object>
 	<object class="Timeline" id="{cac2228e-6baa-413b-a261-9bc10dd8eeb2}">
 		<relationship name="modules">
+			<destination>{cb38e5aa-fc08-4da7-ba49-9fedfd5546c5}</destination>
+			<destination>{bd868a52-e908-460d-adb1-c8664c50e1e6}</destination>
 			<destination>{9209b7d3-fd20-4224-a4cc-fd51c7788758}</destination>
 			<destination>{04a3e8a5-070e-4624-80b5-47021b761726}</destination>
-			<destination>{bd868a52-e908-460d-adb1-c8664c50e1e6}</destination>
-			<destination>{cb38e5aa-fc08-4da7-ba49-9fedfd5546c5}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{2f1ee9e5-ceca-4a01-b40d-8f2246e13df5}">
@@ -94,6 +94,42 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{100fde64-3950-408b-a5cc-987d2222e6d6}" />
+	<object class="SingleSound" id="{cb38e5aa-fc08-4da7-ba49-9fedfd5546c5}">
+		<property name="start">
+			<value>3</value>
+		</property>
+		<property name="length">
+			<value>1.8000000000000007</value>
+		</property>
+		<property name="name">
+			<value>GetBreathBack</value>
+		</property>
+		<relationship name="modulators">
+			<destination>{9e9cd261-1c86-4306-8df5-826d1d9d9f82}</destination>
+			<destination>{864415a7-4791-4d0d-a1d7-379552bf107a}</destination>
+		</relationship>
+		<relationship name="audioFile">
+			<destination>{bef7216e-9a40-4954-8a8d-93a2a094d191}</destination>
+		</relationship>
+	</object>
+	<object class="SingleSound" id="{bd868a52-e908-460d-adb1-c8664c50e1e6}">
+		<property name="length">
+			<value>2.875</value>
+		</property>
+		<property name="volume">
+			<value>-59</value>
+		</property>
+		<property name="pitch">
+			<value>-1.80000007</value>
+		</property>
+		<relationship name="modulators">
+			<destination>{facd7f15-49da-4d65-b26a-af4041ff2509}</destination>
+			<destination>{4e87d32e-5210-4e4b-ae25-ea36c75e5fbf}</destination>
+		</relationship>
+		<relationship name="audioFile">
+			<destination>{4727225c-9263-458b-9245-d2a553ea3dda}</destination>
+		</relationship>
+	</object>
 	<object class="MultiSound" id="{9209b7d3-fd20-4224-a4cc-fd51c7788758}">
 		<property name="length">
 			<value>2.875</value>
@@ -121,42 +157,6 @@
 			<destination>{8fedafa4-d0b0-4b10-993c-4f954a6d1673}</destination>
 		</relationship>
 	</object>
-	<object class="SingleSound" id="{bd868a52-e908-460d-adb1-c8664c50e1e6}">
-		<property name="length">
-			<value>2.875</value>
-		</property>
-		<property name="volume">
-			<value>-59</value>
-		</property>
-		<property name="pitch">
-			<value>-1.80000007</value>
-		</property>
-		<relationship name="modulators">
-			<destination>{facd7f15-49da-4d65-b26a-af4041ff2509}</destination>
-			<destination>{4e87d32e-5210-4e4b-ae25-ea36c75e5fbf}</destination>
-		</relationship>
-		<relationship name="audioFile">
-			<destination>{4727225c-9263-458b-9245-d2a553ea3dda}</destination>
-		</relationship>
-	</object>
-	<object class="SingleSound" id="{cb38e5aa-fc08-4da7-ba49-9fedfd5546c5}">
-		<property name="start">
-			<value>3</value>
-		</property>
-		<property name="length">
-			<value>1.8000000000000007</value>
-		</property>
-		<property name="name">
-			<value>GetBreathBack</value>
-		</property>
-		<relationship name="modulators">
-			<destination>{9e9cd261-1c86-4306-8df5-826d1d9d9f82}</destination>
-			<destination>{864415a7-4791-4d0d-a1d7-379552bf107a}</destination>
-		</relationship>
-		<relationship name="audioFile">
-			<destination>{bef7216e-9a40-4954-8a8d-93a2a094d191}</destination>
-		</relationship>
-	</object>
 	<object class="EventMixerGroup" id="{3f7a914c-7555-474b-891b-c5dccc9dbd47}">
 		<property name="volume">
 			<value>-10.5</value>
@@ -182,6 +182,80 @@
 	</object>
 	<object class="MixerBusPanner" id="{5c4cbffc-6139-499f-bd5b-9c47c8b0caf2}" />
 	<object class="MixerBusFader" id="{1a19d6e9-c22a-4944-a335-d25729ddbf96}" />
+	<object class="ADSRModulator" id="{9e9cd261-1c86-4306-8df5-826d1d9d9f82}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>volume</value>
+		</property>
+		<property name="initialValue">
+			<value>-80</value>
+		</property>
+		<property name="attackTime">
+			<value>0</value>
+		</property>
+		<property name="attackShape">
+			<value>1</value>
+		</property>
+		<property name="peakValue">
+			<value>-1.15555573</value>
+		</property>
+		<property name="holdTime">
+			<value>0</value>
+		</property>
+		<property name="decayTime">
+			<value>9884.61426</value>
+		</property>
+		<property name="decayShape">
+			<value>-0.485502213</value>
+		</property>
+		<property name="sustainValue">
+			<value>-80</value>
+		</property>
+		<property name="finalValue">
+			<value>-80</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{864415a7-4791-4d0d-a1d7-379552bf107a}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>5.5</value>
+		</property>
+	</object>
+	<object class="ADSRModulator" id="{facd7f15-49da-4d65-b26a-af4041ff2509}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>volume</value>
+		</property>
+		<property name="initialValue">
+			<value>-80</value>
+		</property>
+		<property name="attackTime">
+			<value>360</value>
+		</property>
+		<property name="attackShape">
+			<value>0.110650189</value>
+		</property>
+		<property name="holdTime">
+			<value>865.384644</value>
+		</property>
+		<property name="decayTime">
+			<value>1403.84521</value>
+		</property>
+		<property name="sustainValue">
+			<value>-80</value>
+		</property>
+		<property name="finalValue">
+			<value>-80</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{4e87d32e-5210-4e4b-ae25-ea36c75e5fbf}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>7.5</value>
+		</property>
+	</object>
 	<object class="ADSRModulator" id="{22b6e1ce-e42d-461f-b7ea-5bf0ad4a0814}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>volume</value>
@@ -231,80 +305,6 @@
 		<relationship name="audioFile">
 			<destination>{706abed8-f46a-402f-b85a-26ac71dd2fe9}</destination>
 		</relationship>
-	</object>
-	<object class="ADSRModulator" id="{facd7f15-49da-4d65-b26a-af4041ff2509}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>volume</value>
-		</property>
-		<property name="initialValue">
-			<value>-80</value>
-		</property>
-		<property name="attackTime">
-			<value>360</value>
-		</property>
-		<property name="attackShape">
-			<value>0.110650189</value>
-		</property>
-		<property name="holdTime">
-			<value>865.384644</value>
-		</property>
-		<property name="decayTime">
-			<value>1403.84521</value>
-		</property>
-		<property name="sustainValue">
-			<value>-80</value>
-		</property>
-		<property name="finalValue">
-			<value>-80</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{4e87d32e-5210-4e4b-ae25-ea36c75e5fbf}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>7.5</value>
-		</property>
-	</object>
-	<object class="ADSRModulator" id="{9e9cd261-1c86-4306-8df5-826d1d9d9f82}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>volume</value>
-		</property>
-		<property name="initialValue">
-			<value>-80</value>
-		</property>
-		<property name="attackTime">
-			<value>0</value>
-		</property>
-		<property name="attackShape">
-			<value>1</value>
-		</property>
-		<property name="peakValue">
-			<value>-1.15555573</value>
-		</property>
-		<property name="holdTime">
-			<value>0</value>
-		</property>
-		<property name="decayTime">
-			<value>9884.61426</value>
-		</property>
-		<property name="decayShape">
-			<value>-0.485502213</value>
-		</property>
-		<property name="sustainValue">
-			<value>-80</value>
-		</property>
-		<property name="finalValue">
-			<value>-80</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{864415a7-4791-4d0d-a1d7-379552bf107a}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>5.5</value>
-		</property>
 	</object>
 	<object class="MixerBusEffectChain" id="{46367978-961e-4ec0-860d-df780cfea120}">
 		<relationship name="effects">

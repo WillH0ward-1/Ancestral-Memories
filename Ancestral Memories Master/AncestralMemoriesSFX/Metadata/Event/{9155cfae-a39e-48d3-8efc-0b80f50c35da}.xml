@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{9155cfae-a39e-48d3-8efc-0b80f50c35da}">
 		<property name="name">
 			<value>ElectricStatic</value>
@@ -99,9 +99,9 @@
 	<object class="Timeline" id="{0de451db-1da9-45b3-be5f-e8bc612dace8}">
 		<relationship name="modules">
 			<destination>{93a4b0f4-8b88-4aa4-922e-88cf1749c455}</destination>
-			<destination>{22567de1-cc27-4245-8e97-643d62406c7f}</destination>
-			<destination>{76b81132-a5fb-44d3-96ff-a6096f972ced}</destination>
 			<destination>{93d81e1e-e2cb-4d96-92a6-b40140915967}</destination>
+			<destination>{76b81132-a5fb-44d3-96ff-a6096f972ced}</destination>
+			<destination>{22567de1-cc27-4245-8e97-643d62406c7f}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{8212ec11-7f74-43d9-929e-cfcd6f5d1192}">
@@ -316,8 +316,8 @@
 			<destination>{0de451db-1da9-45b3-be5f-e8bc612dace8}</destination>
 		</relationship>
 		<relationship name="automationPoints">
-			<destination>{6a5886c0-3e1b-4590-ae83-6558791f9164}</destination>
 			<destination>{e56491a1-6f09-4bd2-b299-51b643ba4616}</destination>
+			<destination>{6a5886c0-3e1b-4590-ae83-6558791f9164}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{3d2398ef-7e21-4cb0-954f-6a9921d592a8}" />
@@ -346,6 +346,14 @@
 	<object class="MixerBusFader" id="{df9b0426-2c1d-4734-a925-09acf0130e2b}" />
 	<object class="MixerBusFader" id="{f956ead9-4142-4880-954e-f02ec93712b9}" />
 	<object class="MixerBusFader" id="{4b03e018-7de6-4d90-a14d-e757e0418a15}" />
+	<object class="AutomationPoint" id="{e56491a1-6f09-4bd2-b299-51b643ba4616}">
+		<property name="position">
+			<value>18.671324274486135</value>
+		</property>
+		<property name="value">
+			<value>-50</value>
+		</property>
+	</object>
 	<object class="AutomationPoint" id="{6a5886c0-3e1b-4590-ae83-6558791f9164}">
 		<property name="position">
 			<value>0.035295509025493638</value>
@@ -355,14 +363,6 @@
 		</property>
 		<property name="curveShape">
 			<value>1</value>
-		</property>
-	</object>
-	<object class="AutomationPoint" id="{e56491a1-6f09-4bd2-b299-51b643ba4616}">
-		<property name="position">
-			<value>18.671324274486135</value>
-		</property>
-		<property name="value">
-			<value>-50</value>
 		</property>
 	</object>
 	<object class="LFOModulator" id="{aa05126a-b20e-4e78-a1e5-2d2050e928d4}">

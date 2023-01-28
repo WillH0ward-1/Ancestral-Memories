@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{75604987-647e-4129-b6ba-281f702fae10}">
 		<property name="name">
 			<value>AppleDetach</value>
@@ -139,8 +139,8 @@
 			<value>13.5</value>
 		</property>
 		<relationship name="modulators">
-			<destination>{f7566103-dac0-4afd-a591-d999b15aabc2}</destination>
 			<destination>{ebbdbbc4-784d-449c-b10b-4c8ae7be0046}</destination>
+			<destination>{f7566103-dac0-4afd-a591-d999b15aabc2}</destination>
 		</relationship>
 		<relationship name="audioFile">
 			<destination>{5816672b-e9d4-4160-bc24-24f2e2ef0d61}</destination>
@@ -155,20 +155,20 @@
 	<object class="MixerBusPanner" id="{035be599-6abb-4423-8f93-204ff9acf3b9}" />
 	<object class="MixerBusFader" id="{70cfdffd-bcfe-4c77-9471-907dbf43abea}" />
 	<object class="SpatialiserEffect" id="{1ea0db12-f18f-4996-956e-787219ed5144}" />
-	<object class="RandomizerModulator" id="{f7566103-dac0-4afd-a591-d999b15aabc2}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>21.5</value>
-		</property>
-	</object>
 	<object class="RandomizerModulator" id="{ebbdbbc4-784d-449c-b10b-4c8ae7be0046}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>startOffset</value>
 		</property>
 		<property name="amount">
 			<value>39.5</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{f7566103-dac0-4afd-a591-d999b15aabc2}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>21.5</value>
 		</property>
 	</object>
 	<object class="MixerBusFader" id="{5ec85d62-3012-4a38-ab6d-6ef002d8b4b0}" />

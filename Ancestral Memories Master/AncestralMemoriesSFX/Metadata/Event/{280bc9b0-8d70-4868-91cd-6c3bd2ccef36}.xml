@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{280bc9b0-8d70-4868-91cd-6c3bd2ccef36}">
 		<property name="name">
 			<value>Earthquake</value>
@@ -105,8 +105,8 @@
 			<value>-0.699999988</value>
 		</property>
 		<relationship name="modulators">
-			<destination>{9d842d3e-62b3-4ebc-8c02-2d658645db91}</destination>
 			<destination>{5c0d2beb-a6ed-43f8-9e75-65857bfc246e}</destination>
+			<destination>{9d842d3e-62b3-4ebc-8c02-2d658645db91}</destination>
 		</relationship>
 		<relationship name="audioFile">
 			<destination>{64b0a1f8-083d-45f8-aa96-3d40de266e57}</destination>
@@ -147,17 +147,17 @@
 	</object>
 	<object class="MixerBusPanner" id="{5cbd9e0f-97d3-493b-86bf-59895c26d930}" />
 	<object class="MixerBusFader" id="{05aa43fa-3d16-486d-9b25-80a1cd5052b6}" />
+	<object class="RandomizerModulator" id="{5c0d2beb-a6ed-43f8-9e75-65857bfc246e}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>startOffset</value>
+		</property>
+	</object>
 	<object class="RandomizerModulator" id="{9d842d3e-62b3-4ebc-8c02-2d658645db91}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>pitch</value>
 		</property>
 		<property name="amount">
 			<value>3</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{5c0d2beb-a6ed-43f8-9e75-65857bfc246e}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>startOffset</value>
 		</property>
 	</object>
 	<object class="MixerBusEffectChain" id="{ef87bf3f-c775-4f3e-b4ea-443c7b64e829}">

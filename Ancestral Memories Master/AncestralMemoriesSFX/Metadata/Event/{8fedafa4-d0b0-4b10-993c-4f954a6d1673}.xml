@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{8fedafa4-d0b0-4b10-993c-4f954a6d1673}">
 		<property name="name">
 			<value>Water Splash</value>
@@ -130,8 +130,8 @@
 			<value>-3.79999995</value>
 		</property>
 		<relationship name="modulators">
-			<destination>{6dbc04c7-1da9-431a-b66b-4bdc837bab36}</destination>
 			<destination>{032f2dfc-6f3b-4695-801f-f8f2acc81e60}</destination>
+			<destination>{6dbc04c7-1da9-431a-b66b-4bdc837bab36}</destination>
 		</relationship>
 		<relationship name="sounds">
 			<destination>{4b4f7c55-fd11-4fb4-9558-a39479e42e26}</destination>
@@ -152,20 +152,20 @@
 	<object class="MixerBusPanner" id="{fdf82598-8a55-4b03-bade-4f1541e248e8}" />
 	<object class="MixerBusFader" id="{9af0305e-e3ab-4a74-865c-1f2505dc0ebf}" />
 	<object class="SpatialiserEffect" id="{ca1c370f-0d3a-43d8-9918-f1996da3677c}" />
-	<object class="RandomizerModulator" id="{6dbc04c7-1da9-431a-b66b-4bdc837bab36}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>6.5</value>
-		</property>
-	</object>
 	<object class="RandomizerModulator" id="{032f2dfc-6f3b-4695-801f-f8f2acc81e60}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>startOffset</value>
 		</property>
 		<property name="amount">
 			<value>12</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{6dbc04c7-1da9-431a-b66b-4bdc837bab36}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>6.5</value>
 		</property>
 	</object>
 	<object class="SingleSound" id="{4b4f7c55-fd11-4fb4-9558-a39479e42e26}">

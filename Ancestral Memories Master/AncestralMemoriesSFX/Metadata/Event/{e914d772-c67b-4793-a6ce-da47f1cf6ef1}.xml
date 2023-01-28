@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{e914d772-c67b-4793-a6ce-da47f1cf6ef1}">
 		<property name="name">
 			<value>BirdChirps</value>
@@ -65,6 +65,9 @@
 	<object class="EventAutomatableProperties" id="{b8825257-be7a-4c79-8739-57a36e506146}">
 		<property name="maxVoices">
 			<value>10</value>
+		</property>
+		<property name="maximumDistance">
+			<value>6.5999999</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{cfd1e522-f3f9-41f0-9d11-c0f203dd8b00}" />
@@ -231,8 +234,8 @@
 			<value>-1.39999998</value>
 		</property>
 		<relationship name="modulators">
-			<destination>{559d264f-d687-4f8d-8e45-8ebf77d1f706}</destination>
 			<destination>{d5d497a9-59f8-4d23-8f18-9262b26d5c68}</destination>
+			<destination>{559d264f-d687-4f8d-8e45-8ebf77d1f706}</destination>
 		</relationship>
 		<relationship name="sounds">
 			<destination>{6fd5a9b4-4d8e-41e1-afbf-2d027878d20f}</destination>
@@ -266,17 +269,17 @@
 			<value>0</value>
 		</property>
 	</object>
+	<object class="RandomizerModulator" id="{d5d497a9-59f8-4d23-8f18-9262b26d5c68}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>startOffset</value>
+		</property>
+	</object>
 	<object class="RandomizerModulator" id="{559d264f-d687-4f8d-8e45-8ebf77d1f706}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>pitch</value>
 		</property>
 		<property name="amount">
 			<value>11</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{d5d497a9-59f8-4d23-8f18-9262b26d5c68}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>startOffset</value>
 		</property>
 	</object>
 	<object class="SingleSound" id="{6fd5a9b4-4d8e-41e1-afbf-2d027878d20f}">
