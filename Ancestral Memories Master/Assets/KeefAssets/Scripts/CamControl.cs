@@ -120,7 +120,7 @@ public class CamControl : MonoBehaviour
 
     private IEnumerator WaitForMouseClick()
     {
-        musicManager.StartCoroutine(musicManager.MusicIntro());
+      //  musicManager.StartCoroutine(musicManager.MusicIntro());
 
         waitForClick = true;
 
@@ -128,7 +128,7 @@ public class CamControl : MonoBehaviour
        {
             if (Input.GetMouseButtonDown(0))
             {
-                musicManager.StartCoroutine(musicManager.FaithModulate());
+//                musicManager.StartCoroutine(musicManager.FaithModulate());
 
                 ToSpawnZoom();
                 waitForClick = false;

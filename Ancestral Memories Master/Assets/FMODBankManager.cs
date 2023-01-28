@@ -2,41 +2,65 @@ using UnityEngine;
 using FMOD;
 using FMODUnity;
 using FMOD.Studio;
+using System.Collections.Generic;
 
 public class FMODBankManager : MonoBehaviour
 {
-    public StudioBankLoader Player;
-    public StudioBankLoader PlayerInstruments;
-    public StudioBankLoader Music;
-    public StudioBankLoader Weather;
-    public StudioBankLoader Lightning;
-    public StudioBankLoader Cave;
-    public StudioBankLoader Actions;
-    public StudioBankLoader Tree;
-    public StudioBankLoader UI;
-    public StudioBankLoader Animals;
-    public StudioBankLoader Footsteps;
-    public StudioBankLoader Fire;
-    public StudioBankLoader NPC;
+    //[FMODUnity.BankRef] public List<string> banks = new List<string>();
+
+    private enum Banks
+    {
+        Master,
+        Player,
+        PlayerInstruments,
+        Music,
+        Weather,
+        Lightning,
+        Cave,
+        Actions,
+        Tree,
+        UI,
+        Animals,
+        Footsteps,
+        Fire,
+        NPC
+
+    }
+
+    [SerializeField] private List<StudioBankLoader> fmodBanks;
+
+    /*
+    private void LoadAllBanks()
+    {
+        foreach (string bank in banks)
+        {
+            RuntimeManager.LoadBank(bank);
+        }
+    }
+    */
 
     private void Awake()
     {
-        //LoadBank(Player);
+        LoadBank("Master");
+        //LoadBank("Music");
+        LoadBank("Player");
+        LoadBank("Weather");
+        LoadBank("Tree");
+        LoadBank("Footsteps");
+        LoadBank("Fire");
+        LoadBank("Animals");
+        LoadBank("UI");
+
     }
 
-
-    StudioBankLoader studioBankloader;
-
-    public void LoadBank(StudioBankLoader bank)
+    public void LoadBank(string bank)
     {
-        bank.Load();
-
-        return;
+        RuntimeManager.LoadBank(bank);
     }
 
-    public void UnloadBank(StudioBankLoader bankLoader)
+    public void UnloadBank(string bank)
     {
-        bankLoader.Unload();
+        RuntimeManager.UnloadBank(bank);
     }
 
 }
