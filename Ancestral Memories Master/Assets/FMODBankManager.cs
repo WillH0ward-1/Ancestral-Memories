@@ -42,6 +42,7 @@ public class FMODBankManager : MonoBehaviour
     private void Awake()
     {
         LoadBank("Master");
+        LoadBank("Master.strings");
         LoadBank("Music");
         LoadBank("Player");
         LoadBank("Weather");
@@ -50,12 +51,11 @@ public class FMODBankManager : MonoBehaviour
         LoadBank("Fire");
         LoadBank("Animals");
         LoadBank("UI");
-
     }
 
     public void LoadBank(string bank)
     {
-        RuntimeManager.LoadBank(bank);
+        RuntimeManager.LoadBank(bank, true);
     }
 
     public void UnloadBank(string bank)

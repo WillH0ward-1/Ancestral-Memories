@@ -53,12 +53,12 @@ public class TreeAudioSFX : MonoBehaviour
             var t = Mathf.InverseLerp(0, 1, output);
             float newOutput = Mathf.Lerp(1, 0, t);
 
-            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
+//            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
 
             if (scaleControl.growthPercent >= 0.7)
             {
                 interactable.enabled = true;
-                StartTreeBirds();
+              //  StartTreeBirds();
             } else
             {
                 interactable.enabled = false;
@@ -70,7 +70,7 @@ public class TreeAudioSFX : MonoBehaviour
         if (treeFallManager.treeDead)
         {
             StopTreeGrowthSFX();
-            StopBirdSFX();
+           // StopBirdSFX();
 
         }
 
@@ -95,9 +95,9 @@ public class TreeAudioSFX : MonoBehaviour
 
     void StopTreeGrowthSFX()
     {
-        if (PlaybackState(treeGrowSFXInstance) != PLAYBACK_STATE.STOPPED)
+        if (PlaybackState(treeGrowSFXInstance) != FMOD.Studio.PLAYBACK_STATE.STOPPED)
         {
-            treeGrowSFXInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
+            treeGrowSFXInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
             treeGrowSFXInstance.release();
         }
 
@@ -117,7 +117,7 @@ public class TreeAudioSFX : MonoBehaviour
     {
         if (PlaybackState(birdChirpInstance) != PLAYBACK_STATE.STOPPED)
         {
-            birdChirpInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
+            birdChirpInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
             birdChirpInstance.release();
         }
 

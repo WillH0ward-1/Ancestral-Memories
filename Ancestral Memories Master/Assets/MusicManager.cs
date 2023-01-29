@@ -254,7 +254,7 @@ public class MusicManager : MonoBehaviour
 
     void StopMusic()
     {
-        musicInstance.stop(FMODUnity.STOP_MODE.AllowFadeout);
+        musicInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         musicInstance.release();
     }
 

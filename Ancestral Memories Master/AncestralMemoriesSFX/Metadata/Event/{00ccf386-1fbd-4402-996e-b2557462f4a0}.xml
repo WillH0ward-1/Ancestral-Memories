@@ -62,13 +62,19 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{99ed5ff4-7e99-405d-832d-3c82ab0fc056}">
 		<property name="maxVoices">
-			<value>10</value>
+			<value>16</value>
+		</property>
+		<property name="voiceStealing">
+			<value>2</value>
+		</property>
+		<property name="priority">
+			<value>3</value>
 		</property>
 		<property name="dopplerEnabled">
 			<value>true</value>
 		</property>
 		<property name="maximumDistance">
-			<value>70</value>
+			<value>25</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{976bf0b7-7db9-47c2-b1c3-062e491f4a9a}" />
@@ -111,8 +117,8 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{65ea44f3-60e3-4920-a629-dd2ea2d0b990}">
-		<property name="volume">
-			<value>-3</value>
+		<property name="pitch">
+			<value>-2.20000005</value>
 		</property>
 		<relationship name="effectChain">
 			<destination>{dd9067f5-adbd-461a-8a34-5eeedee27773}</destination>
@@ -285,7 +291,7 @@
 	<object class="MixerBusFader" id="{215369e3-ade3-4fbc-8d08-5075e0a90b90}" />
 	<object class="SpatialiserEffect" id="{b92be712-e409-48cc-a153-97abef7ee035}">
 		<property name="maximumDistance">
-			<value>70</value>
+			<value>25</value>
 		</property>
 	</object>
 	<object class="AutomationCurve" id="{e72d3503-8d6d-4ade-b12a-6806841aa916}">
@@ -357,7 +363,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>-36</value>
+			<value>-23.9999981</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{81ad2c33-38ae-4503-9785-339df9aa2a4e}">
@@ -365,7 +371,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>-38</value>
+			<value>-25.4285698</value>
 		</property>
 		<property name="curveShape">
 			<value>0.153194681</value>
@@ -376,7 +382,7 @@
 			<value>0.20000000000000001</value>
 		</property>
 		<property name="value">
-			<value>-38</value>
+			<value>-25.4285698</value>
 		</property>
 		<property name="curveShape">
 			<value>1</value>
@@ -387,7 +393,7 @@
 			<value>0.5007656935131396</value>
 		</property>
 		<property name="value">
-			<value>-43.2586746</value>
+			<value>-28.7192421</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{7b453d68-dd71-45b4-8c6a-bb5b446a8c0a}">
@@ -414,7 +420,7 @@
 			<value>0.0016420361247947454</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>4.5</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.117359303</value>
@@ -425,7 +431,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>7.44772911</value>
+			<value>10</value>
 		</property>
 	</object>
 </objects>

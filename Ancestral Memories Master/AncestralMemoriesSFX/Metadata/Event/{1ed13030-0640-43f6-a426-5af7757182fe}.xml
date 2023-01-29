@@ -62,7 +62,11 @@
 			<destination>{b09f4bbc-4289-4b74-ba7d-71242fe77377}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{c9feb362-c6ed-4550-a559-44de2dd4dd3a}" />
+	<object class="EventAutomatableProperties" id="{c9feb362-c6ed-4550-a559-44de2dd4dd3a}">
+		<property name="priority">
+			<value>3</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{29806e7b-85d8-446b-bfcf-27dbfc6352bc}" />
 	<object class="GroupTrack" id="{8ebc364e-e394-418d-b87b-95cfa23a6aaa}">
 		<relationship name="modules">
@@ -107,8 +111,11 @@
 		<property name="length">
 			<value>0.22419501133786848</value>
 		</property>
+		<property name="volume">
+			<value>-1</value>
+		</property>
 		<property name="pitch">
-			<value>1.39999998</value>
+			<value>-0.900000036</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{dfff071b-5362-4493-8c1f-31d27f8396ec}</destination>

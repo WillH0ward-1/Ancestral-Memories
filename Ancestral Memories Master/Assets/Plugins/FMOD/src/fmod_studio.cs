@@ -1575,21 +1575,6 @@ namespace FMOD.Studio
             return hasHandle() && FMOD_Studio_EventInstance_IsValid(this.handle);
         }
 
-        public string getParameterByName(string v)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void stop(FMODUnity.STOP_MODE allowFadeout)
-        {
-            throw new NotImplementedException();
-        }
-
-        public RESULT getDescription(out RESULT musicEventDescription)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
     }
 
