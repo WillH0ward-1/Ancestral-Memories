@@ -13,7 +13,7 @@ public class NightSwitch : MonoBehaviour
 
     [SerializeField] private float transitionDuration = 1f;
 
-    [SerializeField] private LightingManager lightingManager;
+    [SerializeField] private LightingManager tod;
 
     
     public IEnumerator ToNightSky()
@@ -33,9 +33,14 @@ public class NightSwitch : MonoBehaviour
         while (time <= 1f)
         {
             currentDarkAmount = Mathf.Lerp(darknessAmount, targetDarkAmount, time);
-            time += Time.deltaTime / transitionDuration;
+            time += Time.deltaTime  / transitionDuration * tod.timeMultiplier;
 
             yield return null;
+        }
+
+        if (time >= 1f)
+        {
+            currentDarkAmount = targetDarkAmount;
         }
 
 
@@ -62,7 +67,7 @@ public class NightSwitch : MonoBehaviour
         while (time <= 1f)
         {
             currentDarkAmount = Mathf.Lerp(darknessAmount, targetDarkAmount, time);
-            time += Time.deltaTime / transitionDuration;
+            time += Time.deltaTime / transitionDuration * tod.timeMultiplier;
 
             yield return null;
         }

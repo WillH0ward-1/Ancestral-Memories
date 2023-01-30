@@ -8,7 +8,7 @@ public class LightingManager : MonoBehaviour
     [SerializeField] private LightingPreset Preset;
     //Variables
     [SerializeField, Range(0, 24)] private float timeOfDay;
-    [SerializeField] private float timeMultiplier = 1f;
+    public float timeMultiplier = 1f;
 
     public bool isNightTime;
 

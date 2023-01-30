@@ -89,12 +89,6 @@ public class RainControl : MonoBehaviour
         } 
     }
 
-    public IEnumerator RainStrength()
-    {
-        yield return null;
-
-    }
-
     public float minDroughtDuration = 30f;
     public float maxDroughtDuration = 60f;
 
@@ -168,7 +162,8 @@ public class RainControl : MonoBehaviour
                 StartCoroutine(StopRaining(true));
                 yield break;
             }
-        } else
+        }
+        else if (areaManager.currentRoom != "Outside")
         {
             yield break;
         }

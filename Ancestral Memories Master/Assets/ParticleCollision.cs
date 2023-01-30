@@ -10,8 +10,6 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] private Player player;
 
-    [SerializeField] private StudioEventEmitter emitter;
-
     [SerializeField] private EventReference rainSFX;
     private EventInstance instance;
 
@@ -49,17 +47,18 @@ public class ParticleCollision : MonoBehaviour
 
         if (onScreen)
         {
-            EventInstance rainDropInstance = RuntimeManager.CreateInstance(rainSFX);
-            rainDropInstance.start();
-            rainDropInstance.release();
+            //EventInstance rainDropInstance = emitter.EventInstance;
+            RuntimeManager.PlayOneShot(rainSFX, hitLocation);
 
             //emitter.EventInstance.start();
             //emitter.EventInstance.release();
+           
+            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
 
             //instance = RuntimeManager.CreateInstance(rainSFX);
             //instance.start();
 
-            emitter.EventInstance.setParameterByName("HarmonicStability", targetHarmonicStability);
+         
         }
 
         //lightningStrikeEvent.setVolume();
@@ -88,7 +87,7 @@ public class ParticleCollision : MonoBehaviour
 
             harmonicStability = targetHarmonicStability;
 
-            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
+          // RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
             yield return null;
         }
   

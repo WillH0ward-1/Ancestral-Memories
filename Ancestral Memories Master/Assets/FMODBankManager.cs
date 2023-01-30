@@ -1,48 +1,12 @@
 using UnityEngine;
-using FMOD;
 using FMODUnity;
-using FMOD.Studio;
-using System.Collections.Generic;
 
 public class FMODBankManager : MonoBehaviour
 {
-    //[FMODUnity.BankRef] public List<string> banks = new List<string>();
-
-    private enum Banks
-    {
-        Master,
-        Player,
-        PlayerInstruments,
-        Music,
-        Weather,
-        Lightning,
-        Cave,
-        Actions,
-        Tree,
-        UI,
-        Animals,
-        Footsteps,
-        Fire,
-        NPC
-
-    }
-
-    [SerializeField] private List<StudioBankLoader> fmodBanks;
-
-    /*
-    private void LoadAllBanks()
-    {
-        foreach (string bank in banks)
-        {
-            RuntimeManager.LoadBank(bank);
-        }
-    }
-    */
-
     private void Awake()
     {
-        LoadBank("Master");
         LoadBank("Master.strings");
+        LoadBank("Master");
         LoadBank("Music");
         LoadBank("Player");
         LoadBank("Weather");

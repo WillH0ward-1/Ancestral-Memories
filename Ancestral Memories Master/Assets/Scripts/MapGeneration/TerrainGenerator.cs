@@ -49,7 +49,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private void Awake()
 	{
-	    surfaces = NavMeshContainer.GetComponentsInChildren<NavMeshSurface>();
+		surfaces = NavMeshContainer.GetComponentsInChildren<NavMeshSurface>();
 
 		foreach (NavMeshSurface surface in surfaces) {
 			surface.BuildNavMesh();
@@ -91,8 +91,11 @@ public class TerrainGenerator : MonoBehaviour {
 		UpdateVisibleChunks();
 
 		GameObject tmp = FindChildGameObject(mapObject, terrainChunkName);
+
+
 		if (tmp != null)
 		{
+			tmp.isStatic = true;
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 

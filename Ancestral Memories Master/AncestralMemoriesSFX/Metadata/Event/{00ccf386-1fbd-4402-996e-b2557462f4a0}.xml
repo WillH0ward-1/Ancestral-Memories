@@ -62,7 +62,7 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{99ed5ff4-7e99-405d-832d-3c82ab0fc056}">
 		<property name="maxVoices">
-			<value>16</value>
+			<value>1</value>
 		</property>
 		<property name="voiceStealing">
 			<value>2</value>
@@ -70,11 +70,14 @@
 		<property name="priority">
 			<value>3</value>
 		</property>
-		<property name="dopplerEnabled">
-			<value>true</value>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
+		<property name="minimumDistance">
+			<value>7.20000029</value>
 		</property>
 		<property name="maximumDistance">
-			<value>25</value>
+			<value>150</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{976bf0b7-7db9-47c2-b1c3-062e491f4a9a}" />
@@ -118,7 +121,7 @@
 	</object>
 	<object class="EventMixerMaster" id="{65ea44f3-60e3-4920-a629-dd2ea2d0b990}">
 		<property name="pitch">
-			<value>-2.20000005</value>
+			<value>-7</value>
 		</property>
 		<relationship name="effectChain">
 			<destination>{dd9067f5-adbd-461a-8a34-5eeedee27773}</destination>
@@ -290,8 +293,11 @@
 	<object class="MixerBusPanner" id="{f34a66c4-eb67-4ce2-933c-1b30cfc10095}" />
 	<object class="MixerBusFader" id="{215369e3-ade3-4fbc-8d08-5075e0a90b90}" />
 	<object class="SpatialiserEffect" id="{b92be712-e409-48cc-a153-97abef7ee035}">
+		<property name="minimumDistance">
+			<value>7.20000029</value>
+		</property>
 		<property name="maximumDistance">
-			<value>25</value>
+			<value>150</value>
 		</property>
 	</object>
 	<object class="AutomationCurve" id="{e72d3503-8d6d-4ade-b12a-6806841aa916}">

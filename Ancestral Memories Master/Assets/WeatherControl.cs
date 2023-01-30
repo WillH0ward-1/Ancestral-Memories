@@ -21,11 +21,19 @@ public class WeatherControl : MonoBehaviour
 
     [SerializeField] private Transform windZones;
 
+    [SerializeField] private Transform parent;
+    [SerializeField] private Player player;
+
     //[SerializeField] private List<Renderer> windAffectedRenderers;
 
     // Start is called before the first frame update
 
     public List<Transform> windAffectedRendererList = new List<Transform>();
+
+    private void Awake()
+    {
+        parent = player.transform;
+    }
 
     void Start()
     {
@@ -69,9 +77,13 @@ public class WeatherControl : MonoBehaviour
     {
         StartCoroutine(SpawnBuffer());
 
-        Vector3 newPosition = player.transform.position * Random.insideUnitCircle * spawnRadius;
+     
+        GameObject windZoneObject = Instantiate(windZone, player.transform.position, Quaternion.identity, windZones);
+        windZoneObject.transform.SetParent(player.transform);
 
-        GameObject windZoneObject = Instantiate(windZone, newPosition, Quaternion.identity, windZones);
+        Vector3 newPosition = Random.insideUnitCircle * spawnRadius;
+        windZoneObject.transform.position = newPosition;
+
         EventInstance wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>().EventInstance;
 
         StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
@@ -154,9 +166,6 @@ public class WeatherControl : MonoBehaviour
 
     [SerializeField] float leafShakeMin = 0;
     [SerializeField] float leafShakeMax = 100;
-
-    [SerializeField]
-    private CharacterClass player;
 
     private void OnEnable() => player.OnFaithChanged += WindStrength;
     private void OnDisable() => player.OnFaithChanged -= WindStrength;
