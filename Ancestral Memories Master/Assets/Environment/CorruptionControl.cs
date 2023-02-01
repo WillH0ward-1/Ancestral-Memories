@@ -14,14 +14,48 @@ public class CorruptionControl : MonoBehaviour
 
     public bool CorruptionModifierActive = false;
 
+    private MeshRenderer[] objectRenderers;
+
+    private MeshRenderer objectRenderer;
     void Awake()
     {
-        Renderer[] objectRenderers = transform.GetComponentsInChildren<Renderer>();
-        rendererList = objectRenderers.ToList();
+        
+        //CorruptionModifierActive = false;
+        /*
+        if (!transform.CompareTag("Trees"))
+        {
+            objectRenderers = transform.GetComponentsInChildren<MeshRenderer>();
+            rendererList = objectRenderers.ToList();
+        } else
+        {
+            objectRenderer = transform.GetComponent<MeshRenderer>();
+            rendererList.Add(objectRenderer);
+        }
+        */
+
+        rendererList.Add(transform);
+
+        foreach (Transform transform in rendererList)
+        {
+            foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
+            {
+                
+                m.SetFloat("_MinKarma", newMin);
+                m.SetFloat("_MaxKarma", newMax);
+
+                m.SetFloat("_NewMin", newMin);
+                m.SetFloat("_NewMax", newMax);
+
+                m.SetFloat("_MinWarpStrength", newMin);
+                m.SetFloat("_MaxWarpStrength", newMax);
+
+            }
+        }
+
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
 
-    [SerializeField] List<Renderer> rendererList = new List<Renderer>();
+    [SerializeField] List<Transform> rendererList = new List<Transform>();
 
     private void OnEnable()
     {
@@ -29,8 +63,6 @@ public class CorruptionControl : MonoBehaviour
         {
             player.OnFaithChanged += KarmaModifier;
         }
-
-        return;
 
     }
 
@@ -40,8 +72,6 @@ public class CorruptionControl : MonoBehaviour
         {
             player.OnFaithChanged -= KarmaModifier;
         }
-
-        return;
     }
     
     float time = 0;
@@ -64,30 +94,23 @@ public class CorruptionControl : MonoBehaviour
 
         targetCorruption = output;
 
-        foreach (Renderer r in rendererList)
+        UpdateCorruption(output);
+    }
+
+    private void UpdateCorruption(float output)
+    {
+        foreach (Transform transform in rendererList)
         {
-            foreach (Material m in r.sharedMaterials)
+            foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
             {
                 m.SetFloat("_Karma", output);
                 m.SetFloat("_LeafDensity", output);
 
-                m.SetFloat("_MinKarma", newMin);
-                m.SetFloat("_MaxKarma", newMax);
-
-                m.SetFloat("_NewMin", newMin);
-                m.SetFloat("_NewMax", newMax);
-
                 if (behaviours.isPsychdelicMode)
                 {
                     m.SetFloat("_WarpStrength", output);
-                    m.SetFloat("_MinWarpStrength", newMin);
-                    m.SetFloat("_MaxWarpStrength", newMax);
                 }
             }
-
         }
-
     }
- 
-
 }

@@ -11,7 +11,7 @@ public class CrowAudioManager : MonoBehaviour
     public Camera cam;
 
     [SerializeField] private Rigidbody rigidBody;
-    [SerializeField] private EventReference wingflapEvent;
+    [EventRef] private string wingflapEvent;
     private float distance;
     private Animator animator;
     private Animation animation;

@@ -370,6 +370,7 @@ public class MapObjGen : MonoBehaviour
 
             CorruptionControl corruption = animalInstance.GetComponent<CorruptionControl>();
             NavMeshAgent agent = animalInstance.GetComponent<NavMeshAgent>();
+            corruption.CorruptionModifierActive = true;
 
             AnimalAI animalAI = animalInstance.transform.GetComponentInChildren<AnimalAI>();
 
@@ -508,18 +509,13 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            treeInstance.AddComponent<CorruptionControl>();
+            treeInstance.transform.gameObject.AddComponent<CorruptionControl>();
 
-            CorruptionControl corruptionControl = treeInstance.GetComponent<CorruptionControl>();
+            CorruptionControl corruptionControl = treeInstance.transform.GetComponent<CorruptionControl>();
 
             corruptionControl.player = player;
             corruptionControl.behaviours = behaviours;
-
-            if (corruptionControl.CorruptionModifierActive != true)
-            {
-                corruptionControl.CorruptionModifierActive = true;
-            }
-
+            corruptionControl.CorruptionModifierActive = false;
 
             //corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
             //corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
@@ -632,10 +628,13 @@ public class MapObjGen : MonoBehaviour
         treeGrowControl.rainControl = rainControl;
 
         ParticleSystem dirtExplodeParticles = dirt.transform.GetComponent<ParticleSystem>();
+
+        /*
         CorruptionControl corruptionControl = dirt.transform.GetComponent<CorruptionControl>();
         corruptionControl.player = player;
         corruptionControl.behaviours = behaviours;
         corruptionControl.enabled = true;
+        */
 
         dirtExplodeParticles.transform.localScale = new Vector3(1, 1, 1);
         dirtExplodeParticles.transform.localPosition = new Vector3(0, 0, 0);
@@ -650,8 +649,8 @@ public class MapObjGen : MonoBehaviour
 
         appleGrowthDelay = Random.Range(minAppleGrowDelay, maxAppleGrowDelay);
         treeGrowthDelay = Random.Range(minTreeGrowDelay, maxTreeGrowDelay);
-        StartCoroutine(
-                WaitForGrowDelay(dirtExplodeParticles, emission, treeGrowthDelay));
+        StartCoroutine(WaitForGrowDelay(tree, dirtExplodeParticles, emission, treeGrowthDelay));
+
         if (!tree.transform.CompareTag("AppleTree"))
         {
             StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
@@ -685,12 +684,13 @@ public class MapObjGen : MonoBehaviour
        //StartCoroutine(treeShader.GrowLeaves(30f));
     }
 
-    private IEnumerator WaitForGrowDelay(ParticleSystem dirtExplodeParticles, ParticleSystem.EmissionModule emission, float treeGrowthDelay)
+    private IEnumerator WaitForGrowDelay(GameObject tree, ParticleSystem dirtExplodeParticles, ParticleSystem.EmissionModule emission, float treeGrowthDelay)
     {
         yield return new WaitForSeconds(treeGrowthDelay);
         emission.enabled = true;
         dirtExplodeParticles.Play();
-        //StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
+        tree.GetComponent<CorruptionControl>().CorruptionModifierActive = true;
+        StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
 
         yield break;
     }
@@ -699,7 +699,6 @@ public class MapObjGen : MonoBehaviour
     {
         yield return new WaitForSeconds(dirtExplodeParticles.main.duration);
         dirtExplodeParticles.Stop();
-
         yield break;
     }
 

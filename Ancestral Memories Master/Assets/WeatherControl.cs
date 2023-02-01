@@ -20,6 +20,7 @@ public class WeatherControl : MonoBehaviour
     [SerializeField] private Renderer[] windAffectedRenderers;
 
     [SerializeField] private Transform windZones;
+    [SerializeField] private int maxWindZoneInstances = 4;
 
     [SerializeField] private Transform parent;
     [SerializeField] private Player player;
@@ -29,6 +30,7 @@ public class WeatherControl : MonoBehaviour
     // Start is called before the first frame update
 
     public List<Transform> windAffectedRendererList = new List<Transform>();
+    public List<Transform> activeWindZones = new List<Transform>();
 
     private void Awake()
     {
@@ -37,7 +39,7 @@ public class WeatherControl : MonoBehaviour
 
     void Start()
     {
-        ListCleanup();
+        ListCleanup(windAffectedRendererList);
 
         //
         EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
@@ -47,12 +49,12 @@ public class WeatherControl : MonoBehaviour
         StartCoroutine(SpawnBuffer());
     }
 
-    void ListCleanup()
+    void ListCleanup(List<Transform> list)
     {
-        for (var i = windAffectedRendererList.Count - 1; i > -1; i--)
+        for (var i = list.Count - 1; i > -1; i--)
         {
-            if (windAffectedRendererList[i] == null)
-                windAffectedRendererList.RemoveAt(i);
+            if (list[i] == null)
+                list.RemoveAt(i);
         }
     }
 
@@ -62,11 +64,15 @@ public class WeatherControl : MonoBehaviour
     [SerializeField] private float minLifeTime = 15;
     [SerializeField] private float maxLifeTime = 40;
 
+
     private IEnumerator SpawnBuffer()
     {
         yield return new WaitForSeconds(Random.Range(minSpawnBuffer, maxSpawnBuffer));
 
-        SpawnWindZone();
+        if (activeWindZones.Count <= maxWindZoneInstances)
+        {
+            SpawnWindZone();
+        }
 
         yield break;
     }
@@ -76,18 +82,27 @@ public class WeatherControl : MonoBehaviour
     private void SpawnWindZone()
     {
         StartCoroutine(SpawnBuffer());
-
      
         GameObject windZoneObject = Instantiate(windZone, player.transform.position, Quaternion.identity, windZones);
-        windZoneObject.transform.SetParent(player.transform);
 
-        Vector3 newPosition = Random.insideUnitCircle * spawnRadius;
-        windZoneObject.transform.position = newPosition;
+        activeWindZones.Add(windZoneObject.transform);
 
-        EventInstance wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>().EventInstance;
+        if (activeWindZones.Count > maxWindZoneInstances)
+        {
+            activeWindZones.Remove(windZoneObject.transform);
+            Destroy(windZoneObject);
+        }
+        else
+        {
 
-        StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
-        StartCoroutine(WindTimeout(windZoneObject));
+            Vector3 newPosition = (Random.insideUnitSphere * spawnRadius) + player.transform.position;
+            windZoneObject.transform.position = newPosition;
+
+            EventInstance wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>().EventInstance;
+
+            StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
+            StartCoroutine(WindTimeout(windZoneObject));
+        }
     }
 
     private IEnumerator UpdateWind(GameObject windZoneObject, EventInstance instance)
@@ -118,7 +133,7 @@ public class WeatherControl : MonoBehaviour
         yield return new WaitForSeconds(Random.Range(minLifeTime, maxLifeTime));
 
         Destroy(instance);
-
+        ListCleanup(activeWindZones);
         //StartCoroutine(SpawnBuffer());
         yield break;
     }

@@ -104,11 +104,8 @@ public class TerrainGenerator : MonoBehaviour {
 			corruptionControl.player = player;
 			corruptionControl.behaviours = behaviours;
 
-			if (corruptionControl.CorruptionModifierActive != true)
-			{
-				corruptionControl.CorruptionModifierActive = true;
-			}
-
+			corruptionControl.CorruptionModifierActive = true;
+			
 			mapObjectGen.GenerateMapObjects();
 
 			//lerpTerrain = tmp.AddComponent<LerpTerrain>();

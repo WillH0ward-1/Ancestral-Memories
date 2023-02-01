@@ -302,9 +302,9 @@ public class CharacterClass : MonoBehaviour, IStats
 
         psych += psychFactor;
 
-        if (psych <= minStat)
+        if (psych >= maxStat)
         {
-            psych = minStat;
+            psych = maxStat;
 
         }
     }

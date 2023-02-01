@@ -103,6 +103,7 @@ public class Outline : MonoBehaviour {
     foreach (var renderer in renderers) {
 
       // Append outline shaders
+
       var materials = renderer.sharedMaterials.ToList();
 
       materials.Add(outlineMaskMaterial);

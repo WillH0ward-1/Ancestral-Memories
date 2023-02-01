@@ -9,8 +9,8 @@ public class FireSoundEffects : MonoBehaviour
     private EventInstance fireLoopEvent;
     private EventInstance fireWooshEvent;
 
-    [SerializeField] private EventReference FireWooshEvent;
-    [SerializeField] private EventReference FireLoopEvent;
+    [EventRef] private string FireWooshEvent;
+    [EventRef] private string FireLoopEvent;
 
     private void Awake()
     {
