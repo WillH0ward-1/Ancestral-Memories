@@ -368,14 +368,19 @@ public class MapObjGen : MonoBehaviour
 
             deform.enabled = false;
 
-            CorruptionControl corruption = animalInstance.GetComponent<CorruptionControl>();
+            animalInstance.transform.gameObject.AddComponent<CorruptionControl>();
+            CorruptionControl corruptionControl = animalInstance.transform.GetComponent<CorruptionControl>();
+
+            corruptionControl.player = player;
+            corruptionControl.behaviours = behaviours;
+            corruptionControl.CorruptionModifierActive = true;
+            corruptionControl.newMin = 1;
+            corruptionControl.newMax = 0;
+
             NavMeshAgent agent = animalInstance.GetComponent<NavMeshAgent>();
-            corruption.CorruptionModifierActive = true;
 
             AnimalAI animalAI = animalInstance.transform.GetComponentInChildren<AnimalAI>();
-
             animalAI.player = player;
-            corruption.player = player;
 
             deform.enabled = true;
 

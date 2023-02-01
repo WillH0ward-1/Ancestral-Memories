@@ -14,10 +14,7 @@ public class CorruptionControl : MonoBehaviour
 
     public bool CorruptionModifierActive = false;
 
-    private MeshRenderer[] objectRenderers;
-
-    private MeshRenderer objectRenderer;
-    void Awake()
+    void Start()
     {
         
         //CorruptionModifierActive = false;
@@ -33,11 +30,11 @@ public class CorruptionControl : MonoBehaviour
         }
         */
 
-        rendererList.Add(transform);
+        transformList.Add(transform);
 
-        foreach (Transform transform in rendererList)
+        foreach (Transform t in transformList)
         {
-            foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
+            foreach (Material m in t.GetComponentInChildren<Renderer>().sharedMaterials)
             {
                 
                 m.SetFloat("_MinKarma", newMin);
@@ -55,7 +52,7 @@ public class CorruptionControl : MonoBehaviour
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
 
-    [SerializeField] List<Transform> rendererList = new List<Transform>();
+    [SerializeField] List<Transform> transformList = new List<Transform>();
 
     private void OnEnable()
     {
@@ -83,8 +80,8 @@ public class CorruptionControl : MonoBehaviour
 
     }
 
-    [SerializeField] private float newMin = 0;
-    [SerializeField] private float newMax = 1;
+    public float newMin = 0;
+    public float newMax = 1;
 
      
     private void KarmaModifier(float karma, float minKarma, float maxKarma)
@@ -95,20 +92,33 @@ public class CorruptionControl : MonoBehaviour
         targetCorruption = output;
 
         UpdateCorruption(output);
+
     }
+
+    private float modifier = 0f;
 
     private void UpdateCorruption(float output)
     {
-        foreach (Transform transform in rendererList)
-        {
-            foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
-            {
-                m.SetFloat("_Karma", output);
-                m.SetFloat("_LeafDensity", output);
+        modifier = output;
 
-                if (behaviours.isPsychdelicMode)
+        if (!CorruptionModifierActive)
+        {
+            modifier = newMin;
+        }
+        else
+        {
+
+            foreach (Transform t in transformList)
+            {
+                foreach (Material m in t.GetComponentInChildren<Renderer>().sharedMaterials)
                 {
-                    m.SetFloat("_WarpStrength", output);
+                    m.SetFloat("_Karma", modifier);
+                    m.SetFloat("_LeafDensity", modifier);
+
+                    if (behaviours.isPsychdelicMode)
+                    {
+                        m.SetFloat("_WarpStrength", modifier);
+                    }
                 }
             }
         }
