@@ -53,6 +53,7 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] float animFactor = 9;
 
     public CharacterBehaviours behaviours;
+    public bool behaviourWalkOverride = false;
 
     public AreaManager areaManager;
 
@@ -86,6 +87,7 @@ public class PlayerWalk : MonoBehaviour
         raySources.Add(leftFoot);
         raySources.Add(rightFoot);
 
+        defaultBoundsSize = new Vector3(1, 1, 1);
 
     }
 
@@ -208,16 +210,16 @@ public class PlayerWalk : MonoBehaviour
     {
         if (!stopOverride)
         {
-            if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing)
+            if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing && !behaviourWalkOverride)
             {
-                if (Input.GetMouseButton(0) && player.hasDied == false && cineCam.cinematicActive == false)
+                if (Input.GetMouseButton(0) && !player.hasDied && !cineCam.cinematicActive)
                 {
                     CastRayToGround();
                 }
 
                 if (Input.GetMouseButtonUp(0))
                 {
-                    if (agent.isStopped == false && player.hasDied == false && cineCam.cinematicActive == false)
+                    if (!agent.isStopped && !player.hasDied && !cineCam.cinematicActive)
                     {
                         StopAgent();
                     }
@@ -258,11 +260,11 @@ public class PlayerWalk : MonoBehaviour
 
                     if (speed < runThreshold)
                     {
-                        if (!behaviours.isPsychdelicMode && !player.starving)
+                        if (!behaviours.isPsychdelicMode && !player.isStarving)
                         {
                             ChangeState(PLAYER_WALK);
                         }
-                        else if (player.starving)
+                        else if (player.isStarving)
                         {
                             ChangeState(PLAYER_STARVINGWALK);
                         }
@@ -312,7 +314,8 @@ public class PlayerWalk : MonoBehaviour
     private float walkTowardSpeed;
 
     private Vector3 destination;
-    private Vector3 defaultBoundsSize;
+    [SerializeField] private Vector3 defaultBoundsSize;
+    private Vector3 boundsSize;
 
     public bool showDestinationGizmos = false;
 
@@ -331,14 +334,14 @@ public class PlayerWalk : MonoBehaviour
         if (selected == "Drink")
         {
             destination = rayHit.point;
-            Vector3 boundsSize = player.transform.localScale;
+            boundsSize = player.transform.localScale;
             destinationGizmo.transform.localScale = boundsSize;
         }
 
         if (selected != "Drink")
         {
             destination = hitObject.transform.position;
-            Vector3 boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+            boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = boundsSize;
         }
 
@@ -364,17 +367,19 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize / 4;
+            destinationGizmo.transform.localScale = defaultBoundsSize;
         }
 
         if (selected == "HarvestTree")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize / 8;
+            boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+            destinationGizmo.transform.localScale = boundsSize;
+            destinationGizmo.transform.localScale = boundsSize / 4;
         }
 
         if (selected == "Talk")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+            destinationGizmo.transform.localScale = defaultBoundsSize * 15;
         }
 
         destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
@@ -408,11 +413,11 @@ public class PlayerWalk : MonoBehaviour
 
         reachedDestination = false;
 
-        if (!behaviours.isPsychdelicMode && !player.starving)
+        if (!behaviours.isPsychdelicMode && !player.isStarving)
         {
             ChangeState(PLAYER_WALK);
         }
-        else if (player.starving)
+        else if (player.isStarving)
         {
             ChangeState(PLAYER_STARVINGWALK);
         } else if (behaviours.isPsychdelicMode)
@@ -471,11 +476,11 @@ public class PlayerWalk : MonoBehaviour
     {
         player.AdjustAnimationSpeed(defaultAnimSpeed);
 
-        if (!behaviours.isPsychdelicMode && !player.starving)
+        if (!behaviours.isPsychdelicMode && !player.isStarving)
         {
             ChangeState(PLAYER_IDLE);
         }
-        if (player.starving)
+        if (player.isStarving)
         {
             ChangeState(PLAYER_STARVINGIDLE);
         }

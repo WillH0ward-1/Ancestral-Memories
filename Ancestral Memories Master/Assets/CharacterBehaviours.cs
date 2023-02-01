@@ -361,6 +361,7 @@ public class CharacterBehaviours : MonoBehaviour
 
 
     private float faithFactor = 0.25f;
+    private float hungerFactor = 1f;
 
     float minPulseTrigger = 1;
     float maxPulseTrigger = 1;
@@ -458,6 +459,8 @@ public class CharacterBehaviours : MonoBehaviour
             player.GainFaith(faithFactor);
             yield return null;
         }
+
+        yield break;
     }
 
 
@@ -508,6 +511,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] private PickUpObject pickUpManager;
 
+    private float psychedelicBuffer = 60f;
+
     public IEnumerator PickMushroom(GameObject hitObject)
     {
         behaviourIsActive = true;
@@ -522,23 +527,47 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
+        StartCoroutine(HealHunger());
 
         if (DetectIfPsychedelic())
         {
-            isPsychdelicMode = true;
-            cinematicCam.ToPsychedelicZoom();
-        } else if (!DetectIfPsychedelic())
+            behaviourIsActive = false;
+            pickUpManager.DestroyPickup();
+            StartCoroutine(PsychedelicModeBuffer());
+            yield break;
+        }
+        else if (!DetectIfPsychedelic())
         {
+            StartCoroutine(Vomit());
             isPsychdelicMode = false;
             cinematicCam.ToGameZoom();
 
-            
+            behaviourIsActive = false;
+            pickUpManager.DestroyPickup();
+            yield break;
+        }
+    }
+
+    private IEnumerator PsychedelicModeBuffer()
+    {
+        yield return new WaitForSeconds(psychedelicBuffer);
+        isPsychdelicMode = true;
+        cinematicCam.ToPsychedelicZoom();
+    }
+
+    private IEnumerator HealHunger()
+    {
+        float time = 0;
+
+        while (time <= 5f)
+        {
+            player.HealHunger(hungerFactor);
+            time += Time.deltaTime * 2f;
+
+            yield return null;
         }
 
-        behaviourIsActive = false;
-        pickUpManager.DestroyPickup();
         yield break;
-
     }
 
 
@@ -657,7 +686,6 @@ public class CharacterBehaviours : MonoBehaviour
             return true;
         } else
         {
-            StartCoroutine(Vomit());
             return false;
         }
     }
@@ -756,37 +784,43 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Talk(GameObject hitObject)
     {
-      
         Debug.Log("HITOBJECT: " + hitObject);
+
+        //GameObject lookAtTarget = hitObject;
+        //GameObject DefaultCamPivot = player.transform.root.Find("DefaultCamPosition").gameObject;
+        //GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+        //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
 
         dialogueIsActive = true;
         dialogue = hitObject.transform.GetComponent<Dialogue>();
-
         dialogue.StartDialogue(dialogue, player);
-
-        //GameObject lookAtTarget = hitObject;
 
         player.ChangeAnimationState(PLAYER_IDLE);
         behaviourIsActive = true;
 
-        //GameObject DefaultCamPivot = player.transform.root.Find("DefaultCamPosition").gameObject;
-        //GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+        if (hitObject.transform.CompareTag("Campfire"))
+        {
+            playerWalk.behaviourWalkOverride = true;
+        }
 
-        //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
         player.transform.LookAt(hitObject.transform);
-        //hitObject.transform.LookAt(player.transform);
+
+        hitObject.transform.LookAt(player.transform);
         cinematicCam.ToDialogueZoom();
 
         yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
         behaviourIsActive = false;
+        playerWalk.behaviourWalkOverride = false;
+
         player.ChangeAnimationState(PLAYER_IDLE);
-        //lookAtTarget = player.transform.gameObject;
-        //StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
 
         dialogueIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
+
+        //lookAtTarget = player.transform.gameObject;
+        //StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
 
 
     }

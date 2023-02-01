@@ -5,6 +5,7 @@ using UnityEngine;
 public interface IStats 
 {
     void Heal(float healFactor);
+    void HealHunger(float hungerFactor);
     void SetHealth(int value);
     void TakeDamage(float damageTaken);
     void DepleteFaith(float faithModifer);

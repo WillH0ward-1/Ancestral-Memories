@@ -22,11 +22,6 @@ public class WaterWaveControl : MonoBehaviour
         waveLength = waterSettings._basicWaveSettings.wavelength;
     }
 
-    private void Update()
-    {
-        waveLength = output;
-    }
-
     private void OnEnable()
     {
         player.OnFaithChanged += KarmaModifier;
@@ -45,6 +40,8 @@ public class WaterWaveControl : MonoBehaviour
     {
         var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         output = Mathf.Lerp(newMax, newMin, t);
+
+        waveLength = output;
     }
 
 

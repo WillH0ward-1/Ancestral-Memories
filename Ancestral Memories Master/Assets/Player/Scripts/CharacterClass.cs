@@ -65,7 +65,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public float evolution;
     public float psych;
 
-    public bool starving = false;
+    public bool isStarving = false;
     public bool hasStarved = false;
 
     public bool isDiseased = false;
@@ -427,17 +427,33 @@ public class CharacterClass : MonoBehaviour, IStats
 
         if (hunger <= maxStat / 3)
         {
-            starving = true;
+            isStarving = true;
         }
 
         if (hunger <= minStat)
         {
             hunger = minStat;
             TakeDamage(0.1f);
-        } else
-        {
-            starving = false;
         }
+    }
+
+    public virtual void HealHunger(float healFactor)
+    {
+        hunger += healFactor;
+        hungerBar.UpdateHunger(hunger / maxStat);
+
+        OnHungerChanged?.Invoke(hunger, minStat, maxStat);
+
+        if (hunger >= maxStat / 3)
+        {
+            isStarving = false;
+        }
+
+        if (hunger >= maxStat)
+        {
+            hunger = maxStat;
+        }
+
     }
 
     public virtual void Evolve(float evolutionFactor)

@@ -68,8 +68,6 @@ public class AnimalAI : MonoBehaviour
         actionTimer = Random.Range(0.1f, 2.0f);
         ChangeAnimationState(IDLE);
 
-
-        playerBehaviours = player.GetComponent<CharacterBehaviours>();
         interactable = transform.GetComponent<Interactable>();
 
     }
@@ -104,14 +102,14 @@ public class AnimalAI : MonoBehaviour
             {
                 if (switchAction)
                 {
-                    if (inRange && shouldFlee)
+                    if (shouldFlee)
                     {
                         //Run away
                         agent.SetDestination(RandomNavSphere(transform.position, Random.Range(1, 2.4f)));
                         state = AIState.Running;
                         ChangeAnimationState(RUN);
                     }
-                    else
+                    else if (!shouldFlee)
                     {
                         //No enemies nearby, start eating
                         actionTimer = Random.Range(14, 22);
@@ -160,77 +158,74 @@ public class AnimalAI : MonoBehaviour
                 //Set NavMesh Agent Speed
                 agent.speed = runningSpeed;
 
-                //Run away
-                if (inRange)
+                if (reverseFlee)
                 {
-                    if (reverseFlee)
+                    if (DoneReachingDestination() && timeStuck < 0)
                     {
-                        if (DoneReachingDestination() && timeStuck < 0)
-                        {
-                            reverseFlee = false;
-                        }
-                        else
-                        {
-                            timeStuck -= Time.deltaTime;
-                        }
+                        reverseFlee = false;
                     }
                     else
                     {
-                        Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeDistanceMultiplier);
-                        distance = (transform.position - player.transform.position).sqrMagnitude;
-
-                        //Find the closest NavMesh edge
-                        NavMeshHit hit;
-                        if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
-                        {
-                            closestEdge = hit.position;
-                            distanceToEdge = hit.distance;
-                            //Debug.DrawLine(transform.position, closestEdge, Color.red);
-                        }
-
-                        if (distanceToEdge < 1f)
-                        {
-                            if (timeStuck > 1.5f)
-                            {
-                                if (previousIdlePoints.Count > 0)
-                                {
-                                    runTo = previousIdlePoints[Random.Range(0, previousIdlePoints.Count - 1)];
-                                    reverseFlee = true;
-                                }
-                            }
-                            else
-                            {
-                                timeStuck += Time.deltaTime;
-                            }
-                        }
-
-                        if (distance < range * range)
-                        {
-                            agent.SetDestination(runTo);
-                        }
-                    }
-
-                    //Temporarily switch to Idle if the Agent stopped
-                    if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
-                    {
-                        ChangeAnimationState(IDLE);
-                    }
-                    else
-                    {
-                        ChangeAnimationState(RUN);
+                        timeStuck -= Time.deltaTime;
                     }
                 }
                 else
                 {
-                    //Check if we've reached the destination then stop running
-                    if (DoneReachingDestination())
+                    Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeDistanceMultiplier);
+                    distance = (transform.position - player.transform.position).sqrMagnitude;
+
+                    //Find the closest NavMesh edge
+                    NavMeshHit hit;
+                    if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
                     {
-                        actionTimer = Random.Range(1.4f, 3.4f);
-                        state = AIState.Eating;
-                        ChangeAnimationState(IDLE);
+                        closestEdge = hit.position;
+                        distanceToEdge = hit.distance;
+                        //Debug.DrawLine(transform.position, closestEdge, Color.red);
+                    }
+
+                    if (distanceToEdge < 1f)
+                    {
+                        if (timeStuck > 1.5f)
+                        {
+                            if (previousIdlePoints.Count > 0)
+                            {
+                                runTo = previousIdlePoints[Random.Range(0, previousIdlePoints.Count - 1)];
+                                reverseFlee = true;
+                            }
+                        }
+                        else
+                        {
+                            timeStuck += Time.deltaTime;
+                        }
+                    }
+
+                    if (distance < range * range)
+                    {
+                        agent.SetDestination(runTo);
                     }
                 }
+
+                //Temporarily switch to Idle if the Agent stopped
+                if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
+                {
+                    ChangeAnimationState(IDLE);
+                }
+                else
+                {
+                    ChangeAnimationState(RUN);
+                }
             }
+            else
+            {
+                //Check if we've reached the destination then stop running
+                if (DoneReachingDestination())
+                {
+                    actionTimer = Random.Range(1.4f, 3.4f);
+                    state = AIState.Eating;
+                    ChangeAnimationState(IDLE);
+                }
+            }
+            
 
             switchAction = false;
         } else if (playerBehaviours.dialogueIsActive)
@@ -273,9 +268,6 @@ public class AnimalAI : MonoBehaviour
     }
 
     private string currentState;
-
-    public bool inRange = false;
-
 
     public virtual void ChangeAnimationState(string newState)
     {
