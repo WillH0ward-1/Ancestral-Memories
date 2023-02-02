@@ -382,6 +382,8 @@ public class MapObjGen : MonoBehaviour
             AnimalAI animalAI = animalInstance.transform.GetComponentInChildren<AnimalAI>();
             animalAI.player = player;
 
+            animalAI.lookAtTarget.target = player.transform;
+
             deform.enabled = true;
 
             mapObjectList.Add(animalInstance);

@@ -531,21 +531,18 @@ public class CharacterBehaviours : MonoBehaviour
 
         if (DetectIfPsychedelic())
         {
-            behaviourIsActive = false;
-            pickUpManager.DestroyPickup();
             StartCoroutine(PsychedelicModeBuffer());
-            yield break;
         }
         else if (!DetectIfPsychedelic())
         {
             StartCoroutine(Vomit());
             isPsychdelicMode = false;
-            cinematicCam.ToGameZoom();
-
-            behaviourIsActive = false;
-            pickUpManager.DestroyPickup();
-            yield break;
         }
+
+        pickUpManager.DestroyPickup();
+        behaviourIsActive = false;
+        cinematicCam.ToGameZoom();
+        yield break;
     }
 
     private IEnumerator PsychedelicModeBuffer()
