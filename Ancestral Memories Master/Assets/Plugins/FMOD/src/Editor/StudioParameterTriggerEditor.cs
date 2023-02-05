@@ -7,14 +7,14 @@ namespace FMODUnity
     [CustomEditor(typeof(StudioParameterTrigger))]
     public class StudioParameterTriggerEditor : Editor
     {
-        private StudioEventEmitter targetEmitter;
-        private SerializedProperty emitters;
-        private SerializedProperty trigger;
-        private SerializedProperty tag;
+        StudioEventEmitter targetEmitter;
+        SerializedProperty emitters;
+        SerializedProperty trigger;
+        SerializedProperty tag;
 
-        private bool[] expanded;
+        bool[] expanded;
 
-        private void OnEnable()
+        void OnEnable()
         {
             emitters = serializedObject.FindProperty("Emitters");
             trigger = serializedObject.FindProperty("TriggerEvent");
@@ -91,13 +91,18 @@ namespace FMODUnity
                     emitterProperty.FindPropertyRelative("Target").objectReferenceValue = emitter;
                 }
 
-                if (!emitter.EventReference.IsNull)
+                if (!string.IsNullOrEmpty(emitter.Event))
                 {
-                    expanded[emitterIndex] = EditorGUILayout.Foldout(expanded[emitterIndex], emitter.EventReference.Path);
+                    expanded[emitterIndex] = EditorGUILayout.Foldout(expanded[emitterIndex], emitter.Event);
                     if (expanded[emitterIndex])
                     {
-                        var eventRef = EventManager.EventFromGUID(emitter.EventReference.Guid);
-
+                        var eventRef = EventManager.EventFromPath(emitter.Event);
+                        if (emitter.Event.StartsWith("{"))
+                        {
+                            EditorGUI.BeginDisabledGroup(true);
+                            EditorGUILayout.TextField("Path:", eventRef.Path);
+                            EditorGUI.EndDisabledGroup();
+                        }
                         foreach (var paramRef in eventRef.LocalParameters)
                         {
                             bool set = false;
@@ -126,21 +131,17 @@ namespace FMODUnity
                                 emitterProperty.FindPropertyRelative("Params").DeleteArrayElementAtIndex(index);
                             }
                             set = newSet;
-
+                            EditorGUI.BeginDisabledGroup(!set);
                             if (set)
                             {
-                                var valueProperty = emitterProperty.FindPropertyRelative("Params")
-                                    .GetArrayElementAtIndex(index).FindPropertyRelative("Value");
-                                valueProperty.floatValue =
-                                    EditorUtils.DrawParameterValueLayout(valueProperty.floatValue, paramRef);
+                                var valueProperty = emitterProperty.FindPropertyRelative("Params").GetArrayElementAtIndex(index).FindPropertyRelative("Value");
+                                valueProperty.floatValue = EditorGUILayout.Slider(valueProperty.floatValue, paramRef.Min, paramRef.Max);
                             }
                             else
                             {
-                                using (new EditorGUI.DisabledScope(true))
-                                {
-                                    EditorUtils.DrawParameterValueLayout(0, paramRef);
-                                }
+                                EditorGUILayout.Slider(0, paramRef.Min, paramRef.Max);
                             }
+                            EditorGUI.EndDisabledGroup();
                             EditorGUILayout.EndHorizontal();
                         }
                     }

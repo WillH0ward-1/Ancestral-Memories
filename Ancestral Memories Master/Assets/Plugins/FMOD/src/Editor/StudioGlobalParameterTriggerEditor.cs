@@ -10,73 +10,48 @@ namespace FMODUnity
     [CustomEditor(typeof(StudioGlobalParameterTrigger))]
     public class StudioGlobalParameterTriggerEditor : Editor
     {
-        private SerializedProperty param;
-        private SerializedProperty trigger;
-        private SerializedProperty tag;
-        private SerializedProperty value;
+        SerializedProperty param;
+        SerializedProperty trigger;
+        SerializedProperty tag;
+        SerializedProperty value;
 
-        private SerializedProperty data1, data2;
-
-        private static GUIContent NotFoundWarning;
-
-        private string currentPath;
+        SerializedProperty data1, data2;
 
         [SerializeField]
-        private EditorParamRef editorParamRef;
+        EditorParamRef editorParamRef;
 
-        private void OnEnable()
+        void OnEnable()
         {
-            param = serializedObject.FindProperty("Parameter");
+            param = serializedObject.FindProperty("parameter");
             trigger = serializedObject.FindProperty("TriggerEvent");
             tag = serializedObject.FindProperty("CollisionTag");
-            value = serializedObject.FindProperty("Value");
+            value = serializedObject.FindProperty("value");
         }
 
         public override void OnInspectorGUI()
         {
-            if (NotFoundWarning == null)
-            {
-                Texture warningIcon = EditorUtils.LoadImage("NotFound.png");
-                NotFoundWarning = new GUIContent("Parameter Not Found", warningIcon);
-            }
-
             EditorGUILayout.PropertyField(trigger, new GUIContent("Trigger"));
             if (trigger.enumValueIndex >= (int)EmitterGameEvent.TriggerEnter && trigger.enumValueIndex <= (int)EmitterGameEvent.TriggerExit2D)
             {
                 tag.stringValue = EditorGUILayout.TagField("Collision Tag", tag.stringValue);
             }
 
+            EditorGUI.BeginChangeCheck();
+
+            var oldParam = param.stringValue;
             EditorGUILayout.PropertyField(param, new GUIContent("Parameter"));
 
-            if (param.stringValue != currentPath)
+            if (!String.IsNullOrEmpty(param.stringValue))
             {
-                currentPath = param.stringValue;
-
-                if (string.IsNullOrEmpty(param.stringValue))
-                {
-                    editorParamRef = null;
-                }
-                else
+                if (!editorParamRef || param.stringValue != oldParam)
                 {
                     editorParamRef = EventManager.ParamFromPath(param.stringValue);
-                    value.floatValue = Mathf.Clamp(value.floatValue, editorParamRef.Min, editorParamRef.Max);
                 }
-            }
 
-            if (editorParamRef != null)
-            {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    EditorGUILayout.PrefixLabel("Override Value");
-                    value.floatValue = EditorUtils.DrawParameterValueLayout(value.floatValue, editorParamRef);
-                }
-            }
-            else
-            {
-                Rect rect = EditorGUILayout.GetControlRect();
-                rect.xMin += EditorGUIUtility.labelWidth;
-
-                GUI.Label(rect, NotFoundWarning);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel("Override Value");
+                value.floatValue = EditorGUILayout.Slider(value.floatValue, editorParamRef.Min, editorParamRef.Max);
+                EditorGUILayout.EndHorizontal();
             }
 
             serializedObject.ApplyModifiedProperties();

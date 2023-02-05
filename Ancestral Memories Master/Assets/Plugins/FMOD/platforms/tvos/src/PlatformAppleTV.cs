@@ -35,53 +35,47 @@ namespace FMODUnity
             Settings.AddPlatformTemplate<PlatformAppleTV>("e7a046c753c3c3d4aacc91f6597f310d");
         }
 
-        internal override string DisplayName { get { return "Apple TV"; } }
-        internal override void DeclareRuntimePlatforms(Settings settings)
+        public override string DisplayName { get { return "Apple TV"; } }
+        public override void DeclareUnityMappings(Settings settings)
         {
             settings.DeclareRuntimePlatform(RuntimePlatform.tvOS, this);
+
+#if UNITY_EDITOR
+            settings.DeclareBuildTarget(BuildTarget.tvOS, this);
+#endif
         }
 
 #if UNITY_EDITOR
-        internal override IEnumerable<BuildTarget> GetBuildTargets()
-        {
-            yield return BuildTarget.tvOS;
-        }
+        public override Legacy.Platform LegacyIdentifier { get { return Legacy.Platform.AppleTV; } }
 
-        internal override Legacy.Platform LegacyIdentifier { get { return Legacy.Platform.AppleTV; } }
-
-        protected override BinaryAssetFolderInfo GetBinaryAssetFolder(BuildTarget buildTarget)
-        {
-            return new BinaryAssetFolderInfo("tvos", "Plugins/tvOS");
-        }
-
-        protected override IEnumerable<FileRecord> GetBinaryFiles(BuildTarget buildTarget, bool allVariants, string suffix)
+        protected override IEnumerable<string> GetRelativeBinaryPaths(BuildTarget buildTarget, bool allVariants, string suffix)
         {
             if (allVariants || PlayerSettings.tvOS.sdkVersion == tvOSSdkVersion.Device)
             {
-                yield return new FileRecord(string.Format("libfmodstudiounityplugin{0}.a", suffix));
+                yield return string.Format("tvos/libfmodstudiounityplugin{0}.a", suffix);
             }
 
             if (allVariants || PlayerSettings.tvOS.sdkVersion == tvOSSdkVersion.Simulator)
             {
-                yield return new FileRecord(string.Format("libfmodstudiounitypluginsimulator{0}.a", suffix));
+                yield return string.Format("tvos/libfmodstudiounitypluginsimulator{0}.a", suffix);
             }
         }
 
-        internal override bool SupportsAdditionalCPP(BuildTarget target)
+        public override bool SupportsAdditionalCPP(BuildTarget target)
         {
             return PlatformIOS.StaticSupportsAdditionalCpp();
         }
 #endif
 
 #if !UNITY_EDITOR
-        internal override void LoadPlugins(FMOD.System coreSystem, Action<FMOD.RESULT, string> reportResult)
+        public override void LoadPlugins(FMOD.System coreSystem, Action<FMOD.RESULT, string> reportResult)
         {
             PlatformIOS.StaticLoadPlugins(this, coreSystem, reportResult);
         }
 #endif
 
 #if UNITY_EDITOR
-        internal override OutputType[] ValidOutputTypes
+        public override OutputType[] ValidOutputTypes
         {
             get
             {

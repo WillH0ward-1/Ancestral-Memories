@@ -12,15 +12,15 @@ public class PlayerSoundEffects : MonoBehaviour
     private AreaManager areaManager;
     [SerializeField] private PlayerWalk playerWalk;
 
-    [SerializeField] private EventReference WalkEventPath;
-    [SerializeField] private EventReference HitTreeEventPath;
-    [SerializeField] private EventReference WhooshEventPath;
-    [SerializeField] private EventReference PlayerScreamEventPath;
-    [SerializeField] private EventReference DrownEventPath;
-    [SerializeField] private EventReference UprootPlantEventPath;
-    [SerializeField] private EventReference EatEventPath;
-    [SerializeField] private EventReference VomitEventPath;
-    [SerializeField] private EventReference FluteEventPath;
+    [SerializeField] private string WalkEventPath;
+    [SerializeField] private string HitTreeEventPath;
+    [SerializeField] private string WhooshEventPath;
+    [SerializeField] private string PlayerScreamEventPath;
+    [SerializeField] private string DrownEventPath;
+    [SerializeField] private string UprootPlantEventPath;
+    [SerializeField] private string EatEventPath;
+    [SerializeField] private string VomitEventPath;
+    [SerializeField] private string FluteEventPath;
 
     private EventInstance walkEvent;
     private EventInstance rightFootStepEvent;

@@ -42,7 +42,7 @@ public class MusicManager : MonoBehaviour
 
     public string currentGameState;
 
-    [SerializeField] private EventReference MusicEventPath;
+    [SerializeField] private string MusicEventPath;
     private StudioEventEmitter studioEventEmitter;
     private EventInstance musicInstance;
 

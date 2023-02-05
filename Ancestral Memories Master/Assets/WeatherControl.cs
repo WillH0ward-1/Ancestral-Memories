@@ -7,7 +7,7 @@ using System.Linq;
 
 public class WeatherControl : MonoBehaviour
 {
-    public EventReference wind2DEvent;
+    public string wind2DEventPath;
 
     public GameObject windZone;
 
@@ -46,7 +46,7 @@ public class WeatherControl : MonoBehaviour
         ListCleanup(windAffectedRendererList);
 
         //
-        EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
+        EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEventPath);
         //windStrength = 0;
 
         StartCoroutine(WindStrength(windAudio2DInstance));

@@ -7,7 +7,7 @@ using FMOD.Studio;
 
 public class RandomPlayback : MonoBehaviour
 {
-    [SerializeField] private EventReference randomPlaybackEvent;
+    [SerializeField] private string randomPlaybackEvent;
 
     int length;
 

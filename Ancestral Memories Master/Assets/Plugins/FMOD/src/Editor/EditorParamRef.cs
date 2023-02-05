@@ -11,15 +11,12 @@ namespace FMODUnity
     {
         Continuous,
         Discrete,
-        Labeled,
     }
 
     public class EditorParamRef : ScriptableObject
     {
         [SerializeField]
         public string Name;
-        [SerializeField]
-        public string StudioPath;
         [SerializeField]
         public float Min;
         [SerializeField]
@@ -32,10 +29,6 @@ namespace FMODUnity
         public ParameterType Type;
         [SerializeField]
         public bool IsGlobal;
-        [SerializeField]
-        public string[] Labels = { };
-
-        public bool Exists;
 
         [Serializable]
         public struct ParameterID
@@ -64,5 +57,7 @@ namespace FMODUnity
             public uint data1;
             public uint data2;
         }
+
+        public bool Exists;
     }
 }
