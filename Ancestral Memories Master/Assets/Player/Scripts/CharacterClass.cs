@@ -296,29 +296,21 @@ public class CharacterClass : MonoBehaviour, IStats
 
     [SerializeField] private DisasterManager naturalDisaster;
 
-    public virtual void GainPsych(float psychFactor)
+    public virtual void PsychModifier(float psychFactor)
     {
         OnPsychChanged?.Invoke(psych, minStat, maxStat);
 
-        psych += psychFactor;
+        psych = psychFactor;
 
         if (psych >= maxStat)
         {
             psych = maxStat;
-
         }
-    }
-
-    public virtual void DepletePsych(float psychFactor)
-    {
-        OnPsychChanged?.Invoke(psych, minStat, maxStat);
-
-        psych -= psychFactor;
 
         if (psych <= minStat)
         {
             psych = minStat;
-              
+
         }
     }
 

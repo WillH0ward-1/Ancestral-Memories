@@ -224,11 +224,11 @@ public class CamControl : MonoBehaviour
             }
 
             if (Input.mousePosition.x > Screen.width / 2){
-                rotateSpeed = +panoramaRotateSpeed;
+                rotateSpeed = -panoramaRotateSpeed;
             }
 
             if (Input.mousePosition.x < Screen.width / 2){
-                rotateSpeed = -panoramaRotateSpeed;
+                rotateSpeed = +panoramaRotateSpeed;
             }
 
             if (cam.orthographicSize >= maxOrthoZoom){
@@ -275,8 +275,14 @@ public class CamControl : MonoBehaviour
         }
     }
 
+    void CancelLastCam()
+    {
+        StopAllCoroutines();
+    }
+
     public void ToSpawnZoom()
     {
+        CancelLastCam();
         isSpawning = true;
         cinematicActive = true; // Level introduction.
         SetCamClipPlane();
@@ -289,6 +295,7 @@ public class CamControl : MonoBehaviour
 
     public void ToPanoramaZoom()
     {
+        CancelLastCam();
         panoramaScroll = false;
         panoramaCamBuffer = true;
         cinematicActive = false;
@@ -301,6 +308,7 @@ public class CamControl : MonoBehaviour
 
     public void ToActionZoom()
     {
+        CancelLastCam();
         cinematicActive = true;
         SetCamClipPlane();
         zoomDestination = actionZoom;
@@ -310,6 +318,7 @@ public class CamControl : MonoBehaviour
 
     public void ToPrayerZoom()
     {
+        CancelLastCam();
         cinematicActive = true;
         SetCamClipPlane();
         zoomDestination = prayerZoom;
@@ -320,6 +329,7 @@ public class CamControl : MonoBehaviour
 
     public void ToFrontFaceZoom()
     {
+        CancelLastCam();
         cinematicActive = true;
         SetCamClipPlane();
         zoomDestination = frontFaceZoom;
@@ -329,6 +339,7 @@ public class CamControl : MonoBehaviour
 
     public void ToGameZoom()
     {
+        CancelLastCam();
         cinematicActive = false;
         camTarget = player.transform;
         SetCamClipPlane();
@@ -340,6 +351,7 @@ public class CamControl : MonoBehaviour
 
     public void ToCinematicZoom()
     {
+        CancelLastCam();
         cinematicActive = true;
         SetCamClipPlane();
         zoomDestination = cutSceneZoom;
@@ -349,6 +361,7 @@ public class CamControl : MonoBehaviour
 
     public void ToDialogueZoom()
     {
+        CancelLastCam();
         cinematicActive = false;
         SetCamClipPlane();
         zoomDestination = dialogueZoom;
@@ -358,6 +371,7 @@ public class CamControl : MonoBehaviour
 
     public void ToPsychedelicZoom()
     {
+        CancelLastCam();
         cinematicActive = false;
         SetCamClipPlane();
         zoomDestination = psychedelicZoom;
@@ -368,6 +382,7 @@ public class CamControl : MonoBehaviour
 
     public void EnterRoomZoom(GameObject interactedPortal)
     {
+        CancelLastCam();
         camTarget = interactedPortal.transform;
         cinematicActive = false;
         SetCamClipPlane();
@@ -440,6 +455,14 @@ public class CamControl : MonoBehaviour
 
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
     {
+
+        if (panoramaCamBuffer == true)
+        {
+            StartCoroutine(PanoramaZoom());
+            panoramaCamBuffer = false;
+            yield break;
+        }
+
         func = Lerp.GetLerpFunction(lerpParams.lerpType);
 
         float zoomMultiplier = 0;
@@ -448,13 +471,13 @@ public class CamControl : MonoBehaviour
 
         while (time <= 1f)
         {
+            time += Time.deltaTime / duration;
+
             currentOrthoZoom = cam.orthographicSize;
             cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time));
 
             currentZoom = rpCamera.perspective;
             rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, func(time));
-
-            time += Time.deltaTime / duration;
 
             if (zoomDestination == psychedelicZoom)
             {
@@ -475,25 +498,19 @@ public class CamControl : MonoBehaviour
                 isSpawning = false;
                 yield break;
             }
-
-            if (panoramaCamBuffer == true)
-            {
-                StartCoroutine(PanoramaZoom());
-                panoramaCamBuffer = false;
-                yield break;
-            }
         }
        
     }
 
     private IEnumerator PsychedelicFX(float time)
     {
+        behaviours.isPsychdelicMode = true; 
         while (behaviours.isPsychdelicMode)
         {
             var t = Mathf.InverseLerp(currentZoom, zoomDestination, func(time));
             float output = Mathf.Lerp(1, 0, t);
             float psychOutput = Mathf.Lerp(player.minStat, player.maxStat, t);
-            player.GainPsych(psychOutput);
+            player.PsychModifier(psychOutput);
 
             RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
 

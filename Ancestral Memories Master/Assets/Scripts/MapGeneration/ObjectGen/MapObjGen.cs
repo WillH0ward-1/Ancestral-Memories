@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using Deform;
+using FIMSpace.FLook;
 
 public class MapObjGen : MonoBehaviour
 {
@@ -377,12 +378,16 @@ public class MapObjGen : MonoBehaviour
             corruptionControl.newMin = 1;
             corruptionControl.newMax = 0;
 
-            NavMeshAgent agent = animalInstance.GetComponent<NavMeshAgent>();
-
-            AnimalAI animalAI = animalInstance.transform.GetComponentInChildren<AnimalAI>();
+            //NavMeshAgent agent = animalInstance.GetComponentInChildren<NavMeshAgent>();
+            AnimalAI animalAI = animalInstance.GetComponentInChildren<AnimalAI>();
             animalAI.player = player;
+            animalAI.playerBehaviours = behaviours;
 
-            animalAI.lookAtTarget.target = player.transform;
+            FLookAnimator lookAnimator = animalInstance.GetComponentInChildren<FLookAnimator>();
+            lookAnimator.enabled = true;
+            lookAnimator.ObjectToFollow = player.transform;
+
+            animalAI.lookAnimator = lookAnimator;
 
             deform.enabled = true;
 

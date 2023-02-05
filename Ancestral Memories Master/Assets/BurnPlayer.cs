@@ -66,14 +66,14 @@ public class BurnPlayer : MonoBehaviour
 
             foreach (Renderer renderer in renderers)
             {
-                burn = renderer.sharedMaterial.GetFloat("_ColourPrecision");
                 burn = currentBurn;
+                renderer.sharedMaterial.SetFloat("_ColourPrecision", burn);
             }
 
             time += Time.deltaTime / burnSpeed;
         }
 
-        if (time >= 1f || currentBurn >= targetBurn)
+        if (time >= 1f)
         {
             yield break;
         }

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
 using System.Collections;
+using FIMSpace.FLook;
 
 public class AnimalAI : MonoBehaviour
 {
@@ -19,40 +20,39 @@ public class AnimalAI : MonoBehaviour
 
     public enum AIState { Idle, Walking, Eating, Running, Following, Dialogue }
 
-    [SerializeField] public AIState state = AIState.Idle;
+    [SerializeField] private AIState state = AIState.Idle;
+
+
+    [SerializeField] private AIState currentAIState;
+    [SerializeField] private bool behaviourActive = false;
 
     [SerializeField] private float walkingSpeed = 3.5f;
     [SerializeField] private float runningSpeed = 11;
-    public Animator animator;
 
+    private Animator animator;
     [SerializeField] private float animationCrossFade = 0.5f;
 
-    SphereCollider sphereCollider;
     NavMeshAgent agent;
 
-    [SerializeField] private bool shouldFlee = true;
-    bool switchAction = false;
-    float actionTimer = 0; 
-    public Player player;
-
-    [SerializeField] float fleeDistanceMultiplier = 1;
-    bool reverseFlee = false; // If stuck, send back to a previous Idle point
-
-    //Detect whether the AI is stuck
+    [SerializeField] float fleeMultiplier = 1;
+    bool reverseFlee = false;
     Vector3 closestEdge;
     float distanceToEdge;
-    float distance;
 
-    //How long the AI has been near the edge of NavMesh, if too long, send it to one of the random previousIdlePoints
-    float timeStuck = 0;
+    [SerializeField] float distanceToPlayer;
+
+    public FLookAnimator lookAnimator;
     private Interactable interactable;
 
-    //Store previous idle points for reference
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
-    private CharacterBehaviours playerBehaviours;
+    public CharacterBehaviours playerBehaviours;
 
-    public LookAtTarget lookAtTarget;
+    float timeStuck = 0;
+    [SerializeField] private bool shouldFlee = true;
+    [SerializeField] private bool follow = false;
+
+    public Player player;
 
     void Start()
     {
@@ -60,81 +60,55 @@ public class AnimalAI : MonoBehaviour
         agent.stoppingDistance = 0;
         agent.autoBraking = false;
 
-        state = AIState.Idle;
-        actionTimer = Random.Range(0.1f, 2.0f);
+        animator = transform.GetComponentInChildren<Animator>();
 
         interactable = transform.GetComponent<Interactable>();
-        lookAtTarget = transform.GetComponentInChildren<LookAtTarget>();
+
+        //ChangeState(AIState.Idle);
     }
 
     void Update()
     {
+        distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+
+        UpdateRange();
+
         if (player.faith <= 50)
         {
             shouldFlee = true;
             interactable.enabled = false;
-            lookAtTarget.enabled = false;
+
+            if (!inRange)
+            {
+                lookAnimator.enabled = false;
+            }
         }
-        else if (player.faith >= 50 || playerBehaviours.isPsychdelicMode)
+
+        else if (player.faith >= 50)
         {
             shouldFlee = false;
             interactable.enabled = true;
-            lookAtTarget.enabled = true;
-        }
 
-        if (agent.velocity.sqrMagnitude < 0.1f * 0.1f && currentAIState != AIState.Idle);
-        {
-            state = AIState.Idle;
-        }
-
-        if (!behaviourActive)
-        {
-            switch (state)
+            if (inRange)
             {
-                case AIState.Idle:
-                    if (currentAIState != AIState.Idle)
-                    {
-                        StartCoroutine(Idle());
-                    }
-                    break;
-                case AIState.Eating:
-                    if (currentAIState != AIState.Eating)
-                    {
-                        StartCoroutine(Eat());
-                    }
-                    break;
-                case AIState.Walking:
-                    if (currentAIState != AIState.Walking)
-                    {
-                        StartCoroutine(Walk());
-                    }
-                    break;
-                case AIState.Running:
-                    if (currentAIState != AIState.Running)
-                    {
-                        StartCoroutine(Run());
-                    }
-                    break;
-                case AIState.Following:
-                    if (currentAIState != AIState.Following)
-                    {
-                        StartCoroutine(Follow());
-                    }
-                    break;
-                case AIState.Dialogue:
-                    if (currentAIState != AIState.Dialogue)
-                    {
-                        StartCoroutine(DialogueActive());
-                    }
-                    break;
-                default:
-                    break;
+                lookAnimator.enabled = true;
             }
+        }
+
+        if (playerBehaviours.isPsychdelicMode)
+        {
+            follow = true;
+            agent.stoppingDistance = 15f;
+        }
+        else
+        {
+            follow = false;
+            agent.stoppingDistance = 0f;
         }
 
     }
 
-    private bool behaviourActive = true;
+    [SerializeField] float time;
 
     private IEnumerator Idle()
     {
@@ -142,32 +116,33 @@ public class AnimalAI : MonoBehaviour
 
         behaviourActive = true;
 
+        previousIdlePoints.Add(transform.position);
+
+        if (previousIdlePoints.Count > 5)
+        {
+            previousIdlePoints.RemoveAt(0);
+        }
+
+        time = Random.Range(4, 8);
+
         while (behaviourActive)
         {
-            if (InRange() && !shouldFlee)
+            while (time >= 0)
             {
-                ChangeState(AIState.Following);
-            } else 
+                time -= Time.deltaTime;
 
-            if (InRange() && shouldFlee)
-            {  
-                ChangeState(AIState.Running);
+                yield return null;
             }
 
-            else if (!InRange()) 
+            if (time <= 0)
             {
-
-                //No enemies nearby, start eating
-                actionTimer = Random.Range(14, 22);
-
-                ChangeState(AIState.Eating);
-
-                //Keep last 5 Idle positions for future reference
-                previousIdlePoints.Add(transform.position);
-
-                if (previousIdlePoints.Count > 5)
+                if (inRange && follow)
                 {
-                    previousIdlePoints.RemoveAt(0);
+                    ChangeState(AIState.Following);
+                }
+                else
+                {
+                    ChangeState(AIState.Walking);
                 }
             }
 
@@ -177,41 +152,63 @@ public class AnimalAI : MonoBehaviour
         yield break;
     }
 
-    private IEnumerator RandomWalk()
+    private IEnumerator Walk(Vector3 destination)
     {
-   
-        agent.destination = RandomNavSphere(transform.position, Random.Range(3, 7));
-        state = AIState.Walking;
         ChangeAnimationState(WALK);
 
-        yield return null;
-    }
-
-    private void ChangeState(AIState newState)
-    {
-        behaviourActive = false;
-        currentAIState = newState;
-        state = newState;
-    }
-
-    private IEnumerator Walk()
-    {
         behaviourActive = true;
+
+        agent.speed = walkingSpeed;
+        agent.SetDestination(destination);
 
         while (behaviourActive)
         {
-            agent.speed = walkingSpeed;
-
-            // Check if we've reached the destination
             if (DoneReachingDestination())
             {
-                ChangeState(AIState.Idle);
+                if (!inRange)
+                {
+                    ChangeState(AIState.Eating);
+                } 
             }
 
             yield return null;
         }
 
         yield break;
+    }
+
+    private void ChangeState(AIState newState)
+    {
+        StopAllCoroutines();
+        behaviourActive = false;
+        currentAIState = newState;
+        state = currentAIState;
+
+        switch (state)
+        {
+            case AIState.Idle:
+                StartCoroutine(Idle());
+                break;
+            case AIState.Eating:
+                StartCoroutine(Eat());
+                break;
+            case AIState.Walking:
+                StartCoroutine(Walk(RandomNavSphere(transform.position, Random.Range(3, 7))));
+                break;
+            case AIState.Running:
+                StartCoroutine(Run());
+                break;
+            case AIState.Following:
+                StartCoroutine(Follow());
+                break;
+            case AIState.Dialogue:
+                StartCoroutine(DialogueActive());
+                break;
+            default:
+                break;
+        }
+       
+        Debug.Log(currentAIState);
     }
 
     private IEnumerator DialogueActive()
@@ -222,7 +219,7 @@ public class AnimalAI : MonoBehaviour
         {
             ChangeAnimationState(IDLE);
 
-            agent.transform.LookAt(player.transform);
+            //agent.transform.LookAt(player.transform);
 
             yield return null;
         }
@@ -238,37 +235,36 @@ public class AnimalAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            //Wait for current animation to finish playing
             if (!animator || animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f)
             {
-                //Walk to another random destination
-                agent.destination = RandomNavSphere(transform.position, Random.Range(3, 7));
                 ChangeState(AIState.Walking);
-
             }
+
             yield return null;
         }
 
         yield break;
     }
 
+    float distance;
+
     private IEnumerator Run()
     {
         ChangeAnimationState(RUN);
-        agent.speed = runningSpeed;
 
-        agent.SetDestination(RandomNavSphere(transform.position, Random.Range(1, 2.4f)));
+        agent.speed = runningSpeed;
 
         behaviourActive = true;
 
         while (behaviourActive)
         {
+            //Set NavMesh Agent Speed
+            agent.speed = runningSpeed;
             if (reverseFlee)
             {
                 if (DoneReachingDestination() && timeStuck < 0)
                 {
                     reverseFlee = false;
-                    ChangeState(AIState.Idle);
                 }
                 else
                 {
@@ -277,19 +273,16 @@ public class AnimalAI : MonoBehaviour
             }
             else
             {
-                Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeDistanceMultiplier);
+                Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeMultiplier);
                 distance = (transform.position - player.transform.position).sqrMagnitude;
-
                 //Find the closest NavMesh edge
                 NavMeshHit hit;
-                
                 if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
                 {
                     closestEdge = hit.position;
                     distanceToEdge = hit.distance;
                     //Debug.DrawLine(transform.position, closestEdge, Color.red);
                 }
-
                 if (distanceToEdge < 1f)
                 {
                     if (timeStuck > 1.5f)
@@ -305,29 +298,28 @@ public class AnimalAI : MonoBehaviour
                         timeStuck += Time.deltaTime;
                     }
                 }
-
                 if (distance < rangeThreshold * rangeThreshold)
                 {
                     agent.SetDestination(runTo);
                 }
+            }
 
-                if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
+            if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
+            {
+                ChangeState(AIState.Idle);
+            }
+
+            else
+            {
+                if (DoneReachingDestination())
                 {
-                    ChangeAnimationState(IDLE);
-                }
-                else
-                {
-                    ChangeAnimationState(RUN);
+                    ChangeState(AIState.Idle);
                 }
             }
 
             yield return null;
         }
-
-        yield break;
     }
-
-    public AIState currentAIState;
 
     private IEnumerator Follow()
     {
@@ -335,13 +327,14 @@ public class AnimalAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            if (InRange())
+            if (!inRange || !follow)
+            {
+                ChangeState(AIState.Idle);
+            }
+            else
             {
                 ChangeAnimationState(WALK);
                 agent.SetDestination(player.transform.position);
-            } else
-            {
-                ChangeState(AIState.Idle);
             }
 
             yield return null;
@@ -370,18 +363,15 @@ public class AnimalAI : MonoBehaviour
     public float rangeThreshold = 50;
     public bool inRange = false;
 
-    private bool InRange()
+    private void UpdateRange()
     {
-        float distance = Vector3.Distance(transform.position, player.transform.position);
-
-        if (distance <= rangeThreshold)
+        if (distanceToPlayer < rangeThreshold)
         {
             inRange = true;
-            return true;
-        } else
+        }
+        else if (distanceToPlayer >= rangeThreshold)
         {
             inRange = false;
-            return false;
         }
     }
 

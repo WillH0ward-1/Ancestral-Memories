@@ -49,12 +49,22 @@ public class InteractCamera : MonoBehaviour
         
         if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
         {
+            if (behaviour.isPsychdelicMode && !currentHitObject.transform.CompareTag("Player")){
+                return;
+            }
+
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
                 currentHitObject = hit.transform.gameObject;
 
                 if (Input.GetMouseButtonDown(1))
                 {
+
+                    if (currentHitObject == null)
+                    {
+                        return;
+                    }
+
                     lastHit = hit.transform.gameObject;
                     outlineControl = lastHit.transform.GetComponent<OutlineControl>();
 
@@ -76,11 +86,6 @@ public class InteractCamera : MonoBehaviour
 
                         Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
 
-                        if (hit.collider == null)
-                        {
-                            return;
-                        }
-
                         interactable.SpawnMenu(currentHitObject, hit);
 
                         if (hit.collider.transform.CompareTag("Player"))
@@ -98,6 +103,11 @@ public class InteractCamera : MonoBehaviour
 
                 if (Input.GetMouseButtonUp(1))
                 {
+
+                    if (currentHitObject == null)
+                    {
+                        return;
+                    }
                     if (outlineControl != null)
                     {
                         outlineControl.outline.enabled = false;

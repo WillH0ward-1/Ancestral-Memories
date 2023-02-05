@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 public class CharacterBehaviours : MonoBehaviour
@@ -511,7 +512,10 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] private PickUpObject pickUpManager;
 
-    private float psychedelicBuffer = 60f;
+    [SerializeField] private float psychBuffer = 60f;
+    private float psychedelicModeLength = 0f;
+    [SerializeField] private float minPsychModeLength = 30f;
+    [SerializeField] private float maxPsychModeLength = 120f;
 
     public IEnumerator PickMushroom(GameObject hitObject)
     {
@@ -527,29 +531,46 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
-        StartCoroutine(HealHunger());
+
+        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
         if (DetectIfPsychedelic())
         {
-            StartCoroutine(PsychedelicModeBuffer());
+            if (!isPsychdelicMode)
+            {
+                StartCoroutine(PsychedelicModeBuffer());
+            }
         }
         else if (!DetectIfPsychedelic())
         {
             StartCoroutine(Vomit());
-            isPsychdelicMode = false;
+            if (isPsychdelicMode)
+            {
+                isPsychdelicMode = false;
+            }
         }
 
+        StartCoroutine(HealHunger());
         pickUpManager.DestroyPickup();
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
+
         yield break;
     }
 
     private IEnumerator PsychedelicModeBuffer()
     {
-        yield return new WaitForSeconds(psychedelicBuffer);
-        isPsychdelicMode = true;
+        yield return new WaitForSeconds(psychBuffer);
         cinematicCam.ToPsychedelicZoom();
+        StartCoroutine(PsychedelicModeStopBuffer());
+    }
+
+    private IEnumerator PsychedelicModeStopBuffer()
+    {
+        psychedelicModeLength = Random.Range(minPsychModeLength, maxPsychModeLength);
+        yield return new WaitForSeconds(psychedelicModeLength);
+        cinematicCam.ToGameZoom();
+        isPsychdelicMode = false;
     }
 
     private IEnumerator HealHunger()
@@ -593,12 +614,12 @@ public class CharacterBehaviours : MonoBehaviour
     public IEnumerator Vomit()
     {
         behaviourIsActive = true;
-        cinematicCam.ToGameZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        // cinematicCam.ToGameZoom();
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
         player.ChangeAnimationState(PLAYER_VOMIT);
     
         vomit.Play();
-        yield return new WaitForSeconds(GetAnimLength());
+       yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
         behaviourIsActive = false;
         vomit.Stop();
         yield break;
@@ -612,8 +633,8 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_TOCROUCH);
         yield return new WaitForSeconds(GetAnimLength());
 
-        cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.ToActionZoom();
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
         yield return new WaitForSeconds(GetAnimLength());
@@ -630,8 +651,6 @@ public class CharacterBehaviours : MonoBehaviour
         }
         else if (player.faith >= player.maxStat / 2)
         {
-
-
             behaviourIsActive = false;
             player.ChangeAnimationState(PLAYER_IDLE);
             cinematicCam.ToGameZoom();
@@ -643,6 +662,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator ResetGame()
     {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
         yield return null;
     }
 
@@ -676,9 +697,11 @@ public class CharacterBehaviours : MonoBehaviour
 
     bool DetectIfPsychedelic()
     {
-        int chance = Random.Range(0, 1);
+        float minChance = 0;
+        float maxChance = 1;
+        float chance = Random.Range(minChance, maxChance);
 
-        if (chance <= 0.5f)
+        if (chance <= maxChance / 2)
         {
             return true;
         } else

@@ -116,7 +116,7 @@ public class RainControl : MonoBehaviour
     
     }
 
-    float rainDuration;
+    [SerializeField] private float rainDuration;
 
     float rainStrength;
 
