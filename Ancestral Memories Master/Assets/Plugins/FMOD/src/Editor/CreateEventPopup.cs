@@ -6,9 +6,9 @@ using UnityEditor;
 
 namespace FMODUnity
 {
-    class CreateEventPopup : EditorWindow
+    public class CreateEventPopup : EditorWindow
     {        
-        class FolderEntry
+        private class FolderEntry
         {
             public FolderEntry parent;
             public string name;
@@ -17,21 +17,32 @@ namespace FMODUnity
             public Rect rect;
         }
 
-        SerializedProperty outputProperty;
+        private SerializedProperty outputProperty;
+
+        private FolderEntry rootFolder;
+        private FolderEntry currentFolder;
+        private List<BankEntry> banks;
+
+        private int lastHover = 0;
+        private string eventFolder = "/";
+        private string eventName = "";
+        private string currentFilter = "";
+        private int selectedBank = 0;
+        private bool resetCursor = true;
+        private Vector2 scrollPos = new Vector2();
+        private Rect scrollRect = new Rect();
+        private bool isConnected = false;
+
         internal void SelectEvent(SerializedProperty property)
         {
             outputProperty = property;
         }
 
-        class BankEntry
+        private class BankEntry
         {
             public string name;
             public string guid;
         }
-
-        FolderEntry rootFolder;
-        FolderEntry currentFolder;
-        List<BankEntry> banks;
 
         public CreateEventPopup()
         {
@@ -113,19 +124,9 @@ namespace FMODUnity
             }
         }
 
-        int lastHover = 0;
-        string eventFolder = "/";
-        string eventName = "";
-        string currentFilter = "";
-        int selectedBank = 0;
-        bool resetCursor = true;
-        Vector2 scrollPos = new Vector2();
-        Rect scrollRect = new Rect();
-        bool isConnected = false;
-
         public void OnGUI()
         {
-            var borderIcon = EditorGUIUtility.Load("FMOD/Border.png") as Texture2D;
+            var borderIcon = EditorUtils.LoadImage("Border.png");
             var border = new GUIStyle(GUI.skin.box);
             border.normal.background = borderIcon;
             GUI.Box(new Rect(1, 1, position.width - 1, position.height - 1), GUIContent.none, border);
@@ -149,9 +150,8 @@ namespace FMODUnity
                 currentFolder = rootFolder;
             }
 
-            var arrowIcon = EditorGUIUtility.Load("FMOD/ArrowIcon.png") as Texture;
-            var hoverIcon = EditorGUIUtility.Load("FMOD/SelectedAlt.png") as Texture2D;
-            var titleIcon = EditorGUIUtility.Load("IN BigTitle") as Texture2D;
+            var arrowIcon = EditorUtils.LoadImage("ArrowIcon.png");
+            var hoverIcon = EditorUtils.LoadImage("SelectedAlt.png");
 
             var nextEntry = currentFolder;
 
@@ -249,7 +249,6 @@ namespace FMODUnity
                 Rect currentRect = EditorGUILayout.GetControlRect();
                 
                 var bg = new GUIStyle(GUI.skin.box);
-                bg.normal.background = titleIcon;
                 Rect bgRect = new Rect(currentRect);
                 bgRect.x = 2;
                 bgRect.width = position.width-4;
@@ -263,8 +262,8 @@ namespace FMODUnity
                 }
 
                 Rect labelRect = currentRect;
-                labelRect.x += arrowIcon.width + 50;
-                labelRect.width -= arrowIcon.width + 50;
+                labelRect.x += arrowIcon.width;
+                labelRect.width -= arrowIcon.width;
                 GUI.Label(labelRect, currentFolder.name != null ? currentFolder.name : "Folders", EditorStyles.boldLabel);
 
                 if (Event.current.type == EventType.MouseDown && currentRect.Contains(Event.current.mousePosition) &&
@@ -353,7 +352,7 @@ namespace FMODUnity
                 }
 
                 string fullPath = "event:" + eventFolder + eventName;
-                outputProperty.stringValue = fullPath;
+                outputProperty.SetEventReference(FMOD.GUID.Parse(eventGuid), fullPath);
                 EditorUtils.UpdateParamsOnEmitter(outputProperty.serializedObject, fullPath);
                 outputProperty.serializedObject.ApplyModifiedProperties();
             }

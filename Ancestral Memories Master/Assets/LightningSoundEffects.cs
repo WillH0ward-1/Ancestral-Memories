@@ -6,8 +6,8 @@ public class LightningSoundEffects : MonoBehaviour
 {
     private PARAMETER_ID ParamID;
 
-    [SerializeField] private string LightningStrikeEventPath;
-    [SerializeField] private string LightningBuzzEventPath;
+    [SerializeField] private EventReference LightningStrikeEventPath;
+    [SerializeField] private EventReference LightningBuzzEventPath;
 
     public void PlayLightningStrike(GameObject lightning)
     {

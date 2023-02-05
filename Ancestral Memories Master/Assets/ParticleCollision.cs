@@ -10,7 +10,7 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] private Player player;
 
-    [SerializeField] private string rainSFX;
+    [SerializeField] private EventReference rainSFX;
     private EventInstance instance;
 
     [SerializeField] private float stability = 0;

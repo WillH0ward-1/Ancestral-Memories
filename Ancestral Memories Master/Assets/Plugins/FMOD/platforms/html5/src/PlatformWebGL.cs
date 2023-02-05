@@ -34,20 +34,26 @@ namespace FMODUnity
             Settings.AddPlatformTemplate<PlatformWebGL>("46fbfdf3fc43db0458918377fd40293e");
         }
 
-        public override string DisplayName { get { return "WebGL"; } }
-        public override void DeclareUnityMappings(Settings settings)
+        internal override string DisplayName { get { return "WebGL"; } }
+        internal override void DeclareRuntimePlatforms(Settings settings)
         {
             settings.DeclareRuntimePlatform(RuntimePlatform.WebGLPlayer, this);
-
-#if UNITY_EDITOR
-            settings.DeclareBuildTarget(BuildTarget.WebGL, this);
-#endif
         }
 
 #if UNITY_EDITOR
-        public override Legacy.Platform LegacyIdentifier { get { return Legacy.Platform.WebGL; } }
+        internal override IEnumerable<BuildTarget> GetBuildTargets()
+        {
+            yield return BuildTarget.WebGL;
+        }
 
-        protected override IEnumerable<string> GetRelativeBinaryPaths(BuildTarget buildTarget, bool allVariants, string suffix)
+        internal override Legacy.Platform LegacyIdentifier { get { return Legacy.Platform.WebGL; } }
+
+        protected override BinaryAssetFolderInfo GetBinaryAssetFolder(BuildTarget buildTarget)
+        {
+            return new BinaryAssetFolderInfo("html5", "Plugins/WebGL");
+        }
+
+        protected override IEnumerable<FileRecord> GetBinaryFiles(BuildTarget buildTarget, bool allVariants, string suffix)
         {
             #if UNITY_2021_2_OR_NEWER
             bool useWASM = true;
@@ -57,19 +63,19 @@ namespace FMODUnity
 
             if (allVariants || useWASM)
             {
-                yield return string.Format("html5/2.0.19/libfmodstudio{0}.a", suffix);
+                yield return new FileRecord(string.Format("2.0.19/libfmodstudio{0}.a", suffix));
             }
 
             if (allVariants || !useWASM)
             {
-                yield return string.Format("html5/libfmodstudiounityplugin{0}.bc", suffix);
+                yield return new FileRecord(string.Format("libfmodstudiounityplugin{0}.bc", suffix));
             }
         }
 
-        public override bool IsFMODStaticallyLinked { get { return true; } }
+        internal override bool IsFMODStaticallyLinked { get { return true; } }
 #endif
 
-        public override string GetPluginPath(string pluginName)
+        internal override string GetPluginPath(string pluginName)
         {
             #if UNITY_2021_2_OR_NEWER
             return string.Format("{0}/{1}.a", GetPluginBasePath(), pluginName);
@@ -78,7 +84,7 @@ namespace FMODUnity
             #endif
         }
 #if UNITY_EDITOR
-        public override OutputType[] ValidOutputTypes
+        internal override OutputType[] ValidOutputTypes
         {
             get
             {

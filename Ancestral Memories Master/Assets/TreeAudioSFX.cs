@@ -16,8 +16,8 @@ public class TreeAudioSFX : MonoBehaviour
     private Rigidbody rigidBody;
 
 
-    [SerializeField] private string TreeGrowEventPath;
-    [SerializeField] private string BirdChirpEventPath;
+    [SerializeField] private EventReference TreeGrowEventPath;
+    [SerializeField] private EventReference BirdChirpEventPath;
 
     private EventInstance treeGrowSFXInstance;
     private EventInstance birdChirpInstance;
