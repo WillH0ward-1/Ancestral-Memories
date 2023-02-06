@@ -40,8 +40,12 @@ public class TreeAudioSFX : MonoBehaviour
     public IEnumerator StartTreeGrowthSFX()
     {
 
-        PlayTreeGrowthSFX();
-        
+        treeGrowSFXInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
+        RuntimeManager.AttachInstanceToGameObject(treeGrowSFXInstance, transform, rigidBody);
+
+        treeGrowSFXInstance.start();
+        treeGrowSFXInstance.release();
+
         while (!scaleControl.isFullyGrown && !treeFallManager.treeDead)
         {
             float output = scaleControl.growthPercent;
@@ -76,15 +80,6 @@ public class TreeAudioSFX : MonoBehaviour
 
         yield break;
 
-    }
-
-    void PlayTreeGrowthSFX()
-    {
-        treeGrowSFXInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
-        RuntimeManager.AttachInstanceToGameObject(treeGrowSFXInstance, transform, rigidBody);
-
-        treeGrowSFXInstance.start();
-        treeGrowSFXInstance.release();
     }
 
     PLAYBACK_STATE PlaybackState(EventInstance instance) 

@@ -6,7 +6,7 @@ using FMODUnity;
 
 public class RayDetectReverbZone : MonoBehaviour
 {
-    private ReverbManager reverbManager;
+    public ReverbManager reverbManager;
 
     private PlayerSoundEffects playerSFX;
 
@@ -26,7 +26,7 @@ public class RayDetectReverbZone : MonoBehaviour
     float reverbIntensityMin = 0;
     float reverbIntensityMax = 1;
 
-    float targetIntensity = 0;
+    [SerializeField] float targetIntensity = 0;
 
     private void Awake()
     {
@@ -35,6 +35,7 @@ public class RayDetectReverbZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        
         if (other.transform.CompareTag("ReverbZone"))
         {
             inRange = true;
@@ -52,6 +53,7 @@ public class RayDetectReverbZone : MonoBehaviour
         {
             inRange = false;
             castActive = false;
+            reverbManager.emitter.EventInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         }
     }
 
@@ -86,10 +88,11 @@ public class RayDetectReverbZone : MonoBehaviour
                 rayHitPosY -= rayOriginY;
                 rayHitPosZ -= rayOriginZ;
 
-                Vector3 rayPos = new(rayHitPosX, rayHitPosY, rayHitPosZ);
+               // Vector3 rayPos = new(rayHitPosX, rayHitPosX, rayHitPosZ);
 
-                var t = Mathf.InverseLerp(0, distance, distance);
+                var t = Mathf.InverseLerp(reverbIntensityMin, rayHit.transform.position.magnitude, distance);
                 float output = Mathf.Lerp(reverbIntensityMin, reverbIntensityMax, t);
+
                 targetIntensity = output;
 
                 reverbManager.emitter.EventInstance.setParameterByName("ReverbIntensity", targetIntensity);

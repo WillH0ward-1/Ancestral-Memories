@@ -20,7 +20,7 @@ public class RainControl : MonoBehaviour
         emission = rainParticles.emission;
        
         emission.enabled = false;
-
+       
         isRaining = false;
 
         StartCoroutine(ChanceOfRain());
@@ -127,14 +127,17 @@ public class RainControl : MonoBehaviour
     float minRainStrength = 1;
     float maxRainStrength = 100;
 
-    float rainStrengthTarget;
+    [SerializeField] private float rainStrengthTarget;
     float emissionRate;
+    [SerializeField] float emissionRateOverTime;
 
     public IEnumerator StartRaining()
     {
         if (areaManager.currentRoom == "Outside")
         {
-            emissionRate = 0;
+            emissionRateOverTime = 0;
+
+            emission.rateOverTime = emissionRateOverTime;
 
             emission.enabled = true;
             isRaining = true;
@@ -151,8 +154,9 @@ public class RainControl : MonoBehaviour
             while (time <= 1f && areaManager.currentRoom == "Outside")
             {
                 time += Time.deltaTime / rainDuration;
-                rainStrengthTarget = weather.windStrength * 100;
-                emission.rateOverTime = Mathf.Lerp(emission.rateOverTime.constant, rainStrengthTarget, time);
+
+                rainStrengthTarget = weather.windStrength * 200;
+                emission.rateOverTime = Mathf.Lerp(emissionRateOverTime, rainStrengthTarget, time);
 
                 yield return null;
             }
@@ -175,7 +179,7 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator StopRaining(bool retrigger)
     {
-        emissionRate = 0;
+        emissionRateOverTime = 0;
         emission.enabled = false;
         isRaining = false;
         //StartCoroutine(lerpTerrain.ToOasis(15f));

@@ -51,7 +51,7 @@ public class WeatherControl : MonoBehaviour
 
         StartCoroutine(WindStrength(windAudio2DInstance));
 
-        StartCoroutine(SpawnBuffer());
+        StartCoroutine(SpawnWindZone());
     }
 
     void ListCleanup(List<Transform> list)
@@ -69,48 +69,41 @@ public class WeatherControl : MonoBehaviour
     [SerializeField] private float minLifeTime = 15;
     [SerializeField] private float maxLifeTime = 40;
 
+    [SerializeField] private float spawnRadius = 5;
 
-    private IEnumerator SpawnBuffer()
+    private IEnumerator SpawnWindZone()
     {
         yield return new WaitForSeconds(Random.Range(minSpawnBuffer, maxSpawnBuffer));
 
         if (activeWindZones.Count <= maxWindZoneInstances)
         {
-            SpawnWindZone();
+
+            GameObject windZoneObject = Instantiate(windZone, player.transform.position, Quaternion.identity, windZones);
+
+            activeWindZones.Add(windZoneObject.transform);
+
+            if (activeWindZones.Count > maxWindZoneInstances)
+            {
+                activeWindZones.Remove(windZoneObject.transform);
+                Destroy(windZoneObject);
+            }
+            else
+            {
+
+                Vector3 newPosition = (Random.insideUnitSphere * spawnRadius) + player.transform.position;
+                windZoneObject.transform.position = newPosition;
+
+                StudioEventEmitter wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>();
+
+                StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
+                StartCoroutine(WindTimeout(windZoneObject));
+            }
         }
 
         yield break;
     }
 
-    [SerializeField] private float spawnRadius = 5;
-
-    private void SpawnWindZone()
-    {
-        StartCoroutine(SpawnBuffer());
-     
-        GameObject windZoneObject = Instantiate(windZone, player.transform.position, Quaternion.identity, windZones);
-
-        activeWindZones.Add(windZoneObject.transform);
-
-        if (activeWindZones.Count > maxWindZoneInstances)
-        {
-            activeWindZones.Remove(windZoneObject.transform);
-            Destroy(windZoneObject);
-        }
-        else
-        {
-
-            Vector3 newPosition = (Random.insideUnitSphere * spawnRadius) + player.transform.position;
-            windZoneObject.transform.position = newPosition;
-
-            EventInstance wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>().EventInstance;
-
-            StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
-            StartCoroutine(WindTimeout(windZoneObject));
-        }
-    }
-
-    private IEnumerator UpdateWind(GameObject windZoneObject, EventInstance instance)
+    private IEnumerator UpdateWind(GameObject windZoneObject, StudioEventEmitter instance)
     {
         bool active = true;
 
@@ -121,7 +114,7 @@ public class WeatherControl : MonoBehaviour
                 active = false;
             }
 
-            instance.setParameterByName("WindStrength", windStrength);
+            instance.EventInstance.setParameterByName("WindStrength", windStrength);
             yield return null;
         }
 
@@ -199,11 +192,11 @@ public class WeatherControl : MonoBehaviour
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float output = Mathf.Lerp(newMin, newMax, func(t));
+        float windOutput = Mathf.Lerp(newMin, newMax, func(t));
         float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));
         float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));
 
-        targetWindStrength = output;
+        targetWindStrength = windOutput;
         targetLeafShakeStrength = leafOutput;
         targetLeafSpeed = leafSpeedOutput;
     }

@@ -16,7 +16,7 @@ public class TerrainGenerator : MonoBehaviour {
 	public HeightMapSettings heightMapSettings;
 	public TextureData textureSettings;
 
-	public GameObject NavMeshContainer;
+	public GameObject navMeshContainer;
 	public NavMeshSurface[] surfaces;
 
 	[SerializeField] private MapObjGen mapObjectGen;
@@ -49,7 +49,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private void Awake()
 	{
-		surfaces = NavMeshContainer.GetComponentsInChildren<NavMeshSurface>();
+		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
 
 		foreach (NavMeshSurface surface in surfaces) {
 			surface.BuildNavMesh();

@@ -81,12 +81,12 @@ public class MusicManager : MonoBehaviour
         musicInstance.getDescription(out EventDescription description);
         description.getParameterDescriptionCount(out int count);
         parameterCount = count;
-        newMax = parameterCount;
+        newMax = Enum.GetValues(typeof(Modes)).Length;
 
         //globalParamTrigger.Value = (float)GetLabelIndex(musicInstance);
 
 
-        //StartCoroutine(MusicFaithModifier());
+        StartCoroutine(FaithModulate());
     }
 
     private void Update()
@@ -202,8 +202,6 @@ public class MusicManager : MonoBehaviour
         {
             //faith = player.faith;
 
-            currentMode = faithModulateOutput;
-
             RuntimeManager.StudioSystem.setParameterByName("Mode", currentMode);
             //musicInstance.setParameterByNameWithLabel("Mode", newMode);
 
@@ -241,6 +239,7 @@ public class MusicManager : MonoBehaviour
         var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         output = Mathf.Lerp(newMin, newMax, t);
         faithModulateOutput = (int)Mathf.Floor(output);
+        currentMode = faithModulateOutput;
     }
 
     void PlayMusic()

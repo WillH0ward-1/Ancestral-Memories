@@ -16,7 +16,7 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private float stability = 0;
     [SerializeField] private float instability = 1;
 
-    private float harmonicStability;
+    [SerializeField] private float harmonicStability;
 
     private float currentWindStrength = 0;
     private float targetHarmonicStability;
@@ -48,12 +48,12 @@ public class ParticleCollision : MonoBehaviour
         if (onScreen)
         {
             //EventInstance rainDropInstance = emitter.EventInstance;
-            RuntimeManager.PlayOneShot(rainSFX, hitLocation);
+            //RuntimeManager.PlayOneShot(rainSFX, hitLocation);
 
             //emitter.EventInstance.start();
             //emitter.EventInstance.release();
            
-            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
+            //RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
 
             //instance = RuntimeManager.CreateInstance(rainSFX);
             //instance.start();
@@ -87,7 +87,7 @@ public class ParticleCollision : MonoBehaviour
 
             harmonicStability = targetHarmonicStability;
 
-          // RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
+            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", harmonicStability);
             yield return null;
         }
   

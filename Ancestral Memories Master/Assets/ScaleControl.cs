@@ -54,11 +54,6 @@ public class ScaleControl : MonoBehaviour
         else if (scaleObject != null)
         {
             isFullyGrown = false;
-
-            if (scaleObject.transform.CompareTag("Trees") && !treeKillManager.treeFalling)
-            {
-                treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
-            }
        
             durationRef = duration;
             scaleObjectRef = scaleObject;
@@ -69,6 +64,17 @@ public class ScaleControl : MonoBehaviour
             scaleObject.transform.localScale = scaleStart;
 
             yield return new WaitForSeconds(delay);
+
+
+            if (scaleObject == null)
+            {
+                yield break;
+            }
+
+            if (scaleObject.transform.CompareTag("Trees") && !treeKillManager.treeFalling)
+            {
+                //treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
+            }
 
             time = 0f;
 
