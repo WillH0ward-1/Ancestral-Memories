@@ -41,8 +41,6 @@ public class PlayFlute : MonoBehaviour
     public void EnableFluteControl()
     {
         StartCoroutine(CastRayToGround());
-
-        return;
     }
 
     public IEnumerator CastRayToGround()

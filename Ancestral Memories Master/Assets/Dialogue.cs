@@ -12,48 +12,25 @@ public class Dialogue : MonoBehaviour
     [SerializeField] private string[] lines;
     [SerializeField] private float textSpeed;
 
-    private Player player;
-
     public bool dialogueActive;
 
     private int index;
 
     private GameObject dialogueBoxInstance;
 
-    float distance;
-    float distanceThreshold = 20;
+    [SerializeField] private float distance;
+    [SerializeField] private float distanceThreshold = 50f;
 
-    private bool outOfRange;
+    public bool outOfRange;
 
-    private IEnumerator CheckPlayerInRange()
-    {
-        while (dialogueActive)
-        {
-            Debug.Log(distance);
-            distance = Vector3.Distance(player.transform.root.position, transform.root.position);
-
-            if (distance >= distanceThreshold)
-            {
-                outOfRange = true;
-                StopAllCoroutines();
-                dialogueActive = false;
-                Destroy(dialogueBoxInstance);
-
-            } else if (distance <= distanceThreshold)
-            {
-                outOfRange = false;
-            }
-
-            yield return null;
-        }
-
-        yield break;
-    }
+    public Player player;
 
     void Update()
     {
         if (dialogueActive)
         {
+            distance = Vector3.Distance(transform.position, player.transform.position);
+
             if (Input.GetMouseButtonDown(1))
             {
                 if (textComponent.text == lines[index])
@@ -65,7 +42,20 @@ public class Dialogue : MonoBehaviour
                     clickPromptObject.SetActive(true);
                     StopAllCoroutines();
                     textComponent.text = lines[index];
+                }
+            }
 
+            if (distance <= distanceThreshold)
+            {
+                outOfRange = false;
+            }
+            else if (distance >= distanceThreshold)
+            {
+                outOfRange = true;
+
+                if (!transform.CompareTag("Campfire"))
+                {
+                    StopDialogue();
                 }
             }
         }
@@ -83,7 +73,7 @@ public class Dialogue : MonoBehaviour
 
     private GameObject clickPromptObject;
 
-    public void StartDialogue(Dialogue dialogue, Player player)
+    public void StartDialogue(Dialogue dialogue, Player playerRef)
     {
         /*
         if (!dialogue.transform.root.CompareTag("CampFire"))
@@ -92,6 +82,7 @@ public class Dialogue : MonoBehaviour
             //StartCoroutine(CheckPlayerInRange());
         }
         */
+        player = playerRef;
 
         if (dialogueBox != null)
         {
@@ -139,11 +130,15 @@ public class Dialogue : MonoBehaviour
         }
         else
         {
-            dialogueActive = false;
-   
-            //canvasInstance.enabled = false;
-            Destroy(dialogueBoxInstance);
+            StopDialogue();
         }
+    }
+
+    void StopDialogue()
+    {
+        StopAllCoroutines();
+        dialogueActive = false;
+        Destroy(dialogueBoxInstance);
     }
 
     IEnumerator TypeLine()

@@ -189,9 +189,9 @@ public class WeatherControl : MonoBehaviour
 
     private System.Func<float, float> func;
 
-    private void WindStrength(float faith, float minFaith, float maxFaith)
+    private void WindStrength(float karma, float minKarma, float maxKarma)
     {
-        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
+        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         float windOutput = Mathf.Lerp(newMin, newMax, func(t));
         float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));
         float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));

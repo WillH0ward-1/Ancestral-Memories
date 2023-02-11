@@ -277,14 +277,17 @@ public class CamControl : MonoBehaviour
 
     void CancelLastCam()
     {
-        StopAllCoroutines();
+        if (!behaviours.isPsychdelicMode)
+        {
+            StopAllCoroutines();
+        }
     }
 
     public void ToSpawnZoom()
     {
         CancelLastCam();
         isSpawning = true;
-        cinematicActive = true; // Level introduction.
+        cinematicActive = false; // Level introduction.
         SetCamClipPlane();
         zoomDestination = spawnZoom;
         orthoDestination = spawnOrtho;
@@ -302,83 +305,111 @@ public class CamControl : MonoBehaviour
         SetCamClipPlane();
         zoomDestination = panoramaZoom;
         orthoDestination = panoramaOrtho;
-
         StartCoroutine(Zoom(toPanoramaZoomDuration, zoomDestination, orthoDestination));
     }
 
     public void ToActionZoom()
     {
-        CancelLastCam();
-        cinematicActive = true;
-        SetCamClipPlane();
-        zoomDestination = actionZoom;
-        orthoDestination = actionOrtho;
-        StartCoroutine(Zoom(toActionZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = true;
+            SetCamClipPlane();
+            zoomDestination = actionZoom;
+            orthoDestination = actionOrtho;
+            StartCoroutine(Zoom(toActionZoomDuration, zoomDestination, orthoDestination));
+        }
     }
 
     public void ToPrayerZoom()
     {
-        CancelLastCam();
-        cinematicActive = true;
-        SetCamClipPlane();
-        zoomDestination = prayerZoom;
-        orthoDestination = prayerOrtho;
-        StopCoroutine(Zoom(0, 0, 0));
-        StartCoroutine(Zoom(toPrayerZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = true;
+            SetCamClipPlane();
+            zoomDestination = prayerZoom;
+            orthoDestination = prayerOrtho;
+            StartCoroutine(Zoom(toPrayerZoomDuration, zoomDestination, orthoDestination));
+        }
     }
 
     public void ToFrontFaceZoom()
     {
-        CancelLastCam();
-        cinematicActive = true;
-        SetCamClipPlane();
-        zoomDestination = frontFaceZoom;
-        orthoDestination = frontFaceOrtho;
-        StartCoroutine(Zoom(toFrontFaceZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = true;
+            SetCamClipPlane();
+            zoomDestination = frontFaceZoom;
+            orthoDestination = frontFaceOrtho;
+            StartCoroutine(Zoom(toFrontFaceZoomDuration, zoomDestination, orthoDestination));
+        }
     }
 
     public void ToGameZoom()
     {
-        CancelLastCam();
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = false;
+            camTarget = player.transform;
+            SetCamClipPlane();
+            zoomDestination = gameModeZoom;
+            orthoDestination = gameModeOrtho;
+            StartCoroutine(Zoom(toGameZoomDuration, zoomDestination, orthoDestination));
+        }
+    }
+
+    public void FromPsychToGameZoom()
+    {
         cinematicActive = false;
         camTarget = player.transform;
         SetCamClipPlane();
         zoomDestination = gameModeZoom;
         orthoDestination = gameModeOrtho;
-        StopCoroutine(Zoom(0, 0, 0));
-        StartCoroutine(Zoom(toGameZoomDuration, zoomDestination, orthoDestination));
+        StartCoroutine(Zoom(toPsychedelicZoomDuration, zoomDestination, orthoDestination));
     }
 
     public void ToCinematicZoom()
     {
-        CancelLastCam();
-        cinematicActive = true;
-        SetCamClipPlane();
-        zoomDestination = cutSceneZoom;
-        orthoDestination = cutSceneOrtho;
-        StartCoroutine(Zoom(toCinematicZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = true;
+            SetCamClipPlane();
+            zoomDestination = cutSceneZoom;
+            orthoDestination = cutSceneOrtho;
+            StartCoroutine(Zoom(toCinematicZoomDuration, zoomDestination, orthoDestination));
+        }
     }
 
     public void ToDialogueZoom()
     {
-        CancelLastCam();
-        cinematicActive = false;
-        SetCamClipPlane();
-        zoomDestination = dialogueZoom;
-        orthoDestination = dialogueOrtho;
-        StartCoroutine(Zoom(toDialogueZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = false;
+            SetCamClipPlane();
+            zoomDestination = dialogueZoom;
+            orthoDestination = dialogueOrtho;
+            StartCoroutine(Zoom(toDialogueZoomDuration, zoomDestination, orthoDestination));
+        }
     }
 
     public void ToPsychedelicZoom()
     {
-        CancelLastCam();
-        cinematicActive = false;
-        SetCamClipPlane();
-        zoomDestination = psychedelicZoom;
-        orthoDestination = psychedelicOrtho;
-
-        StartCoroutine(Zoom(toPsychedelicZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = false;
+            SetCamClipPlane();
+            zoomDestination = psychedelicZoom;
+            orthoDestination = psychedelicOrtho;
+            StartCoroutine(Zoom(toPsychedelicZoomDuration, zoomDestination, orthoDestination));
+        }
     }
+
 
     public void EnterRoomZoom(GameObject interactedPortal)
     {
@@ -389,7 +420,6 @@ public class CamControl : MonoBehaviour
         float lerpDuration = toNewRoomZoomDuration;
         zoomDestination = toRoomZoom;
         orthoDestination = toRoomOrtho;
-
         StartCoroutine(Zoom(lerpDuration, zoomDestination, orthoDestination));
     }
 
@@ -447,14 +477,19 @@ public class CamControl : MonoBehaviour
 
     public float timeElapsed;
 
-    float approxZoomDestination;
+    float zoomDestinationRef;
+    float orthoTargetRef;
 
+    float time = 0;
     //[SerializeField] float perspectiveDelay = 1;
 
     private System.Func<float, float> func;
 
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
     {
+        zoomDestinationRef = zoomDestination;
+
+        orthoTargetRef = orthographicTarget;
 
         if (panoramaCamBuffer == true)
         {
@@ -463,34 +498,32 @@ public class CamControl : MonoBehaviour
             yield break;
         }
 
+        if (zoomDestinationRef == psychedelicZoom)
+        {
+            StartCoroutine(PsychedelicFX());
+        }
+
         func = Lerp.GetLerpFunction(lerpParams.lerpType);
 
-        float zoomMultiplier = 0;
-
-        float time = 0f;
+        time = 0f;
 
         while (time <= 1f)
         {
             time += Time.deltaTime / duration;
 
             currentOrthoZoom = cam.orthographicSize;
-            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthographicTarget, func(time));
+            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthoTargetRef, func(time));
 
             currentZoom = rpCamera.perspective;
-            rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestination, func(time));
-
-            if (zoomDestination == psychedelicZoom)
-            {
-                StartCoroutine(PsychedelicFX(time));
-            }
+            rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestinationRef, func(time));
 
             yield return null;
         }
 
         if (time >= 1f)
         {
-            currentZoom = zoomDestination;
-            currentOrthoZoom = orthographicTarget;
+            currentZoom = zoomDestinationRef;
+            currentOrthoZoom = orthoTargetRef;
 
             if (isSpawning)
             {
@@ -498,17 +531,75 @@ public class CamControl : MonoBehaviour
                 isSpawning = false;
                 yield break;
             }
+
+            if (psychModeEnding)
+            {
+                psychModeEnding = false;
+                behaviours.isPsychdelicMode = false;
+                yield break;
+            }
         }
+
+        yield break;
        
     }
 
-    private IEnumerator PsychedelicFX(float time)
+    private float psychedelicModeLength;
+    [SerializeField] private float minPsychModeLength = 7f;
+    [SerializeField] private float maxPsychModeLength = 15f;
+
+    [SerializeField] private bool psychFXactive = false;
+    [SerializeField] private bool psychModeEnding = false;
+
+    private IEnumerator PsychedelicFX()
     {
-        behaviours.isPsychdelicMode = true; 
-        while (behaviours.isPsychdelicMode)
+        if (psychModeEnding)
         {
-            var t = Mathf.InverseLerp(currentZoom, zoomDestination, func(time));
+            yield break;
+        }
+
+        psychFXactive = true;
+        behaviours.isPsychdelicMode = true;
+        StartCoroutine(PsychEndBuff());
+
+        while (psychFXactive)
+        {
+
+            float t = Mathf.InverseLerp(currentZoom, zoomDestinationRef, func(time));
             float output = Mathf.Lerp(1, 0, t);
+            float psychOutput = Mathf.Lerp(player.maxStat, player.minStat, t);
+            player.PsychModifier(psychOutput);
+
+            RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
+
+            yield return null;
+        }
+
+        yield break;
+  
+    }
+
+    private IEnumerator PsychEndBuff()
+    {
+        psychedelicModeLength = Random.Range(minPsychModeLength, maxPsychModeLength);
+        yield return new WaitForSeconds(psychedelicModeLength);
+
+        StartCoroutine(EndPsychMode());
+
+        yield break;
+    }
+
+    private IEnumerator EndPsychMode()
+    {
+        psychFXactive = false;
+        psychModeEnding = true;
+
+        FromPsychToGameZoom();
+
+        while (psychModeEnding)
+        {
+            var t = Mathf.InverseLerp(currentZoom, zoomDestinationRef, func(time));
+            float output = Mathf.Lerp(0, 1, t);
             float psychOutput = Mathf.Lerp(player.minStat, player.maxStat, t);
             player.PsychModifier(psychOutput);
 
@@ -541,11 +632,7 @@ public class CamControl : MonoBehaviour
             yield return null;
         }
 
-        if (time >= 1)
-        {
-            cam.transform.LookAt(lookTarget);
-            yield break;
-        }
+        yield break;
     }
 
     public AreaManager area;

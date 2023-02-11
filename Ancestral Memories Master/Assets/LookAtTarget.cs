@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class LookAtTarget : MonoBehaviour
 {
-    [SerializeField] public Transform target;
-    float y;
+    public Transform target;
+
     private Renderer meshRenderer;
 
     private Dialogue dialogue;
@@ -14,20 +14,29 @@ public class LookAtTarget : MonoBehaviour
 
     [SerializeField] private bool inRange;
 
+    float yRotation;
+
     private void Start()
     {
         meshRenderer = transform.GetComponent<Renderer>();
         meshRenderer.enabled = false;
 
-        y = gameObject.transform.rotation.eulerAngles.y;
-        y += 180;
+        yRotation = gameObject.transform.rotation.eulerAngles.y;
+        yRotation += 180;
         dialogue = transform.root.GetComponent<Dialogue>();
 
     }
 
     void Update()
-    { 
-        gameObject.transform.LookAt(target.position);
+    {
+        if (target == null)
+        {
+            return;
+        }
+        else
+        {
+            gameObject.transform.LookAt(target.position);
+        }
 
         if (!dialogue.dialogueActive)
         {

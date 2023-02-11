@@ -18,7 +18,6 @@ public class RainControl : MonoBehaviour
     void Start()
     {
         emission = rainParticles.emission;
-       
         emission.enabled = false;
        
         isRaining = false;
@@ -133,42 +132,35 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator StartRaining()
     {
-        if (areaManager.currentRoom == "Outside")
+        emissionRateOverTime = 0;
+
+        emission.rateOverTime = emissionRateOverTime;
+
+        emission.enabled = true;
+        isRaining = true;
+        drought = false;
+
+        rainDuration = Random.Range(minRainDuration, maxRainDuration);
+
+
+        //rainStrength = Random.Range(minRainStrength, maxRainStrength);
+        //StartCoroutine(lerpTerrain.ToWetOasis(15));
+
+        float time = 0;
+
+        while (time <= 1f && areaManager.currentRoom == "Outside")
         {
-            emissionRateOverTime = 0;
+            time += Time.deltaTime / rainDuration;
 
-            emission.rateOverTime = emissionRateOverTime;
+            rainStrengthTarget = weather.windStrength * 500;
+            emission.rateOverTime = Mathf.Lerp(emissionRateOverTime, rainStrengthTarget, time);
 
-            emission.enabled = true;
-            isRaining = true;
-            drought = false;
-
-            rainDuration = Random.Range(minRainDuration, maxRainDuration);
-
-
-            //rainStrength = Random.Range(minRainStrength, maxRainStrength);
-            //StartCoroutine(lerpTerrain.ToWetOasis(15));
-
-            float time = 0;
-
-            while (time <= 1f && areaManager.currentRoom == "Outside")
-            {
-                time += Time.deltaTime / rainDuration;
-
-                rainStrengthTarget = weather.windStrength * 200;
-                emission.rateOverTime = Mathf.Lerp(emissionRateOverTime, rainStrengthTarget, time);
-
-                yield return null;
-            }
-
-            if (time >= 1f || areaManager.currentRoom != "Outside")
-            {
-                StartCoroutine(StopRaining(true));
-                yield break;
-            }
+            yield return null;
         }
-        else if (areaManager.currentRoom != "Outside")
+
+        if (time >= 1f || areaManager.currentRoom != "Outside")
         {
+            StartCoroutine(StopRaining(true));
             yield break;
         }
     }

@@ -25,6 +25,11 @@ namespace FMODUnity
         private static SystemNotInitializedException initException = null;
         private static RuntimeManager instance;
 
+        public static object CreateInstance(object eventName)
+        {
+            throw new NotImplementedException();
+        }
+
         private Platform currentPlatform;
         private FMOD.DEBUG_CALLBACK debugCallback;
         private FMOD.SYSTEM_CALLBACK errorCallback;

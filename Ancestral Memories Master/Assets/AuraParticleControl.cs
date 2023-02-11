@@ -9,7 +9,6 @@ public class AuraParticleControl : MonoBehaviour
     [SerializeField] private Player player;
 
     [SerializeField] private ParticleSystem auraParticles;
-
     [SerializeField] AreaManager areaManager;
 
     private EmissionModule emission;
@@ -47,8 +46,8 @@ public class AuraParticleControl : MonoBehaviour
     void Awake()
     {
         auraParticles = transform.GetComponent<ParticleSystem>();
-
         emission = auraParticles.emission;
+       
 
         gravityModifier = auraParticles.main.gravityModifier.constant;
         noiseStrength = auraParticles.noise.strength.constant;
@@ -56,21 +55,19 @@ public class AuraParticleControl : MonoBehaviour
         simulationSpeed = auraParticles.main.simulationSpeed;
         vertexDistance = auraParticles.trails.minVertexDistance;
         emission.enabled = false;
+     
     }
 
     private void OnEnable()
     {
         player.OnFaithChanged += KarmaModifier;
         player.OnPsychChanged += PsychedeliaModifier;
-        return;
     }
 
     private void OnDisable()
     {
         player.OnFaithChanged -= KarmaModifier;
         player.OnPsychChanged -= PsychedeliaModifier;
-
-        return;
     }
 
     public bool active = false;
@@ -85,18 +82,6 @@ public class AuraParticleControl : MonoBehaviour
         emission.enabled = false;
     }
 
-    private void Update()
-    {
-        if (emission.enabled)
-        {
-            gravityModifier = auraGravityOutput;
-            noiseStrength = auraNoiseOutput;
-            rateOverTime = auraDensityOutput;
-            simulationSpeed = auraSpeedOutput;
-            vertexDistance = vertexDistanceOutput;
-        }
-    }
-
     private void KarmaModifier(float karma, float minKarma, float maxKarma)
     {
         var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
@@ -104,6 +89,12 @@ public class AuraParticleControl : MonoBehaviour
         auraGravityOutput = Mathf.Lerp(auraGravityMax, auraGravityMin, t);
         auraSpeedOutput = Mathf.Lerp(auraGravityMin, auraGravityMax, t);
         auraNoiseOutput = Mathf.Lerp(auraNoiseStrengthMax, auraNoiseStrengthMin, t);
+
+        gravityModifier = auraGravityOutput;
+        noiseStrength = auraNoiseOutput;
+        rateOverTime = auraDensityOutput;
+        simulationSpeed = auraSpeedOutput;
+        vertexDistance = vertexDistanceOutput;
     }
 
     private void PsychedeliaModifier(float psychedelia, float minPsychedelia, float maxPsychedelia)

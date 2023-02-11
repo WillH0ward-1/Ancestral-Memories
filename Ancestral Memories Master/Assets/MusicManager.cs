@@ -219,16 +219,12 @@ public class MusicManager : MonoBehaviour
 
         player.OnFaithChanged += KarmaModifier;
 
-        return;
-
     }
 
     private void OnDisable()
     {
 
         player.OnFaithChanged -= KarmaModifier;
-
-        return;
     }
 
     private void KarmaModifier(float karma, float minKarma, float maxKarma)

@@ -83,8 +83,14 @@ public class RadialMenu : MonoBehaviour
 
                 if (selected.title == "Enter")
                 {
-                    StartCoroutine(PortalDestroyBuffer());
-                    StartCoroutine(areaManager.EnterPortal(hitObject));
+                    if (!behaviours.psychModeIncoming)
+                    {
+
+                        StartCoroutine(PortalDestroyBuffer());
+                        StartCoroutine(areaManager.EnterPortal(hitObject));
+                        return;
+                    }
+
                     return;
                 }
                 else

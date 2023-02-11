@@ -41,15 +41,21 @@ public class HideGodFace : MonoBehaviour
     {
         gameObject.transform.LookAt(target.position);
 
-        if (dialogue.dialogueActive && outOfRange)
+        if (dialogue != null)
         {
-            meshRenderer.enabled = true;
-        }
-        else if (!dialogue.dialogueActive)
+            if (dialogue.dialogueActive && outOfRange)
+            {
+                meshRenderer.enabled = true;
+            }
+            else if (!dialogue.dialogueActive)
+            {
+
+                meshRenderer.enabled = false;
+
+            }
+        } else
         {
-
-            meshRenderer.enabled = false;
-
+            return;
         }
     }
 

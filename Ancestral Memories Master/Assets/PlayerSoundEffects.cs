@@ -53,15 +53,13 @@ public class PlayerSoundEffects : MonoBehaviour
 
     }
 
-    void CheckGroundType()
+    public void CheckGroundType()
     {
-        
+        //playerWalk.StartCoroutine(playerWalk.DetectGroundType());
     }
 
     void PlayLeftFootStep()
     {
-        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
-
         leftFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(leftFootStepEvent, transform, rigidBody);
 
@@ -71,8 +69,6 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayRightFootStep()
     {
-        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
-
         rightFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(rightFootStepEvent, transform, rigidBody);
 
@@ -181,6 +177,7 @@ public class PlayerSoundEffects : MonoBehaviour
     public GameObject targetTree;
 
     public bool tree;
+
     public void HitCount()
     {
         numberOfHits++;
@@ -190,6 +187,7 @@ public class PlayerSoundEffects : MonoBehaviour
             targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall();
 
             numberOfHits = 0;
+
             return;
         }
     }

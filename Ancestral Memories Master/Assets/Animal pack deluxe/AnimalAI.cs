@@ -64,7 +64,7 @@ public class AnimalAI : MonoBehaviour
 
         interactable = transform.GetComponent<Interactable>();
 
-        //ChangeState(AIState.Idle);
+        ChangeState(AIState.Idle);
     }
 
     void Update()
@@ -93,17 +93,6 @@ public class AnimalAI : MonoBehaviour
             {
                 lookAnimator.enabled = true;
             }
-        }
-
-        if (playerBehaviours.isPsychdelicMode)
-        {
-            follow = true;
-            agent.stoppingDistance = 15f;
-        }
-        else
-        {
-            follow = false;
-            agent.stoppingDistance = 0f;
         }
 
     }
@@ -136,7 +125,7 @@ public class AnimalAI : MonoBehaviour
 
             if (time <= 0)
             {
-                if (inRange && follow)
+                if (inRange && playerBehaviours.isPsychdelicMode)
                 {
                     ChangeState(AIState.Following);
                 }
@@ -163,12 +152,17 @@ public class AnimalAI : MonoBehaviour
 
         while (behaviourActive)
         {
+           
             if (DoneReachingDestination())
             {
-                if (!inRange)
+                if (inRange && playerBehaviours.isPsychdelicMode)
+                {
+                    ChangeState(AIState.Following);
+                }
+                else
                 {
                     ChangeState(AIState.Eating);
-                } 
+                }
             }
 
             yield return null;
@@ -183,6 +177,14 @@ public class AnimalAI : MonoBehaviour
         behaviourActive = false;
         currentAIState = newState;
         state = currentAIState;
+
+        if (state == AIState.Following)
+        {
+            agent.stoppingDistance = 15f;
+        } else
+        {
+            agent.stoppingDistance = 0f;
+        }
 
         switch (state)
         {
@@ -237,7 +239,14 @@ public class AnimalAI : MonoBehaviour
         {
             if (!animator || animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f)
             {
-                ChangeState(AIState.Walking);
+                if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed)
+                {
+                    ChangeState(AIState.Following);
+                }
+                else
+                {
+                    ChangeState(AIState.Walking);
+                }
             }
 
             yield return null;
@@ -324,19 +333,27 @@ public class AnimalAI : MonoBehaviour
     private IEnumerator Follow()
     {
         behaviourActive = true;
+        agent.speed = runningSpeed;
 
         while (behaviourActive)
         {
-            if (!inRange || !follow)
+            ChangeAnimationState(RUN);
+
+            if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed)
             {
-                ChangeState(AIState.Idle);
-            }
-            else
-            {
-                ChangeAnimationState(WALK);
+                agent.speed = runningSpeed;
                 agent.SetDestination(player.transform.position);
+
+                if (DoneReachingDestination())
+                {
+                    ChangeAnimationState(IDLE);
+                }
+            } else
+            {
+                ChangeState(AIState.Walking);
             }
 
+         
             yield return null;
         }
 

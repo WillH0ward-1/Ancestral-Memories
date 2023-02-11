@@ -12,8 +12,6 @@ public class RayDetectReverbZone : MonoBehaviour
 
 
     [SerializeField] private GameObject rayOrigin;
-    [SerializeField] private GameObject reverbZoneWall;
-
     [SerializeField] private LayerMask layer;
     [SerializeField] private bool inRange;
     [SerializeField] private float distance;
@@ -23,8 +21,8 @@ public class RayDetectReverbZone : MonoBehaviour
     float minDistance = 0;
     float maxDistance = 1;
 
-    float reverbIntensityMin = 0;
-    float reverbIntensityMax = 1;
+    [SerializeField] float reverbIntensityMin = 0;
+    [SerializeField] float reverbIntensityMax = 1;
 
     [SerializeField] float targetIntensity = 0;
 

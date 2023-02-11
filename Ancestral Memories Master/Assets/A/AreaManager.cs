@@ -27,7 +27,7 @@ public class AreaManager : MonoBehaviour
 
     [SerializeField] private CircleWipeController transition;
 
-    private void Start()
+    private void Awake()
     {
         traversing = false;
         currentRoom = "Outside";

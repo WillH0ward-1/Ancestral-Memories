@@ -49,9 +49,6 @@ public class InteractCamera : MonoBehaviour
         
         if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
         {
-            if (behaviour.isPsychdelicMode && !currentHitObject.transform.CompareTag("Player")){
-                return;
-            }
 
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
@@ -70,6 +67,10 @@ public class InteractCamera : MonoBehaviour
 
                     if (!Input.GetMouseButtonUp(1) && !behaviour.behaviourIsActive)
                     {
+                        if (behaviour.isPsychdelicMode)
+                        {
+                            return;
+                        }
 
                         if (hit.distance >= maxSelectionDistance || hit.distance <= minSelectionDistance)
                         {
@@ -94,8 +95,6 @@ public class InteractCamera : MonoBehaviour
                             lookAtTarget.position = cam.WorldToScreenPoint(hit.point);
                             //Debug.Log(lastHit + "selected");
                         }
-
-
                     }
 
                 }
@@ -115,7 +114,7 @@ public class InteractCamera : MonoBehaviour
                 }
 
 
-                if (!areaManager.traversing)
+                if (!areaManager.traversing || behaviour.isPsychdelicMode)
                 {
                     lookAtTarget.position = hit.point;
                 } else if (areaManager.traversing)

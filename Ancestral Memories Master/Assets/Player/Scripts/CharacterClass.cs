@@ -212,7 +212,11 @@ public class CharacterClass : MonoBehaviour, IStats
     public virtual void Update()
     {
         Hunger(0.1f);
-        DepleteFaith(0.1f);
+
+        if (!isBlessed)
+        {
+            DepleteFaith(0.1f);
+        }
     }
 
 
@@ -360,7 +364,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual IEnumerator TransendenceTimer()
     {
-        yield return new WaitForSeconds(Random.Range(10, 180));
+        //yield return new WaitForSeconds(Random.Range(10, 180));
 
         if (faith >= maxStat)
         {

@@ -62,7 +62,7 @@ public class PlayerWalk : MonoBehaviour
     public LayerMask waterLayer;
 
     public LayerMask walkableLayers;
-    public LayerMask detectWaterLayers;
+    public LayerMask waterLayers;
 
     private RaycastHit rayHit;
 
@@ -88,9 +88,7 @@ public class PlayerWalk : MonoBehaviour
         raySources.Add(rightFoot);
 
         defaultBoundsSize = new Vector3(1, 1, 1);
-
     }
-
     //Water detection WIP
 
     float minParamDepth = 0;
@@ -101,19 +99,16 @@ public class PlayerWalk : MonoBehaviour
 
     private IEnumerator GetWaterDepth(Transform raySource)
     {
-
-        Vector3 rayDirection = Vector3.down;
-
         while (playerInWater)
         {
-            if (Physics.Raycast(playerHead.transform.position, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
+            if (Physics.Raycast(playerHead.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
             {
                 distance = Vector3.Distance(playerHead.transform.position, rayHit.point);
 
                 float t = Mathf.InverseLerp(rayHit.point.y, playerHead.transform.position.y, distance);
-                float output = Mathf.Lerp(minParamDepth, maxParamDepth, t);
+                float waterDepthOutput = Mathf.Lerp(minParamDepth, maxParamDepth, t);
 
-                targetWaterDepth = output;
+                targetWaterDepth = waterDepthOutput;
                 waterDepth = targetWaterDepth;
 
                 playerSFX.UpdateWaterDepth(raySource, waterDepth);
@@ -138,76 +133,61 @@ public class PlayerWalk : MonoBehaviour
     {
         GroundIndex,
         RockIndex,
-        WaterIndex,
+        WaterIndex
     }
 
-    private bool checkActive = false;
+    [SerializeField] private bool checkActive = false;
 
     private string currentGround;
     private string lastGround;
 
-    public IEnumerator DetectGroundType()
-    {
-        Debug.Log("Detect Ground Type");
-
-        checkActive = true;
-
-        while (checkActive)
-        {
-            foreach (Transform rayTransform in raySources)
-            {
-
-                Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
-                Vector3 rayDirection = Vector3.down;
-
-                //Gizmos.DrawRay(raySource, rayDirection);
-
-                if (Physics.Raycast(raySource, rayDirection, out RaycastHit rayHit, Mathf.Infinity, detectWaterLayers))
-                {
-                    if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
-                    {
-                        playerInWater = true;
-                        WaterDetected(rayTransform);
-                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
-
-                        Debug.Log("RayTransform:" + rayTransform);
-                        Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
-                        //currentGround = "Water";
-                    }
-                    else if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
-                    {
-                        playerInWater = false;
-                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
-                        Debug.Log("RayTransform:" + rayTransform);
-                        Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
-                        //currentGround = "Grass";
-                    }
-
-                    else if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
-                    {
-                        playerInWater = false;
-                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
-                        Debug.Log("RayTransform:" + rayTransform);
-                        Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
-
-                        //currentGround = "Rock";
-                    }
-                    //Debug.DrawRay(t.transform.position, rayDirection, Color.green);
-                }
-
-
-                checkActive = false;
-                yield break;
-            }
-
-            yield return null;
-            
-        }
-        
-    }
 
     void Update()
     {
+        foreach (Transform rayTransform in raySources)
+        {
+
+            //Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
+
+            if (Physics.Raycast(rayTransform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
+            {
+                //Gizmos.DrawRay(rayTransform.position, Vector3.down);
+
+                if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
+                {
+                    playerInWater = true;
+                    WaterDetected(rayTransform);
+                    playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
+
+                    Debug.Log("RayTransform:" + rayTransform);
+                    Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+
+                    continue;
+                    //currentGround = "Water";
+                }
+                if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
+                {
+                    playerInWater = false;
+                    playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
+                    Debug.Log("RayTransform:" + rayTransform);
+                    Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+                    continue;
+                    //currentGround = "Grass";
+                }
+
+                if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
+                {
+                    playerInWater = false;
+                    playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
+                    Debug.Log("RayTransform:" + rayTransform);
+                    Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+                    continue;
+
+                    //currentGround = "Rock";
+                }
+            }
+        }
+
         if (!stopOverride)
         {
             if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing && !behaviourWalkOverride)
@@ -347,7 +327,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "KindleFire")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize / 3;
+            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
         }
 
         if (selected == "Eat")
@@ -367,19 +347,26 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "Pray")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize;
+            if (hitObject.transform.CompareTag("Trees"))
+            {
+                boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+                destinationGizmo.transform.localScale = boundsSize / 3;
+            }
+            else
+            {
+                destinationGizmo.transform.localScale = defaultBoundsSize;
+            }
         }
 
         if (selected == "HarvestTree")
         {
             boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-            destinationGizmo.transform.localScale = boundsSize;
-            destinationGizmo.transform.localScale = boundsSize / 4;
+            destinationGizmo.transform.localScale = boundsSize / 5;
         }
 
         if (selected == "Talk")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize * 15;
+            destinationGizmo.transform.localScale = defaultBoundsSize * 18;
         }
 
         destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
