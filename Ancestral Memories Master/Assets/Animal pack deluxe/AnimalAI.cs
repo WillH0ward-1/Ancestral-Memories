@@ -54,15 +54,26 @@ public class AnimalAI : MonoBehaviour
 
     public Player player;
 
+    private float agentRadius = 0.4f;
+
+    private PlayFlute fluteControl;
+
+    private FollowersManager followManager;
+
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         agent.stoppingDistance = 0;
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
         agent.autoBraking = false;
+        agent.radius = agentRadius;
 
         animator = transform.GetComponentInChildren<Animator>();
 
         interactable = transform.GetComponent<Interactable>();
+        fluteControl = player.GetComponentInChildren<PlayFlute>();
+        followManager = player.GetComponentInChildren<FollowersManager>();
 
         ChangeState(AIState.Idle);
     }
@@ -78,7 +89,7 @@ public class AnimalAI : MonoBehaviour
             shouldFlee = true;
             interactable.enabled = false;
 
-            if (!inRange)
+            if (!inRange && !fluteControl.fluteActive)
             {
                 lookAnimator.enabled = false;
             }
@@ -89,7 +100,7 @@ public class AnimalAI : MonoBehaviour
             shouldFlee = false;
             interactable.enabled = true;
 
-            if (inRange)
+            if (inRange || fluteControl.fluteActive)
             {
                 lookAnimator.enabled = true;
             }
@@ -98,12 +109,17 @@ public class AnimalAI : MonoBehaviour
     }
 
     [SerializeField] float time;
+    [SerializeField] float minActionBuffer = 3;
+    [SerializeField] float maxActionBuffer = 10;
+
+    private bool overriden = false;
 
     private IEnumerator Idle()
     {
         ChangeAnimationState(IDLE);
 
-        behaviourActive = true;
+        agent.speed = 0f;
+        agent.ResetPath();
 
         previousIdlePoints.Add(transform.position);
 
@@ -112,26 +128,39 @@ public class AnimalAI : MonoBehaviour
             previousIdlePoints.RemoveAt(0);
         }
 
-        time = Random.Range(4, 8);
+        time = Random.Range(minActionBuffer, maxActionBuffer);
+
+        behaviourActive = true;
 
         while (behaviourActive)
         {
             while (time >= 0)
             {
+                if (!inRange)
+                {
+                    if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
+                    {
+                        ChangeState(AIState.Following);
+                    }
+                }
+
                 time -= Time.deltaTime;
 
                 yield return null;
             }
 
+            int minChance = 0;
+            int maxChance = 4;
+            int randNumber = Random.Range(minChance, maxChance);
+
             if (time <= 0)
             {
-                if (inRange && playerBehaviours.isPsychdelicMode)
-                {
-                    ChangeState(AIState.Following);
-                }
-                else
+
+                if (randNumber <= maxChance / 2)
                 {
                     ChangeState(AIState.Walking);
+                } else {
+                    ChangeState(AIState.Idle);
                 }
             }
 
@@ -145,24 +174,19 @@ public class AnimalAI : MonoBehaviour
     {
         ChangeAnimationState(WALK);
 
-        behaviourActive = true;
-
         agent.speed = walkingSpeed;
         agent.SetDestination(destination);
 
+        behaviourActive = true;
+
         while (behaviourActive)
         {
-           
-            if (DoneReachingDestination())
+            if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
-                if (inRange && playerBehaviours.isPsychdelicMode)
-                {
-                    ChangeState(AIState.Following);
-                }
-                else
-                {
-                    ChangeState(AIState.Eating);
-                }
+                ChangeState(AIState.Following);
+            } else if (DoneReachingDestination())
+            {
+                ChangeState(AIState.Eating);
             }
 
             yield return null;
@@ -170,6 +194,10 @@ public class AnimalAI : MonoBehaviour
 
         yield break;
     }
+
+    [SerializeField] float minRandWalkDistance = 0;
+    [SerializeField] float maxRandWalkDistance = 15;
+    [SerializeField] float randWalkDistance;
 
     private void ChangeState(AIState newState)
     {
@@ -180,11 +208,19 @@ public class AnimalAI : MonoBehaviour
 
         if (state == AIState.Following)
         {
+            followManager.AddFollower(transform.gameObject);
             agent.stoppingDistance = 15f;
         } else
         {
             agent.stoppingDistance = 0f;
         }
+
+        if (state != AIState.Following && followManager.followers.Contains(transform.gameObject))
+        {
+            followManager.RemoveFollower(transform.gameObject);
+        }
+
+        randWalkDistance = Random.Range(minRandWalkDistance, maxRandWalkDistance);
 
         switch (state)
         {
@@ -195,7 +231,7 @@ public class AnimalAI : MonoBehaviour
                 StartCoroutine(Eat());
                 break;
             case AIState.Walking:
-                StartCoroutine(Walk(RandomNavSphere(transform.position, Random.Range(3, 7))));
+                StartCoroutine(Walk(RandomNavSphere(transform.position, randWalkDistance)));
                 break;
             case AIState.Running:
                 StartCoroutine(Run());
@@ -237,15 +273,34 @@ public class AnimalAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            if (!animator || animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f)
+            while (time >= 0)
             {
-                if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed)
+                if (!inRange)
                 {
-                    ChangeState(AIState.Following);
+                    if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
+                    {
+                        ChangeState(AIState.Following);
+                    }
+                }
+
+                time -= Time.deltaTime;
+
+                yield return null;
+            }
+
+            if (time <= 0)
+            {
+                int minChance = 0;
+                int maxChance = 4;
+                int randNumber = Random.Range(minChance, maxChance);
+
+                if (randNumber <= maxChance / 2)
+                {
+                    ChangeState(AIState.Walking);
                 }
                 else
                 {
-                    ChangeState(AIState.Walking);
+                    ChangeState(AIState.Idle);
                 }
             }
 
@@ -333,27 +388,19 @@ public class AnimalAI : MonoBehaviour
     private IEnumerator Follow()
     {
         behaviourActive = true;
-        agent.speed = runningSpeed;
+        agent.speed = walkingSpeed;
 
         while (behaviourActive)
         {
-            ChangeAnimationState(RUN);
+            ChangeAnimationState(WALK);
 
-            if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed)
-            {
-                agent.speed = runningSpeed;
-                agent.SetDestination(player.transform.position);
+            agent.SetDestination(player.transform.position);
 
-                if (DoneReachingDestination())
-                {
-                    ChangeAnimationState(IDLE);
-                }
-            } else
-            {
-                ChangeState(AIState.Walking);
+            if (DoneReachingDestination() || inRange)
+            {              
+                ChangeState(AIState.Idle);
             }
 
-         
             yield return null;
         }
 

@@ -18,7 +18,7 @@ public class PlayFlute : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] private LayerMask targetLayer;
 
-    [SerializeField] private bool fluteActive = false;
+    public bool fluteActive = false;
 
     [SerializeField] private float targetFluteScale;
     [SerializeField] private float minFluteScale = 0;
@@ -31,6 +31,9 @@ public class PlayFlute : MonoBehaviour
 
     [SerializeField] private float interval = 0;
     [SerializeField] private float maxInterval = 0.1f;
+
+    [SerializeField] private float faithFactor = 0.25f;
+
     /*
     private void Awake()
     {
@@ -81,6 +84,8 @@ public class PlayFlute : MonoBehaviour
                 playerSFX.fluteEventRef.setParameterByName("FluteScale", targetFluteScale);
 
             }
+
+            player.GainFaith(faithFactor);
 
             yield return null;
         }
