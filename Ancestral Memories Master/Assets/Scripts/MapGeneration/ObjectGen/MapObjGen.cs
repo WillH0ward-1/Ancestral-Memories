@@ -281,7 +281,7 @@ public class MapObjGen : MonoBehaviour
         //AppleTreePoissonDisc(appleTreeSampler);
         GrassPoissonDisc(grassSampler);
         //FoliagePoissonDisc(foliageSampler);
-        //RocksPoissonDisc(rockSampler);
+        RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
