@@ -279,7 +279,7 @@ public class MapObjGen : MonoBehaviour
 
         TreePoissonDisc(treeSampler);
         //AppleTreePoissonDisc(appleTreeSampler);
-        //GrassPoissonDisc(grassSampler);
+        GrassPoissonDisc(grassSampler);
         //FoliagePoissonDisc(foliageSampler);
         //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
@@ -783,7 +783,18 @@ public class MapObjGen : MonoBehaviour
 
             grassInstance.AddComponent<NavMeshModifier>();
 
+            grassInstance.transform.gameObject.AddComponent<CorruptionControl>();
+
+            CorruptionControl corruptionControl = grassInstance.transform.GetComponent<CorruptionControl>();
+
+            corruptionControl.player = player;
+            corruptionControl.behaviours = behaviours;
+            corruptionControl.CorruptionModifierActive = true;
+
             mapObjectList.Add(grassInstance);
+            weather.windAffectedRendererList.Add(grassInstance.transform);
+
+
         }
     }
 
