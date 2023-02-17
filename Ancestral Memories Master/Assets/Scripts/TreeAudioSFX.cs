@@ -19,14 +19,14 @@ public class TreeAudioSFX : MonoBehaviour
     [SerializeField] private EventReference TreeGrowEventPath;
     [SerializeField] private EventReference BirdChirpEventPath;
 
-    private EventInstance treeGrowSFXInstance;
+    //private EventInstance treeGrowSFXInstance;
     private EventInstance birdChirpInstance;
     private Interactable interactable;
     public TreeDeathManager treeFallManager;
 
     void Awake()
     {
-        scaleControl = transform.GetComponentInChildren<ScaleControl>();
+        scaleControl = transform.GetComponent<ScaleControl>();
         rigidBody = transform.GetComponent<Rigidbody>();
 
         interactable = transform.GetComponent<Interactable>();
@@ -39,25 +39,24 @@ public class TreeAudioSFX : MonoBehaviour
 
     public IEnumerator StartTreeGrowthSFX()
     {
-
-        treeGrowSFXInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
+        EventInstance treeGrowSFXInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
         RuntimeManager.AttachInstanceToGameObject(treeGrowSFXInstance, transform, rigidBody);
 
         treeGrowSFXInstance.start();
         treeGrowSFXInstance.release();
 
-        while (!scaleControl.isFullyGrown && !treeFallManager.treeDead)
+        while (!scaleControl.isFullyGrown)
         {
             float output = scaleControl.growthPercent;
 
             treeGrowTime = output;
 
-            treeGrowSFXInstance.setParameterByName("TreeGrowTime", output);
+            treeGrowSFXInstance.setParameterByName("TreeGrowTime", treeGrowTime);
 
-            var t = Mathf.InverseLerp(0, 1, output);
-            float newOutput = Mathf.Lerp(1, 0, t);
+            //var t = Mathf.InverseLerp(0, 1, output);
+            //float newOutput = Mathf.Lerp(1, 0, t);
 
-//            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
+            //            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
 
             if (scaleControl.growthPercent >= 0.7)
             {
@@ -71,12 +70,7 @@ public class TreeAudioSFX : MonoBehaviour
             yield return null;
         }
 
-        if (treeFallManager.treeDead)
-        {
-            StopTreeGrowthSFX();
-           // StopBirdSFX();
-
-        }
+        StopTreeGrowthSFX(treeGrowSFXInstance);
 
         yield break;
 
@@ -88,15 +82,12 @@ public class TreeAudioSFX : MonoBehaviour
         return state;
     }
 
-    void StopTreeGrowthSFX()
+    void StopTreeGrowthSFX(EventInstance treeGrowSFXInstance)
     {
-        if (PlaybackState(treeGrowSFXInstance) != FMOD.Studio.PLAYBACK_STATE.STOPPED)
+        if (PlaybackState(treeGrowSFXInstance) != PLAYBACK_STATE.STOPPED)
         {
             treeGrowSFXInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-            treeGrowSFXInstance.release();
         }
-
-        return;
     }
 
     private void StartTreeBirds()
@@ -115,8 +106,6 @@ public class TreeAudioSFX : MonoBehaviour
             birdChirpInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
             birdChirpInstance.release();
         }
-
-        return;
     }
 
 }

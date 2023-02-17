@@ -281,7 +281,7 @@ public class MapObjGen : MonoBehaviour
         //AppleTreePoissonDisc(appleTreeSampler);
         GrassPoissonDisc(grassSampler);
         //FoliagePoissonDisc(foliageSampler);
-        RocksPoissonDisc(rockSampler);
+        //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
@@ -627,6 +627,8 @@ public class MapObjGen : MonoBehaviour
 
     private LeafControl leafControl;
 
+    //private TreeAudioSFX treeAudio;
+
     public void GrowTrees(GameObject tree)
     {
 
@@ -702,6 +704,9 @@ public class MapObjGen : MonoBehaviour
         emission.enabled = true;
         dirtExplodeParticles.Play();
         tree.GetComponent<CorruptionControl>().CorruptionModifierActive = true;
+        TreeAudioSFX treeAudio = tree.GetComponent<TreeAudioSFX>();
+        treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
+
         StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
 
         yield break;
@@ -855,7 +860,9 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomRocks = GetRandomMapObject(rocks);
 
-            GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            float rockYboost = 35;
+
+            GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY + rockYboost, sample.y), Quaternion.identity);
 
             rockInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -971,13 +978,14 @@ public class MapObjGen : MonoBehaviour
 
                 if (downHit.collider.CompareTag(waterTag))
                 {
-                    Debug.Log("Water Ahoy!");
                     DestroyObject();
+                    //Debug.Log("Water Ahoy!");
                 }
 
                 if (downHit.collider == null)
                 {
                     DestroyObject();
+                    //Debug.Log("Nothing detected.");
                 }
             }
 
@@ -985,33 +993,32 @@ public class MapObjGen : MonoBehaviour
             {
                 if (Application.isEditor)
                 {
-                    Debug.Log("Object destroyed in Editor.");
                     DestroyImmediate(mapObject);
+                    // Debug.Log("Object destroyed in Editor.");
                 }
                 else if (!Application.isEditor)
                 {
-                    Debug.Log("Object destroyed in game.");
                     Destroy(mapObject);
+                    // Debug.Log("Object destroyed in game.");
                 }
             }
         }
 
-        ListCleanup();
-
-
-        void ListCleanup()
-        {
-            for (var i = mapObjectList.Count - 1; i > -1; i--)
-            {
-                if (mapObjectList[i] == null)
-                    mapObjectList.RemoveAt(i);
-            }
-        }
+        ListCleanup(mapObjectList);
 
         AnchorToGround();
     }
 
-        
+    void ListCleanup(List<GameObject> list)
+    {
+        for (var i = list.Count - 1; i > -1; i--)
+        {
+            if (mapObjectList[i] == null)
+                mapObjectList.RemoveAt(i);
+        }
+    }
+
+
     void AnchorToGround()
     {
         foreach (GameObject mapObject in mapObjectList)

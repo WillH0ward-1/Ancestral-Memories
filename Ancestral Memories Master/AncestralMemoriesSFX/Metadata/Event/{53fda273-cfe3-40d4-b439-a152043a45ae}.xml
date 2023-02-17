@@ -61,16 +61,19 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{196d273a-19ea-48dc-9137-d47ea14510ce}">
 		<property name="maxVoices">
-			<value>6</value>
+			<value>25</value>
 		</property>
-		<property name="voiceStealing">
-			<value>2</value>
+		<property name="priority">
+			<value>3</value>
 		</property>
 		<property name="dopplerEnabled">
 			<value>true</value>
 		</property>
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
 		<property name="maximumDistance">
-			<value>5</value>
+			<value>65</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{f34db699-1c6d-475c-95a9-ba70a2a20b31}" />
@@ -172,8 +175,11 @@
 		<property name="spawnRate">
 			<value>0</value>
 		</property>
+		<property name="minimumScatterDistance">
+			<value>0</value>
+		</property>
 		<property name="maximumScatterDistance">
-			<value>7.20000029</value>
+			<value>0</value>
 		</property>
 		<property name="pitchRandomization">
 			<value>0.349999994</value>
@@ -212,7 +218,7 @@
 			<value>0</value>
 		</property>
 		<property name="length">
-			<value>0.40000000000000002</value>
+			<value>1</value>
 		</property>
 		<relationship name="timeline">
 			<destination>{667ff382-0ea8-4c72-ae83-cb4b46168aeb}</destination>
@@ -375,8 +381,11 @@
 	</object>
 	<object class="MixerBusFader" id="{878d4cbd-7abe-43f8-815f-3e5535970fce}" />
 	<object class="SpatialiserEffect" id="{5737e001-feeb-4357-a180-3a66c8374354}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
 		<property name="maximumDistance">
-			<value>5</value>
+			<value>65</value>
 		</property>
 	</object>
 	<object class="MixerSend" id="{0a780b00-54b8-4e9c-b100-3bab7ca66d28}">
@@ -671,7 +680,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>1</value>
+			<value>7</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.0888244137</value>
@@ -682,7 +691,7 @@
 			<value>0.98728813559322037</value>
 		</property>
 		<property name="value">
-			<value>-6</value>
+			<value>0</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{3a4c4e3b-dc47-427b-8ad8-db8b7bebb03d}">

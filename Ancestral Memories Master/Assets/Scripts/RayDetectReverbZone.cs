@@ -65,9 +65,9 @@ public class RayDetectReverbZone : MonoBehaviour
         {
             if (Physics.SphereCast(transform.position, sphereCastRadius, Vector3.forward, out RaycastHit rayHit, layer))
             {
-                //Gizmos.DrawSp(transform.position, Vector3.forward);
+                //Gizmos.DrawSphere(transform.position, Vector3.forward);
 
-                print(rayHit.transform);
+                //print(rayHit.transform);
 
                 reverbManager.emitter.EventInstance.start();
                 reverbManager.emitter.EventInstance.release();

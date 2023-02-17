@@ -22,7 +22,6 @@ public class ScaleControl : MonoBehaviour
     private KillBuffer killBuffer;
 
     public RainControl rainControl;
-    public TreeAudioSFX treeAudio;
 
     private Interactable interactable;
 
@@ -35,7 +34,6 @@ public class ScaleControl : MonoBehaviour
         {
             treeKillManager = transform.GetComponent<TreeDeathManager>();
             killBuffer = transform.GetComponent<KillBuffer>();
-            treeAudio = transform.GetComponent<TreeAudioSFX>();
         } 
 
         interactable = transform.GetComponent<Interactable>();
@@ -69,11 +67,6 @@ public class ScaleControl : MonoBehaviour
             if (scaleObject == null)
             {
                 yield break;
-            }
-
-            if (scaleObject.transform.CompareTag("Trees") && !treeKillManager.treeFalling)
-            {
-                //treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
             }
 
             time = 0f;
