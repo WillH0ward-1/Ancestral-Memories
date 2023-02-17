@@ -297,6 +297,7 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(EmitterGen(waterSoundEmitter, waterEmitters, waterEmitterTransform));
 
         DestroyDeadZones();
+        ListCleanup(mapObjectList);
 
     }
 
@@ -1004,8 +1005,6 @@ public class MapObjGen : MonoBehaviour
             }
         }
 
-        ListCleanup(mapObjectList);
-
         AnchorToGround();
     }
 
@@ -1021,6 +1020,8 @@ public class MapObjGen : MonoBehaviour
 
     void AnchorToGround()
     {
+        ListCleanup(mapObjectList);
+
         foreach (GameObject mapObject in mapObjectList)
         {
 
