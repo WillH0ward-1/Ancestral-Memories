@@ -568,6 +568,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     private IEnumerator PsychedelicModeBuffer()
     {
+
         if (!isPsychdelicMode)
         {
             psychModeIncoming = true;
@@ -576,6 +577,7 @@ public class CharacterBehaviours : MonoBehaviour
 
             psychModeIncoming = false;
             cinematicCam.ToPsychedelicZoom();
+      
         }
 
         yield break;

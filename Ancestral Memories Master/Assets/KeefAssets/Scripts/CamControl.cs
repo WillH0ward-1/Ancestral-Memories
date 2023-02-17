@@ -397,10 +397,13 @@ public class CamControl : MonoBehaviour
         }
     }
 
+    public ControlAlpha costumeControl;
+
     public void ToPsychedelicZoom()
     {
         if (!behaviours.isPsychdelicMode)
         {
+            //costumeControl.SwitchHumanState();
             CancelLastCam();
             cinematicActive = false;
             SetCamClipPlane();
@@ -536,6 +539,8 @@ public class CamControl : MonoBehaviour
             {
                 psychModeEnding = false;
                 behaviours.isPsychdelicMode = false;
+
+                //costumeControl.SwitchHumanState();
                 yield break;
             }
         }

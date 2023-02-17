@@ -76,7 +76,7 @@
 			<value>500</value>
 		</property>
 		<property name="minimumDistance">
-			<value>8.40000057</value>
+			<value>0</value>
 		</property>
 		<property name="maximumDistance">
 			<value>45</value>
@@ -113,6 +113,9 @@
 		</property>
 		<relationship name="automators">
 			<destination>{cfb17a55-78fd-4a73-a489-1fec441e7728}</destination>
+		</relationship>
+		<relationship name="modulators">
+			<destination>{6ccc23ca-4841-4a2a-b13d-88aeefa15c5d}</destination>
 		</relationship>
 		<relationship name="effectChain">
 			<destination>{55fcfd85-cf7e-4876-9985-70812ce690e2}</destination>
@@ -184,7 +187,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{c6eb0d1f-0c69-44e1-977a-3ed68045eb2c}">
 		<property name="volume">
-			<value>-2.5</value>
+			<value>0.5</value>
 		</property>
 		<property name="name">
 			<value>Audio 2</value>
@@ -223,6 +226,11 @@
 		<relationship name="automationCurves">
 			<destination>{6294ee3f-903e-4704-b0e6-e66e42263382}</destination>
 		</relationship>
+	</object>
+	<object class="RandomizerModulator" id="{6ccc23ca-4841-4a2a-b13d-88aeefa15c5d}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
 	</object>
 	<object class="MixerBusEffectChain" id="{55fcfd85-cf7e-4876-9985-70812ce690e2}">
 		<relationship name="effects">
@@ -307,7 +315,7 @@
 	<object class="MixerBusFader" id="{e8977edb-1dd6-4f57-81fc-76e2135641d3}" />
 	<object class="SpatialiserEffect" id="{be0209ea-b156-4ea3-94c4-8392c87bc49a}">
 		<property name="minimumDistance">
-			<value>8.40000057</value>
+			<value>0</value>
 		</property>
 		<property name="maximumDistance">
 			<value>45</value>

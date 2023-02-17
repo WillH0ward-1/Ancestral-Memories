@@ -65,9 +65,11 @@ public class TimeCycleManager : MonoBehaviour
             DirectionalLight.transform.localRotation = Quaternion.Euler(new Vector3((timePercent * 360f) - 90f, 170f, 0));
         }
 
-        var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
-
-        Debug.Log("time of day (Fmod) = " + fmodTod);
+        if (!Application.isEditor)
+        {
+            var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
+            Debug.Log("time of day (Fmod) = " + fmodTod);
+        }
 
     }
 

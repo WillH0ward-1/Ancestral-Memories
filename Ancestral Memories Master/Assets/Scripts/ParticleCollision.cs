@@ -48,7 +48,7 @@ public class ParticleCollision : MonoBehaviour
         if (onScreen)
         {
             //EventInstance rainDropInstance = emitter.EventInstance;
-            //RuntimeManager.PlayOneShot(rainSFX, hitLocation);
+            RuntimeManager.PlayOneShot(rainSFX, hitLocation);
 
             //emitter.EventInstance.start();
             //emitter.EventInstance.release();

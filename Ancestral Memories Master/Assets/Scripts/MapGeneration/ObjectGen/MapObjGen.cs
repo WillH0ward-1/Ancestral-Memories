@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Deform;
 using FIMSpace.FLook;
+using FMODUnity;
 
 public class MapObjGen : MonoBehaviour
 {
@@ -297,9 +298,40 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(EmitterGen(waterSoundEmitter, waterEmitters, waterEmitterTransform));
 
         DestroyDeadZones();
+
         ListCleanup(mapObjectList);
+        ListCleanup(npcList);
+        ListCleanup(grassList);
+
+        StartCoroutine(StartTreeGrowth(treeList));
+
+        EnableStudioEmitters(grassList);
+        EnableStudioEmitters(waterEmitters);
 
     }
+
+
+    void ListCleanup(List<GameObject> list)
+    {
+        for (var i = list.Count - 1; i > -1; i--)
+        {
+            if (list[i] == null)
+                list.RemoveAt(i);
+        }
+    }
+
+    private void EnableStudioEmitters(List<GameObject> list) {
+
+        foreach (GameObject emitter in list)
+        {
+            if (emitter != null)
+            {
+                StudioEventEmitter eventEmitter = emitter.transform.GetComponent<StudioEventEmitter>();
+                eventEmitter.enabled = true;
+            }
+        }
+    }
+
 
     private List<Vector3> XspawnPositions;
     private List<Vector3> ZspawnPositions;
@@ -505,6 +537,7 @@ public class MapObjGen : MonoBehaviour
     public List<GameObject> mapObjectList; 
     public List<GameObject> treeList;
     public List<GameObject> npcList;
+    public List<GameObject> grassList;
 
     private Vector3 zeroScale = new Vector3(0.001f, 0.001f, 0.001f);
     //private CorruptionControl corruptionControl;
@@ -562,11 +595,24 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
             weather.windAffectedRendererList.Add(treeInstance.transform);
-            GrowTrees(treeInstance);
-
+            treeList.Add(treeInstance);
         }
 
 
+    }
+
+    public bool readyToGrow = false;
+    
+    private IEnumerator StartTreeGrowth(List<GameObject> objectList)
+    {
+        ListCleanup(objectList);
+
+        foreach (GameObject growObject in objectList)
+        {
+            GrowTrees(growObject);
+        }
+
+        yield return null;
     }
 
 
@@ -632,7 +678,6 @@ public class MapObjGen : MonoBehaviour
 
     public void GrowTrees(GameObject tree)
     {
-
         Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
         ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
@@ -799,6 +844,7 @@ public class MapObjGen : MonoBehaviour
 
             mapObjectList.Add(grassInstance);
             weather.windAffectedRendererList.Add(grassInstance.transform);
+            grassList.Add(grassInstance);
 
 
         }
@@ -1008,15 +1054,6 @@ public class MapObjGen : MonoBehaviour
         AnchorToGround();
     }
 
-    void ListCleanup(List<GameObject> list)
-    {
-        for (var i = list.Count - 1; i > -1; i--)
-        {
-            if (mapObjectList[i] == null)
-                mapObjectList.RemoveAt(i);
-        }
-    }
-
 
     void AnchorToGround()
     {
@@ -1115,6 +1152,8 @@ public class MapObjGen : MonoBehaviour
                 }
             }
         }
+
+        ListCleanup(waterEmitters);
 
         yield break;
 

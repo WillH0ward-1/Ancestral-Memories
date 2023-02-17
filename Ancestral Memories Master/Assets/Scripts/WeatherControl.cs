@@ -51,7 +51,7 @@ public class WeatherControl : MonoBehaviour
 
         StartCoroutine(WindStrength(windAudio2DInstance));
 
-        StartCoroutine(SpawnWindZone());
+       // StartCoroutine(SpawnWindZone());
     }
 
     void ListCleanup(List<Transform> list)
@@ -82,12 +82,12 @@ public class WeatherControl : MonoBehaviour
 
             activeWindZones.Add(windZoneObject.transform);
 
-            if (activeWindZones.Count > maxWindZoneInstances)
+            if (activeWindZones.Count >= maxWindZoneInstances)
             {
                 activeWindZones.Remove(windZoneObject.transform);
                 Destroy(windZoneObject);
             }
-            else
+            else if (activeWindZones.Count <= maxWindZoneInstances)
             {
 
                 Vector3 newPosition = (Random.insideUnitSphere * spawnRadius) + player.transform.position;
@@ -107,16 +107,13 @@ public class WeatherControl : MonoBehaviour
     {
         bool active = true;
 
-        while (active)
+        while (active && windZoneObject != null)
         {
-            if (windZoneObject == null)
-            {
-                active = false;
-            }
-
             instance.EventInstance.setParameterByName("WindStrength", windStrength);
             yield return null;
         }
+
+        active = false;
 
         yield break;
     }
@@ -175,14 +172,14 @@ public class WeatherControl : MonoBehaviour
         yield break;
     }
 
-    [SerializeField] float newMin = 0;
-    [SerializeField] float newMax = 1;
+    [SerializeField] float newMin = 0f;
+    [SerializeField] float newMax = 1f;
 
-    [SerializeField] float leafSpeedMin = 0;
-    [SerializeField] float leafSpeedMax = 1;
+    [SerializeField] float leafSpeedMin = 0.1f;
+    [SerializeField] float leafSpeedMax = 0.75f;
 
-    [SerializeField] float leafShakeMin = 1;
-    [SerializeField] float leafShakeMax = 5;
+    [SerializeField] float leafShakeMin = 0.5f;
+    [SerializeField] float leafShakeMax = 3f;
 
     private void OnEnable() => player.OnFaithChanged += WindStrength;
     private void OnDisable() => player.OnFaithChanged -= WindStrength;

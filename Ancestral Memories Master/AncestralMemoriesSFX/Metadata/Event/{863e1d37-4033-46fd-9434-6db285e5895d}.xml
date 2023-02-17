@@ -67,13 +67,19 @@
 			<value>16</value>
 		</property>
 		<property name="voiceStealing">
-			<value>2</value>
+			<value>4</value>
+		</property>
+		<property name="priority">
+			<value>3</value>
 		</property>
 		<property name="dopplerEnabled">
 			<value>true</value>
 		</property>
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
 		<property name="maximumDistance">
-			<value>9</value>
+			<value>65</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{c961de9f-71c4-4f9b-a271-6da0187197a7}" />
@@ -318,7 +324,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{b3ae3e04-4411-42b9-a37e-c6ee9307bfb6}">
 		<property name="volume">
-			<value>-7.5</value>
+			<value>-8.5</value>
 		</property>
 		<property name="name">
 			<value>Audio 1</value>
@@ -762,8 +768,11 @@
 		</relationship>
 	</object>
 	<object class="SpatialiserEffect" id="{4c5235cc-7c8a-4f1e-b4d4-3b97122b605d}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
 		<property name="maximumDistance">
-			<value>9</value>
+			<value>65</value>
 		</property>
 	</object>
 	<object class="MixerSend" id="{e249df18-4ece-4c13-b6be-ece56b16f2f4}">
