@@ -62,7 +62,14 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{4aec15a2-c0b8-463f-a66d-13d5930f707c}" />
+	<object class="EventAutomatableProperties" id="{4aec15a2-c0b8-463f-a66d-13d5930f707c}">
+		<property name="maxVoices">
+			<value>10</value>
+		</property>
+		<property name="voiceStealing">
+			<value>2</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{f7ec6188-5df6-416a-87d7-f9df5796138b}" />
 	<object class="Timeline" id="{d5e0f6c2-7a4c-4bd8-b305-f51326f8e2d3}">
 		<relationship name="modules">
@@ -109,8 +116,11 @@
 		<property name="maximumTimeBetweenSounds">
 			<value>3500</value>
 		</property>
+		<property name="minimumScatterDistance">
+			<value>4</value>
+		</property>
 		<property name="maximumScatterDistance">
-			<value>1</value>
+			<value>8.80000019</value>
 		</property>
 		<property name="pitchRandomization">
 			<value>3.10000014</value>

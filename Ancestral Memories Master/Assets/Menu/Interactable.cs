@@ -13,7 +13,6 @@ public class Interactable : MonoBehaviour
         public Sprite sprite;
         public string title;
     }
-   
 
     public void SpawnMenu(GameObject lastHit, RaycastHit rayHit)
     {       

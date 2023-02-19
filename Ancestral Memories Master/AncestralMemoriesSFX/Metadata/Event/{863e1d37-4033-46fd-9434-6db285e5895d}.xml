@@ -64,7 +64,7 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{d4e6b0a2-48a1-45bc-8eb1-87f23d3357ba}">
 		<property name="maxVoices">
-			<value>16</value>
+			<value>32</value>
 		</property>
 		<property name="voiceStealing">
 			<value>4</value>
@@ -72,14 +72,11 @@
 		<property name="priority">
 			<value>3</value>
 		</property>
-		<property name="dopplerEnabled">
-			<value>true</value>
-		</property>
 		<property name="minimumDistance">
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>65</value>
+			<value>45</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{c961de9f-71c4-4f9b-a271-6da0187197a7}" />
@@ -148,6 +145,9 @@
 	</object>
 	<object class="MixerBusPanner" id="{f7d78b96-6296-4a80-97fa-d38cfbeaf32b}" />
 	<object class="MultiSound" id="{d42d2eaf-dd25-4845-9929-10ca0c8403e7}">
+		<property name="triggerProbabilityEnabled">
+			<value>true</value>
+		</property>
 		<property name="startOffset">
 			<value>13.5</value>
 		</property>
@@ -772,7 +772,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>65</value>
+			<value>45</value>
 		</property>
 	</object>
 	<object class="MixerSend" id="{e249df18-4ece-4c13-b6be-ece56b16f2f4}">

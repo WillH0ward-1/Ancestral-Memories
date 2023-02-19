@@ -218,10 +218,9 @@ public class MapObjGen : MonoBehaviour
 
     private GameObject emitterInstance;
 
-
-    public IEnumerator EmitterGen(GameObject emitter, List<GameObject> emitters, Transform emitterParent)
+    public IEnumerator EmitterGen()
     {
-        Vector3[] verts = emitterParent.GetComponent<MeshFilter>().mesh.vertices;
+        Vector3[] verts = waterEmitterTransform.GetComponent<MeshFilter>().mesh.vertices;
         int sampleDensity = verts.Length / vertSampleFactor;
 
         int i = 0;
@@ -230,16 +229,62 @@ public class MapObjGen : MonoBehaviour
         {
             // vertices[i] += Vector3.up * Time.deltaTime;
 
-            emitterInstance = Instantiate(emitter, emitterParent.transform.localToWorldMatrix.MultiplyPoint3x4(verts[i]), Quaternion.identity, waterEmitterRoot);
+            emitterInstance = Instantiate(waterSoundEmitter, waterEmitterTransform.localToWorldMatrix.MultiplyPoint3x4(verts[i]), Quaternion.identity, waterEmitterRoot);
 
-            emitters.Add(emitterInstance);
+            waterEmitters.Add(emitterInstance);
 
             i += sampleDensity;
         }
 
-        StartCoroutine(GenerateEmitterCheckers(emitters));
+        if (i >= verts.Length)
+        {
+            StartCoroutine(GenerateEmitterCheckers());
+        }
+
         yield break;
-        
+      
+    }
+
+    private float emitterY;
+    [SerializeField] private float emitterYOffset = 10f;
+    [SerializeField] private LayerMask emitterLayerMask;
+
+    public IEnumerator GenerateEmitterCheckers()
+    {
+        foreach (GameObject emitter in waterEmitters)
+        {
+            emitterY = emitter.transform.position.y;
+
+            emitter.transform.position = new Vector3(emitter.transform.position.x, emitterY += emitterYOffset, emitter.transform.position.z);
+
+            if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
+            {
+                if (downHit.collider.CompareTag("Water"))
+                {
+                    float newY = emitterY -= emitterYOffset;
+
+                    emitter.transform.position = new Vector3(emitter.transform.position.x, newY, emitter.transform.position.z);
+                    continue;
+                }
+                else
+                {
+                    DestroyObject(emitter);
+                }
+            }
+
+            static void DestroyObject(GameObject emitter)
+            {
+                Debug.Log("Object destroyed in game.");
+                Destroy(emitter);
+
+            }
+        }
+
+        ListCleanup(waterEmitters);
+        EnableStudioEmitters(waterEmitters);
+
+        yield break;
+
     }
 
     private void Awake()
@@ -295,21 +340,19 @@ public class MapObjGen : MonoBehaviour
         EnableNavMeshAgents(npcList);
 
         GroundCheck();
-        StartCoroutine(EmitterGen(waterSoundEmitter, waterEmitters, waterEmitterTransform));
-
         DestroyDeadZones();
+
+        StartCoroutine(EmitterGen());
 
         ListCleanup(mapObjectList);
         ListCleanup(npcList);
         ListCleanup(grassList);
 
+        EnableStudioEmitters(grassList);
+
         StartCoroutine(StartTreeGrowth(treeList));
 
-        EnableStudioEmitters(grassList);
-        EnableStudioEmitters(waterEmitters);
-
     }
-
 
     void ListCleanup(List<GameObject> list)
     {
@@ -327,7 +370,11 @@ public class MapObjGen : MonoBehaviour
             if (emitter != null)
             {
                 StudioEventEmitter eventEmitter = emitter.transform.GetComponent<StudioEventEmitter>();
+                // eventEmitter.enabled = true;
+
                 eventEmitter.enabled = true;
+
+                eventEmitter.Play();
             }
         }
     }
@@ -1109,54 +1156,6 @@ public class MapObjGen : MonoBehaviour
                 }
             }
         }
-    }
-
-    private float emitterY;
-    [SerializeField] private float emitterYOffset = 10f;
-    [SerializeField] private LayerMask emitterLayerMask;
-
-    public IEnumerator GenerateEmitterCheckers(List<GameObject> emitters)
-    {
-        foreach (GameObject emitter in emitters)
-        {
-            emitterY = emitter.transform.position.y;
-
-            emitter.transform.position = new Vector3(emitter.transform.position.x, emitterY += emitterYOffset, emitter.transform.position.z);
-
-            if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
-            {
-                Debug.DrawRay(emitter.transform.position, Vector3.down, Color.red);
-
-                if (downHit.collider.CompareTag("Water"))
-                {
-                    emitter.transform.position = new Vector3(emitter.transform.position.x, emitterY -= emitterYOffset, emitter.transform.position.z);
-                    continue;
-                }
-                else if (!downHit.collider.CompareTag("Water"))
-                {
-                    DestroyObject(emitter);
-                }
-            }
-
-            void DestroyObject(GameObject emitter)
-            {
-                if (Application.isEditor)
-                {
-                    Debug.Log("Object destroyed in Editor.");
-                    DestroyImmediate(emitter);
-                }
-                else
-                {
-                    Debug.Log("Object destroyed in game.");
-                    Destroy(emitter);
-                }
-            }
-        }
-
-        ListCleanup(waterEmitters);
-
-        yield break;
-
     }
 
     void SetOffset()

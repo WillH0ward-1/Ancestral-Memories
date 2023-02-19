@@ -66,6 +66,9 @@
 		<property name="priority">
 			<value>3</value>
 		</property>
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
 	</object>
 	<object class="MarkerTrack" id="{6a015bdf-a336-48ac-b6b3-89a7f7468231}" />
 	<object class="GroupTrack" id="{74010b44-65dd-4445-aa0e-28eff4c8fcdf}">
@@ -155,7 +158,11 @@
 	</object>
 	<object class="MixerBusPanner" id="{fdf82598-8a55-4b03-bade-4f1541e248e8}" />
 	<object class="MixerBusFader" id="{9af0305e-e3ab-4a74-865c-1f2505dc0ebf}" />
-	<object class="SpatialiserEffect" id="{ca1c370f-0d3a-43d8-9918-f1996da3677c}" />
+	<object class="SpatialiserEffect" id="{ca1c370f-0d3a-43d8-9918-f1996da3677c}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+	</object>
 	<object class="RandomizerModulator" id="{032f2dfc-6f3b-4695-801f-f8f2acc81e60}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>startOffset</value>

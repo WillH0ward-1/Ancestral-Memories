@@ -108,9 +108,10 @@ public class TerrainGenerator : MonoBehaviour {
 			
 			mapObjectGen.GenerateMapObjects();
 
-			//lerpTerrain = tmp.AddComponent<LerpTerrain>();
-			//lerpTerrain.player = player;
-			//rainControl.lerpTerrain = lerpTerrain;
+			lerpTerrain = tmp.AddComponent<LerpTerrain>();
+			lerpTerrain.player = player;
+			rainControl.lerpTerrain = lerpTerrain;
+
 			//Interactable interactable = tmp.AddComponent<Interactable>();
 			//GameObject terrainObject = tmp;
 			//mapObjGen.terrain = terrainObject;

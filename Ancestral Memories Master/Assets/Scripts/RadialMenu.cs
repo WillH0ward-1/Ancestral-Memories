@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class RadialMenu : MonoBehaviour
 {
 
     public RadialButton buttonPrefab;
     public RadialButton selected;
+    public string selectionText;
 
     public PlayerWalk playerWalk;
     public GameObject player;
@@ -21,10 +23,19 @@ public class RadialMenu : MonoBehaviour
 
     public AreaManager areaManager;
 
+    [SerializeField] private TextMeshProUGUI tmp;
+
+    private void Awake()
+    {
+        selectionText = "";
+    }
+
     public void SpawnButtons(Interactable obj, GameObject lastHit, RaycastHit hit)
     {
         hitObject = lastHit;
         rayHit = hit;
+
+        tmp = transform.GetComponentInChildren<TextMeshProUGUI>();
         StartCoroutine(AnimateButtons(obj));
     }
 
@@ -67,11 +78,12 @@ public class RadialMenu : MonoBehaviour
         StartCoroutine(newButton.AnimateButtonIn(buttonRevealSpeed, targetButtonSize));
     }
 
-
     public bool walkingToward = false;
 
     private void Update()
     {
+        tmp.text = selectionText;
+
         if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive && !walkingToward)
         {
             if (selected)
@@ -85,7 +97,6 @@ public class RadialMenu : MonoBehaviour
                 {
                     if (!behaviours.psychModeIncoming)
                     {
-
                         StartCoroutine(PortalDestroyBuffer());
                         StartCoroutine(areaManager.EnterPortal(hitObject));
                         return;

@@ -64,6 +64,8 @@ namespace FMODUnity
 
         public static void UpdateActiveEmitters()
         {
+            Debug.Log(activeEmitters);
+
             foreach (StudioEventEmitter emitter in activeEmitters)
             {
                 emitter.UpdatePlayingStatus();

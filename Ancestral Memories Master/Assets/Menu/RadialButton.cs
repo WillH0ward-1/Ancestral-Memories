@@ -32,6 +32,7 @@ public class RadialButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void OnPointerEnter(PointerEventData eventData)
     {
         myMenu.selected = this;
+        myMenu.selectionText = title;
         defaultColor = circle.color;
         circle.color = Color.white;
     }
@@ -39,6 +40,7 @@ public class RadialButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void OnPointerExit(PointerEventData eventData)
     {
         myMenu.selected = null;
+        myMenu.selectionText = "";
         circle.color = defaultColor;
     }
 }
