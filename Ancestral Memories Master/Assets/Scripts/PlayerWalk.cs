@@ -53,7 +53,6 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] float animFactor = 9;
 
     public CharacterBehaviours behaviours;
-    public bool behaviourWalkOverride = false;
 
     public AreaManager areaManager;
 
@@ -81,7 +80,7 @@ public class PlayerWalk : MonoBehaviour
     {
         agent.stoppingDistance = defaultStoppingDistance;
         agent = GetComponent<NavMeshAgent>();
-        agent.isStopped = true;
+        //StopAgent();
 
         raySources.Add(playerHead);
         raySources.Add(leftFoot);
@@ -96,6 +95,10 @@ public class PlayerWalk : MonoBehaviour
 
     private string paramID;
 
+    private void Start()
+    {
+        ChangeState(PLAYER_IDLE);
+    }
 
     private IEnumerator GetWaterDepth(Transform raySource)
     {
@@ -190,16 +193,16 @@ public class PlayerWalk : MonoBehaviour
 
         if (!stopOverride)
         {
-            if (!Input.GetMouseButton(1) && !camControl.isSpawning && !behaviours.behaviourIsActive && !areaManager.traversing && !behaviourWalkOverride)
+            if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
             {
-                if (Input.GetMouseButton(0) && !player.hasDied && !cineCam.cinematicActive)
+                if (Input.GetMouseButton(0) && !player.hasDied)
                 {
                     CastRayToGround();
                 }
 
                 if (Input.GetMouseButtonUp(0))
                 {
-                    if (!agent.isStopped && !player.hasDied && !cineCam.cinematicActive)
+                    if (!agent.isStopped && !player.hasDied)
                     {
                         StopAgent();
                     }
@@ -235,6 +238,8 @@ public class PlayerWalk : MonoBehaviour
                     agent.destination = hitPoint;
                     agent.speed = speed;
                     walkAnimFactor = speed / animFactor;
+                    agent.isStopped = false;
+                    agent.acceleration = 10000;
 
                     player.AdjustAnimationSpeed(walkAnimFactor);
 
@@ -253,7 +258,6 @@ public class PlayerWalk : MonoBehaviour
                             ChangeState(PLAYER_DRUNKWALK);
                         }
 
-                        player.AdjustAnimationSpeed(walkAnimFactor);
                     }
 
                     if (speed > runThreshold)
@@ -273,17 +277,10 @@ public class PlayerWalk : MonoBehaviour
                     Debug.Log("Cursor Distance:" + cursorDistance);
                     Debug.Log("Speed:" + agent.speed);
 
-                    agent.isStopped = false;
-                    agent.acceleration = 10000;
-
                     //float runThreshold = cursorDistance / 2;
                 }
             }
-
-            return;
         }
-
-        return;
     }
 
     float defaultStoppingDistance = 0f;
@@ -301,12 +298,9 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private GameObject destinationGizmo;
 
-    private GameObject destinationGizmoInstance;
    // private DestinationGizmo trigger;
 
-    private Renderer gizmoRenderer;
-
-    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, GameObject tempPortal, RaycastHit rayHit)
+    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, RaycastHit rayHit)
     {
         // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
         // Needs refactoring... 
@@ -369,9 +363,9 @@ public class PlayerWalk : MonoBehaviour
             destinationGizmo.transform.localScale = defaultBoundsSize * 18;
         }
 
-        destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
+        GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
         DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
-        gizmoRenderer = destinationGizmoInstance.transform.GetComponent<Renderer>();
+        Renderer gizmoRenderer = destinationGizmoInstance.transform.GetComponent<Renderer>();
 
         if (!showDestinationGizmos)
         {
@@ -390,10 +384,7 @@ public class PlayerWalk : MonoBehaviour
 
             behaviours.SheatheItem();
 
-            if (destinationGizmoInstance)
-            {
-                Destroy(destinationGizmoInstance);
-            }
+            Destroy(destinationGizmoInstance);
 
             yield break;
         }
@@ -430,7 +421,7 @@ public class PlayerWalk : MonoBehaviour
 
             if (areaManager.isEntering)
             {
-                StartCoroutine(areaManager.Teleport(agent, teleportTarget, tempPortal));
+                StartCoroutine(areaManager.Teleport(agent, teleportTarget));
 
             }
             else if (!areaManager.isEntering)

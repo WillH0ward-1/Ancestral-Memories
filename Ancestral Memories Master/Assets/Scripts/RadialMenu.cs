@@ -84,7 +84,7 @@ public class RadialMenu : MonoBehaviour
     {
         tmp.text = selectionText;
 
-        if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive && !walkingToward)
+        if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive)
         {
             if (selected)
             {

@@ -9,13 +9,17 @@ public class DestinationGizmo : MonoBehaviour
     public bool OnTriggerEnter(Collider other)
     {
 
-        if (other.transform.CompareTag("Player")){
+        if (other.transform.CompareTag("Player"))
+        {
             hitDestination = true;
             return true;
         }
+        else
+        {
 
-        hitDestination = false;
-        return false;
+            hitDestination = false;
+            return false;
+        }
     }
 
 

@@ -49,7 +49,7 @@ public class InteractCamera : MonoBehaviour
         
         if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
         {
-
+            
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
                 currentHitObject = hit.transform.gameObject;
@@ -65,7 +65,7 @@ public class InteractCamera : MonoBehaviour
                     lastHit = hit.transform.gameObject;
                     outlineControl = lastHit.transform.GetComponent<OutlineControl>();
 
-                    if (!Input.GetMouseButtonUp(1) && !behaviour.behaviourIsActive)
+                    if (!Input.GetMouseButtonUp(1) && !behaviour.behaviourIsActive && !areaManager.traversing)
                     {
                         if (behaviour.isPsychdelicMode)
                         {

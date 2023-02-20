@@ -8,11 +8,18 @@ public class TimeCycleManager : MonoBehaviour
     [SerializeField] private LightingPreset Preset;
     //Variables
     [SerializeField, Range(0, 24)] private float timeOfDay;
-    public float timeMultiplier = 1f;
+    public float timeMultiplier = 0.25f;
+    public float defaultTimeMultiplier = 0.25f;
 
     public bool isNightTime;
 
     [SerializeField] private NightSwitch nightSwitch;
+
+    private void Awake()
+    {
+        defaultTimeMultiplier = 0.25f;
+        timeMultiplier = defaultTimeMultiplier;
+    }
 
     private void Update()
     {

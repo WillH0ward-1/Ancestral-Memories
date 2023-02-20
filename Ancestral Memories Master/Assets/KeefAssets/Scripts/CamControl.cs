@@ -102,6 +102,11 @@ public class CamControl : MonoBehaviour
 
     public MusicManager musicManager;
 
+    [Header("Title UI Reference")]
+    [Header("========================================================================================================================")]
+
+    [SerializeField] private TitleUIControl titleControlUI;
+
     public void Start()
     {
         rpCamera.perspective = initZoom;
@@ -120,7 +125,9 @@ public class CamControl : MonoBehaviour
 
     private IEnumerator WaitForMouseClick()
     {
-      //  musicManager.StartCoroutine(musicManager.MusicIntro());
+        //  musicManager.StartCoroutine(musicManager.MusicIntro());
+
+        titleControlUI.StartCoroutine(titleControlUI.FadeTextToFullAlpha(2f));
 
         waitForClick = true;
 
@@ -131,6 +138,7 @@ public class CamControl : MonoBehaviour
 //                musicManager.StartCoroutine(musicManager.FaithModulate());
 
                 ToSpawnZoom();
+                titleControlUI.StartCoroutine(titleControlUI.FadeTextToZeroAlpha(2f));
                 waitForClick = false;
             }
 

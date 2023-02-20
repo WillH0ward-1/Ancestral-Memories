@@ -31,7 +31,7 @@ public class RainControl : MonoBehaviour
     public float maxWaitForRain = 300f;
 
     private bool isInside;
-    private bool triggerDrought;
+    [SerializeField] private bool triggerDrought;
 
 
     private void Awake()

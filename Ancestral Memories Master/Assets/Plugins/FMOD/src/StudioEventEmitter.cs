@@ -64,10 +64,10 @@ namespace FMODUnity
 
         public static void UpdateActiveEmitters()
         {
-            Debug.Log(activeEmitters);
 
             foreach (StudioEventEmitter emitter in activeEmitters)
             {
+                Debug.Log(emitter);
                 emitter.UpdatePlayingStatus();
             }
         }

@@ -363,8 +363,8 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    private void EnableStudioEmitters(List<GameObject> list) {
-
+    private void EnableStudioEmitters(List<GameObject> list)
+    {
         foreach (GameObject emitter in list)
         {
             if (emitter != null)

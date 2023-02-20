@@ -99,6 +99,9 @@ public class CharacterBehaviours : MonoBehaviour
 
     public MusicManager musicManager;
 
+    public TimeCycleManager timeManager;
+
+
     void Start()
     {
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
@@ -146,7 +149,7 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(Drink());
                 break;
             case "Enter":
-                    StartCoroutine(areaManager.EnterPortal(hitObject));
+                areaManager.StartCoroutine(areaManager.EnterPortal(hitObject));
                 break;
             case "EatApple":
                 StartCoroutine(PickupApple());
@@ -190,7 +193,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     public void WalkToward(GameObject hitObject, string selected, RaycastHit rayHit)
     {
-        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, null, rayHit));
+        StartCoroutine(playerWalk.WalkToward(hitObject, selected, null, rayHit));
     }
 
     public void SheatheItem()
@@ -312,7 +315,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     }
 
-    public bool cinematicCamActive = true;
+    public bool thirdPersonCamActive = true;
     public bool firstPersonCamActive = false;
 
     [SerializeField] AudioListenerManager audioListener;
@@ -323,7 +326,7 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.gameObject.SetActive(true);
         firstPersonController.SetActive(false);
 
-        cinematicCamActive = cinematicCam.gameObject.activeInHierarchy;
+        thirdPersonCamActive = cinematicCam.gameObject.activeInHierarchy;
         firstPersonCamActive = firstPersonController.activeInHierarchy;
 
     }
@@ -377,7 +380,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         cinematicCam.scrollOverride = true;
         behaviourIsActive = true;
-        pulseActive = true;
+        //pulseActive = true;
 
         player.ChangeAnimationState(PLAYER_PRAYER_START);
 
@@ -395,7 +398,7 @@ public class CharacterBehaviours : MonoBehaviour
 
 
         auraParticles.StopParticles();
-        pulseActive = false;
+       // pulseActive = false;
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
 
@@ -672,14 +675,20 @@ public class CharacterBehaviours : MonoBehaviour
         yield return null;
     }
 
+    float timeMultiplyFactor = 1f;
+
     public IEnumerator Reflect()
     {
+        
         behaviourIsActive = true;
 
         cinematicCam.ToActionZoom();
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_SITTINGFLOORIDLE);
+
+        timeMultiplyFactor = 2f;
+        StartCoroutine(ChangeTimeScale(timeMultiplyFactor));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -689,6 +698,19 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = false;
 
         cinematicCam.ToGameZoom();
+
+        yield break;
+    }
+
+    public IEnumerator ChangeTimeScale(float factor)
+    {
+        while (behaviourIsActive)
+        {
+            timeManager.timeMultiplier = factor;
+            yield return null;
+        }
+
+        timeManager.timeMultiplier = timeManager.defaultTimeMultiplier;
 
         yield break;
     }
