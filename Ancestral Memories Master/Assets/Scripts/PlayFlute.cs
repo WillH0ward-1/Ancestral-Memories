@@ -30,6 +30,9 @@ public class PlayFlute : MonoBehaviour
     bool isPlaying = false;
 
     [SerializeField] private float interval = 0;
+    private float initInterval = 0;
+    private float activeInterval = 0.1f;
+
     [SerializeField] private float maxInterval = 0.1f;
 
     [SerializeField] private float faithFactor = 0.25f;
@@ -41,20 +44,34 @@ public class PlayFlute : MonoBehaviour
     }
     */
 
+    private Vector2 screenCenter;
+ 
+    private void Awake()
+    {
+        screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
+    }
+
     public void EnableFluteControl()
     {
         StartCoroutine(CastRayToGround());
     }
 
+
+    [SerializeField] float tValRef;
+    [SerializeField] float fluteScaleOutputRef;
+
     public IEnumerator CastRayToGround()
     {
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        maxInterval = initInterval;
 
         while (Input.GetMouseButton(0))
         {
             if (Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0)
             {
                 interval = 0;
+                maxInterval = activeInterval;
 
                 while (interval <= maxInterval)
                 {
@@ -64,26 +81,41 @@ public class PlayFlute : MonoBehaviour
                 }
             }
 
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
             if (!fluteActive && interval >= maxInterval)
             {
                 PlayFluteSound();
             }
 
+            /*
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, targetLayer))
             {
+            */
 
-                Vector3 attenuationObjectPos = attenuationObject.transform.position;
+            // Vector3 attenuationObjectPos = attenuationObject.transform.position;
 
-                distance = Vector3.Distance(attenuationObjectPos, rayHit.point);
-                var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
-                float output = Mathf.Lerp(minFluteScale, maxFluteScale, t);
-                targetFluteScale = (int)Mathf.Floor(output);
+            distance = Vector2.Distance(screenCenter, Input.mousePosition);
 
-                playerSFX.fluteEventRef.setParameterByName("FluteScale", targetFluteScale);
 
-            }
+            var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
+            tValRef = t;
+
+            float output = Mathf.Lerp(minFluteScale, maxFluteScale, t);
+            fluteScaleOutputRef = output;
+
+            targetFluteScale = (int)Mathf.Floor(output);
+
+            if (targetFluteScale >= maxFluteScale)
+                targetFluteScale = maxFluteScale;
+            if (targetFluteScale <= minFluteScale)
+                targetFluteScale = minFluteScale;
+
+            playerSFX.fluteEventRef.setParameterByName("FluteScale", targetFluteScale);
+            
+
+            
+            //}
 
             player.GainFaith(faithFactor);
 

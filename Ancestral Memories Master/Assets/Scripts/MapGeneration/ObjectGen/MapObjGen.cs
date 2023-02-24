@@ -351,6 +351,7 @@ public class MapObjGen : MonoBehaviour
         EnableStudioEmitters(grassList);
 
         StartCoroutine(StartTreeGrowth(treeList));
+        //RandomizeTreecolours();
 
     }
 
@@ -644,7 +645,21 @@ public class MapObjGen : MonoBehaviour
             weather.windAffectedRendererList.Add(treeInstance.transform);
             treeList.Add(treeInstance);
         }
+    }
 
+    private float randomTreeColourSeed = 0;
+
+    void RandomizeTreecolours() {
+
+        foreach (GameObject tree in treeList)
+        {
+            randomTreeColourSeed = Random.Range(0f, 1f);
+
+            foreach (Material m in tree.transform.GetComponentInChildren<Renderer>().materials)
+            {
+                m.SetFloat("_RandomColourSeed", randomTreeColourSeed);
+            }
+        }
 
     }
 

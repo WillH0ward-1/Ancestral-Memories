@@ -47,6 +47,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toRoomZoom = 0;
     [SerializeField] private float dialogueZoom = 0;
     [SerializeField] private float panoramaZoom = 0;
+    [SerializeField] private float playMusicZoom = 0;
 
     [Header("========================================================================================================================")]
     [Header("Target Orthographic Size")]
@@ -62,6 +63,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toRoomOrtho = 0;
     [SerializeField] private float dialogueOrtho = 0;
     [SerializeField] private float panoramaOrtho = 0;
+    [SerializeField] private float playMusicOrtho = 0;
 
     [Header("========================================================================================================================")]
     [Header("Zoom Duration")]
@@ -75,6 +77,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toNewRoomZoomDuration = 1f;
     [SerializeField] private float toDialogueZoomDuration = 1f;
     [SerializeField] private float toPanoramaZoomDuration = 1f;
+    [SerializeField] private float toPlayMusicZoomDuration = 1f;
 
     public float toPsychedelicZoomDuration = 60f;
 
@@ -339,6 +342,19 @@ public class CamControl : MonoBehaviour
             zoomDestination = prayerZoom;
             orthoDestination = prayerOrtho;
             StartCoroutine(Zoom(toPrayerZoomDuration, zoomDestination, orthoDestination));
+        }
+    }
+
+    public void ToPlayMusicZoom()
+    {
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            cinematicActive = true;
+            SetCamClipPlane();
+            zoomDestination = playMusicZoom;
+            orthoDestination = playMusicOrtho;
+            StartCoroutine(Zoom(toPlayMusicZoomDuration, zoomDestination, orthoDestination));
         }
     }
 

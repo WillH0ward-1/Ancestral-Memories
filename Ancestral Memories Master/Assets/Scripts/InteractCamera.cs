@@ -40,7 +40,7 @@ public class InteractCamera : MonoBehaviour
     [SerializeField] private float maxSelectionDistance = 5f;
     [SerializeField] private float minSelectionDistance = 0f;
 
-    private GameObject currentHitObject;
+    private GameObject hoverObj;
 
     void Update()
     {
@@ -52,12 +52,11 @@ public class InteractCamera : MonoBehaviour
             
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
             {
-                currentHitObject = hit.transform.gameObject;
+                hoverObj = hit.transform.gameObject;
 
                 if (Input.GetMouseButtonDown(1))
                 {
-
-                    if (currentHitObject == null)
+                    if (hoverObj == null)
                     {
                         return;
                     }
@@ -87,7 +86,7 @@ public class InteractCamera : MonoBehaviour
 
                         Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
 
-                        interactable.SpawnMenu(currentHitObject, hit);
+                        interactable.SpawnMenu(hoverObj, hit);
 
                         if (hit.collider.transform.CompareTag("Player"))
                         {
@@ -103,7 +102,7 @@ public class InteractCamera : MonoBehaviour
                 if (Input.GetMouseButtonUp(1))
                 {
 
-                    if (currentHitObject == null)
+                    if (hoverObj == null)
                     {
                         return;
                     }

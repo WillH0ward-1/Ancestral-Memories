@@ -92,6 +92,12 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public Shake earthQuake;
 
+    public float depleteHealthFactor = 0.1f;
+    public float depleteFaithFactor = 0.1f;
+    public float depleteHungerFactor = 0.1f;
+
+    public GameObject spawnDestination;
+
     // FUNCTIONS ============================================================
 
     public virtual void Awake()
@@ -211,11 +217,10 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual void Update()
     {
-        Hunger(0.1f);
-
         if (!isBlessed)
         {
-            DepleteFaith(0.1f);
+            DepleteFaith(depleteFaithFactor);
+            Hunger(depleteHungerFactor);
         }
     }
 
@@ -291,6 +296,10 @@ public class CharacterClass : MonoBehaviour, IStats
         print("Game Restarted.");
     }
 
+    public void RespawnPlayerToStart()
+    {
+        playerWalk.agent.Warp(spawnDestination.transform.position);
+    }
 
     public virtual event Action<float, float, float> OnFaithChanged;
     public virtual event Action<float, float, float> OnHungerChanged;
@@ -399,6 +408,7 @@ public class CharacterClass : MonoBehaviour, IStats
         if (health <= minStat)
         {
             health = minStat;
+            //RespawnPlayerToStart();
             //Kill();
         }
     }
@@ -429,7 +439,7 @@ public class CharacterClass : MonoBehaviour, IStats
         if (hunger <= minStat)
         {
             hunger = minStat;
-            TakeDamage(0.1f);
+            TakeDamage(depleteHealthFactor);
         }
     }
 

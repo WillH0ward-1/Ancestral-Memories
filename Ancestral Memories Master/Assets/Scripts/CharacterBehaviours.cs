@@ -216,7 +216,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
-        cinematicCam.ToPrayerZoom();
+        cinematicCam.ToPlayMusicZoom();
 
         //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 

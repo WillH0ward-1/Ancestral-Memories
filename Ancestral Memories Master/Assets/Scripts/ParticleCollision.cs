@@ -25,7 +25,32 @@ public class ParticleCollision : MonoBehaviour
 
     private StudioGlobalParameterTrigger globalParams;
 
+    public ParticleSystem flowers;
+
     public LayerMask groundLayerMask;
+
+    public GameObject[] flowerPrefabs;
+    public GameObject flower;
+
+    public int maxPoolSize = 128;
+
+    public Transform flowerParent;
+    private List<GameObject> activeFlowers;
+
+    private void GenerateFlower(Vector3 position)
+    {
+        GameObject flower = Instantiate(flowerPrefabs[Random.Range(0, flowerPrefabs.Length)], position, Quaternion.identity, flowerParent);
+
+        if (activeFlowers.Count <= maxPoolSize)
+        {
+            activeFlowers.Add(flower);
+        } else
+        {
+            Destroy(activeFlowers[0]);
+            activeFlowers.RemoveAt(0);
+            activeFlowers.Add(flower);
+        }
+    }
 
     private void OnParticleCollision(GameObject other)
     {
@@ -43,22 +68,23 @@ public class ParticleCollision : MonoBehaviour
             screenCoords.y > 0 &&
             screenCoords.y < 1;
 
+        flowers.Emit(1);
         // Credit for above: ScottsGameSounds
 
         if (onScreen)
         {
             //EventInstance rainDropInstance = emitter.EventInstance;
             RuntimeManager.PlayOneShot(rainSFX, hitLocation);
-
+            GenerateFlower(hitLocation);
             //emitter.EventInstance.start();
             //emitter.EventInstance.release();
-           
+
             //RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
 
             //instance = RuntimeManager.CreateInstance(rainSFX);
             //instance.start();
 
-         
+
         }
 
         //lightningStrikeEvent.setVolume();

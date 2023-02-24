@@ -14,9 +14,11 @@ public class CorruptionControl : MonoBehaviour
 
     public bool CorruptionModifierActive = false;
 
+    [SerializeField] List<Transform> transformList = new List<Transform>();
+
     void Start()
     {
-        
+
         //CorruptionModifierActive = false;
         /*
         if (!transform.CompareTag("Trees"))
@@ -32,27 +34,21 @@ public class CorruptionControl : MonoBehaviour
 
         transformList.Add(transform);
 
-        foreach (Transform t in transformList)
+        foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
         {
-            foreach (Material m in t.GetComponentInChildren<Renderer>().sharedMaterials)
-            {
-                
-                m.SetFloat("_MinKarma", newMin);
-                m.SetFloat("_MaxKarma", newMax);
+            m.SetFloat("_MinKarma", newMin);
+            m.SetFloat("_MaxKarma", newMax);
 
-                m.SetFloat("_NewMin", newMin);
-                m.SetFloat("_NewMax", newMax);
+            m.SetFloat("_NewMin", newMin);
+            m.SetFloat("_NewMax", newMax);
 
-                m.SetFloat("_MinWarpStrength", newMin);
-                m.SetFloat("_MaxWarpStrength", newMax);
+            m.SetFloat("_MinWarpStrength", newMin);
+            m.SetFloat("_MaxWarpStrength", newMax);
 
-            }
         }
 
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
-
-    [SerializeField] List<Transform> transformList = new List<Transform>();
 
     private void OnEnable()
     {
@@ -73,7 +69,6 @@ public class CorruptionControl : MonoBehaviour
     
     float time = 0;
 
-    // Update is called once per frame
     void Update()
     {
         currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, 2f * Time.deltaTime);
@@ -107,20 +102,17 @@ public class CorruptionControl : MonoBehaviour
         }
         else
         {
-
-            foreach (Transform t in transformList)
+            foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
             {
-                foreach (Material m in t.GetComponentInChildren<Renderer>().sharedMaterials)
-                {
-                    m.SetFloat("_Karma", modifier);
-                    m.SetFloat("_LeafDensity", modifier);
+                m.SetFloat("_Karma", modifier);
+                m.SetFloat("_LeafDensity", modifier);
 
-                    if (behaviours.isPsychdelicMode)
-                    {
-                        m.SetFloat("_WarpStrength", modifier);
-                    }
+                if (behaviours.isPsychdelicMode)
+                {
+                    m.SetFloat("_WarpStrength", modifier);
                 }
             }
+            
         }
     }
 }

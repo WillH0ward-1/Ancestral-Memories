@@ -54,15 +54,15 @@ public class CloudControl : MonoBehaviour
     {
         var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         float cloudPowerOutput = Mathf.Lerp(cloudPowerMax, cloudPowerMin, t);
-        float cloudSpeedOutput = Mathf.Lerp(0, 1, t);
+        float cloudSpeedOutput = Mathf.Lerp(1, 0, t);
 
         targetCloudPower = cloudPowerOutput;
-        targetCloudSpeed = cloudSpeedOutput *= weatherControl.windStrength * 20 + 0.5f;
+        targetCloudSpeed = cloudSpeedOutput *= weatherControl.windStrength * 20 + 0.1f;
     }
 
     private float modifier = 0f;
 
-    private void Update()
+    private void LateUpdate()
     {
         UpdateClouds();
     }
