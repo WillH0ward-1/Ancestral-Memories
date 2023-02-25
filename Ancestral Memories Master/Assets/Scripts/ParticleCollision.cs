@@ -34,6 +34,11 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private List<GameObject> pooledObjects;
     //private ScaleControl scaleControl;
 
+    [SerializeField] private FlowerGrow flowerGrow;
+
+    [SerializeField] private ScaleControl scaleControl;
+
+
     private void Awake()
     {
         for (int i = 0; i < maxPoolSize; i++)
@@ -45,26 +50,48 @@ public class ParticleCollision : MonoBehaviour
             pooledObjects.Add(flower);
         }
 
+        foreach (GameObject flower in pooledObjects)
+        {
+            ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
+            FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
+           
+           scaleControl.rainControl = rainManager;
+           
+        }
+
         StartCoroutine(HarmonicStability());
     }
 
     private void GenerateFlower(Vector3 position)
     {
-        GameObject flower = GetPooledObject();
+        if (pooledObjects.Count <= maxPoolSize)
+        {
+            GameObject flower = GetPooledObject();
+            FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
+            ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
+            flower.transform.position = position;
+            flower.transform.localScale = new(0,0,0);
+            flower.SetActive(true);
+
+            StartCoroutine(FlowerLifeTime(flowerGrow, scaleControl));
+        }
+
+
         //flower.transform.position = position;
 
-        flower.transform.position = position;
-        
-        flower.SetActive(true);
-        StartCoroutine(FlowerLifeTime(flower));
+      
     }
 
-    private IEnumerator FlowerLifeTime(GameObject flower)
+    private IEnumerator FlowerLifeTime(FlowerGrow flowerGrow, ScaleControl scaleControl)
     {
-        float flowerLifeTime = Random.Range(5f, 10f);
-        yield return new WaitForSeconds(flowerLifeTime);
+      
+        flowerGrow.GrowFlower();
 
-        flower.SetActive(false); // Return to pool
+        yield return new WaitUntil(() => scaleControl.isFullyGrown);
+
+        flowerGrow.ShrinkFlower(); // The object is returned to the pool from here
+
+        yield break;
     }
   
     public GameObject GetPooledObject()
@@ -81,6 +108,7 @@ public class ParticleCollision : MonoBehaviour
                 return pooledObjects[i];
             }
         }
+
         return null;
     }
 

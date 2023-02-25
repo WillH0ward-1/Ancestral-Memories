@@ -34,9 +34,11 @@ public class ScaleControl : MonoBehaviour
         {
             treeKillManager = transform.GetComponent<TreeDeathManager>();
             killBuffer = transform.GetComponent<KillBuffer>();
-        } 
-
-        interactable = transform.GetComponent<Interactable>();
+        }
+        if (!transform.CompareTag("Flower")) 
+        {
+            interactable = transform.GetComponent<Interactable>();
+        }
     }
 
     float time;
@@ -63,7 +65,6 @@ public class ScaleControl : MonoBehaviour
 
             yield return new WaitForSeconds(delay);
 
-
             if (scaleObject == null)
             {
                 yield break;
@@ -80,12 +81,16 @@ public class ScaleControl : MonoBehaviour
 
             while (time <= 1f) //&& rain.isRaining)
             {
-                if (rainControl.isRaining) //&& transform.CompareTag("Trees"))
+                if (scaleObject.transform.CompareTag("Trees"))
                 {
-                    rainMultiplier = 20f;
-                } else
-                {
-                    rainMultiplier = 1f;
+                    if (rainControl.isRaining) //&& transform.CompareTag("Trees"))
+                    {
+                        rainMultiplier = 20f;
+                    }
+                    else
+                    {
+                        rainMultiplier = 1f;
+                    }
                 }
                 
                 time += Time.deltaTime * rainMultiplier * initialMultiplier / duration;
@@ -108,13 +113,20 @@ public class ScaleControl : MonoBehaviour
 
                 if (growthPercent <= 0.25f)
                 {
-                    interactable.enabled = false;
+                    if (interactable != null)
+                    {
+                        interactable.enabled = false;
+                    }
+
                     initialMultiplier = 25f;
                 }
 
                 else if (growthPercent >= 0.25f)
                 {
-                    interactable.enabled = true;
+                    if (interactable != null)
+                    {
+                        interactable.enabled = true;
+                    }
                     initialMultiplier = 1;
                 }
 

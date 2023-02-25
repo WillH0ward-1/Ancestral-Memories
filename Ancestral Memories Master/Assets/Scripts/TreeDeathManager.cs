@@ -91,7 +91,11 @@ public class TreeDeathManager : MonoBehaviour
         yield return new WaitForSeconds(regrowBuffer);
         treeDead = false;
         transform.gameObject.transform.localRotation = new Quaternion(0, 0, 0, 0);
-        mapObjGen.GrowTrees(transform.gameObject);
+
+        if (transform.CompareTag("Trees"))
+        {
+            mapObjGen.GrowTrees(transform.gameObject);
+        }
 
         yield break;
     }
