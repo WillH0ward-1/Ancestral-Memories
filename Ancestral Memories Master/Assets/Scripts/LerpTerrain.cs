@@ -34,7 +34,7 @@ public class LerpTerrain : MonoBehaviour
 
         GetRenderers();
 
-        StartCoroutine(SetTerrainState(Desert));
+        //StartCoroutine(SetTerrainState(Desert));
     }
 
  
@@ -82,17 +82,17 @@ public class LerpTerrain : MonoBehaviour
 
     void ToState(float newState, float duration)
     {
-        StopCoroutine(LerpTerrainTexture(0, 0));
+        StopAllCoroutines();
 
         if (newState != currentState)
         {
+            currentState = newState;
             StartCoroutine(LerpTerrainTexture(newState, duration));
             return;
         }
-        else
-        {
-            return;
-        }
+
+        return;
+        
     }
 
     // Update is called once per frame
@@ -120,7 +120,8 @@ public class LerpTerrain : MonoBehaviour
             foreach (Renderer r in rendererList)
             {
                 state = r.sharedMaterial.GetVector("_VertexTile").y;
-                state = Mathf.Lerp(state, targetState, time);
+                float stateval = state;
+                state = Mathf.Lerp(stateval, targetState, time);
                 r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, state, 0, 0));
                 time += Time.deltaTime / duration;
 

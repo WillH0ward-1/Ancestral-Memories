@@ -13,52 +13,98 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private EventReference rainSFX;
     private EventInstance instance;
 
+    [SerializeField] private float currentWindStrength = 0;
+
     [SerializeField] private float stability = 0;
     [SerializeField] private float instability = 1;
 
-    [SerializeField] private float harmonicStability;
-
-    private float currentWindStrength = 0;
-    private float targetHarmonicStability;
+    [SerializeField] private float currentHarmonicStability;
+    [SerializeField] private float targetHarmonicStability;
 
     public bool windIsActive;
 
     private StudioGlobalParameterTrigger globalParams;
 
-    public ParticleSystem flowers;
+    [SerializeField] private LayerMask groundLayerMask;
 
-    public LayerMask groundLayerMask;
-
-    public GameObject[] flowerPrefabs;
-    public GameObject flower;
+    [SerializeField] private Transform flowerParent;
+    [SerializeField] private GameObject[] flowerPrefabs;
 
     public int maxPoolSize = 128;
+    [SerializeField] private List<GameObject> pooledObjects;
+    //private ScaleControl scaleControl;
 
-    public Transform flowerParent;
-    private List<GameObject> activeFlowers;
+    private void Awake()
+    {
+        for (int i = 0; i < maxPoolSize; i++)
+        {
+            GameObject flower = Instantiate(flowerPrefabs[Random.Range(0, flowerPrefabs.Length)]);
+
+            flower.transform.SetParent(flowerParent, true);
+            flower.SetActive(false);
+            pooledObjects.Add(flower);
+        }
+
+        StartCoroutine(HarmonicStability());
+    }
 
     private void GenerateFlower(Vector3 position)
     {
-        GameObject flower = Instantiate(flowerPrefabs[Random.Range(0, flowerPrefabs.Length)], position, Quaternion.identity, flowerParent);
+        GameObject flower = GetPooledObject();
+        //flower.transform.position = position;
 
-        if (activeFlowers.Count <= maxPoolSize)
-        {
-            activeFlowers.Add(flower);
-        } else
-        {
-            Destroy(activeFlowers[0]);
-            activeFlowers.RemoveAt(0);
-            activeFlowers.Add(flower);
-        }
+        flower.transform.position = position;
+        
+        flower.SetActive(true);
+        StartCoroutine(FlowerLifeTime(flower));
     }
+
+    private IEnumerator FlowerLifeTime(GameObject flower)
+    {
+        float flowerLifeTime = Random.Range(5f, 10f);
+        yield return new WaitForSeconds(flowerLifeTime);
+
+        flower.SetActive(false); // Return to pool
+    }
+  
+    public GameObject GetPooledObject()
+    {
+        if (pooledObjects.Count == 0)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < maxPoolSize; i++)
+        {
+            if (!pooledObjects[i].activeInHierarchy)
+            {
+                return pooledObjects[i];
+            }
+        }
+        return null;
+    }
+
+    [SerializeField] private RainControl rainManager;
+
+    private Vector3 particlePos;
+
+    private List<ParticleCollisionEvent> collisionEvents = new List<ParticleCollisionEvent>();
 
     private void OnParticleCollision(GameObject other)
     {
+        collisionEvents.Clear();
+        rainManager.rainParticles.GetCollisionEvents(other, collisionEvents);
+
+        foreach (ParticleCollisionEvent collisionEvent in collisionEvents)
+        {
+             particlePos = collisionEvent.intersection;
+        }
+
         Debug.Log("Particle hit ground!");
+        // RaycastHit hitFloor;
+        //var ray = Physics.Raycast(transform.position, Vector3.down, out hitFloor, Mathf.Infinity, groundLayerMask);
 
-        var ray = Physics.Raycast(transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask);
-
-        Vector3 hitLocation = hitFloor.point;
+        Vector3 hitLocation = particlePos;
 
         Vector3 screenCoords = cam.WorldToViewportPoint(hitLocation);
 
@@ -68,24 +114,17 @@ public class ParticleCollision : MonoBehaviour
             screenCoords.y > 0 &&
             screenCoords.y < 1;
 
-        flowers.Emit(1);
-        // Credit for above: ScottsGameSounds
+        GenerateFlower(particlePos);
 
         if (onScreen)
         {
-            //EventInstance rainDropInstance = emitter.EventInstance;
+            Debug.Log(hitLocation);
+
+
             RuntimeManager.PlayOneShot(rainSFX, hitLocation);
-            GenerateFlower(hitLocation);
-            //emitter.EventInstance.start();
-            //emitter.EventInstance.release();
-
-            //RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", targetHarmonicStability);
-
-            //instance = RuntimeManager.CreateInstance(rainSFX);
-            //instance.start();
-
 
         }
+        
 
         //lightningStrikeEvent.setVolume();
     }
@@ -94,11 +133,6 @@ public class ParticleCollision : MonoBehaviour
 
     private bool harmonicStabilityActive;
 
-    private void Awake()
-    {
-        StartCoroutine(HarmonicStability());
-
-    }
 
     private IEnumerator HarmonicStability()
     {
@@ -111,9 +145,9 @@ public class ParticleCollision : MonoBehaviour
                 yield break;
             }
 
-            harmonicStability = targetHarmonicStability;
+            currentHarmonicStability = targetHarmonicStability;
 
-            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", harmonicStability);
+            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", currentHarmonicStability);
             yield return null;
         }
   
@@ -121,9 +155,15 @@ public class ParticleCollision : MonoBehaviour
 
     }
 
+    private void OnEnable()
+    {
+        player.OnFaithChanged += HarmonicStability;
+    }
 
-    private void OnEnable() => player.OnFaithChanged += HarmonicStability;
-    private void OnDisable() => player.OnFaithChanged -= HarmonicStability;
+    private void OnDisable()
+    {
+        player.OnFaithChanged -= HarmonicStability;
+    }
 
     private void HarmonicStability(float faith, float minFaith, float maxFaith)
     {
@@ -131,8 +171,5 @@ public class ParticleCollision : MonoBehaviour
         float output = Mathf.Lerp(instability, stability, t);
 
         targetHarmonicStability = output;
-
-
-
     }
 }

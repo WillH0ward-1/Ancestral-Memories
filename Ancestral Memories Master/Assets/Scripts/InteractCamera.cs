@@ -26,7 +26,7 @@ public class InteractCamera : MonoBehaviour
 
     private void Start()
     {
-        cam = player.GetComponent<Player>().interactableCam;
+        cam = player.GetComponent<Player>().interactableCam; 
 
         radialMenu.player = player;
         radialMenu.playerWalk = playerWalk;
@@ -86,6 +86,7 @@ public class InteractCamera : MonoBehaviour
 
                         Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
 
+                        if (interactable != null)
                         interactable.SpawnMenu(hoverObj, hit);
 
                         if (hit.collider.transform.CompareTag("Player"))

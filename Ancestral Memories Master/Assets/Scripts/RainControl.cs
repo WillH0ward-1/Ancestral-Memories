@@ -7,7 +7,7 @@ public class RainControl : MonoBehaviour
 
     [SerializeField] private WeatherControl weather;
 
-    [SerializeField] private ParticleSystem rainParticles;
+    public ParticleSystem rainParticles;
 
     [SerializeField] private AreaManager areaManager;
 
@@ -138,7 +138,7 @@ public class RainControl : MonoBehaviour
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 
         //rainStrength = Random.Range(minRainStrength, maxRainStrength);
-        StartCoroutine(lerpTerrain.ToWetOasis(15));
+        StartCoroutine(lerpTerrain.ToWetOasis(15f));
 
         float time = 0;
 

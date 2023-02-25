@@ -60,6 +60,7 @@ public class AnimalAI : MonoBehaviour
 
     private FollowersManager followManager;
 
+    private string currentState;
 
     void Start()
     {
@@ -452,8 +453,6 @@ public class AnimalAI : MonoBehaviour
 
         return navHit.position;
     }
-
-    private string currentState;
 
     public virtual void ChangeAnimationState(string newState)
     {
