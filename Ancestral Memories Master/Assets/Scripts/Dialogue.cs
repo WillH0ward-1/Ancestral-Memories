@@ -16,21 +16,18 @@ public class Dialogue : MonoBehaviour
     [SerializeField] private string[] lines;
     [SerializeField] private float textSpeed;
 
-    public string speakerName;
-
-    public string conversationName;
+    public string conversationName = "";
 
     public EventReference eventPath;
 
-    private void Awake()
-    {
-
-    }
     public bool dialogueActive;
 
     private int index;
 
     private GameObject dialogueBoxInstance;
+
+    [SerializeField] private string characterName;
+    [SerializeField] private string type;
 
     private bool useRandomDialogue;
 
@@ -40,16 +37,22 @@ public class Dialogue : MonoBehaviour
     public bool outOfRange;
 
     public Player player;
-    private EVENT_CALLBACK callbackDelegate;
+    FMOD.Studio.EVENT_CALLBACK callbackDelegate;
+
+
+
+    private void Awake()
+    {
+        Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
+    }
 
     void Start()
-    { 
-
+    {
         dialogueBox = transform.Find("DialogueBox");
         canvas = dialogueBox.transform.GetComponentInChildren<Canvas>();
         canvas.enabled = false;
-
-        callbackDelegate = new EVENT_CALLBACK(FMODDialogueCallback);
+        callbackDelegate = new FMOD.Studio.EVENT_CALLBACK(DialogueEventCallback);
+        // Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
     }
 
     string GetRandomDialogue()
@@ -57,23 +60,6 @@ public class Dialogue : MonoBehaviour
         int randomIndex = UnityEngine.Random.Range(0, lines.Length - 1);
         string randomDialogue = lines[randomIndex];
         return randomDialogue;
-    }
-
-    private void FMODStartDialogueEvent(string key)
-    {
-        var instance = RuntimeManager.CreateInstance(eventPath);
-        GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
-
-        instance.setUserData(GCHandle.ToIntPtr(stringHandle));
-        instance.setCallback(callbackDelegate);
-
-        Transform tf = gameObject.GetComponent<Transform>(); 
-        Rigidbody rb = gameObject.GetComponent<Rigidbody>();
-
-        RuntimeManager.AttachInstanceToGameObject(instance, tf, rb);
-
-        instance.start();
-        instance.release(); // immediately release
     }
 
     void Update()
@@ -126,6 +112,7 @@ public class Dialogue : MonoBehaviour
             //StartCoroutine(CheckPlayerInRange());
         }
         */
+
         player = playerRef;
 
         if (dialogueBox != null)
@@ -151,23 +138,64 @@ public class Dialogue : MonoBehaviour
         else if (dialogueBox == null)
         {
 
-            Debug.Log("Dialogue Error: No DialogueBox found in NPC.");
+            Debug.Log("Dialogue Error: " + transform.gameObject.name + " does not contain a dialogue box.");
             return;
         }
     }
 
     void StartDialogue()
     {
-
         index = 0;
         dialogueActive = true;
+
         StartCoroutine(TypeLine());
     }
 
+    public void GetDialogueAudio(string name, string conversationName, string type, int lineIndex)
+    {
+        if (dialogueActive)
+        {
+            string key = name + "/" + type + "/" + name + "-" + conversationName + "-" + type + "-" + lineIndex;
+
+            Debug.Log(key);
+
+            var dialogueInstance = RuntimeManager.CreateInstance(eventPath);
+
+            // int numberStartIndex = filePath.LastIndexOfAny("0123456789".ToCharArray()) + 1;
+            // string numberString = filePath.Substring(numberStartIndex);
+
+            /*
+            if (int.TryParse(numberString, out int foundIndex))
+            {
+                if (lineIndex == foundIndex)
+                {
+            */
+            //Debug.Log("Found index: " + foundIndex);
+
+            // Pin the key string in memory and pass a pointer through the user data
+            GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
+            dialogueInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
+            dialogueInstance.setCallback(callbackDelegate);
+            //dialogueInstance.set3DAttributes(RuntimeUtils.To3DAttributes(transform.position));
+            dialogueInstance.start();
+            dialogueInstance.release();
+        }
+        /*
+                else if (lineIndex != foundIndex)
+                {
+                    Debug.Log("Incorrect index found at: " + foundIndex);
+                }
+            }
+
+        }
+        */
+    }
+
+
     void NextLine()
     {
-       if (index < lines.Length - 1)
-       {
+        if (index < lines.Length - 1)
+        {
             index++;
             textComponent.text = string.Empty;
             StartCoroutine(TypeLine());
@@ -185,16 +213,16 @@ public class Dialogue : MonoBehaviour
         Destroy(dialogueBoxInstance);
     }
 
+    void GetAudio()
+    {
+        GetDialogueAudio(characterName, conversationName, type, index);
+    }
+
     IEnumerator TypeLine()
     {
+        GetAudio();
 
         clickPromptObject.SetActive(false);
-
-        /*
-        string key = speakerName + "-"
-                   + phraseNumberAsString + "-"
-                   + firstWordLowercase;
-        */
 
         foreach (char c in lines[index].ToCharArray())
         {
@@ -207,28 +235,32 @@ public class Dialogue : MonoBehaviour
 
     }
 
-    [AOT.MonoPInvokeCallback(typeof(EVENT_CALLBACK))]
+    // Code from FMOD examples https://www.fmod.com/docs/2.02/unity/examples-programmer-sounds.html
 
-    static FMOD.RESULT FMODDialogueCallback(EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr parameterPtr)
+    [AOT.MonoPInvokeCallback(typeof(FMOD.Studio.EVENT_CALLBACK))]
+    static FMOD.RESULT DialogueEventCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr parameterPtr)
     {
-        EventInstance instance = new EventInstance(instancePtr);
+        FMOD.Studio.EventInstance instance = new FMOD.Studio.EventInstance(instancePtr);
 
+        // Retrieve the user data
         IntPtr stringPtr;
         instance.getUserData(out stringPtr);
 
+        // Get the string object
         GCHandle stringHandle = GCHandle.FromIntPtr(stringPtr);
         String key = stringHandle.Target as String;
 
         switch (type)
         {
-            case EVENT_CALLBACK_TYPE.CREATE_PROGRAMMER_SOUND:
+            case FMOD.Studio.EVENT_CALLBACK_TYPE.CREATE_PROGRAMMER_SOUND:
                 {
                     FMOD.MODE soundMode = FMOD.MODE.LOOP_NORMAL | FMOD.MODE.CREATECOMPRESSEDSAMPLE | FMOD.MODE.NONBLOCKING;
-                    var parameter = (PROGRAMMER_SOUND_PROPERTIES)Marshal.PtrToStructure(parameterPtr, typeof(PROGRAMMER_SOUND_PROPERTIES));
+                    var parameter = (FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES)Marshal.PtrToStructure(parameterPtr, typeof(FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES));
 
-                    if (key.Contains(".")) 
+                    if (key.Contains("."))
                     {
-                        var soundResult = RuntimeManager.CoreSystem.createSound(Application.streamingAssetsPath + "/" + key, soundMode, out FMOD.Sound dialogueSound);
+                        FMOD.Sound dialogueSound;
+                        var soundResult = FMODUnity.RuntimeManager.CoreSystem.createSound(Application.streamingAssetsPath + "/" + key, soundMode, out dialogueSound);
                         if (soundResult == FMOD.RESULT.OK)
                         {
                             parameter.sound = dialogueSound.handle;
@@ -238,14 +270,14 @@ public class Dialogue : MonoBehaviour
                     }
                     else
                     {
-                        var keyResult = RuntimeManager.StudioSystem.getSoundInfo(key, out SOUND_INFO dialogueSoundInfo);
-
+                        FMOD.Studio.SOUND_INFO dialogueSoundInfo;
+                        var keyResult = FMODUnity.RuntimeManager.StudioSystem.getSoundInfo(key, out dialogueSoundInfo);
                         if (keyResult != FMOD.RESULT.OK)
                         {
                             break;
                         }
-
-                        var soundResult = RuntimeManager.CoreSystem.createSound(dialogueSoundInfo.name_or_data, soundMode | dialogueSoundInfo.mode, ref dialogueSoundInfo.exinfo, out FMOD.Sound dialogueSound);
+                        FMOD.Sound dialogueSound;
+                        var soundResult = FMODUnity.RuntimeManager.CoreSystem.createSound(dialogueSoundInfo.name_or_data, soundMode | dialogueSoundInfo.mode, ref dialogueSoundInfo.exinfo, out dialogueSound);
                         if (soundResult == FMOD.RESULT.OK)
                         {
                             parameter.sound = dialogueSound.handle;
@@ -253,33 +285,27 @@ public class Dialogue : MonoBehaviour
                             Marshal.StructureToPtr(parameter, parameterPtr, false);
                         }
                     }
-
                     break;
                 }
-
-            case EVENT_CALLBACK_TYPE.DESTROY_PROGRAMMER_SOUND:
+            case FMOD.Studio.EVENT_CALLBACK_TYPE.DESTROY_PROGRAMMER_SOUND:
                 {
-                    var parameter = (PROGRAMMER_SOUND_PROPERTIES)Marshal.PtrToStructure(parameterPtr, typeof(PROGRAMMER_SOUND_PROPERTIES));
+                    var parameter = (FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES)Marshal.PtrToStructure(parameterPtr, typeof(FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES));
                     var sound = new FMOD.Sound(parameter.sound);
                     sound.release();
+
                     break;
                 }
-
-            case EVENT_CALLBACK_TYPE.DESTROYED:
+            case FMOD.Studio.EVENT_CALLBACK_TYPE.DESTROYED:
                 {
+                    // Now the event has been destroyed, unpin the string memory so it can be garbage collected
                     stringHandle.Free();
+
                     break;
                 }
         }
-
         return FMOD.RESULT.OK;
     }
 }
-
-
-
-
-
 
 
 // Tutorial: Published by BMo - https://www.youtube.com/watch?v=8oTYabhj248&t=6s - Mar 19 2021

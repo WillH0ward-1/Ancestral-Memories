@@ -5,7 +5,7 @@
 			<value>Dialogue</value>
 		</property>
 		<property name="outputFormat">
-			<value>1</value>
+			<value>0</value>
 		</property>
 		<relationship name="folder">
 			<destination>{a10642e9-5d5a-4b81-909b-76cbcda8f483}</destination>
@@ -30,6 +30,8 @@
 		</relationship>
 		<relationship name="parameters">
 			<destination>{0f179511-3ff3-4b61-8375-96733006cd83}</destination>
+			<destination>{fc990742-65b4-4ee5-804e-d0d1e3b392de}</destination>
+			<destination>{1cd62cf3-61e2-4f64-9a98-dc2fc8251678}</destination>
 		</relationship>
 		<relationship name="banks">
 			<destination>{5eed3f4e-92e5-4d1d-8f82-06519f2b1df2}</destination>
@@ -60,7 +62,14 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{6253d5a1-981c-49d2-b1df-bb8ef1262c40}" />
+	<object class="EventAutomatableProperties" id="{6253d5a1-981c-49d2-b1df-bb8ef1262c40}">
+		<property name="maxVoices">
+			<value>1</value>
+		</property>
+		<property name="priority">
+			<value>4</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{3cb0f761-d87f-4650-b9ba-60a98eb241e3}" />
 	<object class="Timeline" id="{220b0b23-955b-452a-b386-56cd61864b8c}">
 		<relationship name="modules">
@@ -70,6 +79,16 @@
 	<object class="ActionSheet" id="{0f179511-3ff3-4b61-8375-96733006cd83}">
 		<relationship name="modules">
 			<destination>{2e7d134e-e370-4550-b4f1-854fa0739df5}</destination>
+		</relationship>
+	</object>
+	<object class="ParameterProxy" id="{fc990742-65b4-4ee5-804e-d0d1e3b392de}">
+		<relationship name="preset">
+			<destination>{2ee6004e-d9bf-48fb-86cd-d1a305bfbd68}</destination>
+		</relationship>
+	</object>
+	<object class="ParameterProxy" id="{1cd62cf3-61e2-4f64-9a98-dc2fc8251678}">
+		<relationship name="preset">
+			<destination>{a326dee3-486a-473d-aa8c-a24e4bcf2fa1}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{187e661c-3501-4d08-96fa-07164ace0ac8}">
@@ -92,9 +111,6 @@
 		</property>
 		<relationship name="modulators">
 			<destination>{fc1326ca-7bee-42ec-98b0-b431ba38f066}</destination>
-		</relationship>
-		<relationship name="placeholder">
-			<destination>{cba6f82c-2105-4e8e-994d-3998a2742812}</destination>
 		</relationship>
 	</object>
 	<object class="MultiSound" id="{2e7d134e-e370-4550-b4f1-854fa0739df5}">

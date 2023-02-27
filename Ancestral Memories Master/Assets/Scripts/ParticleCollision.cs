@@ -128,7 +128,7 @@ public class ParticleCollision : MonoBehaviour
              particlePos = collisionEvent.intersection;
         }
 
-        Debug.Log("Particle hit ground!");
+//        Debug.Log("Particle hit ground!");
         // RaycastHit hitFloor;
         //var ray = Physics.Raycast(transform.position, Vector3.down, out hitFloor, Mathf.Infinity, groundLayerMask);
 
@@ -146,7 +146,7 @@ public class ParticleCollision : MonoBehaviour
 
         if (onScreen)
         {
-            Debug.Log(hitLocation);
+//            Debug.Log(hitLocation);
 
 
             RuntimeManager.PlayOneShot(rainSFX, hitLocation);

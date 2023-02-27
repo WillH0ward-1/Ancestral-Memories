@@ -274,8 +274,8 @@ public class PlayerWalk : MonoBehaviour
                     }
 
 
-                    Debug.Log("Cursor Distance:" + cursorDistance);
-                    Debug.Log("Speed:" + agent.speed);
+  //                  Debug.Log("Cursor Distance:" + cursorDistance);
+//                    Debug.Log("Speed:" + agent.speed);
 
                     //float runThreshold = cursorDistance / 2;
                 }

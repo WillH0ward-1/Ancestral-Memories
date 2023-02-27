@@ -64,10 +64,16 @@ namespace FMODUnity
 
         public static void UpdateActiveEmitters()
         {
+            foreach (StudioEventEmitter emitter in activeEmitters)
+            {
+                if (emitter == null) // Will.H added this code. 
+                {
+                    activeEmitters.Remove(emitter);
+                }
+            }
 
             foreach (StudioEventEmitter emitter in activeEmitters)
             {
-                Debug.Log(emitter);
                 emitter.UpdatePlayingStatus();
             }
         }
