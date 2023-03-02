@@ -32,14 +32,13 @@ public class Dialogue : MonoBehaviour
     private bool useRandomDialogue;
 
     [SerializeField] private float distance;
-    [SerializeField] private float distanceThreshold = 50f;
+    [SerializeField] private float minDistance = 0f;
+    [SerializeField] private float maxDistance = 50f;
 
     public bool outOfRange;
 
     public Player player;
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
-
-
 
     private void Awake()
     {
@@ -82,11 +81,11 @@ public class Dialogue : MonoBehaviour
                 }
             }
 
-            if (distance <= distanceThreshold)
+            if (distance <= maxDistance)
             {
                 outOfRange = false;
             }
-            else if (distance >= distanceThreshold)
+            else if (distance >= maxDistance)
             {
                 outOfRange = true;
 
@@ -95,7 +94,7 @@ public class Dialogue : MonoBehaviour
                     StopDialogue();
                 }
             }
-        }
+        } 
     }
 
     private Canvas canvas;
@@ -132,7 +131,10 @@ public class Dialogue : MonoBehaviour
 
             textComponent.text = string.Empty;
 
-            StartDialogue();
+            index = 0;
+            dialogueActive = true;
+
+            StartCoroutine(TypeLine());
 
         }
         else if (dialogueBox == null)
@@ -143,13 +145,7 @@ public class Dialogue : MonoBehaviour
         }
     }
 
-    void StartDialogue()
-    {
-        index = 0;
-        dialogueActive = true;
-
-        StartCoroutine(TypeLine());
-    }
+    private EventInstance dialogueInstanceRef;
 
     public void GetDialogueAudio(string name, string conversationName, string type, int lineIndex)
     {
@@ -160,6 +156,9 @@ public class Dialogue : MonoBehaviour
             Debug.Log(key);
 
             var dialogueInstance = RuntimeManager.CreateInstance(eventPath);
+            //dialogueInstance.setParameterByNameWithLabel("DialogueActive", "true");
+
+            StartCoroutine(UpdateDistance(dialogueInstance));
 
             // int numberStartIndex = filePath.LastIndexOfAny("0123456789".ToCharArray()) + 1;
             // string numberString = filePath.Substring(numberStartIndex);
@@ -176,6 +175,8 @@ public class Dialogue : MonoBehaviour
             GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
             dialogueInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
             dialogueInstance.setCallback(callbackDelegate);
+            dialogueInstanceRef = dialogueInstance;
+
             //dialogueInstance.set3DAttributes(RuntimeUtils.To3DAttributes(transform.position));
             dialogueInstance.start();
             dialogueInstance.release();
@@ -189,6 +190,23 @@ public class Dialogue : MonoBehaviour
 
         }
         */
+    }
+
+    float newMinDistance;
+    float newMaxDistance;
+
+    public IEnumerator UpdateDistance(EventInstance dialogueInstance)
+    {
+        var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
+        float output = Mathf.Lerp(newMinDistance, newMaxDistance, t);
+
+        while (dialogueActive)
+        {
+            dialogueInstance.setParameterByName("DistanceFromSpeaker", output);
+            yield return null;
+        }
+
+        yield break;
     }
 
 
@@ -210,6 +228,8 @@ public class Dialogue : MonoBehaviour
     {
         StopAllCoroutines();
         dialogueActive = false;
+        //dialogueInstanceRef.setParameterByNameWithLabel("DialogueActive", "false");
+
         Destroy(dialogueBoxInstance);
     }
 

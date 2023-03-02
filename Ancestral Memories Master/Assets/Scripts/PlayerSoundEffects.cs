@@ -38,19 +38,25 @@ public class PlayerSoundEffects : MonoBehaviour
         if (raySource.CompareTag("LeftFoot"))
         {
             leftFootStepEvent.setParameterByName("TerrainType", index);
+        }
 
-        } else if (raySource.CompareTag("RightFoot"))
+        if (raySource.CompareTag("RightFoot"))
         {
             rightFootStepEvent.setParameterByName("TerrainType", index);
-
         }
     }
 
     public void UpdateWaterDepth(Transform raySource, float depth)
     {
-        leftFootStepEvent.setParameterByName("WaterDepth", depth);
-        rightFootStepEvent.setParameterByName("WaterDepth", depth);
+        if (raySource.CompareTag("LeftFoot"))
+        {
+            leftFootStepEvent.setParameterByName("WaterDepth", depth);
+        }
 
+        if (raySource.CompareTag("RightFoot"))
+        {
+            rightFootStepEvent.setParameterByName("WaterDepth", depth);
+        }
     }
 
     public void CheckGroundType()

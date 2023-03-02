@@ -59,7 +59,14 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{ced98c5a-7997-494f-9a2f-cb587446edd1}" />
+	<object class="EventAutomatableProperties" id="{ced98c5a-7997-494f-9a2f-cb587446edd1}">
+		<property name="maxVoices">
+			<value>1</value>
+		</property>
+		<property name="priority">
+			<value>3</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{35106e1f-d515-4526-9224-1cf7c8d17447}" />
 	<object class="Timeline" id="{b7671d2e-6743-4ad8-b6d2-eab9a90c563c}">
 		<property name="isProxyEnabled">
@@ -72,6 +79,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{a2c15f37-0032-4eae-ad2d-6199fb5966a2}">
+		<property name="volume">
+			<value>-16.5</value>
+		</property>
 		<relationship name="modulators">
 			<destination>{4536774e-f1a1-4dd3-9d1a-cbefb3708dc4}</destination>
 			<destination>{ed69407a-03a6-4c1e-bfe0-6c51282729fe}</destination>

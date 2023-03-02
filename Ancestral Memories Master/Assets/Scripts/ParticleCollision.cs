@@ -144,14 +144,11 @@ public class ParticleCollision : MonoBehaviour
 
         GenerateFlower(particlePos);
 
-        if (onScreen)
-        {
 //            Debug.Log(hitLocation);
 
 
             RuntimeManager.PlayOneShot(rainSFX, hitLocation);
 
-        }
         
 
         //lightningStrikeEvent.setVolume();

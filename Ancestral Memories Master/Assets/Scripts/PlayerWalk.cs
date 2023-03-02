@@ -147,14 +147,15 @@ public class PlayerWalk : MonoBehaviour
 
     void Update()
     {
+        /*
         foreach (Transform rayTransform in raySources)
         {
 
             //Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
 
-            if (Physics.Raycast(rayTransform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
+            if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
             {
-                //Gizmos.DrawRay(rayTransform.position, Vector3.down);
+//                Gizmos.DrawRay(rayTransform.transform.position, Vector3.down);
 
                 if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
                 {
@@ -190,6 +191,7 @@ public class PlayerWalk : MonoBehaviour
                 }
             }
         }
+        */
 
         if (!stopOverride)
         {
@@ -225,7 +227,7 @@ public class PlayerWalk : MonoBehaviour
                         {
                             return;
                         }
-                        else
+                        else if (distance <= distanceThreshold)
                         {
                             MoveAgent(rayHit.point, distance, playerPosition);
                         }
@@ -268,7 +270,8 @@ public class PlayerWalk : MonoBehaviour
                         }
                         else if (behaviours.isPsychdelicMode)
                         {
-                            ChangeState(PLAYER_DRUNKRUN);
+                            ChangeState(PLAYER_RUN);
+                            //ChangeState(PLAYER_DRUNKRUN);
                         }
 
                     }
@@ -298,7 +301,15 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private GameObject destinationGizmo;
 
-   // private DestinationGizmo trigger;
+    // private DestinationGizmo trigger;
+
+    [SerializeField] private float distanceToDestination;
+    [SerializeField] private float inRangeThreshold = 30f;
+
+    [SerializeField] private float minimumStopDistance = 1f;
+    [SerializeField] private float treeHarvestStopDistance = 1f;
+    [SerializeField]private float talkStopDistance = 10f;
+    [SerializeField] private float enterRoomStopDistance = 10f;
 
     public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, RaycastHit rayHit)
     {
@@ -307,36 +318,40 @@ public class PlayerWalk : MonoBehaviour
 
         if (selected == "Drink")
         {
-            destination = rayHit.point;
+            destination = rayHit.point; // use the destination of the mouse raycast, not the interacted object.
             boundsSize = player.transform.localScale;
             destinationGizmo.transform.localScale = boundsSize;
+            inRangeThreshold = minimumStopDistance;
         }
 
         if (selected != "Drink")
         {
-            destination = hitObject.transform.position;
+            destination = hitObject.transform.position; // use the destination of the interacted object.
             boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-            destinationGizmo.transform.localScale = boundsSize;
         }
 
         if (selected == "KindleFire")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+            inRangeThreshold = minimumStopDistance;
         }
 
         if (selected == "Eat")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+            inRangeThreshold = minimumStopDistance;
         }
 
         if (selected == "Reflect")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize / 1;
+            inRangeThreshold = minimumStopDistance;
         }
 
         if (selected == "Look")
         {
-            destinationGizmo.transform.localScale = defaultBoundsSize / 0;
+            destinationGizmo.transform.localScale = defaultBoundsSize;
+            inRangeThreshold = minimumStopDistance;
         }
 
         if (selected == "Pray")
@@ -345,10 +360,12 @@ public class PlayerWalk : MonoBehaviour
             {
                 boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
                 destinationGizmo.transform.localScale = boundsSize / 3;
+                inRangeThreshold = treeHarvestStopDistance;
             }
             else
             {
                 destinationGizmo.transform.localScale = defaultBoundsSize;
+                inRangeThreshold = minimumStopDistance;
             }
         }
 
@@ -356,11 +373,19 @@ public class PlayerWalk : MonoBehaviour
         {
             boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = boundsSize / 5;
+            inRangeThreshold = treeHarvestStopDistance;
         }
 
         if (selected == "Talk")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 18;
+            inRangeThreshold = talkStopDistance;
+        }
+
+        if (selected == "Enter")
+        {
+            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+            inRangeThreshold = enterRoomStopDistance;
         }
 
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
@@ -410,11 +435,21 @@ public class PlayerWalk : MonoBehaviour
         agent.speed = walkTowardSpeed;
         agent.isStopped = false;
 
-        yield return new WaitUntil(() => trigger.hitDestination);
+        distanceToDestination = Vector3.Distance(player.transform.position, destination);
+
+        while (distanceToDestination > inRangeThreshold)
+        {
+            distanceToDestination = Vector3.Distance(player.transform.position, destination);
+
+            yield return null;
+        }
+
+        yield return new WaitUntil(() => distanceToDestination <= inRangeThreshold);
+
+        reachedDestination = true;
 
         if (areaManager.traversing)
         {
-            reachedDestination = true;
 
             agent.stoppingDistance = defaultStoppingDistance;
             Debug.Log("ToTeleport.");
@@ -438,7 +473,6 @@ public class PlayerWalk : MonoBehaviour
             StopAgent();
             Destroy(destinationGizmoInstance);
 
-            reachedDestination = true;
             agent.stoppingDistance = defaultStoppingDistance;
             Debug.Log("Arrived.");
             agent.transform.LookAt(hitObject.transform.position);
