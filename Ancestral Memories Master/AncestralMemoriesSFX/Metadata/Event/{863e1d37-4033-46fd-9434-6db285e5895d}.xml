@@ -44,9 +44,6 @@
 		<relationship name="automationTracks">
 			<destination>{81e2d236-0c49-4e5f-aca4-2b73459e83f8}</destination>
 		</relationship>
-		<relationship name="modules">
-			<destination>{2cf90e74-5987-430d-b86d-eb1526fea211}</destination>
-		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{3e205b22-3937-47c9-bc93-c5f0b3e4bd01}</destination>
 		</relationship>
@@ -86,9 +83,6 @@
 		</property>
 	</object>
 	<object class="ParameterProxy" id="{f8cceda2-ca5d-43e6-bebc-1759d8e6239a}">
-		<relationship name="modules">
-			<destination>{2cf90e74-5987-430d-b86d-eb1526fea211}</destination>
-		</relationship>
 		<relationship name="preset">
 			<destination>{5ec55830-064d-49f6-b0dc-bd6e866d161e}</destination>
 		</relationship>
@@ -111,11 +105,6 @@
 		<relationship name="automator">
 			<destination>{7b63781d-a401-4400-938d-c6244cfda229}</destination>
 		</relationship>
-	</object>
-	<object class="ProgrammerSound" id="{2cf90e74-5987-430d-b86d-eb1526fea211}">
-		<property name="length">
-			<value>10</value>
-		</property>
 	</object>
 	<object class="MixerBusEffectChain" id="{1d5e0417-64c0-4961-be8c-bacec63b92c8}">
 		<relationship name="effects">

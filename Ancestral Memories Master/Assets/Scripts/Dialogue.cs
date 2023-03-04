@@ -50,7 +50,8 @@ public class Dialogue : MonoBehaviour
         dialogueBox = transform.Find("DialogueBox");
         canvas = dialogueBox.transform.GetComponentInChildren<Canvas>();
         canvas.enabled = false;
-        callbackDelegate = new FMOD.Studio.EVENT_CALLBACK(DialogueEventCallback);
+        callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+
         // Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
     }
 
@@ -255,77 +256,7 @@ public class Dialogue : MonoBehaviour
 
     }
 
-    // Code from FMOD examples https://www.fmod.com/docs/2.02/unity/examples-programmer-sounds.html
-
-    [AOT.MonoPInvokeCallback(typeof(FMOD.Studio.EVENT_CALLBACK))]
-    static FMOD.RESULT DialogueEventCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr parameterPtr)
-    {
-        FMOD.Studio.EventInstance instance = new FMOD.Studio.EventInstance(instancePtr);
-
-        // Retrieve the user data
-        IntPtr stringPtr;
-        instance.getUserData(out stringPtr);
-
-        // Get the string object
-        GCHandle stringHandle = GCHandle.FromIntPtr(stringPtr);
-        String key = stringHandle.Target as String;
-
-        switch (type)
-        {
-            case FMOD.Studio.EVENT_CALLBACK_TYPE.CREATE_PROGRAMMER_SOUND:
-                {
-                    FMOD.MODE soundMode = FMOD.MODE.LOOP_NORMAL | FMOD.MODE.CREATECOMPRESSEDSAMPLE | FMOD.MODE.NONBLOCKING;
-                    var parameter = (FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES)Marshal.PtrToStructure(parameterPtr, typeof(FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES));
-
-                    if (key.Contains("."))
-                    {
-                        FMOD.Sound dialogueSound;
-                        var soundResult = FMODUnity.RuntimeManager.CoreSystem.createSound(Application.streamingAssetsPath + "/" + key, soundMode, out dialogueSound);
-                        if (soundResult == FMOD.RESULT.OK)
-                        {
-                            parameter.sound = dialogueSound.handle;
-                            parameter.subsoundIndex = -1;
-                            Marshal.StructureToPtr(parameter, parameterPtr, false);
-                        }
-                    }
-                    else
-                    {
-                        FMOD.Studio.SOUND_INFO dialogueSoundInfo;
-                        var keyResult = FMODUnity.RuntimeManager.StudioSystem.getSoundInfo(key, out dialogueSoundInfo);
-                        if (keyResult != FMOD.RESULT.OK)
-                        {
-                            break;
-                        }
-                        FMOD.Sound dialogueSound;
-                        var soundResult = FMODUnity.RuntimeManager.CoreSystem.createSound(dialogueSoundInfo.name_or_data, soundMode | dialogueSoundInfo.mode, ref dialogueSoundInfo.exinfo, out dialogueSound);
-                        if (soundResult == FMOD.RESULT.OK)
-                        {
-                            parameter.sound = dialogueSound.handle;
-                            parameter.subsoundIndex = dialogueSoundInfo.subsoundindex;
-                            Marshal.StructureToPtr(parameter, parameterPtr, false);
-                        }
-                    }
-                    break;
-                }
-            case FMOD.Studio.EVENT_CALLBACK_TYPE.DESTROY_PROGRAMMER_SOUND:
-                {
-                    var parameter = (FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES)Marshal.PtrToStructure(parameterPtr, typeof(FMOD.Studio.PROGRAMMER_SOUND_PROPERTIES));
-                    var sound = new FMOD.Sound(parameter.sound);
-                    sound.release();
-
-                    break;
-                }
-            case FMOD.Studio.EVENT_CALLBACK_TYPE.DESTROYED:
-                {
-                    // Now the event has been destroyed, unpin the string memory so it can be garbage collected
-                    stringHandle.Free();
-
-                    break;
-                }
-        }
-        return FMOD.RESULT.OK;
-    }
 }
 
 
-// Tutorial: Published by BMo - https://www.youtube.com/watch?v=8oTYabhj248&t=6s - Mar 19 2021
+// Dialogue system tutorial: Published by BMo - https://www.youtube.com/watch?v=8oTYabhj248&t=6s - Mar 19 2021

@@ -207,35 +207,6 @@ public class CharacterBehaviours : MonoBehaviour
     int randTarget = 1;
     private bool isSkeleton = false;
 
-    [SerializeField] private PlayFlute fluteControl;
-
-    private IEnumerator PlayMusic()
-    {
-        cinematicCam.scrollOverride = true;
-        behaviourIsActive = true;
-
-        player.ChangeAnimationState(PLAYER_PLAYFLUTE);
-
-        cinematicCam.ToPlayMusicZoom();
-
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
-
-        fluteControl.EnableFluteControl();
-       
-
-        Debug.Log("Right click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(1));
-
-        player.ChangeAnimationState(PLAYER_IDLE);
-
-        fluteControl.StopAll();
-        cinematicCam.scrollOverride = false;
-        behaviourIsActive = false;
-        cinematicCam.ToGameZoom();
-
-        yield break;
-    }
-
     public IEnumerator Electrocution() {
 
         animSpeed = defaultAnimSpeed;
@@ -275,10 +246,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         while (time <= duration)
         {
-
             time += Time.deltaTime / duration;
-
-         
 
             yield return null;
         }
@@ -407,6 +375,35 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.ToGameZoom();
         yield break;
         
+    }
+
+    [SerializeField] private PlayFlute fluteControl;
+
+    private IEnumerator PlayMusic()
+    {
+        cinematicCam.scrollOverride = true;
+        behaviourIsActive = true;
+
+        player.ChangeAnimationState(PLAYER_PLAYFLUTE);
+
+        //cinematicCam.ToPlayMusicZoom();
+
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+
+        fluteControl.EnableFluteControl();
+
+
+        Debug.Log("Right click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(1));
+
+        player.ChangeAnimationState(PLAYER_IDLE);
+
+        fluteControl.StopAll();
+        cinematicCam.scrollOverride = false;
+        behaviourIsActive = false;
+        cinematicCam.ToGameZoom();
+
+        yield break;
     }
 
     public IEnumerator Sleep(GameObject hitObject)

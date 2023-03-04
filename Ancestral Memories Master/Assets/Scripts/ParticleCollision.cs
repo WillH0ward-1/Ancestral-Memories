@@ -67,19 +67,20 @@ public class ParticleCollision : MonoBehaviour
         if (pooledObjects.Count <= maxPoolSize)
         {
             GameObject flower = GetPooledObject();
-            FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
-            ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
-            flower.transform.position = position;
-            flower.transform.localScale = new(0,0,0);
-            flower.SetActive(true);
+            if (flower != null)
+            {
+                FlowerGrow flowerGrow = flower.GetComponent<FlowerGrow>();
+                ScaleControl scaleControl = flower.GetComponent<ScaleControl>();
+                if (flowerGrow != null && scaleControl != null)
+                {
+                    flower.transform.position = position;
+                    flower.transform.localScale = new Vector3(0, 0, 0);
+                    flower.SetActive(true);
 
-            StartCoroutine(FlowerLifeTime(flowerGrow, scaleControl));
+                    StartCoroutine(FlowerLifeTime(flowerGrow, scaleControl));
+                }
+            }
         }
-
-
-        //flower.transform.position = position;
-
-      
     }
 
     private IEnumerator FlowerLifeTime(FlowerGrow flowerGrow, ScaleControl scaleControl)

@@ -4,6 +4,8 @@ using UnityEngine;
 using FMOD;
 using FMODUnity;
 using System.Linq;
+using FMOD.Studio;
+using System.Runtime.InteropServices;
 
 public class PlayFlute : MonoBehaviour
 {
@@ -21,6 +23,7 @@ public class PlayFlute : MonoBehaviour
     public bool fluteActive = false;
 
     [SerializeField] private float targetFluteScale;
+
     [SerializeField] private float minFluteScale = 0;
     [SerializeField] private float maxFluteScale = 6;
 
@@ -51,6 +54,13 @@ public class PlayFlute : MonoBehaviour
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
     }
 
+    FMOD.Studio.EVENT_CALLBACK callbackDelegate;
+
+    private void Start()
+    {
+        callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+    }
+
     public void EnableFluteControl()
     {
         StartCoroutine(CastRayToGround());
@@ -59,6 +69,14 @@ public class PlayFlute : MonoBehaviour
 
     [SerializeField] float tValRef;
     [SerializeField] float fluteScaleOutputRef;
+
+    float minNoteIndex = 0;
+    float maxNoteIndex;
+
+    public int noteIndex;
+
+    public string noteRef;
+    string note;
 
     public IEnumerator CastRayToGround()
     {
@@ -72,19 +90,11 @@ public class PlayFlute : MonoBehaviour
             {
                 interval = 0;
                 maxInterval = activeInterval;
-
                 while (interval <= maxInterval)
                 {
                     interval += Time.deltaTime;
-
                     yield return null;
                 }
-            }
-
-
-            if (!fluteActive && interval >= maxInterval)
-            {
-                PlayFluteSound();
             }
 
             /*
@@ -96,25 +106,23 @@ public class PlayFlute : MonoBehaviour
             // Vector3 attenuationObjectPos = attenuationObject.transform.position;
 
             distance = Vector2.Distance(screenCenter, Input.mousePosition);
-
-
             var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
-            tValRef = t;
 
-            float output = Mathf.Lerp(minFluteScale, maxFluteScale, t);
-            fluteScaleOutputRef = output;
+            maxNoteIndex = musicManager.notesToUse.Length - 1;
+            noteIndex = Mathf.RoundToInt(Mathf.Lerp(minNoteIndex, maxNoteIndex, t));
 
-            targetFluteScale = (int)Mathf.Floor(output);
+            noteIndex = (int)Mathf.Clamp(noteIndex, minNoteIndex, maxNoteIndex);
+            note = musicManager.notesToUse[noteIndex];
 
-            if (targetFluteScale >= maxFluteScale)
-                targetFluteScale = maxFluteScale;
-            if (targetFluteScale <= minFluteScale)
-                targetFluteScale = minFluteScale;
 
-            playerSFX.fluteEventRef.setParameterByName("FluteScale", targetFluteScale);
-            
+            //playerSFX.fluteEventRef.setParameterByName("Mode", targetFluteScale);
 
-            
+            if (!fluteActive && interval >= maxInterval)
+            {
+                PlayFluteSound();
+            }
+
+
             //}
 
             player.GainFaith(faithFactor);
@@ -125,41 +133,72 @@ public class PlayFlute : MonoBehaviour
         if (Input.GetMouseButtonUp(0))
         {
             StopFluteSound();
-            StartCoroutine(CastRayToGround());
             yield break;
         }
+        
 
     }
 
-    private IEnumerator NoteDelay()
-    {
-        interval = 0;
+    public MusicManager musicManager;
+    public EventReference eventPath;
 
-        while (interval <= maxInterval && Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0)
-        {
-            interval += Time.deltaTime;
-            yield return null;
-        }
+    string instrumentFileRootName = "Instrument";
+    string instrument = "Player-Flute";
 
-        yield break;
-    }
+
+    public float minDuration = 5f;
+    public float maxDuration = 15f;
 
     void PlayFluteSound()
     {
         fluteActive = true;
-        playerSFX.PlayFluteEvent();
+
+        string key = instrumentFileRootName + "/" + instrument + "/" + note;
+
+        UnityEngine.Debug.Log(key);
+
+        EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath);
+        RuntimeManager.AttachInstanceToGameObject(instrumentInstance, transform, playerSFX.rigidBody);
+        instanceRef = instrumentInstance;
+
+        UnityEngine.Debug.Log(instrumentInstance);
+
+        GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
+        instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
+        instrumentInstance.setCallback(callbackDelegate);
+       
+        instrumentInstance.start();
+        instrumentInstance.release();
+
+        RESULT timeLinePos = instrumentInstance.getTimelinePosition(out int timelinePosition);
+        instrumentInstance.getDescription(out EventDescription desc);
+
+        float clipLength = (float)desc.getLength(out int length);
+
+        float duration = Random.Range(clipLength / 2, clipLength);
+
+        float timelineSeconds = timelinePosition / 1000f;
+
+        if (timeLinePos == RESULT.OK && timelineSeconds >= duration - 0.1)
+        {
+            instrumentInstance.setTimelinePosition(0);
+            //instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        }
+
     }
+
+    EventInstance instanceRef;
 
     void StopFluteSound()
     {
         fluteActive = false;
-        playerSFX.fluteEventRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        instanceRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        StartCoroutine(CastRayToGround());
     }
 
     public void StopAll()
     {
         StopFluteSound();
         StopAllCoroutines();
-        fluteActive = false;
     }
 }

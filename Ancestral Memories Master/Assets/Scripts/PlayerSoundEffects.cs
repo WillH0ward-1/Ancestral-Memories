@@ -8,7 +8,7 @@ using System;
 public class PlayerSoundEffects : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    private Rigidbody rigidBody;
+    public Rigidbody rigidBody;
     private AreaManager areaManager;
     [SerializeField] private PlayerWalk playerWalk;
 

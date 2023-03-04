@@ -44,7 +44,7 @@ public class RadialMenu : MonoBehaviour
         for (int i = 0; i < obj.options.Length; i++)
         {
             RadialButton newButton = Instantiate(buttonPrefab);
-            newButton.transform.SetParent(transform, false); // false = use worldposition
+            newButton.transform.SetParent(transform, false); 
 
             float theta = (2 * Mathf.PI / obj.options.Length) * i;
             float xPos = Mathf.Sin(theta);
@@ -89,7 +89,7 @@ public class RadialMenu : MonoBehaviour
             if (selected)
             {
 
-                Debug.Log("Selected!");
+                Debug.Log("Selected " + selected.title + " !");
 
                 HideButtons();
 
@@ -97,19 +97,20 @@ public class RadialMenu : MonoBehaviour
                 {
                     if (!behaviours.psychModeIncoming)
                     {
-                        StartCoroutine(PortalDestroyBuffer());
-                        StartCoroutine(areaManager.EnterPortal(hitObject));
-                        return;
+                        Debug.Log("Entering Portal! Hitobject = " + hitObject + ".");
+
+                        //StartCoroutine(PortalDestroyBuffer());
+                        Debug.Log(hitObject);
+                        areaManager.StartCoroutine(areaManager.EnterPortal(hitObject));
                     }
 
-                    return;
                 }
                 else
                 {
-                    StartCoroutine(DestroyBuffer());
+                    Debug.Log("Walking Toward.");
+                    //StartCoroutine(DestroyBuffer());
                     behaviours.WalkToward(hitObject, selected.title, rayHit);
 
-                    return;
                 }
                 
             }

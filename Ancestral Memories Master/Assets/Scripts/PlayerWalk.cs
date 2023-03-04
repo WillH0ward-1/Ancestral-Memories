@@ -147,7 +147,6 @@ public class PlayerWalk : MonoBehaviour
 
     void Update()
     {
-        /*
         foreach (Transform rayTransform in raySources)
         {
 
@@ -191,7 +190,7 @@ public class PlayerWalk : MonoBehaviour
                 }
             }
         }
-        */
+        
 
         if (!stopOverride)
         {
@@ -308,15 +307,16 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private float minimumStopDistance = 1f;
     [SerializeField] private float treeHarvestStopDistance = 1f;
-    [SerializeField]private float talkStopDistance = 10f;
+    [SerializeField] private float talkStopDistance = 10f;
     [SerializeField] private float enterRoomStopDistance = 10f;
+    [SerializeField] float timeout = 10f;
 
-    public IEnumerator WalkToward(GameObject hitObject, string selected, Transform teleportTarget, RaycastHit rayHit)
+    public IEnumerator WalkToward(GameObject hitObject, string selectedChoice, Transform teleportTarget, RaycastHit rayHit)
     {
         // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
         // Needs refactoring... 
 
-        if (selected == "Drink")
+        if (selectedChoice == "Drink")
         {
             destination = rayHit.point; // use the destination of the mouse raycast, not the interacted object.
             boundsSize = player.transform.localScale;
@@ -324,37 +324,37 @@ public class PlayerWalk : MonoBehaviour
             inRangeThreshold = minimumStopDistance;
         }
 
-        if (selected != "Drink")
+        if (selectedChoice != "Drink")
         {
             destination = hitObject.transform.position; // use the destination of the interacted object.
             boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
         }
 
-        if (selected == "KindleFire")
+        if (selectedChoice == "KindleFire")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 2;
             inRangeThreshold = minimumStopDistance;
         }
 
-        if (selected == "Eat")
+        if (selectedChoice == "Eat")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 2;
             inRangeThreshold = minimumStopDistance;
         }
 
-        if (selected == "Reflect")
+        if (selectedChoice == "Reflect")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize / 1;
             inRangeThreshold = minimumStopDistance;
         }
 
-        if (selected == "Look")
+        if (selectedChoice == "Look")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize;
             inRangeThreshold = minimumStopDistance;
         }
 
-        if (selected == "Pray")
+        if (selectedChoice == "Pray")
         {
             if (hitObject.transform.CompareTag("Trees"))
             {
@@ -369,27 +369,27 @@ public class PlayerWalk : MonoBehaviour
             }
         }
 
-        if (selected == "HarvestTree")
+        if (selectedChoice == "HarvestTree")
         {
             boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
             destinationGizmo.transform.localScale = boundsSize / 5;
             inRangeThreshold = treeHarvestStopDistance;
         }
 
-        if (selected == "Talk")
+        if (selectedChoice == "Talk")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 18;
             inRangeThreshold = talkStopDistance;
         }
 
-        if (selected == "Enter")
+        if (selectedChoice == "Enter")
         {
             destinationGizmo.transform.localScale = defaultBoundsSize * 2;
             inRangeThreshold = enterRoomStopDistance;
         }
 
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
-        DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
+        //DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
         Renderer gizmoRenderer = destinationGizmoInstance.transform.GetComponent<Renderer>();
 
         if (!showDestinationGizmos)
@@ -400,34 +400,8 @@ public class PlayerWalk : MonoBehaviour
             gizmoRenderer.enabled = true;
         }
 
-        if (Input.GetMouseButtonDown(0) && !areaManager.traversing)
-        {
-            Debug.Log("Behaviour cancelled!");
-
-            reachedDestination = true;
-            agent.stoppingDistance = defaultStoppingDistance;
-
-            behaviours.SheatheItem();
-
-            Destroy(destinationGizmoInstance);
-
-            yield break;
-        }
-
         reachedDestination = false;
-
-        if (!behaviours.isPsychdelicMode && !player.isStarving)
-        {
-            ChangeState(PLAYER_WALK);
-        }
-        else if (player.isStarving)
-        {
-            ChangeState(PLAYER_STARVINGWALK);
-        } else if (behaviours.isPsychdelicMode)
-        {
-            ChangeState(PLAYER_DRUNKWALK);
-        }
-
+        ChangeState(PLAYER_RUN);
         walkTowardSpeed = runThreshold + 1;
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);
@@ -435,22 +409,54 @@ public class PlayerWalk : MonoBehaviour
         agent.speed = walkTowardSpeed;
         agent.isStopped = false;
 
-        distanceToDestination = Vector3.Distance(player.transform.position, destination);
+        float timeElapsed = 0f;
+        float distanceToDestination = Vector3.Distance(player.transform.position, destination);
 
-        while (distanceToDestination > inRangeThreshold)
+        while (distanceToDestination > inRangeThreshold && timeElapsed < timeout)
         {
             distanceToDestination = Vector3.Distance(player.transform.position, destination);
 
+            if (Input.GetMouseButtonDown(0) && !areaManager.traversing)
+            {
+                Debug.Log("Behaviour cancelled!");
+
+                reachedDestination = true;
+                agent.stoppingDistance = defaultStoppingDistance;
+
+                behaviours.SheatheItem();
+
+                Destroy(destinationGizmoInstance);
+
+                yield break;
+            }
+
+            timeElapsed += Time.deltaTime;
             yield return null;
+        }
+
+        if (timeElapsed >= timeout)
+        {
+            Debug.LogWarning("Timeout reached before destination reached.");
+            yield break;
         }
 
         yield return new WaitUntil(() => distanceToDestination <= inRangeThreshold);
 
         reachedDestination = true;
 
-        if (areaManager.traversing)
+        if (!areaManager.traversing)
         {
+            StopAgent();
+            Destroy(destinationGizmoInstance);
 
+            agent.stoppingDistance = defaultStoppingDistance;
+            Debug.Log("Arrived.");
+            agent.transform.LookAt(hitObject.transform.position);
+
+            behaviours.ChooseBehaviour(selectedChoice, hitObject);
+            yield break;
+        } else if (areaManager.traversing)
+        {
             agent.stoppingDistance = defaultStoppingDistance;
             Debug.Log("ToTeleport.");
 
@@ -468,25 +474,16 @@ public class PlayerWalk : MonoBehaviour
                 yield break;
             }
         }
-        else
-        {
-            StopAgent();
-            Destroy(destinationGizmoInstance);
 
-            agent.stoppingDistance = defaultStoppingDistance;
-            Debug.Log("Arrived.");
-            agent.transform.LookAt(hitObject.transform.position);
+        yield break;
 
-            behaviours.ChooseBehaviour(selected, hitObject);
-            yield break;
-        }
     }
 
     [SerializeField] private float defaultAnimSpeed = 1f;
 
     public void StopAgent()
     {
-        player.AdjustAnimationSpeed(defaultAnimSpeed);
+        player.AdjustAnimationSpeed(defaultAnimSpeed / 2);
 
         if (!behaviours.isPsychdelicMode && !player.isStarving)
         {
@@ -495,6 +492,7 @@ public class PlayerWalk : MonoBehaviour
         if (player.isStarving)
         {
             ChangeState(PLAYER_STARVINGIDLE);
+
         }
         else if (behaviours.isPsychdelicMode)
         {

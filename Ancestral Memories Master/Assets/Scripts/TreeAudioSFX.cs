@@ -15,7 +15,6 @@ public class TreeAudioSFX : MonoBehaviour
 
     private Rigidbody rigidBody;
 
-
     [SerializeField] private EventReference TreeGrowEventPath;
     [SerializeField] private EventReference BirdChirpEventPath;
 
@@ -23,6 +22,8 @@ public class TreeAudioSFX : MonoBehaviour
     private EventInstance birdChirpInstance;
     private Interactable interactable;
     public TreeDeathManager treeFallManager;
+
+    public TimeCycleManager timeManager;
 
     void Awake()
     {
@@ -58,13 +59,12 @@ public class TreeAudioSFX : MonoBehaviour
 
             //            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
 
-            if (scaleControl.growthPercent >= 0.7)
+            if (scaleControl.growthPercent >= 0.8 && !timeManager.isNightTime)
             {
-                interactable.enabled = true;
-              //  StartTreeBirds();
-            } else
+                StartTreeBirds();
+            } else 
             {
-                interactable.enabled = false;
+                StopTreeBirds();
             }
 
             yield return null;
@@ -99,7 +99,7 @@ public class TreeAudioSFX : MonoBehaviour
         birdChirpInstance.release();
     }
 
-    void StopBirdSFX()
+    void StopTreeBirds()
     {
         if (PlaybackState(birdChirpInstance) != PLAYBACK_STATE.STOPPED)
         {

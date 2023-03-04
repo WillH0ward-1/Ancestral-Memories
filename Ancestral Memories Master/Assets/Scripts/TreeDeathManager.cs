@@ -18,11 +18,11 @@ public class TreeDeathManager : MonoBehaviour
     private void Awake()
     {
         scaleControl = transform.GetComponent<ScaleControl>();
-        interactable = transform.GetComponent<Interactable>();
     }
 
     public void Fall()
     {
+        interactable = transform.GetComponent<Interactable>();
         interactable.enabled = false;
 
         StartCoroutine(FallToGround());

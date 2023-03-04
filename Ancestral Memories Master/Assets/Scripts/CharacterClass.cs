@@ -336,6 +336,12 @@ public class CharacterClass : MonoBehaviour, IStats
             faith -= faithDamage;
             faithBar.UpdateFaith(faith / maxStat);
 
+            if (faith <= maxStat / 2 && isBlessed)
+            {
+                isBlessed = false;
+                Debug.Log("Player is no longer blessed.");
+            }
+
             if (faith <= minStat )
             {
                 faith = minStat;
@@ -344,7 +350,6 @@ public class CharacterClass : MonoBehaviour, IStats
           
             }
             else
-
             {
                 isFaithless = false;
             }
@@ -368,6 +373,7 @@ public class CharacterClass : MonoBehaviour, IStats
                     StartCoroutine(TransendenceTimer());
                 }
             }
+
         }
     }
 
@@ -381,20 +387,6 @@ public class CharacterClass : MonoBehaviour, IStats
             isBlessed = true;
 
             Debug.Log("Player is blessed.");
-
-            yield return new WaitForSeconds(Random.Range(60, 180));
-
-            if (faith <= maxStat / 1.25f)
-            {
-                isBlessed = false;
-                Debug.Log("Player is no longer blessed.");
-                yield return null;
-            }
-
-            yield return new WaitForSeconds(Random.Range(60, 180));
-
-            isBlessed = false;
-            Debug.Log("Player is no longer blessed.");
 
             yield break;
         }

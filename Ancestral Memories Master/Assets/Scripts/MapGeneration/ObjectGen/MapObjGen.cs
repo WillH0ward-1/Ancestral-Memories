@@ -209,6 +209,8 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private TreeDeathManager treeFallManager;
 
+    public TimeCycleManager timeCycleManager;
+
     private void Start()
     {
 
@@ -611,6 +613,11 @@ public class MapObjGen : MonoBehaviour
             corruptionControl.behaviours = behaviours;
             corruptionControl.CorruptionModifierActive = false;
 
+            TreeAudioSFX treeAudio = treeInstance.transform.GetComponent<TreeAudioSFX>();
+
+            treeAudio.timeManager = timeCycleManager;
+
+
             //corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
             //corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
             //corruptionControl.player = player;
@@ -746,6 +753,9 @@ public class MapObjGen : MonoBehaviour
         TreeDeathManager treeDeathManager = tree.transform.GetComponent<TreeDeathManager>();
         DirtExplode dirt = tree.transform.GetComponentInChildren<DirtExplode>();
 
+        Interactable interactable = tree.GetComponent<Interactable>();
+        interactable.enabled = false;
+
         treeDeathManager.scaleControl = treeGrowControl;
         treeGrowControl.rainControl = rainControl;
 
@@ -758,7 +768,7 @@ public class MapObjGen : MonoBehaviour
         corruptionControl.enabled = true;
         */
 
-        dirtExplodeParticles.transform.localScale = new Vector3(1, 1, 1);
+        dirtExplodeParticles.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
         dirtExplodeParticles.transform.localPosition = new Vector3(0, 0, 0);
         ParticleSystem.EmissionModule emission = dirtExplodeParticles.emission;
 

@@ -42,6 +42,8 @@ public class InteractCamera : MonoBehaviour
 
     private GameObject hoverObj;
 
+    public PlayFlute fluteControl;
+
     void Update()
     {
         ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -117,7 +119,7 @@ public class InteractCamera : MonoBehaviour
                 if (!areaManager.traversing || behaviour.isPsychdelicMode)
                 {
                     lookAtTarget.position = hit.point;
-                } else if (areaManager.traversing)
+                } else if (areaManager.traversing) //|| fluteControl.fluteActive)
                 {
                     lookAtTarget.position = defaultTarget.transform.position;
                 }

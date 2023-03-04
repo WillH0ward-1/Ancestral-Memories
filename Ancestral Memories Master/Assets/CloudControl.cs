@@ -57,7 +57,7 @@ public class CloudControl : MonoBehaviour
         float cloudSpeedOutput = Mathf.Lerp(1, 0, t);
 
         targetCloudPower = cloudPowerOutput;
-        targetCloudSpeed = cloudSpeedOutput *= weatherControl.windStrength * 20 + 0.1f;
+        targetCloudSpeed = cloudSpeedOutput *= weatherControl.windStrength * 5;
     }
 
     private float modifier = 0f;

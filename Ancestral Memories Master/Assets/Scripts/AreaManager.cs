@@ -10,8 +10,6 @@ public class AreaManager : MonoBehaviour
 
     public PlayerWalk playerWalk;
 
-    [SerializeField] private Transform walkTarget;
-
     [SerializeField] private Camera currentCam;
     [SerializeField] private Camera newCam;
 
@@ -46,8 +44,6 @@ public class AreaManager : MonoBehaviour
 
         StartCoroutine(ExitPortal(portal));
 
-        yield return new WaitUntil(() => !traversing);
-
        // transition.FadeIn();
 
         yield break;
@@ -67,7 +63,7 @@ public class AreaManager : MonoBehaviour
 
         Transform newDestination = portal.destination;
 
-        StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter Portal", newDestination.transform, nullHit));
+        playerWalk.StartCoroutine(playerWalk.WalkToward(portal.enterPortal.gameObject, "Enter", newDestination.transform, nullHit));
 
         yield break;
     }
@@ -79,11 +75,9 @@ public class AreaManager : MonoBehaviour
 
         isEntering = false;
 
-        StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit Portal", null, nullHit));
+        playerWalk.StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit", null, nullHit));
 
-        cineCam.ToGameZoom();
-
-        yield return new WaitUntil(() => !traversing);
+        //cineCam.ToGameZoom();
 
         yield break;
     }
