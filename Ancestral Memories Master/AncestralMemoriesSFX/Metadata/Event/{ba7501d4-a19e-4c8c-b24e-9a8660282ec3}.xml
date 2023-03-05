@@ -69,6 +69,12 @@
 		<property name="priority">
 			<value>3</value>
 		</property>
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+		<property name="maximumDistance">
+			<value>30</value>
+		</property>
 	</object>
 	<object class="MarkerTrack" id="{46700271-1c27-4ede-af2f-032aae087546}" />
 	<object class="GroupTrack" id="{b3c13500-7136-40e3-a5f1-c78d28eced8c}">
@@ -147,6 +153,9 @@
 	</object>
 	<object class="MixerBusPanner" id="{a85c2cfe-0db2-49d3-910b-adcabb35ded8}" />
 	<object class="ProgrammerSound" id="{af7fbf28-78c6-4b1d-8757-79e8a9d0549e}">
+		<property name="looping">
+			<value>true</value>
+		</property>
 		<relationship name="modulators">
 			<destination>{d6a45619-cc02-475d-a1d7-5aac8324509b}</destination>
 		</relationship>
@@ -159,13 +168,26 @@
 	</object>
 	<object class="MixerBusPanner" id="{30a646e5-5a53-45a2-ae3d-f716f8ef47b6}" />
 	<object class="MixerBusFader" id="{ad3dde71-3780-4759-bd8e-c7c52faa2d1f}" />
-	<object class="SpatialiserEffect" id="{ea716145-719e-4c46-87f8-1abe79d14814}" />
+	<object class="SpatialiserEffect" id="{ea716145-719e-4c46-87f8-1abe79d14814}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+		<property name="maximumDistance">
+			<value>30</value>
+		</property>
+	</object>
 	<object class="ADSRModulator" id="{d6a45619-cc02-475d-a1d7-5aac8324509b}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>volume</value>
 		</property>
 		<property name="initialValue">
 			<value>-80</value>
+		</property>
+		<property name="attackTime">
+			<value>340</value>
+		</property>
+		<property name="attackShape">
+			<value>0.0158339217</value>
 		</property>
 		<property name="finalValue">
 			<value>-80</value>

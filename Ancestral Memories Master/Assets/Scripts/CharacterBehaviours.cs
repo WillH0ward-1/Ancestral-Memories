@@ -396,11 +396,10 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Right click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(1));
 
+        behaviourIsActive = false;
         player.ChangeAnimationState(PLAYER_IDLE);
-
         fluteControl.StopAll();
         cinematicCam.scrollOverride = false;
-        behaviourIsActive = false;
         cinematicCam.ToGameZoom();
 
         yield break;

@@ -34,7 +34,7 @@ public class PlayFlute : MonoBehaviour
 
     [SerializeField] private float interval = 0;
     private float initInterval = 0;
-    private float activeInterval = 0.1f;
+    private float trigThreshold = 0.1f;
 
     [SerializeField] private float maxInterval = 0.1f;
 
@@ -66,30 +66,32 @@ public class PlayFlute : MonoBehaviour
         StartCoroutine(CastRayToGround());
     }
 
-
     [SerializeField] float tValRef;
     [SerializeField] float fluteScaleOutputRef;
 
     float minNoteIndex = 0;
     float maxNoteIndex;
 
-    public int noteIndex;
+    [SerializeField] private int noteIndex;
 
-    public string noteRef;
-    string note;
+    [SerializeField] private string currentNote;
+
+    [SerializeField] private string[] noteBank;
 
     public IEnumerator CastRayToGround()
     {
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        maxInterval = initInterval;
+        maxInterval = initInterval; // Play note immediately on first press
 
         while (Input.GetMouseButton(0))
         {
+            noteBank = musicManager.notesToUse;
+
             if (Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0)
             {
                 interval = 0;
-                maxInterval = activeInterval;
+                maxInterval = trigThreshold;
                 while (interval <= maxInterval)
                 {
                     interval += Time.deltaTime;
@@ -107,35 +109,33 @@ public class PlayFlute : MonoBehaviour
 
             distance = Vector2.Distance(screenCenter, Input.mousePosition);
             var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
-
             maxNoteIndex = musicManager.notesToUse.Length - 1;
             noteIndex = Mathf.RoundToInt(Mathf.Lerp(minNoteIndex, maxNoteIndex, t));
 
-            noteIndex = (int)Mathf.Clamp(noteIndex, minNoteIndex, maxNoteIndex);
-            note = musicManager.notesToUse[noteIndex];
+            string note = musicManager.notesToUse[noteIndex];
 
-
-            //playerSFX.fluteEventRef.setParameterByName("Mode", targetFluteScale);
-
-            if (!fluteActive && interval >= maxInterval)
+            if (currentNote != note && fluteActive)
             {
-                PlayFluteSound();
+                currentNote = note;
+                StopFluteSound();
+                PlayFluteSound(note);
             }
 
+            if (Input.GetMouseButton(0) && !fluteActive && interval >= maxInterval)
+            {
+                PlayFluteSound(note);
+            }
 
-            //}
+            //playerSFX.fluteEventRef.setParameterByName("Mode", targetFluteScale);
 
             player.GainFaith(faithFactor);
 
             yield return null;
         }
 
-        if (Input.GetMouseButtonUp(0))
-        {
-            StopFluteSound();
-            yield break;
-        }
-        
+        StopFluteSound();
+        yield break;
+
 
     }
 
@@ -149,7 +149,7 @@ public class PlayFlute : MonoBehaviour
     public float minDuration = 5f;
     public float maxDuration = 15f;
 
-    void PlayFluteSound()
+    void PlayFluteSound(string note)
     {
         fluteActive = true;
 

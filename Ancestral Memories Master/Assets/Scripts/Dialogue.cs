@@ -18,7 +18,8 @@ public class Dialogue : MonoBehaviour
 
     public string conversationName = "";
 
-    public EventReference eventPath;
+    public EventReference dialogueEventPath;
+    public EventReference dialogueTickPath;
 
     public bool dialogueActive;
 
@@ -36,6 +37,8 @@ public class Dialogue : MonoBehaviour
     [SerializeField] private float maxDistance = 50f;
 
     public bool outOfRange;
+
+    public bool useDialogueTick = false;
 
     public Player player;
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
@@ -150,47 +153,57 @@ public class Dialogue : MonoBehaviour
 
     public void GetDialogueAudio(string name, string conversationName, string type, int lineIndex)
     {
+
         if (dialogueActive)
         {
             string key = name + "/" + type + "/" + name + "-" + conversationName + "-" + type + "-" + lineIndex;
 
             Debug.Log(key);
 
-            var dialogueInstance = RuntimeManager.CreateInstance(eventPath);
+            var dialogueInstance = RuntimeManager.CreateInstance(dialogueEventPath);
             //dialogueInstance.setParameterByNameWithLabel("DialogueActive", "true");
 
             StartCoroutine(UpdateDistance(dialogueInstance));
 
-            // int numberStartIndex = filePath.LastIndexOfAny("0123456789".ToCharArray()) + 1;
-            // string numberString = filePath.Substring(numberStartIndex);
-
-            /*
-            if (int.TryParse(numberString, out int foundIndex))
-            {
-                if (lineIndex == foundIndex)
-                {
-            */
-            //Debug.Log("Found index: " + foundIndex);
-
-            // Pin the key string in memory and pass a pointer through the user data
             GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
             dialogueInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
             dialogueInstance.setCallback(callbackDelegate);
+
+
             dialogueInstanceRef = dialogueInstance;
 
             //dialogueInstance.set3DAttributes(RuntimeUtils.To3DAttributes(transform.position));
             dialogueInstance.start();
             dialogueInstance.release();
         }
-        /*
-                else if (lineIndex != foundIndex)
-                {
-                    Debug.Log("Incorrect index found at: " + foundIndex);
-                }
-            }
+    }
 
+    int maxPhonemes = 23; // Should be max index (contents) of the desired file directory.
+    //public string[] phonemes;
+
+    void DialogueTick(string name, string type)
+    {
+        string PhonemeFolder = "Phonemes";
+        string PhonemeIdentifier = "Phoneme";
+
+        if (dialogueActive)
+        {
+            string key = name + "/" + type + "/" + PhonemeFolder + "/" + name + "-" + type + "-" + PhonemeIdentifier + UnityEngine.Random.Range(0, maxPhonemes);
+
+            Debug.Log(key);
+
+            var dialogueTickInstance = RuntimeManager.CreateInstance(dialogueTickPath);
+            //dialogueInstance.setParameterByNameWithLabel("DialogueActive", "true");
+
+            GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
+            dialogueTickInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
+            dialogueTickInstance.setCallback(callbackDelegate);
+
+            RuntimeManager.AttachInstanceToGameObject(dialogueTickInstance, transform);
+
+            dialogueTickInstance.start();
+            dialogueTickInstance.release();
         }
-        */
     }
 
     float newMinDistance;
@@ -234,19 +247,22 @@ public class Dialogue : MonoBehaviour
         Destroy(dialogueBoxInstance);
     }
 
-    void GetAudio()
-    {
-        GetDialogueAudio(characterName, conversationName, type, index);
-    }
-
     IEnumerator TypeLine()
     {
-        GetAudio();
+        if (!transform.CompareTag("Animal"))
+        {
+            GetDialogueAudio(characterName, conversationName, type, index);
+        }
 
         clickPromptObject.SetActive(false);
 
         foreach (char c in lines[index].ToCharArray())
         {
+            if (useDialogueTick)
+            {
+                DialogueTick(characterName, type);
+            }
+
             textComponent.text += c;
             yield return new WaitForSeconds(textSpeed);
         }

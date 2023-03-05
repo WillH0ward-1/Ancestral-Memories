@@ -64,11 +64,12 @@ namespace FMODUnity
 
         public static void UpdateActiveEmitters()
         {
-            foreach (StudioEventEmitter emitter in activeEmitters)
+            for (int i = activeEmitters.Count - 1; i >= 0; i--)
             {
-                if (emitter == null) // Will.H added this code. 
+                StudioEventEmitter emitter = activeEmitters[i]; // Will H added this
+                if (emitter == null)
                 {
-                    activeEmitters.Remove(emitter);
+                    activeEmitters.RemoveAt(i);
                 }
             }
 

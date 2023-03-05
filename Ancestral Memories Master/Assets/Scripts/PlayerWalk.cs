@@ -132,20 +132,7 @@ public class PlayerWalk : MonoBehaviour
         StartCoroutine(GetWaterDepth(raySource));
     }
 
-    public enum GroundTypes
-    {
-        GroundIndex,
-        RockIndex,
-        WaterIndex
-    }
-
-    [SerializeField] private bool checkActive = false;
-
-    private string currentGround;
-    private string lastGround;
-
-
-    void Update()
+    public IEnumerator DetectGroundType()
     {
         foreach (Transform rayTransform in raySources)
         {
@@ -154,7 +141,7 @@ public class PlayerWalk : MonoBehaviour
 
             if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
             {
-//                Gizmos.DrawRay(rayTransform.transform.position, Vector3.down);
+                //                Gizmos.DrawRay(rayTransform.transform.position, Vector3.down);
 
                 if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
                 {
@@ -190,8 +177,26 @@ public class PlayerWalk : MonoBehaviour
                 }
             }
         }
-        
 
+        yield break;
+    }
+
+    public enum GroundTypes
+    {
+        GroundIndex,
+        RockIndex,
+        WaterIndex
+    }
+
+    [SerializeField] private bool checkActive = false;
+
+    private string currentGround;
+    private string lastGround;
+
+
+    void Update()
+    {
+      
         if (!stopOverride)
         {
             if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
@@ -208,79 +213,63 @@ public class PlayerWalk : MonoBehaviour
                         StopAgent();
                     }
                 }
+            }
+        }
+    }
 
-                void CastRayToGround()
-                {
-                   
-                    Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+    private void CastRayToGround()
+    {
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-                    if (Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, walkableLayers))
-                    {
-                        Vector3 playerPosition = playerObject.transform.position;
+        if (!Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, walkableLayers)) return;
 
-                        distance = Vector3.Distance(playerPosition, rayHit.point);
+        Vector3 playerPosition = playerObject.transform.position;
 
-                        Debug.Log(distance);
+        distance = Vector3.Distance(playerPosition, rayHit.point);
 
-                        if (distance >= distanceThreshold)
-                        {
-                            return;
-                        }
-                        else if (distance <= distanceThreshold)
-                        {
-                            MoveAgent(rayHit.point, distance, playerPosition);
-                        }
-                    }
-                }
+        if (distance >= distanceThreshold) return;
 
-                void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
-                {
-                    speed = cursorDistance / distanceRatios;
-                    agent.destination = hitPoint;
-                    agent.speed = speed;
-                    walkAnimFactor = speed / animFactor;
-                    agent.isStopped = false;
-                    agent.acceleration = 10000;
+        MoveAgent(rayHit.point, distance, playerPosition);
+    }
 
-                    player.AdjustAnimationSpeed(walkAnimFactor);
+    private void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
+    {
+        speed = cursorDistance / distanceRatios;
+        agent.destination = hitPoint;
+        agent.speed = speed;
+        walkAnimFactor = speed / animFactor;
+        agent.isStopped = false;
+        agent.acceleration = 10000;
 
-                    if (speed < runThreshold)
-                    {
-                        if (!behaviours.isPsychdelicMode && !player.isStarving)
-                        {
-                            ChangeState(PLAYER_WALK);
-                        }
-                        else if (player.isStarving)
-                        {
-                            ChangeState(PLAYER_STARVINGWALK);
-                        }
-                        else if (behaviours.isPsychdelicMode)
-                        {
-                            ChangeState(PLAYER_DRUNKWALK);
-                        }
+        player.AdjustAnimationSpeed(walkAnimFactor);
 
-                    }
+        if (speed < runThreshold)
+        {
+            if (!behaviours.isPsychdelicMode && !player.isStarving)
+            {
+                ChangeState(PLAYER_WALK);
+            }
+            else if (player.isStarving)
+            {
+                ChangeState(PLAYER_STARVINGWALK);
+            }
+            else if (behaviours.isPsychdelicMode)
+            {
+                ChangeState(PLAYER_DRUNKWALK);
+            }
 
-                    if (speed > runThreshold)
-                    {
-                        if (!behaviours.isPsychdelicMode)
-                        {
-                            ChangeState(PLAYER_RUN);
-                        }
-                        else if (behaviours.isPsychdelicMode)
-                        {
-                            ChangeState(PLAYER_RUN);
-                            //ChangeState(PLAYER_DRUNKRUN);
-                        }
+        }
 
-                    }
-
-
-  //                  Debug.Log("Cursor Distance:" + cursorDistance);
-//                    Debug.Log("Speed:" + agent.speed);
-
-                    //float runThreshold = cursorDistance / 2;
-                }
+        if (speed >= runThreshold)
+        {
+            if (!behaviours.isPsychdelicMode)
+            {
+                ChangeState(PLAYER_RUN);
+            }
+            else if (behaviours.isPsychdelicMode)
+            {
+                ChangeState(PLAYER_RUN);
+                //ChangeState(PLAYER_DRUNKRUN);
             }
         }
     }
@@ -316,77 +305,67 @@ public class PlayerWalk : MonoBehaviour
         // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
         // Needs refactoring... 
 
-        if (selectedChoice == "Drink")
-        {
-            destination = rayHit.point; // use the destination of the mouse raycast, not the interacted object.
-            boundsSize = player.transform.localScale;
-            destinationGizmo.transform.localScale = boundsSize;
-            inRangeThreshold = minimumStopDistance;
-        }
+        destination = hitObject.transform.position;
 
-        if (selectedChoice != "Drink")
+        switch (selectedChoice)
         {
-            destination = hitObject.transform.position; // use the destination of the interacted object.
-            boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-        }
 
-        if (selectedChoice == "KindleFire")
-        {
-            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
-            inRangeThreshold = minimumStopDistance;
-        }
-
-        if (selectedChoice == "Eat")
-        {
-            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
-            inRangeThreshold = minimumStopDistance;
-        }
-
-        if (selectedChoice == "Reflect")
-        {
-            destinationGizmo.transform.localScale = defaultBoundsSize / 1;
-            inRangeThreshold = minimumStopDistance;
-        }
-
-        if (selectedChoice == "Look")
-        {
-            destinationGizmo.transform.localScale = defaultBoundsSize;
-            inRangeThreshold = minimumStopDistance;
-        }
-
-        if (selectedChoice == "Pray")
-        {
-            if (hitObject.transform.CompareTag("Trees"))
-            {
-                boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-                destinationGizmo.transform.localScale = boundsSize / 3;
-                inRangeThreshold = treeHarvestStopDistance;
-            }
-            else
-            {
+            case "Drink":
+                destination = rayHit.point;
+                boundsSize = player.transform.localScale;
+                destinationGizmo.transform.localScale = boundsSize;
+                inRangeThreshold = minimumStopDistance;
+                break;
+            case "KindleFire":
+                destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+                inRangeThreshold = minimumStopDistance;
+                break;
+            case "Eat":
+                destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+                inRangeThreshold = minimumStopDistance;
+                break;
+            case "Reflect":
+                destinationGizmo.transform.localScale = defaultBoundsSize / 1;
+                inRangeThreshold = minimumStopDistance;
+                break;
+            case "Look":
                 destinationGizmo.transform.localScale = defaultBoundsSize;
                 inRangeThreshold = minimumStopDistance;
-            }
+                break;
+            case "Pray":
+                if (hitObject.transform.CompareTag("Trees"))
+                {
+                    boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+                    destinationGizmo.transform.localScale = boundsSize / 3;
+                    inRangeThreshold = treeHarvestStopDistance;
+                }
+                else
+                {
+                    destinationGizmo.transform.localScale = defaultBoundsSize;
+                    inRangeThreshold = minimumStopDistance;
+                }
+                break;
+            case "HarvestTree":
+                boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+                destinationGizmo.transform.localScale = boundsSize / 5;
+                inRangeThreshold = treeHarvestStopDistance;
+                break;
+            case "Talk":
+                destinationGizmo.transform.localScale = defaultBoundsSize * 18;
+                inRangeThreshold = talkStopDistance;
+                break;
+            case "Enter":
+            case "Exit":
+                destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+                inRangeThreshold = enterRoomStopDistance;
+                break;
+            default:
+                boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
+                destinationGizmo.transform.localScale = boundsSize;
+                inRangeThreshold = minimumStopDistance;
+                break;
         }
 
-        if (selectedChoice == "HarvestTree")
-        {
-            boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
-            destinationGizmo.transform.localScale = boundsSize / 5;
-            inRangeThreshold = treeHarvestStopDistance;
-        }
-
-        if (selectedChoice == "Talk")
-        {
-            destinationGizmo.transform.localScale = defaultBoundsSize * 18;
-            inRangeThreshold = talkStopDistance;
-        }
-
-        if (selectedChoice == "Enter")
-        {
-            destinationGizmo.transform.localScale = defaultBoundsSize * 2;
-            inRangeThreshold = enterRoomStopDistance;
-        }
 
         GameObject destinationGizmoInstance = Instantiate(destinationGizmo, destination, Quaternion.identity);
         //DestinationGizmo trigger = destinationGizmoInstance.GetComponent<DestinationGizmo>();
@@ -419,14 +398,7 @@ public class PlayerWalk : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && !areaManager.traversing)
             {
                 Debug.Log("Behaviour cancelled!");
-
-                reachedDestination = true;
-                agent.stoppingDistance = defaultStoppingDistance;
-
-                behaviours.SheatheItem();
-
-                Destroy(destinationGizmoInstance);
-
+                CancelWalkToward();
                 yield break;
             }
 
@@ -437,7 +409,16 @@ public class PlayerWalk : MonoBehaviour
         if (timeElapsed >= timeout)
         {
             Debug.LogWarning("Timeout reached before destination reached.");
+            CancelWalkToward();
             yield break;
+        }
+
+        void CancelWalkToward()
+        {
+            reachedDestination = true;
+            agent.stoppingDistance = defaultStoppingDistance;
+            behaviours.SheatheItem();
+            Destroy(destinationGizmoInstance);
         }
 
         yield return new WaitUntil(() => distanceToDestination <= inRangeThreshold);

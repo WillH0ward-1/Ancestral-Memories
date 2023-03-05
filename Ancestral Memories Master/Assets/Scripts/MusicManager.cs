@@ -232,22 +232,25 @@ public class MusicManager : MonoBehaviour
     {
         for (int i = 0; i < array.Length - 1; i++)
         {
-            int j = UnityEngine.Random.Range(i, array.Length);
-            string temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
+            System.Random random = new System.Random();
+
+            int randomNumber = random.Next(0, array.Length); // generates a random integer between 10 and 19 (inclusive of 10, exclusive of 20)
+            int randomIndex = randomNumber;
+            string currentIndex = array[i];
+            array[i] = array[randomIndex];
+            array[randomIndex] = currentIndex;
         }
         return array;
     }
-
         public IEnumerator PlayNote(string instrument, int voices, string manualPitch)
         {
-       // float buffer = UnityEngine.Random.Range(minWait, maxWait);
-       // yield return new WaitForSeconds(buffer);
+        // float buffer = UnityEngine.Random.Range(minWait, maxWait);
+        // yield return new WaitForSeconds(buffer);
+
+        notesToUse = YatesShuffle(notesToUse);
 
         for (int i = 0; i < Mathf.Min(maxVoices, voices); i++){
 
-            notesToUse = YatesShuffle(notesToUse);
             string note = null;
 
             if (manualPitch != null)
