@@ -54,7 +54,7 @@ public class CorruptionControl : MonoBehaviour
     {
         if (CorruptionModifierActive)
         {
-            player.OnFaithChanged += KarmaModifier;
+            player.OnFaithChanged += CorruptionModifier;
         }
 
     }
@@ -63,7 +63,7 @@ public class CorruptionControl : MonoBehaviour
     {
         if (CorruptionModifierActive)
         {
-            player.OnFaithChanged -= KarmaModifier;
+            player.OnFaithChanged -= CorruptionModifier;
         }
     }
     
@@ -79,9 +79,9 @@ public class CorruptionControl : MonoBehaviour
     public float newMax = 1;
 
      
-    private void KarmaModifier(float karma, float minKarma, float maxKarma)
+    private void CorruptionModifier(float faith, float minFaith, float maxFaith)
     {
-        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
+        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
         float output = Mathf.Lerp(newMin, newMax, t);
 
         targetCorruption = output;

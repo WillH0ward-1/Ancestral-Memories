@@ -8,7 +8,7 @@
 			<value>2</value>
 		</property>
 		<relationship name="folder">
-			<destination>{ca45ad92-5a48-4e0b-a004-6e040d880aa8}</destination>
+			<destination>{bf1b7c24-8292-476c-9d9b-254ad796aa70}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{feb692ed-dbca-4392-a58b-93b6e0232bf4}</destination>
@@ -30,6 +30,9 @@
 		</relationship>
 		<relationship name="timeline">
 			<destination>{f61c6135-61f1-446d-9749-df29f0ae61d7}</destination>
+		</relationship>
+		<relationship name="parameters">
+			<destination>{c59fc5c2-9864-4054-99fb-0303af6abe99}</destination>
 		</relationship>
 		<relationship name="banks">
 			<destination>{bfcd8317-266d-409b-8784-2b7e053e4b5a}</destination>
@@ -56,7 +59,23 @@
 			<destination>{b09f4bbc-4289-4b74-ba7d-71242fe77377}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{e252224b-d36d-4785-a64c-db6716ce054d}" />
+	<object class="EventAutomatableProperties" id="{e252224b-d36d-4785-a64c-db6716ce054d}">
+		<property name="maxVoices">
+			<value>23</value>
+		</property>
+		<property name="voiceStealing">
+			<value>2</value>
+		</property>
+		<property name="priority">
+			<value>1</value>
+		</property>
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+		<property name="maximumDistance">
+			<value>550</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{442bdfa4-cfdb-4593-b769-34b65de5ed73}" />
 	<object class="GroupTrack" id="{01c8b429-2484-4a24-8e40-da8cf2a9074f}">
 		<relationship name="modules">
@@ -69,6 +88,11 @@
 	<object class="Timeline" id="{f61c6135-61f1-446d-9749-df29f0ae61d7}">
 		<relationship name="modules">
 			<destination>{0d9e1a5c-f4db-4889-99c6-c808ff74d2d5}</destination>
+		</relationship>
+	</object>
+	<object class="ParameterProxy" id="{c59fc5c2-9864-4054-99fb-0303af6abe99}">
+		<relationship name="preset">
+			<destination>{607a96a6-3f6f-4fd1-bbf5-91e064279fa1}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{b72a7717-21d8-4e49-ab0b-2f5d48fc7459}">
@@ -93,13 +117,17 @@
 			<value>0.90725623582766435</value>
 		</property>
 		<property name="startOffset">
-			<value>6.5</value>
+			<value>18</value>
 		</property>
 		<property name="volume">
-			<value>-2</value>
+			<value>5</value>
+		</property>
+		<property name="pitch">
+			<value>-3.79999995</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{369b4a86-3cc5-4912-92f3-d96553982f46}</destination>
+			<destination>{6a3770c5-83bc-4485-81a3-a76a5b6558fc}</destination>
 		</relationship>
 		<relationship name="sounds">
 			<destination>{6d2c9e74-852e-4ca4-9c97-f87720107707}</destination>
@@ -109,9 +137,6 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{f270005f-b1b5-4a1f-9cbc-18b32f1148a0}">
-		<property name="volume">
-			<value>-17</value>
-		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
@@ -141,6 +166,14 @@
 			<value>20.8333321</value>
 		</property>
 	</object>
+	<object class="RandomizerModulator" id="{6a3770c5-83bc-4485-81a3-a76a5b6558fc}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>startOffset</value>
+		</property>
+		<property name="amount">
+			<value>4.5</value>
+		</property>
+	</object>
 	<object class="SingleSound" id="{6d2c9e74-852e-4ca4-9c97-f87720107707}">
 		<relationship name="audioFile">
 			<destination>{8ddbab49-c4b6-44d5-8f1c-a2f3a91ead44}</destination>
@@ -168,6 +201,13 @@
 	</object>
 	<object class="MixerBusPanner" id="{a3c9be5f-2489-4100-bc68-9f814034eb69}" />
 	<object class="MixerBusFader" id="{2834212f-fb35-49ad-bc7c-097e42d8d232}" />
-	<object class="SpatialiserEffect" id="{d0f56e86-9d02-4caf-a402-3b09762f2dcf}" />
+	<object class="SpatialiserEffect" id="{d0f56e86-9d02-4caf-a402-3b09762f2dcf}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+		<property name="maximumDistance">
+			<value>550</value>
+		</property>
+	</object>
 	<object class="MixerBusFader" id="{e98d8895-4f0b-49f7-a218-af357ca603a1}" />
 </objects>

@@ -61,7 +61,7 @@ public class PlayerWalk : MonoBehaviour
     public LayerMask waterLayer;
 
     public LayerMask walkableLayers;
-    public LayerMask waterLayers;
+    public LayerMask terrainDetectionLayers;
 
     private RaycastHit rayHit;
 
@@ -72,7 +72,8 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] private Transform leftFoot;
     [SerializeField] private Transform rightFoot;
 
-    [SerializeField] private List<Transform> raySources;
+    [SerializeField] private List<Transform> head;
+    [SerializeField] private List<Transform> feet;
 
     [SerializeField] private CamControl camControl;
 
@@ -82,9 +83,9 @@ public class PlayerWalk : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         //StopAgent();
 
-        raySources.Add(playerHead);
-        raySources.Add(leftFoot);
-        raySources.Add(rightFoot);
+        head.Add(playerHead);
+        feet.Add(leftFoot);
+        feet.Add(rightFoot);
 
         defaultBoundsSize = new Vector3(1, 1, 1);
     }
@@ -104,7 +105,7 @@ public class PlayerWalk : MonoBehaviour
     {
         while (playerInWater)
         {
-            if (Physics.Raycast(playerHead.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
+            if (Physics.Raycast(raySource.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayer))
             {
                 distance = Vector3.Distance(playerHead.transform.position, rayHit.point);
 
@@ -134,46 +135,51 @@ public class PlayerWalk : MonoBehaviour
 
     public IEnumerator DetectGroundType()
     {
-        foreach (Transform rayTransform in raySources)
+        foreach (Transform rayTransform in head)
         {
-
-            //Vector3 raySource = new Vector3(rayTransform.position.x, rayTransform.position.y, rayTransform.position.z);
-
-            if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, waterLayers))
+            if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, terrainDetectionLayers))
             {
-                //                Gizmos.DrawRay(rayTransform.transform.position, Vector3.down);
-
-                if (rayHit.transform.gameObject.layer == waterLayer && rayTransform.CompareTag("PlayerHead"))
-                {
-                    playerInWater = true;
+                // Check if the ground is water and the ray is coming from the player head
+                if (rayHit.collider.gameObject.layer == waterLayer)
+                { 
                     WaterDetected(rayTransform);
                     playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
 
-                    Debug.Log("RayTransform:" + rayTransform);
-                    Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
+                    Debug.Log("Ground type detected: Water");
+
+                    playerInWater = true;
 
                     continue;
-                    //currentGround = "Water";
                 }
-                if (rayHit.transform.gameObject.layer == grassGroundLayer && !rayTransform.CompareTag("PlayerHead"))
-                {
-                    playerInWater = false;
-                    playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
-                    Debug.Log("RayTransform:" + rayTransform);
-                    Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
-                    continue;
-                    //currentGround = "Grass";
-                }
+            }
 
-                if (rayHit.transform.gameObject.layer == caveGroundLayer && !rayTransform.CompareTag("PlayerHead"))
-                {
-                    playerInWater = false;
-                    playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
-                    Debug.Log("RayTransform:" + rayTransform);
-                    Debug.Log("Hit:" + rayHit.transform.gameObject.layer);
-                    continue;
+            playerInWater = false;
+        }
 
-                    //currentGround = "Rock";
+        if (!playerInWater)
+        {
+            foreach (Transform rayTransform in feet)
+            {
+                if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, terrainDetectionLayers))
+                {
+                    // Check if the ground is grass and the ray is not coming from the player head
+                    if (rayHit.collider.gameObject.layer == grassGroundLayer)
+                    {
+                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
+                        Debug.Log("Ground type detected: Grass");
+
+                        continue;
+                    }
+
+                    // Check if the ground is cave and the ray is not coming from the player head
+                    if (rayHit.collider.gameObject.layer == caveGroundLayer)
+                    {
+                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
+                        Debug.Log("Ground type detected: Cave");
+
+                        continue;
+                    }
+
                 }
             }
         }
@@ -295,10 +301,12 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] private float inRangeThreshold = 30f;
 
     [SerializeField] private float minimumStopDistance = 1f;
-    [SerializeField] private float treeHarvestStopDistance = 1f;
+    [SerializeField] private float treeHarvestStopDistance = 6f;
     [SerializeField] private float talkStopDistance = 10f;
     [SerializeField] private float enterRoomStopDistance = 10f;
     [SerializeField] float timeout = 10f;
+
+    public MusicManager musicManager;
 
     public IEnumerator WalkToward(GameObject hitObject, string selectedChoice, Transform teleportTarget, RaycastHit rayHit)
     {

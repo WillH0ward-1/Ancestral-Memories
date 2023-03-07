@@ -44,13 +44,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
     // PLAYER STATS =======================================================
 
-    float evolutionThreshold = 25;
-
-    private string name = "";
-    private int age = 24;
-
-    private int ageToDie = 0;
-
     public int maxStat = 100;
     public int minStat = 0;
 
@@ -102,8 +95,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual void Awake()
     {
-        name = "Jon";
-
         InitAnimators();
 
         health = maxStat;
@@ -111,7 +102,6 @@ public class CharacterClass : MonoBehaviour, IStats
         faith = minStat;
         psych = minStat;
         evolution = minStat;        
-
         isDiseased = false;
     }
 

@@ -64,7 +64,7 @@ public class ParticleCollision : MonoBehaviour
 
     private void GenerateFlower(Vector3 position)
     {
-        if (pooledObjects.Count <= maxPoolSize)
+        if (pooledObjects.Count <= maxPoolSize && player.faith >= 50)
         {
             GameObject flower = GetPooledObject();
             if (flower != null)
@@ -148,7 +148,7 @@ public class ParticleCollision : MonoBehaviour
 //            Debug.Log(hitLocation);
 
 
-            RuntimeManager.PlayOneShot(rainSFX, hitLocation);
+        RuntimeManager.PlayOneShot(rainSFX, hitLocation);
 
         
 

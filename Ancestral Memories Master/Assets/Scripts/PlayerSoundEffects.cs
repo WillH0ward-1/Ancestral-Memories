@@ -23,6 +23,7 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference FluteEventPath;
 
     private EventInstance walkEvent;
+
     private EventInstance rightFootStepEvent;
     private EventInstance leftFootStepEvent;
 
@@ -48,24 +49,21 @@ public class PlayerSoundEffects : MonoBehaviour
 
     public void UpdateWaterDepth(Transform raySource, float depth)
     {
-        if (raySource.CompareTag("LeftFoot"))
-        {
             leftFootStepEvent.setParameterByName("WaterDepth", depth);
-        }
 
-        if (raySource.CompareTag("RightFoot"))
-        {
             rightFootStepEvent.setParameterByName("WaterDepth", depth);
-        }
     }
 
     public void CheckGroundType()
     {
-        //playerWalk.StartCoroutine(playerWalk.DetectGroundType());
+        Debug.Log("Footstep Event Triggered");
+        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
     }
 
     void PlayLeftFootStep()
     {
+        CheckGroundType();
+
         leftFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(leftFootStepEvent, transform, rigidBody);
 
@@ -75,6 +73,8 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayRightFootStep()
     {
+        CheckGroundType();
+
         rightFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(rightFootStepEvent, transform, rigidBody);
 

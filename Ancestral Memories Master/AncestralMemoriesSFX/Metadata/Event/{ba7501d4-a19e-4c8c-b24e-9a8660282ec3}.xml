@@ -73,7 +73,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>30</value>
+			<value>10</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{46700271-1c27-4ede-af2f-032aae087546}" />
@@ -93,6 +93,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{563cd779-2b92-4da9-b2b1-b4915cde21a0}">
+		<property name="volume">
+			<value>-5.5</value>
+		</property>
 		<relationship name="modulators">
 			<destination>{26012255-b389-40cc-aa9c-dd131fadb379}</destination>
 		</relationship>
@@ -173,7 +176,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>30</value>
+			<value>10</value>
 		</property>
 	</object>
 	<object class="ADSRModulator" id="{d6a45619-cc02-475d-a1d7-5aac8324509b}">

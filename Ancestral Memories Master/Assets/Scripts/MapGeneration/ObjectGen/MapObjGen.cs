@@ -211,16 +211,9 @@ public class MapObjGen : MonoBehaviour
 
     public TimeCycleManager timeCycleManager;
 
-    private void Start()
-    {
-
-       
-
-    }
-
     private GameObject emitterInstance;
 
-    public IEnumerator EmitterGen()
+    public IEnumerator WaterSFXEmitterGen()
     {
         Vector3[] verts = waterEmitterTransform.GetComponent<MeshFilter>().mesh.vertices;
         int sampleDensity = verts.Length / vertSampleFactor;
@@ -229,8 +222,6 @@ public class MapObjGen : MonoBehaviour
 
         for (i = 0; i <= verts.Length; i++)
         {
-            // vertices[i] += Vector3.up * Time.deltaTime;
-
             emitterInstance = Instantiate(waterSoundEmitter, waterEmitterTransform.localToWorldMatrix.MultiplyPoint3x4(verts[i]), Quaternion.identity, waterEmitterRoot);
 
             waterEmitters.Add(emitterInstance);
@@ -244,7 +235,6 @@ public class MapObjGen : MonoBehaviour
         }
 
         yield break;
-      
     }
 
     private float emitterY;
@@ -344,7 +334,7 @@ public class MapObjGen : MonoBehaviour
         GroundCheck();
         DestroyDeadZones();
 
-        StartCoroutine(EmitterGen());
+        StartCoroutine(WaterSFXEmitterGen());
 
         ListCleanup(mapObjectList);
         ListCleanup(npcList);
@@ -589,7 +579,7 @@ public class MapObjGen : MonoBehaviour
     public List<GameObject> npcList;
     public List<GameObject> grassList;
 
-    private Vector3 zeroScale = new Vector3(0.001f, 0.001f, 0.001f);
+    private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
     //private CorruptionControl corruptionControl;
 
     public WeatherControl weather;
@@ -616,7 +606,7 @@ public class MapObjGen : MonoBehaviour
             TreeAudioSFX treeAudio = treeInstance.transform.GetComponent<TreeAudioSFX>();
 
             treeAudio.timeManager = timeCycleManager;
-
+            treeAudio.weatherManager = weather;
 
             //corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
             //corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
@@ -768,7 +758,7 @@ public class MapObjGen : MonoBehaviour
         corruptionControl.enabled = true;
         */
 
-        dirtExplodeParticles.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+        dirtExplodeParticles.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         dirtExplodeParticles.transform.localPosition = new Vector3(0, 0, 0);
         ParticleSystem.EmissionModule emission = dirtExplodeParticles.emission;
 
@@ -781,6 +771,7 @@ public class MapObjGen : MonoBehaviour
 
         appleGrowthDelay = Random.Range(minAppleGrowDelay, maxAppleGrowDelay);
         treeGrowthDelay = Random.Range(minTreeGrowDelay, maxTreeGrowDelay);
+
         StartCoroutine(WaitForGrowDelay(tree, dirtExplodeParticles, emission, treeGrowthDelay));
 
         if (!tree.transform.CompareTag("AppleTree"))
@@ -821,9 +812,14 @@ public class MapObjGen : MonoBehaviour
         yield return new WaitForSeconds(treeGrowthDelay);
         emission.enabled = true;
         dirtExplodeParticles.Play();
+
         tree.GetComponent<CorruptionControl>().CorruptionModifierActive = true;
         TreeAudioSFX treeAudio = tree.GetComponent<TreeAudioSFX>();
+        treeAudio.TreeSproutSFX();
         treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
+        TreeDeathManager treeDeathManager = tree.GetComponent<TreeDeathManager>();
+        treeDeathManager.treeAudioSFX = treeAudio;
+
 
         StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
 
@@ -848,7 +844,6 @@ public class MapObjGen : MonoBehaviour
 
     public IEnumerator WaitUntilGrown(GameObject growObject, ScaleControl scaleControl)
     {
-     
         yield return new WaitUntil(() => scaleControl.isFullyGrown);
 
         float fallBuffer = Random.Range(minFruitFallBuffer, maxFruitFallBuffer);

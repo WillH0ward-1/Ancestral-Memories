@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using FMODUnity;
+using UnityEngine;
 
 [ExecuteAlways]
 public class TimeCycleManager : MonoBehaviour
@@ -7,7 +8,7 @@ public class TimeCycleManager : MonoBehaviour
     [SerializeField] private Light DirectionalLight;
     [SerializeField] private LightingPreset Preset;
     //Variables
-    [SerializeField, Range(0, 24)] private float timeOfDay;
+    [SerializeField, Range(0, 24)] public float timeOfDay;
     public float timeMultiplier = 0.25f;
     public float defaultTimeMultiplier = 0.25f;
 
@@ -37,6 +38,8 @@ public class TimeCycleManager : MonoBehaviour
         {
             UpdateLight(timeOfDay / 24f);
         }
+
+        RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
     }
 
     [SerializeField] private float nightThresholdMin = 6f;

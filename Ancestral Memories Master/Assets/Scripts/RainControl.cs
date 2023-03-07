@@ -125,7 +125,7 @@ public class RainControl : MonoBehaviour
 
     [SerializeField] private float rainStrengthTarget;
     float emissionRate;
-    [SerializeField] float emissionRateOverTime;
+    [SerializeField] public float emissionRateOverTime;
 
     public IEnumerator StartRaining()
     {

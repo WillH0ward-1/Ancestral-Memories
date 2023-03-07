@@ -15,6 +15,8 @@ public class TreeDeathManager : MonoBehaviour
 
     private Interactable interactable;
 
+    public TreeAudioSFX treeAudioSFX;
+
     private void Awake()
     {
         scaleControl = transform.GetComponent<ScaleControl>();
@@ -22,7 +24,7 @@ public class TreeDeathManager : MonoBehaviour
 
     public void Fall()
     {
-        interactable = transform.GetComponent<Interactable>();
+        interactable = transform.GetComponentInChildren<Interactable>();
         interactable.enabled = false;
 
         StartCoroutine(FallToGround());
@@ -46,12 +48,13 @@ public class TreeDeathManager : MonoBehaviour
         scaleControl.StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, newScale, fallDuration, 0));
 
         yield return new WaitForSeconds(fallDuration);
-        
+
         treeFalling = false;
 
-        StopCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, transform.localScale, 0, 0));
+        StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, transform.localScale / 100, 2, 0));
+
         StartCoroutine(Regrow());
-        // StartCoroutine(PullUnderground(deathSinkSpeed));
+        //tartCoroutine(PullUnderground(deathSinkSpeed));
 
         yield break;
     }
@@ -59,14 +62,14 @@ public class TreeDeathManager : MonoBehaviour
     float yPos;
     float regrowBuffer = 10;
 
+    /*
     public IEnumerator PullUnderground(float duration)
     {
         float time = 0;
 
         yPos = transform.position.y - 10;
-         
-        Vector3 newPos = new Vector3(transform.localPosition.x, yPos, transform.localPosition.y);
-        yPos = transform.position.y - 10;
+
+        Vector3 newPos = new Vector3(transform.localPosition.x, transform.localPosition.y - 10, transform.localPosition.z);
 
         Vector3 position = transform.localPosition;
 
@@ -76,7 +79,7 @@ public class TreeDeathManager : MonoBehaviour
 
             yPos = transform.position.y;
 
-            transform.localPosition = Vector3.Lerp(position, newPos, time);
+            transform.localPosition = Vector3.Lerp(transform.localPosition , newPos, time);
 
             yield return null;
         }
@@ -85,9 +88,12 @@ public class TreeDeathManager : MonoBehaviour
 
         yield break;
     }
+    */
 
     public IEnumerator Regrow()
     {
+        regrowBuffer = Random.Range(10, 20);
+
         yield return new WaitForSeconds(regrowBuffer);
         treeDead = false;
         transform.gameObject.transform.localRotation = new Quaternion(0, 0, 0, 0);

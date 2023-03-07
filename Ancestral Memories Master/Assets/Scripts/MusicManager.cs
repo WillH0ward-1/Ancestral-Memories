@@ -39,35 +39,11 @@ public class MusicManager : MonoBehaviour
         { Modes.Chromatic, new string[] { "C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B" } }
     };
 
-    public enum GameStates
-    {
-        Menu,
-        Spawning,
-        Exploring,
-        Praying,
-        FluteMode,
-        Reflecting,
-        Pause,
-        Death
-    }
-
-    public enum Locations
-    {
-        Outside,
-        InsideCave,
-    }
-
-    public string currentGameState;
-
     [SerializeField] private EventReference MusicEventPath;
     private EventInstance musicInstance;
 
-    private float minTimeInterval;
-    private float maxTimeInterval;
-
     [SerializeField] private float output = 0;
     [SerializeField] private int faithModulateOutput;
-    [SerializeField] private int parameterCount = 0;
 
     [SerializeField] private string currentlyPlaying;
     [SerializeField] private int currentMode;
@@ -78,57 +54,68 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private PlayerWalk playerWalk;
     [SerializeField] private Player player;
 
-    FMOD.Studio.EVENT_CALLBACK callbackDelegate;
+    EVENT_CALLBACK callbackDelegate;
 
     Modes randomMode;
     public Modes startingMode = Modes.Chromatic;
-    public int voiceCount = 4;
+    public int stringsVoiceCount = 4;
 
-    //StartCoroutine(IntroLoop());
+    public TimeCycleManager timeCycleManager;
 
-    // musicParameterID = musicParameterDescription.id;
-    //globalParamTrigger = transform.GetComponent<StudioGlobalParameterTrigger>();
-    // globalParamTrigger.TriggerEvent = EmitterGameEvent.ObjectStart;
-    //globalParamTrigger.Parameter = "Mode";
+    public CharacterBehaviours characterBehaviours;
 
-    //studioEventEmitter = transform.GetComponent<StudioEventEmitter>();
-
-    //globalParamTrigger.Value = 5;
-
-    //PlayMusic();
-
-    /*
-    musicInstance.getDescription(out EventDescription description);
-    description.getParameterDescriptionCount(out int count);
-    parameterCount = count;
-    newMax = Enum.GetValues(typeof(Modes)).Length;
-    */
+    public enum Instruments
+    {
+        Strings,
+        PlateScrapeSynth
+    }
 
     private void Start()
     {
 
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
-        StartCoroutine(RandomWait());
-        //globalParamTrigger.Value = (float)GetLabelIndex(musicInstance);
-
         SetMode(startingMode);
+        StartCoroutine(NoteBuffer());
+        StartCoroutine(TimeJuggle());
         StartCoroutine(RandomModulateBuffer());
+
         //StartCoroutine(FaithModulate());
     }
 
-    public IEnumerator RandomWait()
+    public IEnumerator NoteBuffer()
     {
         float buffer = UnityEngine.Random.Range(minWait, maxWait);
         yield return new WaitForSeconds(buffer);
 
-        //RandomModulate();
-        StartCoroutine(PlayNote("Strings", voiceCount, null));
+        switch (areaManager.currentRoom)
+        {
+            case "Outside" when characterBehaviours.isPsychdelicMode:
+                StartCoroutine(PlayNote(GetRandomInstrument().ToString(), stringsVoiceCount, null));
+                break;
+            case "Outside":
+                StartCoroutine(PlayNote("Strings", stringsVoiceCount, null));
+                break;
+            case "InsideCave":
+                StartCoroutine(PlayNote("PlateScrapeSynth", stringsVoiceCount, null));
+                break;
+            default:
+                StartCoroutine(PlayNote("Strings", stringsVoiceCount, null));
+                break;
+        }
 
-        StartCoroutine(RandomWait());
+        StartCoroutine(NoteBuffer());
 
         yield break;
     }
 
+    public Instruments GetRandomInstrument()
+    {
+        Instruments randomInstrument;
+        int randomIndex = UnityEngine.Random.Range(0, Enum.GetValues(typeof(Instruments)).Length);
+        randomInstrument = (Instruments)randomIndex;
+
+        return randomInstrument;
+    }
     public float minRandomModulateWait = 6f;
     public float maxRandomModulateWait = 30f;
 
@@ -142,7 +129,6 @@ public class MusicManager : MonoBehaviour
         yield break;
     }
 
-
     public void RandomModulate()
     {
         randomMode = (Modes)UnityEngine.Random.Range(0, Enum.GetValues(typeof(Modes)).Length);
@@ -150,29 +136,6 @@ public class MusicManager : MonoBehaviour
         SetMode(randomMode);
 
         StartCoroutine(RandomModulateBuffer());
-    }
-
-    public void ManualModulate(Modes newMode)
-    {
-        currentlyPlaying = newMode.ToString();
-        currentMode = (int)newMode;
-
-        autoModulating = false;
-
-        SetMode(newMode);
-
-        RuntimeManager.StudioSystem.setParameterByName("Mode", currentMode);
-
-    }
-
-    public IEnumerator WaitForBreak(IEnumerator running)
-    {
-        if (autoModulating)
-        {
-            StopCoroutine(running);
-        }
-        
-        yield break;
     }
 
     public EventReference eventPath;
@@ -207,9 +170,11 @@ public class MusicManager : MonoBehaviour
                     activeNotes.RemoveAt(i);
 
                     string newNote = GetClosestValidNote(noteName);
-                    StartCoroutine(PlayNote("Strings", 1, newNote));
 
+                    StartCoroutine(PlayNote("Strings", 1, newNote));
+   
                     instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+
                     UnityEngine.Debug.Log("Removed " + "'" + noteName + "'" + " as this note isn't in the " + mode + " mode! " + newNote + " used instead!");
                 }
             }
@@ -220,7 +185,18 @@ public class MusicManager : MonoBehaviour
     {
         string[] chromaticScale = ModeInfo[Modes.Chromatic];
         int noteIndex = Array.IndexOf(chromaticScale, noteName);
-        int newIndex = UnityEngine.Random.value >= 0.5f ? noteIndex + 1 : noteIndex - 1;
+
+        int newIndex;
+
+        if (UnityEngine.Random.value >= 0.5f)
+        {
+            newIndex = noteIndex + 1;
+        }
+        else
+        {
+            newIndex = noteIndex - 1;
+        }
+
         return chromaticScale[newIndex % chromaticScale.Length];
     }
 
@@ -234,7 +210,7 @@ public class MusicManager : MonoBehaviour
         {
             System.Random random = new System.Random();
 
-            int randomNumber = random.Next(0, array.Length); // generates a random integer between 10 and 19 (inclusive of 10, exclusive of 20)
+            int randomNumber = random.Next(0, array.Length); 
             int randomIndex = randomNumber;
             string currentIndex = array[i];
             array[i] = array[randomIndex];
@@ -242,8 +218,9 @@ public class MusicManager : MonoBehaviour
         }
         return array;
     }
-        public IEnumerator PlayNote(string instrument, int voices, string manualPitch)
-        {
+
+    public IEnumerator PlayNote(string instrument, int voices, string manualPitch)
+    {
         // float buffer = UnityEngine.Random.Range(minWait, maxWait);
         // yield return new WaitForSeconds(buffer);
 
@@ -257,6 +234,7 @@ public class MusicManager : MonoBehaviour
             {
                 note = manualPitch;
             }
+
             else
             {
                 manualPitch = null;
@@ -346,19 +324,18 @@ public class MusicManager : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator FaithModulate()
+
+    public IEnumerator TimeJuggle()
     {
-        autoModulating = true;
+        float minTimeJuggleBuffer = UnityEngine.Random.Range(2, 6);
+        float maxTimeJuggleBuffer = UnityEngine.Random.Range(minDuration, 6);
 
-        while (autoModulating)
-        {
-            //faith = player.faith;
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minTimeJuggleBuffer, maxTimeJuggleBuffer));
 
-            RuntimeManager.StudioSystem.setParameterByName("Mode", currentMode);
-            //musicInstance.setParameterByNameWithLabel("Mode", newMode);
-
-            yield return null;
-        }
+        minDuration = UnityEngine.Random.Range(2, 6);
+        maxDuration = UnityEngine.Random.Range(minDuration, 6);
+        float duration = Mathf.Clamp(maxDuration, minDuration, 6);
+        StartCoroutine(TimeJuggle());
 
         yield break;
     }

@@ -1,9 +1,7 @@
-using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
 using System.Collections;
-using System.Collections.Generic;
-using System;
+using FMOD.Studio;
+using FMODUnity;
+using UnityEngine;
 
 public class TreeAudioSFX : MonoBehaviour
 {
@@ -16,14 +14,19 @@ public class TreeAudioSFX : MonoBehaviour
     private Rigidbody rigidBody;
 
     [SerializeField] private EventReference TreeGrowEventPath;
+    [SerializeField] private EventReference TreeLeavesEventPath;
+    [SerializeField] private EventReference TreeSproutEventPath;
     [SerializeField] private EventReference BirdChirpEventPath;
+    [SerializeField] private EventReference TreeHitGroundEventPath;
 
     //private EventInstance treeGrowSFXInstance;
     private EventInstance birdChirpInstance;
+
     private Interactable interactable;
     public TreeDeathManager treeFallManager;
 
     public TimeCycleManager timeManager;
+    public WeatherControl weatherManager;
 
     void Awake()
     {
@@ -32,6 +35,21 @@ public class TreeAudioSFX : MonoBehaviour
 
         interactable = transform.GetComponent<Interactable>();
     }
+    /*
+
+    private void Update()
+    {
+        if (scaleControl.growthPercent >= 0.8 && !timeManager.isNightTime && !treeFallManager.treeDead && player.faith >= 50)
+        {
+            StartTreeBirds();
+        }
+        else
+        {
+            StopTreeBirds();
+        }
+    }
+    */
+
 
     [SerializeField] private float newMin = 0;
     [SerializeField] private float newMax = 1;
@@ -40,11 +58,11 @@ public class TreeAudioSFX : MonoBehaviour
 
     public IEnumerator StartTreeGrowthSFX()
     {
-        EventInstance treeGrowSFXInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
-        RuntimeManager.AttachInstanceToGameObject(treeGrowSFXInstance, transform, rigidBody);
+        EventInstance treeGrowInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
+        RuntimeManager.AttachInstanceToGameObject(treeGrowInstance, transform, rigidBody);
 
-        treeGrowSFXInstance.start();
-        treeGrowSFXInstance.release();
+        treeGrowInstance.start();
+        treeGrowInstance.release();
 
         while (!scaleControl.isFullyGrown)
         {
@@ -52,28 +70,58 @@ public class TreeAudioSFX : MonoBehaviour
 
             treeGrowTime = output;
 
-            treeGrowSFXInstance.setParameterByName("TreeGrowTime", treeGrowTime);
+            treeGrowInstance.setParameterByName("TreeGrowTime", treeGrowTime);
 
             //var t = Mathf.InverseLerp(0, 1, output);
             //float newOutput = Mathf.Lerp(1, 0, t);
 
             //            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
 
-            if (scaleControl.growthPercent >= 0.8 && !timeManager.isNightTime)
-            {
-                StartTreeBirds();
-            } else 
-            {
-                StopTreeBirds();
-            }
+  
 
             yield return null;
         }
 
-        StopTreeGrowthSFX(treeGrowSFXInstance);
+       
+
+
+        EventInstance treeLeavesSFXInstance = RuntimeManager.CreateInstance(TreeLeavesEventPath);
+        RuntimeManager.AttachInstanceToGameObject(treeLeavesSFXInstance, transform, rigidBody);
+
+        treeLeavesSFXInstance.start();
+
+        while (!treeFallManager.treeDead)
+        {
+            treeGrowInstance.setParameterByName("WindStrength", weatherManager.windStrength);
+
+            yield return null;
+        }
+
+        treeLeavesSFXInstance.release();
+
+        StopInstance(treeGrowInstance);
+        StopInstance(treeLeavesSFXInstance);
 
         yield break;
 
+    }
+
+    public void TreeSproutSFX()
+    {
+        EventInstance treeSproutInstance = RuntimeManager.CreateInstance(TreeSproutEventPath);
+        RuntimeManager.AttachInstanceToGameObject(treeSproutInstance, transform, rigidBody);
+
+        treeSproutInstance.start();
+        treeSproutInstance.release();
+    }
+
+    public void StartTreeHitGroundSFX()
+    {
+        EventInstance treeHitFloorInstance = RuntimeManager.CreateInstance(TreeHitGroundEventPath);
+        RuntimeManager.AttachInstanceToGameObject(treeHitFloorInstance, transform, rigidBody);
+
+        treeHitFloorInstance.start();
+        treeHitFloorInstance.release();
     }
 
     PLAYBACK_STATE PlaybackState(EventInstance instance) 
@@ -82,21 +130,24 @@ public class TreeAudioSFX : MonoBehaviour
         return state;
     }
 
-    void StopTreeGrowthSFX(EventInstance treeGrowSFXInstance)
+    public void StopInstance(EventInstance instance)
     {
-        if (PlaybackState(treeGrowSFXInstance) != PLAYBACK_STATE.STOPPED)
+        if (PlaybackState(instance) != PLAYBACK_STATE.STOPPED)
         {
-            treeGrowSFXInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            instance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         }
     }
 
     private void StartTreeBirds()
     {
-        EventInstance birdChirpInstance = RuntimeManager.CreateInstance(BirdChirpEventPath);
-        RuntimeManager.AttachInstanceToGameObject(birdChirpInstance, transform, rigidBody);
+        if (PlaybackState(birdChirpInstance) == PLAYBACK_STATE.STOPPED)
+        {
+            EventInstance birdChirpInstance = RuntimeManager.CreateInstance(BirdChirpEventPath);
+            RuntimeManager.AttachInstanceToGameObject(birdChirpInstance, transform, rigidBody);
 
-        birdChirpInstance.start();
-        birdChirpInstance.release();
+            birdChirpInstance.start();
+            birdChirpInstance.release();
+        }
     }
 
     void StopTreeBirds()

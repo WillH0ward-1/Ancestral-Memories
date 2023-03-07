@@ -85,7 +85,7 @@ public class ScaleControl : MonoBehaviour
                 {
                     if (rainControl.isRaining) //&& transform.CompareTag("Trees"))
                     {
-                        rainMultiplier = 20f;
+                        rainMultiplier = 16f;
                     }
                     else
                     {
@@ -145,6 +145,7 @@ public class ScaleControl : MonoBehaviour
                     killBuffer.StartCoroutine(killBuffer.ExpiryBuffer());
                 }
 
+      
                 yield break;
             }
         }

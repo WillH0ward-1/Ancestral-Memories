@@ -35,6 +35,8 @@ public class WeatherControl : MonoBehaviour
     public List<Transform> windAffectedRendererList = new List<Transform>();
     public List<Transform> activeWindZones = new List<Transform>();
 
+    public EventReference wind3DEvent;
+
     private void Awake()
     {
         parent = player.transform;
@@ -45,22 +47,9 @@ public class WeatherControl : MonoBehaviour
     {
         ListCleanup(windAffectedRendererList);
 
-        //
-        EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
-        //windStrength = 0;
+        
+        //EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
 
-        StartCoroutine(WindStrength(windAudio2DInstance));
-
-       // StartCoroutine(SpawnWindZone());
-    }
-
-    void ListCleanup(List<Transform> list)
-    {
-        for (var i = list.Count - 1; i > -1; i--)
-        {
-            if (list[i] == null)
-                list.RemoveAt(i);
-        }
     }
 
     [SerializeField] private float minSpawnBuffer = 5;
@@ -71,80 +60,24 @@ public class WeatherControl : MonoBehaviour
 
     [SerializeField] private float spawnRadius = 5;
 
-    private IEnumerator SpawnWindZone()
+
+    void ListCleanup(List<Transform> list)
     {
-        yield return new WaitForSeconds(Random.Range(minSpawnBuffer, maxSpawnBuffer));
-
-        if (activeWindZones.Count <= maxWindZoneInstances)
+        for (var i = list.Count - 1; i > -1; i--)
         {
-
-            GameObject windZoneObject = Instantiate(windZone, player.transform.position, Quaternion.identity, windZones);
-
-            activeWindZones.Add(windZoneObject.transform);
-
-            if (activeWindZones.Count >= maxWindZoneInstances)
-            {
-                activeWindZones.Remove(windZoneObject.transform);
-                Destroy(windZoneObject);
-            }
-            else if (activeWindZones.Count <= maxWindZoneInstances)
-            {
-
-                Vector3 newPosition = (Random.insideUnitSphere * spawnRadius) + player.transform.position;
-                windZoneObject.transform.position = newPosition;
-
-                StudioEventEmitter wind3DInstance = windZoneObject.transform.GetComponent<StudioEventEmitter>();
-
-                StartCoroutine(UpdateWind(windZoneObject, wind3DInstance));
-                StartCoroutine(WindTimeout(windZoneObject));
-            }
+            if (list[i] == null)
+                list.RemoveAt(i);
         }
-
-        yield break;
     }
 
-    private IEnumerator UpdateWind(GameObject windZoneObject, StudioEventEmitter instance)
+
+    public IEnumerator UpdateWind(GameObject windZoneObject, EventInstance wind3DInstance)
     {
         bool active = true;
 
         while (active && windZoneObject != null)
         {
-            instance.EventInstance.setParameterByName("WindStrength", windStrength);
-            yield return null;
-        }
-
-        active = false;
-
-        yield break;
-    }
-
-    private void Update()
-    {
-        windStrength = targetWindStrength;
-    }
-
-    private IEnumerator WindTimeout(GameObject instance)
-    {
-        yield return new WaitForSeconds(Random.Range(minLifeTime, maxLifeTime));
-
-        Destroy(instance);
-        ListCleanup(activeWindZones);
-        //StartCoroutine(SpawnBuffer());
-        yield break;
-    }
-
-    private IEnumerator WindStrength(EventInstance wind2DInstance)
-    {
-        wind2DActive = true;
-
-        wind2DInstance.start();
-
-        while (wind2DActive)
-        {
-
-            wind2DInstance.setParameterByName("WindStrength", windStrength);
-
-            Debug.Log("WindStrength:" + windStrength);
+            wind3DInstance.setParameterByName("WindStrength", windStrength);
 
             foreach (Transform t in windAffectedRendererList)
             {
@@ -158,17 +91,24 @@ public class WeatherControl : MonoBehaviour
             yield return null;
         }
 
-        if (!wind2DActive)
-        {
-            StartCoroutine(StopWind(wind2DInstance));
-            yield break;
-        }
+        active = false;
+
+        yield break;
     }
 
-    private IEnumerator StopWind(EventInstance windSFX)
+    private void Update()
     {
-        windSFX.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-        wind2DActive = false;
+        windStrength = targetWindStrength;
+    }
+
+    private IEnumerator WindTimeout(GameObject instance, EventInstance wind3DInstance)
+    {
+        yield return new WaitForSeconds(Random.Range(minLifeTime, maxLifeTime));
+
+        wind3DInstance.release();
+        Destroy(instance);
+        ListCleanup(activeWindZones);
+        //StartCoroutine(SpawnBuffer());
         yield break;
     }
 
@@ -186,9 +126,9 @@ public class WeatherControl : MonoBehaviour
 
     private System.Func<float, float> func;
 
-    private void WindStrength(float karma, float minKarma, float maxKarma)
+    private void WindStrength(float faith, float minFaith, float maxFaith)
     {
-        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
+        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
         float windOutput = Mathf.Lerp(newMin, newMax, func(t));
         float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));
         float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));

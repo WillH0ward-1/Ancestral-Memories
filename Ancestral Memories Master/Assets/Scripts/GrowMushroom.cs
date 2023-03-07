@@ -1,33 +1,52 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using FMODUnity;
+using FMOD.Studio;
 
-public class GrowMushroom : MonoBehaviour
+public class MushroomGrowth : MonoBehaviour
 {
-    [SerializeField] private ScaleControl scaleControl;
+    [SerializeField] private float minGrowDelay = 5;
+    [SerializeField] private float maxGrowDelay = 10;
+    [SerializeField] private float minGrowDuration = 1;
+    [SerializeField] private float maxGrowDuration = 5;
+    [SerializeField] private Vector3 growScale = new Vector3(0.5f, 0.5f, 0.5f);
+    [SerializeField] private Vector3 shrinkScale = new Vector3(0.00001f, 0.00001f, 0.00001f);
+    [SerializeField] private float minShrinkDuration = 1;
+    [SerializeField] private float maxShrinkDuration = 5;
 
-    [SerializeField] private Vector3 scaleStart;
-    [SerializeField] private Vector3 scaleTarget;
+    [SerializeField] private EventReference growthEvent;
+    private EventInstance growthInstance;
 
-    private float growDelay;
-    [SerializeField] private float minGrowDelay;
-    [SerializeField] private float maxGrowDelay;
+    private ScaleControl scaleControl;
 
-    private float growDuration;
-    [SerializeField] private float minGrowDuration;
-    [SerializeField] private float maxGrowDuration;
+    public bool growMushrooms = true;
 
-    void Start()
+    private void Start()
     {
         scaleControl = transform.GetComponent<ScaleControl>();
 
-        scaleStart = new(0, 0, 0);
-        scaleTarget = new(1, 1, 1);
-
-        growDelay = Random.Range(minGrowDelay, maxGrowDelay);
-        growDuration = Random.Range(minGrowDuration, maxGrowDuration);
-
-        StartCoroutine(scaleControl.LerpScale(transform.gameObject, scaleStart, scaleTarget, growDuration, growDelay));
+        StartCoroutine(GrowAndShrink());
     }
 
+    private IEnumerator GrowAndShrink()
+    {
+        growMushrooms = true;
+
+        while (growMushrooms)
+        {
+            yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
+
+
+            growthInstance = RuntimeManager.CreateInstance(growthEvent);
+            RuntimeManager.AttachInstanceToGameObject(growthInstance, transform);
+
+            growthInstance.start();
+            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkScale, growScale, Random.Range(minGrowDuration, maxGrowDuration), 0));
+            growthInstance.release();
+
+            yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
+
+            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+        }
+    }
 }

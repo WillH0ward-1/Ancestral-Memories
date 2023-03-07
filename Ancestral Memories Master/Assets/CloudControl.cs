@@ -50,9 +50,9 @@ public class CloudControl : MonoBehaviour
     public float cloudSpeedMin = 25f;
     public float cloudSpeedMax = 250;
 
-    private void CloudModifier(float karma, float minKarma, float maxKarma)
+    private void CloudModifier(float faith, float minKarma, float maxKarma)
     {
-        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
+        var t = Mathf.InverseLerp(minKarma, maxKarma, faith);
         float cloudPowerOutput = Mathf.Lerp(cloudPowerMax, cloudPowerMin, t);
         float cloudSpeedOutput = Mathf.Lerp(1, 0, t);
 

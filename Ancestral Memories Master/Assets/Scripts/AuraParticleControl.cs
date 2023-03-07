@@ -87,7 +87,7 @@ public class AuraParticleControl : MonoBehaviour
         var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
         auraDensityOutput = Mathf.Lerp(auraDensityMin, auraDensityMax, t);
         auraGravityOutput = Mathf.Lerp(auraGravityMax, auraGravityMin, t);
-        auraSpeedOutput = Mathf.Lerp(auraGravityMin, auraGravityMax, t);
+        auraSpeedOutput = Mathf.Lerp(auraSpeedMin, auraSpeedMax, t);
         auraNoiseOutput = Mathf.Lerp(auraNoiseStrengthMax, auraNoiseStrengthMin, t);
 
         gravityModifier = auraGravityOutput;

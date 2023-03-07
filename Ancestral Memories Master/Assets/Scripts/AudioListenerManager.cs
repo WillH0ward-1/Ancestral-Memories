@@ -24,7 +24,7 @@ public class AudioListenerManager : MonoBehaviour
 
         attenuationObject.transform.position = defaultAttenuator.transform.position;
         attenuationObject.transform.SetParent(defaultAttenuator.transform);
-        //SetDefaultAttenuation();
+        //SetDefaultAttenuation();wea
     }
 
     public void SetDefaultAttenuation()

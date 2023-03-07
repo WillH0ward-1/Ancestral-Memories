@@ -112,6 +112,7 @@ public class TerrainGenerator : MonoBehaviour {
 			lerpTerrain.player = player;
 			rainControl.lerpTerrain = lerpTerrain;
 
+			StartCoroutine(EnableContacts(tmp));
 			//Interactable interactable = tmp.AddComponent<Interactable>();
 			//GameObject terrainObject = tmp;
 			//mapObjGen.terrain = terrainObject;
@@ -129,11 +130,20 @@ public class TerrainGenerator : MonoBehaviour {
 
 		}
 
-		
+    }
 
+	public IEnumerator EnableContacts(GameObject tmp)
+	{
+		Collider collider = null;
+
+		yield return new WaitUntil(() => (collider = tmp.GetComponentInChildren<Collider>()) != null);
+
+		collider.providesContacts = true;
+
+		yield break;
 	}
 
-    void Update() {
+	void Update() {
 
 		viewerPosition = new Vector2 (viewer.position.x, viewer.position.z);
 
