@@ -66,20 +66,37 @@ public class WindObjectPool : MonoBehaviour
 
     private IEnumerator ReturnWindZoneBuffer(GameObject windZoneObject)
     {
-        EventInstance windSFXInstance = RuntimeManager.CreateInstance(windEventRef);
-        RuntimeManager.AttachInstanceToGameObject(windSFXInstance, windZoneObject.transform);
-        windSFXInstance.start();
-        weather.StartCoroutine(weather.UpdateWind(windZoneObject, windSFXInstance));
+        EventInstance wind3DInstance = RuntimeManager.CreateInstance(windEventRef);
+        RuntimeManager.AttachInstanceToGameObject(wind3DInstance, windZoneObject.transform);
+
+        wind3DInstance.start();
+        wind3DInstance.release();
 
         yield return new WaitForSeconds(lifetime);
 
         if (activeWindZones.Contains(windZoneObject.transform))
         {
-            windSFXInstance.release();
-            windSFXInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            wind3DInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 
             ReturnWindZoneObject(windZoneObject);
         }
+    }
+
+    public IEnumerator WaitLifeTime(EventInstance wind3DInstance)
+    {
+        bool active = true;
+        float elapsedTime = 0f;
+
+        while (active && elapsedTime < lifetime)
+        {
+            wind3DInstance.setParameterByName("WindStrength", weather.windStrength);
+
+            elapsedTime += Time.deltaTime;
+
+            yield return null;
+        }
+
+        active = false;
     }
 
     public EventReference windEventRef;

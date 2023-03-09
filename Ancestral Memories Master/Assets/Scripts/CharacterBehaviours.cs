@@ -602,11 +602,11 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
+        cinematicCam.ToActionZoom();
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+
         player.ChangeAnimationState(PLAYER_PICKUP);
         yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
-
-        cinematicCam.ToActionZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -718,9 +718,11 @@ public class CharacterBehaviours : MonoBehaviour
     float interval;
 
     private float camMoveDuration = 1f;
-    
+
     public IEnumerator HarvestTree(GameObject hitObject)
     {
+        TreeDeathManager treeDeathManager = hitObject.GetComponentInChildren<TreeDeathManager>();
+
         //killThreshold = hitObject.transform.localScale.x;
         playerAudioSFX.numberOfHits = 0;
         playerAudioSFX.targetTree = hitObject;
@@ -737,7 +739,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToActionZoom();
 
-        while (time <= interval && !Input.GetMouseButtonDown(0) && !hitObject.transform.GetComponentInChildren<TreeDeathManager>().treeDead)
+        while (time <= interval && !Input.GetMouseButtonDown(0) && !treeDeathManager.treeDead)
         {
             interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 
@@ -773,6 +775,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
         yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+
         cinematicCam.ToActionZoom();
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
 

@@ -737,34 +737,24 @@ public class MapObjGen : MonoBehaviour
 
     public void GrowTrees(GameObject tree)
     {
-        Vector3 treeScaleDestination = new(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+        Vector3 treeScaleDestination = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
 
-        ScaleControl treeGrowControl = tree.transform.GetComponent<ScaleControl>();
-        TreeDeathManager treeDeathManager = tree.transform.GetComponent<TreeDeathManager>();
-        DirtExplode dirt = tree.transform.GetComponentInChildren<DirtExplode>();
+        Transform treeTransform = tree.transform;
+        ScaleControl treeGrowControl = treeTransform.GetComponent<ScaleControl>();
+        TreeDeathManager treeDeathManager = treeTransform.GetComponent<TreeDeathManager>();
+        DirtExplode dirt = treeTransform.GetComponentInChildren<DirtExplode>();
 
-        Interactable interactable = tree.GetComponent<Interactable>();
+        var interactable = tree.GetComponent<Interactable>();
         interactable.enabled = false;
+
+        var dirtExplodeParticles = dirt.transform.GetComponent<ParticleSystem>();
+        dirtExplodeParticles.transform.localScale = Vector3.one;
+        dirtExplodeParticles.transform.localPosition = Vector3.zero;
+        var emission = dirtExplodeParticles.emission;
+        emission.enabled = false;
 
         treeDeathManager.scaleControl = treeGrowControl;
         treeGrowControl.rainControl = rainControl;
-
-        ParticleSystem dirtExplodeParticles = dirt.transform.GetComponent<ParticleSystem>();
-
-        /*
-        CorruptionControl corruptionControl = dirt.transform.GetComponent<CorruptionControl>();
-        corruptionControl.player = player;
-        corruptionControl.behaviours = behaviours;
-        corruptionControl.enabled = true;
-        */
-
-        dirtExplodeParticles.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-        dirtExplodeParticles.transform.localPosition = new Vector3(0, 0, 0);
-        ParticleSystem.EmissionModule emission = dirtExplodeParticles.emission;
-
-        emission.enabled = false;
-
-        //LeafControl treeshader = tree.GetComponent<LeafControl>();
 
         treeGrowDuration = Random.Range(minTreeGrowDuration, maxTreeGrowDuration);
         appleGrowDuration = Random.Range(minAppleGrowDuration, maxAppleGrowDuration);
@@ -774,37 +764,39 @@ public class MapObjGen : MonoBehaviour
 
         StartCoroutine(WaitForGrowDelay(tree, dirtExplodeParticles, emission, treeGrowthDelay));
 
-        if (!tree.transform.CompareTag("AppleTree"))
+        if (!treeTransform.CompareTag("AppleTree"))
         {
             StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
         }
-
-        else if (tree.transform.CompareTag("AppleTree"))
+        else if (treeTransform.CompareTag("AppleTree"))
         {
             StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
 
-            foreach (Transform apple in tree.transform)
+            foreach (Transform apple in treeTransform)
             {
-                apple.GetComponent<Renderer>().enabled = false;
+                var appleTransform = apple.transform;
 
-                if (!apple.transform.CompareTag("Apple"))
+                appleTransform.GetComponent<Renderer>().enabled = false;
+
+                if (!appleTransform.CompareTag("Apple"))
                 {
                     continue;
                 }
 
-                ScaleControl appleGrowControl = apple.transform.GetComponent<ScaleControl>();
+                var appleGrowControl = appleTransform.GetComponent<ScaleControl>();
+                var appleRigidbody = appleTransform.GetComponent<Rigidbody>();
 
-                apple.GetComponent<Rigidbody>().isKinematic = true;
+                appleRigidbody.isKinematic = true;
 
-                Vector3 appleScaleDestination = new(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
+                Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
                 apple.GetComponent<Renderer>().enabled = true;
 
-                StartCoroutine(appleGrowControl.LerpScale(apple.transform.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
+                StartCoroutine(appleGrowControl.LerpScale(apple.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
                 StartCoroutine(WaitUntilGrown(apple.gameObject, appleGrowControl));
             }
-
         }
-       //StartCoroutine(treeShader.GrowLeaves(30f));
+
+        //StartCoroutine(treeShader.GrowLeaves(30f));
     }
 
     private IEnumerator WaitForGrowDelay(GameObject tree, ParticleSystem dirtExplodeParticles, ParticleSystem.EmissionModule emission, float treeGrowthDelay)

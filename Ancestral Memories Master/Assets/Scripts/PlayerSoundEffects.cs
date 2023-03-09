@@ -57,7 +57,7 @@ public class PlayerSoundEffects : MonoBehaviour
     public void CheckGroundType()
     {
         Debug.Log("Footstep Event Triggered");
-        playerWalk.StartCoroutine(playerWalk.DetectGroundType());
+        //playerWalk.StartCoroutine(playerWalk.DetectGroundType());
     }
 
     void PlayLeftFootStep()
@@ -195,7 +195,7 @@ public class PlayerSoundEffects : MonoBehaviour
             numberOfHits = 0;
 
             return;
-        }
+        } 
     }
 
 

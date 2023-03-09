@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="Snapshot" id="{f0b059bf-8d24-45d6-828f-b22e1c4ee99a}">
 		<property name="name">
 			<value>CaveReverb</value>
@@ -24,12 +24,12 @@
 		</relationship>
 		<relationship name="snapshotProperties">
 			<destination>{83e472d2-6aa2-41ed-9947-913ed9e625a4}</destination>
-			<destination>{ed73f881-a838-4886-9038-53a679d4f19e}</destination>
-			<destination>{7093b6a3-69e6-483e-b8e7-4a88cdcde95d}</destination>
+			<destination>{f4788a79-d3b0-4204-9051-6f34c0f062f5}</destination>
+			<destination>{916e8a2b-a2b9-4541-9aa9-e4f84605f8e6}</destination>
 		</relationship>
 		<relationship name="snapshotTracks">
 			<destination>{4d63ab63-738c-4677-a823-98c344657b2b}</destination>
-			<destination>{f0110f3f-d1ea-4483-98e9-c109c9b60a49}</destination>
+			<destination>{f9ffdb78-9c18-4f4e-9598-fedea98909ef}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{a162645b-0cba-435a-a6d4-583935236fdc}">
@@ -60,26 +60,26 @@
 			<destination>{28b4ef3f-b803-459c-9ead-a320246e923f}</destination>
 		</relationship>
 	</object>
-	<object class="SnapshotProperty" id="{ed73f881-a838-4886-9038-53a679d4f19e}">
+	<object class="SnapshotProperty" id="{f4788a79-d3b0-4204-9051-6f34c0f062f5}">
 		<property name="propertyName">
-			<value>wetLevel</value>
+			<value>volume</value>
 		</property>
 		<property name="value">
 			<value>0</value>
 		</property>
 		<relationship name="automatableObject">
-			<destination>{19dbf688-4b40-4822-9725-cb0bc78728b3}</destination>
+			<destination>{df3ec69b-0b29-4f91-97b4-a0b8aa147fa2}</destination>
 		</relationship>
 	</object>
-	<object class="SnapshotProperty" id="{7093b6a3-69e6-483e-b8e7-4a88cdcde95d}">
+	<object class="SnapshotProperty" id="{916e8a2b-a2b9-4541-9aa9-e4f84605f8e6}">
 		<property name="propertyName">
-			<value>dryLevel</value>
+			<value>level</value>
 		</property>
 		<property name="value">
-			<value>-80</value>
+			<value>0</value>
 		</property>
 		<relationship name="automatableObject">
-			<destination>{19dbf688-4b40-4822-9725-cb0bc78728b3}</destination>
+			<destination>{e2fbf046-139b-4c4b-a750-1061440d64d5}</destination>
 		</relationship>
 	</object>
 	<object class="SnapshotTrack" id="{4d63ab63-738c-4677-a823-98c344657b2b}">
@@ -87,9 +87,9 @@
 			<destination>{28b4ef3f-b803-459c-9ead-a320246e923f}</destination>
 		</relationship>
 	</object>
-	<object class="SnapshotTrack" id="{f0110f3f-d1ea-4483-98e9-c109c9b60a49}">
+	<object class="SnapshotTrack" id="{f9ffdb78-9c18-4f4e-9598-fedea98909ef}">
 		<relationship name="mixerStrip">
-			<destination>{2e65d825-b7af-4f63-92a2-ebe67b103552}</destination>
+			<destination>{df3ec69b-0b29-4f91-97b4-a0b8aa147fa2}</destination>
 		</relationship>
 	</object>
 	<object class="Automator" id="{0b721d9c-3829-40bf-9122-50be2f071379}">
@@ -119,7 +119,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>100</value>
 		</property>
 		<property name="curveShape">
 			<value>0.238122523</value>

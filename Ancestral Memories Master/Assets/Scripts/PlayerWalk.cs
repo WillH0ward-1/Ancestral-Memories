@@ -133,58 +133,76 @@ public class PlayerWalk : MonoBehaviour
         StartCoroutine(GetWaterDepth(raySource));
     }
 
+    private RaycastHit lastTerrainHit;
+
     public IEnumerator DetectGroundType()
     {
-        foreach (Transform rayTransform in head)
+        while (true)
         {
-            if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, terrainDetectionLayers))
-            {
-                // Check if the ground is water and the ray is coming from the player head
-                if (rayHit.collider.gameObject.layer == waterLayer)
-                { 
-                    WaterDetected(rayTransform);
-                    playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
+            bool groundTypeUpdated = false;
 
-                    Debug.Log("Ground type detected: Water");
-
-                    playerInWater = true;
-
-                    continue;
-                }
-            }
-
-            playerInWater = false;
-        }
-
-        if (!playerInWater)
-        {
-            foreach (Transform rayTransform in feet)
+            foreach (Transform rayTransform in head)
             {
                 if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, terrainDetectionLayers))
                 {
-                    // Check if the ground is grass and the ray is not coming from the player head
-                    if (rayHit.collider.gameObject.layer == grassGroundLayer)
+                    // Check if  ground = water and the ray is coming from the player head
+                    if (rayHit.collider.gameObject.layer == waterLayer)
                     {
-                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
-                        Debug.Log("Ground type detected: Grass");
+                        WaterDetected(rayTransform);
+                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
+
+                        Debug.Log("Ground type detected: Water");
+
+                        lastTerrainHit = rayHit;
+                        groundTypeUpdated = true;
 
                         continue;
                     }
-
-                    // Check if the ground is cave and the ray is not coming from the player head
-                    if (rayHit.collider.gameObject.layer == caveGroundLayer)
-                    {
-                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
-                        Debug.Log("Ground type detected: Cave");
-
-                        continue;
-                    }
-
                 }
             }
-        }
 
-        yield break;
+            if (!groundTypeUpdated)
+            {
+                foreach (Transform rayTransform in feet)
+                {
+                    if (Physics.Raycast(rayTransform.transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, terrainDetectionLayers))
+                    {
+                        // Check if  ground = grass and the ray is not coming from the player head
+                        if (rayHit.collider.gameObject.layer == grassGroundLayer)
+                        {
+                            playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
+                            Debug.Log("Ground type detected: Grass");
+
+                            if (rayHit.collider != lastTerrainHit.collider)
+                            {
+                                lastTerrainHit = rayHit;
+                                groundTypeUpdated = true;
+                            }
+
+                            continue;
+                        }
+
+                        // Check if ground = cave and the ray is not coming from the player head
+                        if (rayHit.collider.gameObject.layer == caveGroundLayer)
+                        {
+                            playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
+                            Debug.Log("Ground type detected: Cave");
+
+                            if (rayHit.collider != lastTerrainHit.collider)
+                            {
+                                lastTerrainHit = rayHit;
+                                groundTypeUpdated = true;
+                            }
+
+                            continue;
+                        }
+
+                    }
+                }
+            }
+
+            yield return null;
+        }
     }
 
     public enum GroundTypes

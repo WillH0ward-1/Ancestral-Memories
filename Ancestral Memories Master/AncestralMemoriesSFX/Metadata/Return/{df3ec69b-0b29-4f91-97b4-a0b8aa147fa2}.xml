@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="MixerReturn" id="{df3ec69b-0b29-4f91-97b4-a0b8aa147fa2}">
 		<property name="name">
 			<value>CaveReverb</value>
@@ -16,9 +16,18 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{245a795e-7d5e-4642-972d-18ef56297142}">
 		<relationship name="effects">
+			<destination>{e2fbf046-139b-4c4b-a750-1061440d64d5}</destination>
 			<destination>{06a9f31c-d786-478c-8cc3-7701d01957bc}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{08a22fdb-68f8-4a55-bd54-205ce91cfb45}" />
+	<object class="MixerSend" id="{e2fbf046-139b-4c4b-a750-1061440d64d5}">
+		<property name="inputFormat">
+			<value>0</value>
+		</property>
+		<relationship name="mixerReturn">
+			<destination>{df3ec69b-0b29-4f91-97b4-a0b8aa147fa2}</destination>
+		</relationship>
+	</object>
 	<object class="MixerBusFader" id="{06a9f31c-d786-478c-8cc3-7701d01957bc}" />
 </objects>

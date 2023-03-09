@@ -64,6 +64,12 @@ public class TreeAudioSFX : MonoBehaviour
         treeGrowInstance.start();
         treeGrowInstance.release();
 
+
+        EventInstance treeLeavesSFXInstance = RuntimeManager.CreateInstance(TreeLeavesEventPath);
+        RuntimeManager.AttachInstanceToGameObject(treeLeavesSFXInstance, transform, rigidBody);
+
+        treeLeavesSFXInstance.start();
+
         while (!scaleControl.isFullyGrown)
         {
             float output = scaleControl.growthPercent;
@@ -74,30 +80,19 @@ public class TreeAudioSFX : MonoBehaviour
 
             //var t = Mathf.InverseLerp(0, 1, output);
             //float newOutput = Mathf.Lerp(1, 0, t);
-
-            //            birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
-
-  
-
-            yield return null;
-        }
-
-       
-
-
-        EventInstance treeLeavesSFXInstance = RuntimeManager.CreateInstance(TreeLeavesEventPath);
-        RuntimeManager.AttachInstanceToGameObject(treeLeavesSFXInstance, transform, rigidBody);
-
-        treeLeavesSFXInstance.start();
-
-        while (!treeFallManager.treeDead)
-        {
-            treeGrowInstance.setParameterByName("WindStrength", weatherManager.windStrength);
+            //birdChirpInstance.setParameterByName("HarmonicStability", newOutput);
 
             yield return null;
         }
 
         treeLeavesSFXInstance.release();
+
+        while (!treeFallManager.treeDead)
+        {
+            treeLeavesSFXInstance.setParameterByName("WindStrength", weatherManager.windStrength);
+
+            yield return null;
+        }
 
         StopInstance(treeGrowInstance);
         StopInstance(treeLeavesSFXInstance);

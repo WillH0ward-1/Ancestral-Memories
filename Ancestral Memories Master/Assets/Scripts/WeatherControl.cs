@@ -40,7 +40,7 @@ public class WeatherControl : MonoBehaviour
     private void Awake()
     {
         parent = player.transform;
-        func = Lerp.GetLerpFunction(lerpParams.lerpType);
+       // func = Lerp.GetLerpFunction(lerpParams.lerpType);
     }
 
     void Start()
@@ -71,13 +71,12 @@ public class WeatherControl : MonoBehaviour
     }
 
 
-    public IEnumerator UpdateWind(GameObject windZoneObject, EventInstance wind3DInstance)
+    public IEnumerator UpdateWind()
     {
         bool active = true;
 
-        while (active && windZoneObject != null)
+        while (active)
         {
-            wind3DInstance.setParameterByName("WindStrength", windStrength);
 
             foreach (Transform t in windAffectedRendererList)
             {
@@ -124,14 +123,14 @@ public class WeatherControl : MonoBehaviour
     private void OnEnable() => player.OnFaithChanged += WindStrength;
     private void OnDisable() => player.OnFaithChanged -= WindStrength;
 
-    private System.Func<float, float> func;
+    //private System.Func<float, float> func;
 
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float windOutput = Mathf.Lerp(newMin, newMax, func(t));
-        float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));
-        float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, func(t));
+        float windOutput = Mathf.Lerp(newMin, newMax, t);
+        float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
+        float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
 
         targetWindStrength = windOutput;
         targetLeafShakeStrength = leafOutput;
