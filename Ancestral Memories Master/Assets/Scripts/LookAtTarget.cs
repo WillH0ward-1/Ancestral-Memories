@@ -4,70 +4,72 @@ using UnityEngine;
 
 public class LookAtTarget : MonoBehaviour
 {
-    public Transform target;
-
-    private Renderer meshRenderer;
-
     private Dialogue dialogue;
 
-    private float distanceFromFire;
+    public Player player;
 
     [SerializeField] private bool inRange;
 
-    float yRotation;
+
+    public Transform godFaceInRange;
+    public Transform godFaceOutOfRange;
+
+    [SerializeField] private Renderer inRangeGodRenderer;
+    [SerializeField] private Renderer outRangeGodRenderer;
+
+    public float inRangeThreshold = 10;
 
     private void Start()
     {
-        meshRenderer = transform.GetComponent<Renderer>();
-        meshRenderer.enabled = false;
 
-        yRotation = gameObject.transform.rotation.eulerAngles.y;
-        yRotation += 180;
         dialogue = transform.root.GetComponent<Dialogue>();
 
+        inRangeGodRenderer = transform.GetComponent<Renderer>();
+        outRangeGodRenderer = godFaceInRange.GetComponent<Renderer>();
     }
 
     void Update()
     {
-        if (target == null)
-        {
-            return;
-        }
-        else
-        {
-            gameObject.transform.LookAt(target.position);
-        }
-
+    
         if (!dialogue.dialogueActive)
         {
-            meshRenderer.enabled = false;
+            inRangeGodRenderer.enabled = false;
+            outRangeGodRenderer.enabled = false;
         }
-        else if (dialogue.dialogueActive && inRange)
+        else if (dialogue.dialogueActive && InRange())
         {
 
-            meshRenderer.enabled = true;
+            inRangeGodRenderer.enabled = true;
+            outRangeGodRenderer.enabled = false;
 
-        } else { 
-            meshRenderer.enabled = false;
+        }
+        else if (dialogue.dialogueActive && !InRange())
+        {
+
+            inRangeGodRenderer.enabled = false;
+            outRangeGodRenderer.enabled = true;
+
+        }
+        else {
+            inRangeGodRenderer.enabled = false;
+            outRangeGodRenderer.enabled = false;
         }
     }
 
-
-    private void OnTriggerEnter(Collider other)
+    private bool InRange()
     {
-        if (other.transform.CompareTag("Player"))
+        bool inRange;
+
+        float distance = Vector3.Distance(transform.position, player.transform.position);
+
+        if (distance <= inRangeThreshold)
         {
             inRange = true;
-            target = other.transform.GetComponent<CharacterBehaviours>().cinematicCam.transform;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.transform.CompareTag("Player"))
+        } else 
         {
             inRange = false;
-            meshRenderer.enabled = false;
         }
+
+        return inRange;
     }
 }

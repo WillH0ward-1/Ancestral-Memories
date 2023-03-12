@@ -21,6 +21,8 @@ public class Dialogue : MonoBehaviour
     public EventReference dialogueEventPath;
     public EventReference dialogueTickPath;
 
+    public EventReference dialogue3DEventPath;
+
     public bool dialogueActive;
 
     private int index;
@@ -42,10 +44,16 @@ public class Dialogue : MonoBehaviour
 
     public Player player;
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
+    FMOD.Studio.EVENT_CALLBACK callbackDelegate3D;
+
 
     private void Awake()
     {
         Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
+        if (transform.CompareTag("Campfire"))
+        {
+            godAudioManager = transform.GetComponent<GodAudioSFX>();
+        }
     }
 
     void Start()
@@ -140,6 +148,11 @@ public class Dialogue : MonoBehaviour
 
             StartCoroutine(TypeLine());
 
+            if (transform.CompareTag("Campfire"))
+            {
+                godAudioManager.StartGodAmbienceFX();
+            }
+
         }
         else if (dialogueBox == null)
         {
@@ -151,30 +164,51 @@ public class Dialogue : MonoBehaviour
 
     private EventInstance dialogueInstanceRef;
 
+    private GodAudioSFX godAudioManager;
+
     public void GetDialogueAudio(string name, string conversationName, string type, int lineIndex)
     {
 
         if (dialogueActive)
         {
+  
             string key = name + "/" + type + "/" + name + "-" + conversationName + "-" + type + "-" + lineIndex;
 
             Debug.Log(key);
 
-            var dialogueInstance = RuntimeManager.CreateInstance(dialogueEventPath);
+        
+            if (transform.CompareTag("Campfire"))
+            {
+                var dialogueInstance3D = RuntimeManager.CreateInstance(dialogue3DEventPath);
+                RuntimeManager.AttachInstanceToGameObject(dialogueInstance3D, player.transform);
+
+                GCHandle stringHandle3D = GCHandle.Alloc(key, GCHandleType.Pinned);
+                dialogueInstance3D.setUserData(GCHandle.ToIntPtr(stringHandle3D));
+                dialogueInstance3D.setCallback(callbackDelegate3D);
+
+                dialogueInstance3D.start();
+                dialogueInstance3D.release();
+
+                StartCoroutine(UpdateDistance(dialogueInstance3D));
+
+            }
+
             //dialogueInstance.setParameterByNameWithLabel("DialogueActive", "true");
 
-            StartCoroutine(UpdateDistance(dialogueInstance));
+            var dialogueInstance = RuntimeManager.CreateInstance(dialogueEventPath);
 
             GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
             dialogueInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
             dialogueInstance.setCallback(callbackDelegate);
-
 
             dialogueInstanceRef = dialogueInstance;
 
             //dialogueInstance.set3DAttributes(RuntimeUtils.To3DAttributes(transform.position));
             dialogueInstance.start();
             dialogueInstance.release();
+
+            StartCoroutine(UpdateDistance(dialogueInstance));
+
         }
     }
 
@@ -240,6 +274,11 @@ public class Dialogue : MonoBehaviour
 
     void StopDialogue()
     {
+        if (transform.CompareTag("Campfire"))
+        {
+            godAudioManager.StopGodAmbienceFX();
+        }
+
         StopAllCoroutines();
         dialogueActive = false;
         //dialogueInstanceRef.setParameterByNameWithLabel("DialogueActive", "false");

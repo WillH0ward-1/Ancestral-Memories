@@ -44,8 +44,8 @@ public class PlayerWalk : MonoBehaviour
     bool playerIsCrouched = false;
 
     [SerializeField] private float walkThreshold = 0;
-    [SerializeField] private float runThreshold = 25;
-    [SerializeField] private float speed = 0;
+    public float runThreshold = 25;
+    public float speed = 0;
     [SerializeField] private float walkAnimFactor = 0;
     [SerializeField] private float distanceRatios = 2;
     [SerializeField] float distanceThreshold = 60;
@@ -135,6 +135,15 @@ public class PlayerWalk : MonoBehaviour
 
     private RaycastHit lastTerrainHit;
 
+    public enum GroundTypes
+    {
+        GroundIndex,
+        RockIndex,
+        WaterIndex
+    }
+
+    [SerializeField] private bool checkActive = false;
+
     public IEnumerator DetectGroundType()
     {
         while (true)
@@ -204,19 +213,6 @@ public class PlayerWalk : MonoBehaviour
             yield return null;
         }
     }
-
-    public enum GroundTypes
-    {
-        GroundIndex,
-        RockIndex,
-        WaterIndex
-    }
-
-    [SerializeField] private bool checkActive = false;
-
-    private string currentGround;
-    private string lastGround;
-
 
     void Update()
     {
@@ -328,8 +324,7 @@ public class PlayerWalk : MonoBehaviour
 
     public IEnumerator WalkToward(GameObject hitObject, string selectedChoice, Transform teleportTarget, RaycastHit rayHit)
     {
-        // sizeCalculated = bounds of the selected (hitObject) object, divided by some factor to achieve the desired trigger bounds.
-        // Needs refactoring... 
+        // sizeCalculated = bounds of the selected (hitObject) object, divided by some acceptable factor to achieve the desired trigger bounds.
 
         destination = hitObject.transform.position;
 

@@ -1,12 +1,12 @@
-using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
-using FMOD;
-using System.Runtime.InteropServices;
 using System.Linq;
+using System.Runtime.InteropServices;
+using FMOD.Studio;
+using FMODUnity;
+using UnityEngine;
+
 
 public class MusicManager : MonoBehaviour
 {
@@ -25,7 +25,7 @@ public class MusicManager : MonoBehaviour
         Chromatic
     }
 
-    public Dictionary<Modes, string[]> ModeInfo = new()
+    public Dictionary<Modes, string[]> ModeInfo = new() 
     {
         { Modes.Major, new string[] { "C", "D", "E", "F", "G", "A", "B" } },
         { Modes.Aeolian, new string[] { "C", "D", "Ds", "F", "G", "Gs", "As" } },
@@ -35,71 +35,125 @@ public class MusicManager : MonoBehaviour
         { Modes.Mixolydian, new string[] { "C", "D", "E", "F", "G", "A", "As" } },
         { Modes.Locrian, new string[] { "C", "Cs", "Ds", "F", "Fs", "Gs", "As" } },
         { Modes.Klezmer, new string[] { "C", "D", "Ds", "Fs", "G", "A", "As" } },
-        { Modes.SeAsian, new string[] { "C", "C#", "E", "F", "G", "G#", "B" } },
+        { Modes.SeAsian, new string[] { "C", "Cs", "E", "F", "G", "Gs", "B" } },
         { Modes.Chromatic, new string[] { "C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B" } }
     };
 
-    [SerializeField] private EventReference MusicEventPath;
-    private EventInstance musicInstance;
-
-    [SerializeField] private float output = 0;
-    [SerializeField] private int faithModulateOutput;
-
     [SerializeField] private string currentlyPlaying;
-    [SerializeField] private int currentMode;
-
-    private bool autoModulating = false;
 
     [SerializeField] private AreaManager areaManager;
     [SerializeField] private PlayerWalk playerWalk;
     [SerializeField] private Player player;
 
-    EVENT_CALLBACK callbackDelegate;
-
-    Modes randomMode;
     public Modes startingMode = Modes.Chromatic;
-    public int stringsVoiceCount = 4;
 
-    public TimeCycleManager timeCycleManager;
+    public float minRandomModulateWait = 6f;
+    public float maxRandomModulateWait = 30f;
 
-    public CharacterBehaviours characterBehaviours;
+    [SerializeField] private float output = 0;
+    [SerializeField] private int faithModulateOutput;
 
-    public enum Instruments
+    [SerializeField] private EventReference strings_EventPath;
+    [SerializeField] private EventReference plateScrapeSynth_EventPath;
+    [SerializeField] private EventReference jawHarp_EventPath;
+    [SerializeField] private EventReference hangDrum_EventPath;
+    [SerializeField] private EventReference marimba_EventPath;
+    [SerializeField] private EventReference playerFlute_EventPath;
+    [SerializeField] private EventReference sine_EventPath;
+
+    public enum Instruments // The Instruments type containing the names of instruments
+                            // is held in the InstrumentInfo dictionary
     {
         Strings,
-        PlateScrapeSynth
+        PlateScrapeSynth,
+        HangDrum,
+        Marimba,
+        PlayerFlute,
+        Sine
     }
+
+    public Dictionary<Instruments, EventReference> InstrumentInfo = new() // Holds the name and FMOD reference
+    {
+        { Instruments.Strings, new EventReference() },
+        { Instruments.PlateScrapeSynth, new EventReference() },
+        { Instruments.HangDrum, new EventReference() },
+        { Instruments.Marimba, new EventReference() },
+        { Instruments.PlayerFlute, new EventReference() },
+        { Instruments.Sine, new EventReference() }
+    };
+
+    public int stringsVoiceCount = 4; // Initialise voice counts here. 
+    /*
+     * Unused voice count variables, just demonstration:
+     * 
+    public int PlateScrapeSynthVoiceCount = 1;
+    public int HangDrumVoiceCount = 1; 
+    public int MarimbaVoiceCount = 1; 
+    public int PlayerFluteVoiceCount = 1; 
+    public int SineVoiceCount = 1;
+    */
+
+    private void SetEventReferences() // Sets all of the event paths in the dictionary so it may be accessed
+                                      // as one object, along with it's instrument name
+    {
+        InstrumentInfo[Instruments.Strings] = strings_EventPath;
+        InstrumentInfo[Instruments.PlateScrapeSynth] = plateScrapeSynth_EventPath;
+        InstrumentInfo[Instruments.HangDrum] = hangDrum_EventPath;
+        InstrumentInfo[Instruments.Marimba] = marimba_EventPath;
+        InstrumentInfo[Instruments.PlayerFlute] = playerFlute_EventPath;
+        InstrumentInfo[Instruments.Sine] = sine_EventPath;
+    }
+
+    public float minBuffer = 10f;
+    public float maxBuffer = 15f;
+
+    public float minLoopDuration = 5f;
+    public float maxLoopDuration = 15f;
+
+    public Modes currentModeSetting;
+
+    private void Awake()
+    {
+        SetEventReferences(); // If we want to serialize the FMOD Event References and store them in
+                              // a dictionary with their note names, then we need to initialise the dictionary
+                              // values.
+    }
+
+    EVENT_CALLBACK callbackDelegate;
 
     private void Start()
     {
-
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+
         SetMode(startingMode);
         StartCoroutine(NoteBuffer());
-        StartCoroutine(TimeJuggle());
+        //StartCoroutine(TimeJuggle());
         StartCoroutine(RandomModulateBuffer());
 
-        //StartCoroutine(FaithModulate());
     }
 
-    public IEnumerator NoteBuffer()
+    public CharacterBehaviours characterBehaviours;
+
+    public IEnumerator NoteBuffer() // This is where we wait before starting a new note
     {
-        float buffer = UnityEngine.Random.Range(minWait, maxWait);
+        float buffer = UnityEngine.Random.Range(minBuffer, maxBuffer);
         yield return new WaitForSeconds(buffer);
 
-        switch (areaManager.currentRoom)
+        switch (areaManager.currentRoom) // Convenient, readable method of mapping instrumentation/articulation
+                                         // when certain conditions are met. This also provides a relatively smooth-step
+                                         // between events and progressions. More control over this in future would be nice.
         {
             case "Outside" when characterBehaviours.isPsychdelicMode:
-                StartCoroutine(PlayNote(GetRandomInstrument().ToString(), stringsVoiceCount, null));
+                StartCoroutine(PlayNote(GetRandomInstrument().ToString(), stringsVoiceCount, null, true));
                 break;
             case "Outside":
-                StartCoroutine(PlayNote("Strings", stringsVoiceCount, null));
+                StartCoroutine(PlayNote(Instruments.Strings.ToString(), stringsVoiceCount, null, true));
                 break;
             case "InsideCave":
-                StartCoroutine(PlayNote("PlateScrapeSynth", stringsVoiceCount, null));
+                StartCoroutine(PlayNote(Instruments.PlateScrapeSynth.ToString(), stringsVoiceCount, null, true));
                 break;
             default:
-                StartCoroutine(PlayNote("Strings", stringsVoiceCount, null));
+                StartCoroutine(PlayNote(Instruments.Strings.ToString(), stringsVoiceCount, null, true));
                 break;
         }
 
@@ -116,10 +170,8 @@ public class MusicManager : MonoBehaviour
 
         return randomInstrument;
     }
-    public float minRandomModulateWait = 6f;
-    public float maxRandomModulateWait = 30f;
 
-    public IEnumerator RandomModulateBuffer()
+    public IEnumerator RandomModulateBuffer() // Wait a random amount of time between a min and max before modulating 
     {
         float buffer = UnityEngine.Random.Range(minRandomModulateWait, maxRandomModulateWait);
         yield return new WaitForSeconds(buffer);
@@ -129,50 +181,88 @@ public class MusicManager : MonoBehaviour
         yield break;
     }
 
+    Modes randomMode;
+
     public void RandomModulate()
     {
         randomMode = (Modes)UnityEngine.Random.Range(0, Enum.GetValues(typeof(Modes)).Length);
 
         SetMode(randomMode);
 
-        StartCoroutine(RandomModulateBuffer());
+        StartCoroutine(RandomModulateBuffer()); // Retrigger the random modulation buffer
     }
 
-    public EventReference eventPath;
+    // WIP get closest note in the current mode
+    // Currently chooses a new note that is either one semitone higher
+    // or one semitone lower than the input note index (noteName), based on a
+    // 50/50 random chance. 
+
+    public string GetClosestValidNote(string noteName)
+    {
+        string[] chromaticScale = ModeInfo[Modes.Chromatic];
+
+        int noteIndex = Array.IndexOf(chromaticScale, noteName); // Get the index of this note in the chromatic scale
+
+        int newNoteIndex;
+
+        if (UnityEngine.Random.value >= 0.5f) 
+        {
+            newNoteIndex = noteIndex + 1;
+        }
+        else
+        {
+            newNoteIndex = noteIndex - 1;
+        }
+
+        return chromaticScale[newNoteIndex % chromaticScale.Length]; // Safeguard to prevent exceeding array bounds
+    }                                                                
+
+    public EventReference GetInstrumentEvent(string instrumentName)
+    {
+        if (!Enum.TryParse(instrumentName, out Instruments instrument)) // try to retrieve the corrosponding Instrument 
+        {
+            Debug.Log("Invalid instrument name!");
+        }
+
+        if (!InstrumentInfo.TryGetValue(instrument, out EventReference eventRef))
+        {
+            Debug.Log("No event reference for " + instrument + " found in " + InstrumentInfo + "!");
+        }
+
+        return eventRef;
+    }
+
+    public int maxVoices = 4; // Max number of voices active at one time (Polyphony)
+
+    [SerializeField] private Dictionary<EventInstance, string> activeVoices = new Dictionary<EventInstance, string>(); // Holds The instance and its note name
+    [SerializeField] private List<string> activeNotes;
+
     public string instrumentFileRootName = "Instrument";
     public string[] notesToUse;
 
-    public float minWait = 10f;
-    public float maxWait = 15f;
-
-    public float minDuration = 5f;
-    public float maxDuration = 15f;
-
-    public Modes currentModeSetting;
-
-    public void SetMode(Modes mode)
+    public void SetMode(Modes mode) 
     {
-        if (mode != currentModeSetting)
+        if (mode != currentModeSetting) 
         {
-            currentModeSetting = mode;
+            currentModeSetting = mode; 
 
             notesToUse = ModeInfo[mode];
 
-            for (int i = activeVoices.Count - 1; i >= 0; i--)
+            for (int i = activeVoices.Count - 1; i >= 0; i--) 
             {
-                Tuple<EventInstance, string> activeVoice = activeVoices[i];
-                EventInstance instrumentInstance = activeVoice.Item1;
-                string noteName = activeVoice.Item2;
+                KeyValuePair<EventInstance, string> activeVoice = activeVoices.ElementAt(i);
+                EventInstance instrumentInstance = activeVoice.Key;
+
+                string noteName = activeVoice.Value;
 
                 if (!notesToUse.Contains(noteName))
                 {
-                    activeVoices.RemoveAt(i);
-                    activeNotes.RemoveAt(i);
+                    activeVoices.Remove(instrumentInstance);
+                    activeNotes.Remove(noteName);
 
                     string newNote = GetClosestValidNote(noteName);
+                    StartCoroutine(PlayNote(InstrumentInfo[Instruments.Strings].ToString(), 1, newNote, true));
 
-                    StartCoroutine(PlayNote("Strings", 1, newNote));
-   
                     instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 
                     UnityEngine.Debug.Log("Removed " + "'" + noteName + "'" + " as this note isn't in the " + mode + " mode! " + newNote + " used instead!");
@@ -181,36 +271,11 @@ public class MusicManager : MonoBehaviour
         }
     }
 
-    public string GetClosestValidNote(string noteName)
-    {
-        string[] chromaticScale = ModeInfo[Modes.Chromatic];
-        int noteIndex = Array.IndexOf(chromaticScale, noteName);
-
-        int newIndex;
-
-        if (UnityEngine.Random.value >= 0.5f)
-        {
-            newIndex = noteIndex + 1;
-        }
-        else
-        {
-            newIndex = noteIndex - 1;
-        }
-
-        return chromaticScale[newIndex % chromaticScale.Length];
-    }
-
-    public int maxVoices = 4;
-    [SerializeField] private List<Tuple<EventInstance, string>> activeVoices = new();
-    [SerializeField] private List<string> activeNotes;
-
-    public static string[] YatesShuffle(string[] array)
+    public static string[] Shuffle(string[] array) // Random Shuffle
     {
         for (int i = 0; i < array.Length - 1; i++)
         {
-            System.Random random = new System.Random();
-
-            int randomNumber = random.Next(0, array.Length); 
+            int randomNumber = (int)UnityEngine.Random.Range(0, array.Length);
             int randomIndex = randomNumber;
             string currentIndex = array[i];
             array[i] = array[randomIndex];
@@ -219,29 +284,31 @@ public class MusicManager : MonoBehaviour
         return array;
     }
 
-    public IEnumerator PlayNote(string instrument, int voices, string manualPitch)
+    public IEnumerator PlayNote(string instrument, int voices, string manualPitch, bool looping)
     {
-        // float buffer = UnityEngine.Random.Range(minWait, maxWait);
-        // yield return new WaitForSeconds(buffer);
+        notesToUse = Shuffle(notesToUse);
 
-        notesToUse = YatesShuffle(notesToUse);
+        EventReference eventPath = GetInstrumentEvent(instrument);
 
-        for (int i = 0; i < Mathf.Min(maxVoices, voices); i++){
+        for (int i = 0; i < Mathf.Min(maxVoices, voices); i++) // Clamp the number of notes to generate to maxVoices.
+                                                              // repeat the iteration 'voices' number of times if voices
+                                                              // is smaller than max voices. 
+        {
+            string note = null; 
 
-            string note = null;
-
-            if (manualPitch != null)
+            if (manualPitch != null) // If we're setting the pitch manually
+                                     // (By not passing in null to manualPitch of PlayNote())
             {
                 note = manualPitch;
             }
-
             else
             {
-                manualPitch = null;
+                manualPitch = null; // Not using manual pitch, continue to generative process
 
-                foreach (string validNote in notesToUse)
+                foreach (string validNote in notesToUse) // For each validNote in the bank of freshly shuffled notes to use
                 {
-                    if (!activeNotes.Contains(validNote))
+                    if (!activeNotes.Contains(validNote)) // If activeNotes doesn't already contain the validNote,
+                                                          // let note become validNote.
                     {
                         note = validNote;
                         break;
@@ -249,138 +316,149 @@ public class MusicManager : MonoBehaviour
                 }
             }
 
-            if (note == null)
+            if (note == null) // So long as it exists
             {
                 yield break;
             }
 
-            string key = instrumentFileRootName + "/" + instrument + "/" + note;
 
-            UnityEngine.Debug.Log(key);
-
-            EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath);
-
-            var activeVoice = Tuple.Create(instrumentInstance, note);
-
-            UnityEngine.Debug.Log(instrumentInstance);
-
-            GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
+            string key = instrumentFileRootName + "/" + instrument + "/" + note; // Example Directory:
+                                                                                 // AncestralMemoriesSFX/NoteBanks/Instrument/Strings/Cs
+                                                                                 // This is the path to a string sound in C# pitch (C sharp)
+                                                                                 // Check the 'Instrument' folder for more options
+                                                                        
+            EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath); // Adapted from 'Steve The Cube' Project
+            GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned); 
             instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
             instrumentInstance.setCallback(callbackDelegate);
-            //dialogueInstanceRef = dialogueInstance;
 
-            //dialogueInstance.set3DAttributes(RuntimeUtils.To3DAttributes(transform.position));
+            //Debug.Log(key);
+            //Debug.Log(instrumentInstance);
+
+            activeVoices.Add(instrumentInstance, note); // Add note object containing the FMOD instance 
+                                                        // and the corrosponding note name to dictionary.
+
+            activeNotes.Add(note); // Add note name to its own separate list too.
 
             instrumentInstance.start();
             instrumentInstance.release();
 
-            activeVoices.Add(activeVoice);
-            activeNotes.Add(activeVoice.Item2);
-
-            StartCoroutine(NoteDuration(instrumentInstance, activeVoice));
-
-            yield return null;
-            
-        }
-        
-        yield break;
-    }
-
-    public IEnumerator NoteDuration(EventInstance instrumentInstance, Tuple<EventInstance, string> activeVoice)
-    {
-        float duration = UnityEngine.Random.Range(minDuration, maxDuration);
-
-        bool noteEnded = false;
-
-        while (!noteEnded)
-        {
-            RESULT timeLinePos = instrumentInstance.getTimelinePosition(out int timelinePosition);
-
-            float timelineSeconds = timelinePosition / 1000f; // convert from ms to seconds
-
-            if (timeLinePos == RESULT.OK && timelineSeconds >= duration)
+            if (looping) 
             {
-                activeVoices.Remove(activeVoice);
-                activeNotes.Remove(activeVoice.Item2);
-                instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-                noteEnded = true;
+                StartCoroutine(NoteDuration(instrumentInstance, note)); // Optional control for looping instruments to sustain for a
+                                                                        // Random period of time determined by 'minLoopDuration' and 'maxLoopDuration'.
             }
 
             yield return null;
+
         }
 
-        UnityEngine.Debug.Log(instrumentInstance + "ended!");
+        yield break;
+    }
+
+    public IEnumerator NoteDuration(EventInstance instrumentInstance, string note)
+    {
+        yield return new WaitForSeconds(UnityEngine.Random.Range(minLoopDuration, maxLoopDuration));
+
+        if (instrumentInstance.isValid())
+        {
+            activeVoices.Remove(instrumentInstance); // Remove instance from the active voices dictionary 
+            activeNotes.Remove(note); // Remove note from active note list
+
+            instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        }
 
         yield break;
     }
 
-    public IEnumerator Retrigger(float buffer, int voices)
-    {
-        yield return new WaitForSeconds(buffer);
+    private List<string> notesList;
 
-        RandomModulate();
-        StartCoroutine(PlayNote("Strings", voices, null));
+    public void PlayOneShot(string instrumentName, GameObject emitter) // Use 'Find References', it's called
+    {                                                                 // by other scripts
+        EventReference eventPath = GetInstrumentEvent(instrumentName);
 
-        yield break;
+        int randomIndex = UnityEngine.Random.Range(0, notesToUse.Length - 1);
+        string note = notesToUse[randomIndex];
+
+        notesList = notesToUse.ToList();
+
+        string key = instrumentFileRootName + "/" + instrumentName + "/" + note;
+
+        Debug.Log(key);
+
+        EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath);
+
+        Debug.Log(instrumentInstance);
+
+        GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
+        instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
+        instrumentInstance.setCallback(callbackDelegate);
+
+        RuntimeManager.AttachInstanceToGameObject(instrumentInstance, emitter.transform);
+
+        instrumentInstance.start();
+        instrumentInstance.release();
     }
 
+    /*
+     * 
+public IEnumerator Retrigger(float buffer, int voices)
+{
+    yield return new WaitForSeconds(buffer);
 
-    public IEnumerator TimeJuggle()
-    {
-        float minTimeJuggleBuffer = UnityEngine.Random.Range(2, 6);
-        float maxTimeJuggleBuffer = UnityEngine.Random.Range(minDuration, 6);
+    RandomModulate();
+    StartCoroutine(PlayNote(Instruments.Strings.ToString(), voices, null, true));
 
-        yield return new WaitForSeconds(UnityEngine.Random.Range(minTimeJuggleBuffer, maxTimeJuggleBuffer));
-
-        minDuration = UnityEngine.Random.Range(2, 6);
-        maxDuration = UnityEngine.Random.Range(minDuration, 6);
-        float duration = Mathf.Clamp(maxDuration, minDuration, 6);
-        StartCoroutine(TimeJuggle());
-
-        yield break;
-    }
-
-    float newMin;
-    float newMax;
-
-    private void OnEnable()
-    {
-
-        player.OnFaithChanged += KarmaModifier;
-
-    }
-
-    private void OnDisable()
-    {
-
-        player.OnFaithChanged -= KarmaModifier;
-    }
-
-    private void KarmaModifier(float karma, float minKarma, float maxKarma)
-    {
-        float newMin = 0;
+    yield break;
+}
 
 
-        var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
-        output = Mathf.Lerp(newMin, newMax, t);
-        faithModulateOutput = (int)Mathf.Floor(output);
-        currentMode = faithModulateOutput;
-    }
 
-    void PlayMusic()
-    {
-        musicInstance = RuntimeManager.CreateInstance(MusicEventPath);
+public IEnumerator TimeJuggle()
+{
+    float minTimeJuggleBuffer = UnityEngine.Random.Range(minDuration, maxDuration);
+    float maxTimeJuggleBuffer = UnityEngine.Random.Range(minDuration, maxDuration);
 
-        musicInstance.start();
-        musicInstance.release();
+    yield return new WaitForSeconds(UnityEngine.Random.Range(minTimeJuggleBuffer, maxTimeJuggleBuffer));
 
-    }
+    minDuration = UnityEngine.Random.Range(minDuration, maxDuration);
+    maxDuration = UnityEngine.Random.Range(minDuration, maxDuration);
 
-    void StopMusic()
-    {
-        musicInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-        musicInstance.release();
-    }
+    StartCoroutine(TimeJuggle());
+
+    yield break;
+}
+
+*/
+    /*
+float newMin;
+float newMax;
+
+
+ * 
+ * Unused/Old code that could be reincorperated in future. Uses the Faith Paramater to map the modes 
+private void OnEnable()
+{
+
+    player.OnFaithChanged += KarmaModifier;
+
+}
+
+private void OnDisable()
+{
+    player.OnFaithChanged -= KarmaModifier;
+}
+
+private void KarmaModifier(float karma, float minKarma, float maxKarma)
+{
+    float newMin = 0;
+
+    var t = Mathf.InverseLerp(minKarma, maxKarma, karma);
+    output = Mathf.Lerp(newMin, newMax, t);
+    faithModulateOutput = (int)Mathf.Floor(output);
+    currentMode = faithModulateOutput;
+}
+*/
 
 
 }

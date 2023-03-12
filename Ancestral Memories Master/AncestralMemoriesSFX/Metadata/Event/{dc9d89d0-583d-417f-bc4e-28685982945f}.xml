@@ -99,7 +99,7 @@
 	</object>
 	<object class="MultiSound" id="{2919e7d9-f08b-4496-9872-70143e49dae8}">
 		<relationship name="sounds">
-			<destination>{8056c16e-a1fb-491f-bcbc-3fbc0d5a744e}</destination>
+			<destination>{03a5db4c-a2ba-4172-8249-d0536694766a}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{b1fdb3c9-515e-4c73-8076-bd6e6dd33179}">
@@ -129,21 +129,7 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{781d529b-0f32-4555-a739-73182d72340b}" />
-	<object class="SingleSound" id="{8056c16e-a1fb-491f-bcbc-3fbc0d5a744e}">
-		<property name="startOffset">
-			<value>56.5</value>
-		</property>
-		<property name="pitch">
-			<value>-3</value>
-		</property>
-		<relationship name="modulators">
-			<destination>{52e03075-7757-4d34-be79-51885fe0f168}</destination>
-			<destination>{79ade521-de87-45e9-af70-44748022cbf7}</destination>
-		</relationship>
-		<relationship name="audioFile">
-			<destination>{0fec1562-1e8a-4ece-9cf3-0c5f5444024c}</destination>
-		</relationship>
-	</object>
+	<object class="MultiSound" id="{03a5db4c-a2ba-4172-8249-d0536694766a}" />
 	<object class="MixerBusFader" id="{b461d37b-7a24-44dd-b837-a9ef98fbac8c}" />
 	<object class="MixerBusEffectChain" id="{cdd072f0-e113-4b9e-9606-948267f508d6}">
 		<relationship name="effects">
@@ -155,19 +141,6 @@
 	<object class="SpatialiserEffect" id="{4e2ebde4-8d13-4f5c-a814-899e48867d60}">
 		<property name="maximumDistance">
 			<value>8.40000057</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{52e03075-7757-4d34-be79-51885fe0f168}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>startOffset</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{79ade521-de87-45e9-af70-44748022cbf7}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>5.5</value>
 		</property>
 	</object>
 	<object class="MixerBusFader" id="{bbc1dda5-926b-4c1a-9b3f-e0d6345c2e50}" />

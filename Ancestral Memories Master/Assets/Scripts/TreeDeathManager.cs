@@ -48,6 +48,7 @@ public class TreeDeathManager : MonoBehaviour
         scaleControl.StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, newScale, fallDuration, 0));
 
         yield return new WaitForSeconds(fallDuration);
+        treeAudioSFX.StartTreeHitGroundSFX();
 
         treeFalling = false;
 

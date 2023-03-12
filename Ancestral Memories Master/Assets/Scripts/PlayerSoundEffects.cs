@@ -4,6 +4,7 @@ using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Runtime.InteropServices;
 
 public class PlayerSoundEffects : MonoBehaviour
 {
@@ -21,14 +22,20 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference EatEventPath;
     [SerializeField] private EventReference VomitEventPath;
     [SerializeField] private EventReference FluteEventPath;
-
+    [SerializeField] private EventReference PrayerEventPath;
     private EventInstance walkEvent;
 
-    private EventInstance rightFootStepEvent;
-    private EventInstance leftFootStepEvent;
+    private EventInstance rightFootStepInstance;
+    private EventInstance leftFootStepInstance;
 
     private EventInstance fluteEventInstance;
 
+    private EventInstance prayerInstance;
+
+    EVENT_CALLBACK callbackDelegate;
+
+    public MusicManager musicManager;
+    
     private void Awake()
     {
         rigidBody = transform.parent.GetComponent<Rigidbody>();
@@ -38,48 +45,74 @@ public class PlayerSoundEffects : MonoBehaviour
     {
         if (raySource.CompareTag("LeftFoot"))
         {
-            leftFootStepEvent.setParameterByName("TerrainType", index);
+            leftFootStepInstance.setParameterByName("TerrainType", index);
         }
 
         if (raySource.CompareTag("RightFoot"))
         {
-            rightFootStepEvent.setParameterByName("TerrainType", index);
+            rightFootStepInstance.setParameterByName("TerrainType", index);
         }
     }
 
     public void UpdateWaterDepth(Transform raySource, float depth)
     {
-            leftFootStepEvent.setParameterByName("WaterDepth", depth);
+            leftFootStepInstance.setParameterByName("WaterDepth", depth);
 
-            rightFootStepEvent.setParameterByName("WaterDepth", depth);
+            rightFootStepInstance.setParameterByName("WaterDepth", depth);
     }
 
     public void CheckGroundType()
     {
         Debug.Log("Footstep Event Triggered");
-        //playerWalk.StartCoroutine(playerWalk.DetectGroundType());
+
+        //playerWalk.StartCoroutine(playerWalk.DetectGroundType()); This code does not work, haven't figured it out yet
+
     }
 
     void PlayLeftFootStep()
     {
+        if (playerWalk.speed >= playerWalk.runThreshold)
+        {
+            musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject);
+        }
+
         CheckGroundType();
 
-        leftFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
-        RuntimeManager.AttachInstanceToGameObject(leftFootStepEvent, transform, rigidBody);
+        leftFootStepInstance = RuntimeManager.CreateInstance(WalkEventPath);
+        RuntimeManager.AttachInstanceToGameObject(leftFootStepInstance, transform, rigidBody);
 
-        leftFootStepEvent.start();
-        leftFootStepEvent.release();
+        leftFootStepInstance.start();
+        leftFootStepInstance.release();
     }
 
     void PlayRightFootStep()
     {
+        if (playerWalk.speed >= playerWalk.runThreshold)
+        {
+            musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject);
+        }
+
         CheckGroundType();
 
-        rightFootStepEvent = RuntimeManager.CreateInstance(WalkEventPath);
-        RuntimeManager.AttachInstanceToGameObject(rightFootStepEvent, transform, rigidBody);
+        rightFootStepInstance = RuntimeManager.CreateInstance(WalkEventPath);
+        RuntimeManager.AttachInstanceToGameObject(rightFootStepInstance, transform, rigidBody);
 
-        rightFootStepEvent.start();
-        rightFootStepEvent.release();
+        rightFootStepInstance.start();
+        rightFootStepInstance.release();
+    }
+
+    public void PlayPrayerAudioLoop()
+    {
+        prayerInstance = RuntimeManager.CreateInstance(PrayerEventPath);
+        RuntimeManager.AttachInstanceToGameObject(prayerInstance, transform, rigidBody);
+
+        prayerInstance.start();
+        prayerInstance.release();
+    }
+
+    public void StopPrayerAudio()
+    {
+        prayerInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
     }
 
     void PlayWalkEvent()

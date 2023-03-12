@@ -30,12 +30,8 @@ public class WeatherControl : MonoBehaviour
 
     //[SerializeField] private List<Renderer> windAffectedRenderers;
 
-    // Start is called before the first frame update
-
     public List<Transform> windAffectedRendererList = new List<Transform>();
     public List<Transform> activeWindZones = new List<Transform>();
-
-    public EventReference wind3DEvent;
 
     private void Awake()
     {
@@ -46,8 +42,6 @@ public class WeatherControl : MonoBehaviour
     void Start()
     {
         ListCleanup(windAffectedRendererList);
-
-        
         //EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
 
     }
@@ -69,7 +63,6 @@ public class WeatherControl : MonoBehaviour
                 list.RemoveAt(i);
         }
     }
-
 
     public IEnumerator UpdateWind()
     {
@@ -111,8 +104,8 @@ public class WeatherControl : MonoBehaviour
         yield break;
     }
 
-    [SerializeField] float newMin = 0f;
-    [SerializeField] float newMax = 1f;
+    [SerializeField] float windMin = 0f;
+    [SerializeField] float windMax = 1f;
 
     [SerializeField] float leafSpeedMin = 0.1f;
     [SerializeField] float leafSpeedMax = 0.75f;
@@ -128,13 +121,34 @@ public class WeatherControl : MonoBehaviour
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float windOutput = Mathf.Lerp(newMin, newMax, t);
+        float windOutput = Mathf.Lerp(windMin, windMax, t);
         float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
         float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
 
         targetWindStrength = windOutput;
         targetLeafShakeStrength = leafOutput;
         targetLeafSpeed = leafSpeedOutput;
+
+        //targetWindStrength = OscillateWindStrength(windOutput, windMin, windMax);
+        //targetLeafShakeStrength = OscillateWindStrength(leafOutput, leafShakeMin, leafShakeMax);
+        //targetLeafSpeed = OscillateWindStrength(leafSpeedOutput, leafSpeedMin, leafSpeedMax);
     }
 
+    /*
+     * 
+     * Unused oscillator 
+     * 
+     * [SerializeField] private float oscillationSpeed = 0.5f; // adjust this to change the range of oscillation
+     * 
+    private float OscillateWindStrength(float targetValue, float min, float max)
+    {
+        float oscillationRange = Random.Range(-min, max);
+
+        float time = Time.time * oscillationSpeed;
+        float amplitude = oscillationRange * 0.5f;
+        float offset = targetValue + amplitude;
+
+        return Mathf.Sin(time) * amplitude + offset;
+    }
+    */
 }

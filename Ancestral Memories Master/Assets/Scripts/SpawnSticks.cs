@@ -61,7 +61,7 @@ public class SpawnSticks : MonoBehaviour
         stickRigidBody.GetComponent<Renderer>().enabled = true;
 
         StartCoroutine(stickGrowControl.LerpScale(stickInstance.transform.gameObject, zeroScale, stickScaleDestination, stickGrowDuration, stickGrowthDelay));
-        StartCoroutine(generator.WaitUntilGrown(stickInstance, stickGrowControl));
+        StartCoroutine(generator.WaitUntilFruitGrown(stickInstance, stickGrowControl));
         stickInstance.transform.SetParent(stickInstance.transform, true);
 
 

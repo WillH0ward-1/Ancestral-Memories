@@ -792,7 +792,7 @@ public class MapObjGen : MonoBehaviour
                 apple.GetComponent<Renderer>().enabled = true;
 
                 StartCoroutine(appleGrowControl.LerpScale(apple.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
-                StartCoroutine(WaitUntilGrown(apple.gameObject, appleGrowControl));
+                StartCoroutine(WaitUntilFruitGrown(apple.gameObject, appleGrowControl));
             }
         }
 
@@ -807,7 +807,7 @@ public class MapObjGen : MonoBehaviour
 
         tree.GetComponent<CorruptionControl>().CorruptionModifierActive = true;
         TreeAudioSFX treeAudio = tree.GetComponent<TreeAudioSFX>();
-        treeAudio.TreeSproutSFX();
+        treeAudio.PlayTreeSproutSFX();
         treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
         TreeDeathManager treeDeathManager = tree.GetComponent<TreeDeathManager>();
         treeDeathManager.treeAudioSFX = treeAudio;
@@ -834,7 +834,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] public float minFruitFallBuffer = 1f;
     [SerializeField] public float maxFruitFallBuffer = 60f;
 
-    public IEnumerator WaitUntilGrown(GameObject growObject, ScaleControl scaleControl)
+    public IEnumerator WaitUntilFruitGrown(GameObject growObject, ScaleControl scaleControl)
     {
         yield return new WaitUntil(() => scaleControl.isFullyGrown);
 

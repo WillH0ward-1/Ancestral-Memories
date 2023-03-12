@@ -83,9 +83,9 @@ public class ScaleControl : MonoBehaviour
             {
                 if (scaleObject.transform.CompareTag("Trees"))
                 {
-                    if (rainControl.isRaining) //&& transform.CompareTag("Trees"))
+                    if (rainControl.isRaining && transform.CompareTag("Trees"))  
                     {
-                        rainMultiplier = 16f;
+                        rainMultiplier = 5f;
                     }
                     else
                     {

@@ -13,7 +13,8 @@ public class RainControl : MonoBehaviour
 
     public LerpTerrain lerpTerrain;
 
-    [SerializeField] private ParticleSystem.EmissionModule emission;
+    public ParticleSystem.EmissionModule emission;
+    public float emissionMultiplier = 500;
 
     void Start()
     {
@@ -33,11 +34,15 @@ public class RainControl : MonoBehaviour
     private bool isInside;
     [SerializeField] private bool triggerDrought;
 
+    public Player player;
+
+    public float maxEmissionOverTime;
 
     private void Awake()
     {
         triggerDrought = false;
 
+        transform.parent.SetParent(player.transform);
         //weather = transform.GetComponent<WeatherControl>();
 
     }
@@ -126,7 +131,7 @@ public class RainControl : MonoBehaviour
     [SerializeField] private float rainStrengthTarget;
     float emissionRate;
     [SerializeField] public float emissionRateOverTime;
-
+     
     public IEnumerator StartRaining()
     {
         emissionRateOverTime = 0;
@@ -149,8 +154,9 @@ public class RainControl : MonoBehaviour
         {
             time += Time.deltaTime / rainDuration;
 
-            rainStrengthTarget = weather.windStrength * 500;
+            rainStrengthTarget = maxEmissionOverTime;
             emission.rateOverTime = Mathf.Lerp(emissionRateOverTime, rainStrengthTarget, time);
+            maxEmissionOverTime = weather.windStrength * emissionMultiplier + 1; // (Yields a range of 0 - 1 * emissionMultiplier + 1 (Prevents a zero value))
 
             yield return null;
         }

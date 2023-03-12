@@ -63,7 +63,7 @@ public class PlayFlute : MonoBehaviour
 
     public void EnableFluteControl()
     {
-        StartCoroutine(CastRayToGround());
+        StartCoroutine(CastRayToScreen());
     }
 
     [SerializeField] float tValRef;
@@ -78,7 +78,7 @@ public class PlayFlute : MonoBehaviour
 
     [SerializeField] private string[] noteBank;
 
-    public IEnumerator CastRayToGround()
+    public IEnumerator CastRayToScreen()
     {
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
@@ -143,7 +143,7 @@ public class PlayFlute : MonoBehaviour
     public EventReference eventPath;
 
     string instrumentFileRootName = "Instrument";
-    string instrument = "Player-Flute";
+    string instrument = "PlayerFlute";
 
 
     public float minDuration = 5f;
@@ -170,21 +170,6 @@ public class PlayFlute : MonoBehaviour
         instrumentInstance.start();
         instrumentInstance.release();
 
-        RESULT timeLinePos = instrumentInstance.getTimelinePosition(out int timelinePosition);
-        instrumentInstance.getDescription(out EventDescription desc);
-
-        float clipLength = (float)desc.getLength(out int length);
-
-        float duration = Random.Range(clipLength / 2, clipLength);
-
-        float timelineSeconds = timelinePosition / 1000f;
-
-        if (timeLinePos == RESULT.OK && timelineSeconds >= duration - 0.1)
-        {
-            instrumentInstance.setTimelinePosition(0);
-            //instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-        }
-
     }
 
     EventInstance instanceRef;
@@ -193,7 +178,7 @@ public class PlayFlute : MonoBehaviour
     {
         fluteActive = false;
         instanceRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-        StartCoroutine(CastRayToGround());
+        StartCoroutine(CastRayToScreen());
     }
 
     public void StopAll()

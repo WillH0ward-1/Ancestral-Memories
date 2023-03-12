@@ -30,7 +30,8 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private Transform flowerParent;
     [SerializeField] private GameObject[] flowerPrefabs;
 
-    public int maxPoolSize = 128;
+    public int maxPoolSize = 512; // Should not be higher than: rainControl.maxEmissionOverTime;
+
     [SerializeField] private List<GameObject> pooledObjects;
     //private ScaleControl scaleControl;
 
@@ -38,9 +39,14 @@ public class ParticleCollision : MonoBehaviour
 
     [SerializeField] private ScaleControl scaleControl;
 
+    public MusicManager musicManager;
 
     private void Awake()
     {
+        rainManager = transform.GetComponent<RainControl>();
+
+        //maxPoolSize = (int)rainControl.maxEmissionOverTime;
+
         for (int i = 0; i < maxPoolSize; i++)
         {
             GameObject flower = Instantiate(flowerPrefabs[Random.Range(0, flowerPrefabs.Length)]);
@@ -48,15 +54,6 @@ public class ParticleCollision : MonoBehaviour
             flower.transform.SetParent(flowerParent, true);
             flower.SetActive(false);
             pooledObjects.Add(flower);
-        }
-
-        foreach (GameObject flower in pooledObjects)
-        {
-            ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
-            FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
-           
-           scaleControl.rainControl = rainManager;
-           
         }
 
         StartCoroutine(HarmonicStability());
@@ -124,12 +121,15 @@ public class ParticleCollision : MonoBehaviour
         collisionEvents.Clear();
         rainManager.rainParticles.GetCollisionEvents(other, collisionEvents);
 
+        GameObject emitter = new GameObject();
+
         foreach (ParticleCollisionEvent collisionEvent in collisionEvents)
         {
              particlePos = collisionEvent.intersection;
+             emitter = collisionEvent.colliderComponent.gameObject;
         }
 
-//        Debug.Log("Particle hit ground!");
+        //Debug.Log("Particle hit ground!");
         // RaycastHit hitFloor;
         //var ray = Physics.Raycast(transform.position, Vector3.down, out hitFloor, Mathf.Infinity, groundLayerMask);
 
@@ -138,19 +138,22 @@ public class ParticleCollision : MonoBehaviour
         Vector3 screenCoords = cam.WorldToViewportPoint(hitLocation);
 
         bool onScreen =
-            screenCoords.x > 0 &&
+            screenCoords.x > 0 && // Credit: ScottsGameSounds! https://youtu.be/PGwq4K5j6B4?t=1948
             screenCoords.x < 1 &&
             screenCoords.y > 0 &&
             screenCoords.y < 1;
 
+      
         GenerateFlower(particlePos);
+    
 
-//            Debug.Log(hitLocation);
+        //Debug.Log(hitLocation);
 
 
-        RuntimeManager.PlayOneShot(rainSFX, hitLocation);
+        musicManager.PlayOneShot(musicManager.InstrumentInfo[MusicManager.Instruments.Marimba].ToString(), emitter);
 
-        
+        //musicManager.StartCoroutine(musicManager.PlayNote(musicManager.InstrumentInfo[MusicManager.Instruments.Marimba].ToString(), 1, null, false));
+     
 
         //lightningStrikeEvent.setVolume();
     }

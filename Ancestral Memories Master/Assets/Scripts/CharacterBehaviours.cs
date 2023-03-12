@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -101,9 +102,12 @@ public class CharacterBehaviours : MonoBehaviour
 
     public TimeCycleManager timeManager;
 
+    EVENT_CALLBACK callbackDelegate;
 
     void Start()
     {
+        callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
         waterCheck = player.GetComponent<CheckIfUnderwater>();
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
@@ -357,6 +361,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         StartCoroutine(GainFaith());
         auraParticles.StartParticles();
+        playerAudioSFX.PlayPrayerAudioLoop();
         //StartCoroutine(PrayerPulseEffect());
         //god.StartGodRay(hitObject.transform, false);
 
@@ -366,6 +371,8 @@ public class CharacterBehaviours : MonoBehaviour
 
 
         auraParticles.StopParticles();
+
+        playerAudioSFX.StopPrayerAudio();
        // pulseActive = false;
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
@@ -789,9 +796,6 @@ public class CharacterBehaviours : MonoBehaviour
 
         GameObject newFire = Instantiate(campFire, hitObject.transform.position, Quaternion.identity);
         hitObject.transform.SetParent(newFire.transform);
-
-        LookAtTarget faceCamera = newFire.GetComponentInChildren<LookAtTarget>();
-        faceCamera.target = cinematicCam.transform;
 
         Destroy(hitObject);
         //hitObject.GetComponent<Renderer>().enabled = false;
