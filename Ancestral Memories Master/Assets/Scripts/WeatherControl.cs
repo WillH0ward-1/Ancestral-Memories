@@ -7,7 +7,7 @@ using System.Linq;
 
 public class WeatherControl : MonoBehaviour
 {
-    public EventReference wind2DEvent;
+    //public EventReference wind2DEvent;
 
     public GameObject windZone;
 

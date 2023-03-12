@@ -66,7 +66,7 @@ namespace FMODUnity
         {
             for (int i = activeEmitters.Count - 1; i >= 0; i--)
             {
-                StudioEventEmitter emitter = activeEmitters[i]; // Will H added this
+                StudioEventEmitter emitter = activeEmitters[i]; // Added This , not part of original FMOD code
                 if (emitter == null)
                 {
                     activeEmitters.RemoveAt(i);

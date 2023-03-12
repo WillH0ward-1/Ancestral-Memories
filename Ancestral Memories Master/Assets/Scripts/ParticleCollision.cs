@@ -43,7 +43,6 @@ public class ParticleCollision : MonoBehaviour
 
     private void Awake()
     {
-        rainManager = transform.GetComponent<RainControl>();
 
         //maxPoolSize = (int)rainControl.maxEmissionOverTime;
 
