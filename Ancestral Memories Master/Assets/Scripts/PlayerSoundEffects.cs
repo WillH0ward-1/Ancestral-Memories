@@ -16,13 +16,14 @@ public class PlayerSoundEffects : MonoBehaviour
     [SerializeField] private EventReference WalkEventPath;
     [SerializeField] private EventReference HitTreeEventPath;
     [SerializeField] private EventReference WhooshEventPath;
-    [SerializeField] private EventReference PlayerScreamEventPath;
-    [SerializeField] private EventReference DrownEventPath;
     [SerializeField] private EventReference UprootPlantEventPath;
     [SerializeField] private EventReference EatEventPath;
     [SerializeField] private EventReference VomitEventPath;
     [SerializeField] private EventReference FluteEventPath;
     [SerializeField] private EventReference PrayerEventPath;
+    //[SerializeField] private EventReference PlayerScreamEventPath;
+    //[SerializeField] private EventReference DrownEventPath;
+
     private EventInstance walkEvent;
 
     private EventInstance rightFootStepInstance;
@@ -32,8 +33,6 @@ public class PlayerSoundEffects : MonoBehaviour
 
     private EventInstance prayerInstance;
 
-    EVENT_CALLBACK callbackDelegate;
-
     public MusicManager musicManager;
     
     private void Awake()
@@ -41,7 +40,16 @@ public class PlayerSoundEffects : MonoBehaviour
         rigidBody = transform.parent.GetComponent<Rigidbody>();
     }
 
-    public void UpdateGroundType(Transform raySource, int index)
+    public void AreaUpdateGroundType(int index)
+    {
+    // For area-based method, the 'TerrainType' parameter should be set to 'global'
+
+        RuntimeManager.StudioSystem.setParameterByName("TerrainType", index);
+    }
+
+    // For raycasting method, the 'TerrainType' parameter should be set to 'local'
+
+    public void RayUpdateGroundType(Transform raySource, int index)
     {
         if (raySource.CompareTag("LeftFoot"))
         {
@@ -65,12 +73,16 @@ public class PlayerSoundEffects : MonoBehaviour
     {
         Debug.Log("Footstep Event Triggered");
 
-        //playerWalk.StartCoroutine(playerWalk.DetectGroundType()); This code does not work, haven't figured it out yet
+        //  This code does not work! Currently in a state that may not make sense due to attempting to fix.
+        //playerWalk.StartCoroutine(playerWalk.DetectGroundType());
 
     }
 
+    // These are triggered by animation events. See Human to get access to the Animator and it's contained Animation sheet.
+
     void PlayLeftFootStep()
     {
+        // Only trigger the musical element if the player is running
         if (playerWalk.speed >= playerWalk.runThreshold)
         {
             musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject);
@@ -137,16 +149,6 @@ public class PlayerSoundEffects : MonoBehaviour
         fluteEventRef.release();
     }
 
-    void DrownEvent()
-    {
-        EventInstance drownEvent = RuntimeManager.CreateInstance(DrownEventPath);
-        RuntimeManager.AttachInstanceToGameObject(drownEvent, transform, rigidBody);
-
-        drownEvent.start();
-        drownEvent.release();
-    }
-
-
     void Vomit()
     {
         EventInstance vomitEvent = RuntimeManager.CreateInstance(VomitEventPath);
@@ -187,6 +189,15 @@ public class PlayerSoundEffects : MonoBehaviour
 
     float shakeMultiplier = 1;
 
+    void WhooshEvent()
+    {
+        EventInstance whooshEvent = RuntimeManager.CreateInstance(WhooshEventPath);
+        RuntimeManager.AttachInstanceToGameObject(whooshEvent, transform, rigidBody);
+
+        whooshEvent.start();
+        whooshEvent.release();
+    }
+
     void HitTree()
     {
         EventInstance hitTreeEvent = RuntimeManager.CreateInstance(HitTreeEventPath);
@@ -210,7 +221,7 @@ public class PlayerSoundEffects : MonoBehaviour
         //shakeMultiplier = Random.Range(1, 1.1);
     }
 
-    private int killThreshold = 6;
+    private int killTreeThreshold = 6;
     public int numberOfHits = 0;
 
     public GameObject targetTree;
@@ -221,33 +232,38 @@ public class PlayerSoundEffects : MonoBehaviour
     {
         numberOfHits++;
 
-        if (numberOfHits >= killThreshold)
+        if (numberOfHits >= killTreeThreshold)
         {
             targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall();
 
             numberOfHits = 0;
 
             return;
-        } 
+        }
     }
 
 
+    /*
+    void DrownEvent()
+    {
+    EventInstance drownEvent = RuntimeManager.CreateInstance(DrownEventPath);
+    RuntimeManager.AttachInstanceToGameObject(drownEvent, transform, rigidBody);
+
+    drownEvent.start();
+    drownEvent.release();
+    }
+    */
+
+    /*
     void ScreamingPainEvent()
     {
-        EventInstance screamingPainEvent = RuntimeManager.CreateInstance(PlayerScreamEventPath);
-        RuntimeManager.AttachInstanceToGameObject(screamingPainEvent, transform, rigidBody);
+    EventInstance screamingPainEvent = RuntimeManager.CreateInstance(PlayerScreamEventPath);
+    RuntimeManager.AttachInstanceToGameObject(screamingPainEvent, transform, rigidBody);
 
-        screamingPainEvent.start();
-        screamingPainEvent.release();
+    screamingPainEvent.start();
+    screamingPainEvent.release();
 
     }
+    */
 
-    void WhooshEvent()
-    {
-        EventInstance whooshEvent = RuntimeManager.CreateInstance(WhooshEventPath);
-        RuntimeManager.AttachInstanceToGameObject(whooshEvent, transform, rigidBody);
-
-        whooshEvent.start();
-        whooshEvent.release();
-    }
 }

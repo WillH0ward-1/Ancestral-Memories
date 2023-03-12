@@ -83,9 +83,6 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{d04a52be-f141-4178-acd5-8e5872933863}">
-		<property name="volume">
-			<value>-3.5</value>
-		</property>
 		<relationship name="automators">
 			<destination>{630e4557-77ac-4242-a8be-bfc77ebbf973}</destination>
 		</relationship>
@@ -176,6 +173,9 @@
 	</object>
 	<object class="MixerBusPanner" id="{0c090114-5c81-4ad9-8244-79c39ecacfa2}" />
 	<object class="ProgrammerSound" id="{ec0462d5-b725-4a67-823a-e5789ff6d0c1}">
+		<property name="volume">
+			<value>7</value>
+		</property>
 		<property name="looping">
 			<value>true</value>
 		</property>

@@ -13,6 +13,7 @@ public class GodAudioSFX : MonoBehaviour
     public void StartGodAmbienceFX()
     {
         godActiveAmbienceFX = RuntimeManager.CreateInstance(godActiveAmbienceRef);
+        RuntimeManager.AttachInstanceToGameObject(godActiveAmbienceFX, transform);
         godActiveAmbienceFX.start();
         godActiveAmbienceFX.release();
     }

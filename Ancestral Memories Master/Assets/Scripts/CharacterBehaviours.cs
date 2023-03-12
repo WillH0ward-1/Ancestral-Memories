@@ -531,7 +531,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));

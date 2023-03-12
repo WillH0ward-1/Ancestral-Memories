@@ -52,11 +52,14 @@
 			<destination>{eabd0699-0a81-4d91-b09b-2930d844762c}</destination>
 			<destination>{a0b2e664-a60e-4d51-aaa4-1fb1b0c2bdc7}</destination>
 			<destination>{6ed56772-569b-466e-818a-5387c1629030}</destination>
+			<destination>{6bfd3815-8e6c-4f7e-91b7-752b69e04f67}</destination>
 		</relationship>
 		<relationship name="snapshotTracks">
 			<destination>{4d63ab63-738c-4677-a823-98c344657b2b}</destination>
 			<destination>{f9ffdb78-9c18-4f4e-9598-fedea98909ef}</destination>
 			<destination>{783979c3-707c-4f92-9699-83449fadafdc}</destination>
+			<destination>{552117ed-d8c3-47fb-98d4-d789f5ba7a2f}</destination>
+			<destination>{80c0c8cf-d732-4c69-b0f8-fdf56960904e}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{a162645b-0cba-435a-a6d4-583935236fdc}">
@@ -395,6 +398,17 @@
 			<destination>{32a0cfba-7b68-4213-b300-2db2d0086383}</destination>
 		</relationship>
 	</object>
+	<object class="SnapshotProperty" id="{6bfd3815-8e6c-4f7e-91b7-752b69e04f67}">
+		<property name="propertyName">
+			<value>level</value>
+		</property>
+		<property name="value">
+			<value>0</value>
+		</property>
+		<relationship name="automatableObject">
+			<destination>{ebdfe12e-2338-4191-ad85-8981849c58a6}</destination>
+		</relationship>
+	</object>
 	<object class="SnapshotTrack" id="{4d63ab63-738c-4677-a823-98c344657b2b}">
 		<relationship name="mixerStrip">
 			<destination>{28b4ef3f-b803-459c-9ead-a320246e923f}</destination>
@@ -408,6 +422,16 @@
 	<object class="SnapshotTrack" id="{783979c3-707c-4f92-9699-83449fadafdc}">
 		<relationship name="mixerStrip">
 			<destination>{c65315be-a2c4-4d99-a3e7-6ee4d30418c4}</destination>
+		</relationship>
+	</object>
+	<object class="SnapshotTrack" id="{552117ed-d8c3-47fb-98d4-d789f5ba7a2f}">
+		<relationship name="mixerStrip">
+			<destination>{2f889ca9-3cb1-4e11-b4bc-a8fb338c78d2}</destination>
+		</relationship>
+	</object>
+	<object class="SnapshotTrack" id="{80c0c8cf-d732-4c69-b0f8-fdf56960904e}">
+		<relationship name="mixerStrip">
+			<destination>{d0c93542-529f-4c54-9857-0d88b9e7a892}</destination>
 		</relationship>
 	</object>
 	<object class="Automator" id="{0b721d9c-3829-40bf-9122-50be2f071379}">

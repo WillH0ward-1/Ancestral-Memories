@@ -1,1 +1,0 @@
-Please consider leaving me your feedback and tell me what you think. I always appreciate it as it helps me make this asset better and supports my hard work.

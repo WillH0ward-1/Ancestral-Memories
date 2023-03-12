@@ -46,6 +46,10 @@ public class Dialogue : MonoBehaviour
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
     FMOD.Studio.EVENT_CALLBACK callbackDelegate3D;
 
+    private EventReference DialogueDuckSnapshot;
+
+    public Transform godPrefab;
+    private GodRangeController godRangeSettings;
 
     private void Awake()
     {
@@ -53,6 +57,13 @@ public class Dialogue : MonoBehaviour
         if (transform.CompareTag("Campfire"))
         {
             godAudioManager = transform.GetComponent<GodAudioSFX>();
+            godPrefab = transform.Find("GodPrefab");
+            if (godPrefab != null)
+            {
+                GodRangeController godRangeControl = godPrefab.GetComponent<GodRangeController>();
+                godRangeControl.dialogue = this;
+                godRangeSettings = godRangeControl;
+            }
         }
     }
 
@@ -62,7 +73,6 @@ public class Dialogue : MonoBehaviour
         canvas = dialogueBox.transform.GetComponentInChildren<Canvas>();
         canvas.enabled = false;
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
-
         // Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
     }
 
@@ -146,12 +156,13 @@ public class Dialogue : MonoBehaviour
             index = 0;
             dialogueActive = true;
 
-            StartCoroutine(TypeLine());
-
             if (transform.CompareTag("Campfire"))
             {
                 godAudioManager.StartGodAmbienceFX();
+                godRangeSettings.StartCoroutine(godRangeSettings.UpdateActiveStates());
             }
+
+            StartCoroutine(TypeLine());
 
         }
         else if (dialogueBox == null)
@@ -277,6 +288,7 @@ public class Dialogue : MonoBehaviour
         if (transform.CompareTag("Campfire"))
         {
             godAudioManager.StopGodAmbienceFX();
+            godRangeSettings.StopCoroutine(godRangeSettings.UpdateActiveStates());
         }
 
         StopAllCoroutines();

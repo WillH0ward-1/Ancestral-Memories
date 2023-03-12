@@ -99,14 +99,6 @@ public class PlayFlute : MonoBehaviour
                 }
             }
 
-            /*
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, targetLayer))
-            {
-            */
-
-            // Vector3 attenuationObjectPos = attenuationObject.transform.position;
-
             distance = Vector2.Distance(screenCenter, Input.mousePosition);
             var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
             maxNoteIndex = musicManager.notesToUse.Length - 1;
@@ -126,8 +118,6 @@ public class PlayFlute : MonoBehaviour
                 PlayFluteSound(note);
             }
 
-            //playerSFX.fluteEventRef.setParameterByName("Mode", targetFluteScale);
-
             player.GainFaith(faithFactor);
 
             yield return null;
@@ -135,7 +125,6 @@ public class PlayFlute : MonoBehaviour
 
         StopFluteSound();
         yield break;
-
 
     }
 

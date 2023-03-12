@@ -99,6 +99,7 @@ public class PlayerWalk : MonoBehaviour
     private void Start()
     {
         ChangeState(PLAYER_IDLE);
+        //StartCoroutine(DetectWater());
     }
 
     private IEnumerator GetWaterDepth(Transform raySource)
@@ -123,6 +124,8 @@ public class PlayerWalk : MonoBehaviour
             yield return null;
         }
 
+        playerSFX.UpdateWaterDepth(raySource, minParamDepth);
+
         yield break;
     }
 
@@ -130,10 +133,14 @@ public class PlayerWalk : MonoBehaviour
 
     private void WaterDetected(Transform raySource)
     {
+        playerInWater = true;
         StartCoroutine(GetWaterDepth(raySource));
     }
 
-    private RaycastHit lastTerrainHit;
+    [SerializeField] private string lastTerrainHit;
+
+    // The order of this enum
+    // must correspond to the index order in the FMOD Studio project 'Terrain Type' parameter.
 
     public enum GroundTypes
     {
@@ -143,6 +150,75 @@ public class PlayerWalk : MonoBehaviour
     }
 
     [SerializeField] private bool checkActive = false;
+
+    // The CheckAreaForFootSteps() method of checking the ground type uses the AreaManager script to set it directly.
+    // This isn't ideal because it's not so dynamic as RayCasting,
+    // It still works as a failsafe in the event RayCasting fails  (Currently, it has).
+
+    public void CheckAreaForFootSteps(string currentRoom)
+    {
+        switch (currentRoom)
+        {
+        
+        case "Outside":
+                playerSFX.AreaUpdateGroundType((int)GroundTypes.GroundIndex);
+                //playerSFX.RayUpdateGroundType((int)GroundTypes.GroundIndex);
+                break;
+        case "InsideCave":
+                playerSFX.AreaUpdateGroundType((int)GroundTypes.RockIndex);
+                //playerSFX.RayUpdateGroundType((int)GroundTypes.RockIndex);
+                break;
+        default:
+        Debug.LogError("Unknown room in PlayerWalk/CheckAreaForFootSteps(): " + "room = " + currentRoom);
+        break;
+        }
+    }
+
+    // This is a separate RayCast method to detect water This is part of the area-driven method. But is currently unused.
+
+    public IEnumerator DetectWater()
+    {
+        while (true)
+        {
+            if (Physics.Raycast(head[0].transform.position, Vector3.down, out RaycastHit rayHit, Mathf.Infinity, terrainDetectionLayers))
+            {
+                Debug.DrawRay(head[0].transform.position, Vector3.down * rayHit.distance, Color.green);
+
+
+                // Check if  ground = water and the ray is coming from the player head
+                if (rayHit.collider.gameObject.layer == waterLayer)
+                {
+                    WaterDetected(head[0]);
+
+                    playerSFX.AreaUpdateGroundType((int)GroundTypes.WaterIndex);
+
+                    Debug.Log("Ground type detected: Water");
+
+                    lastTerrainHit = rayHit.ToString();
+
+                }
+                else if (rayHit.collider.gameObject.layer != waterLayer)
+                {
+                    if (areaManager.currentRoom == "Outside")
+                    {
+                        playerSFX.AreaUpdateGroundType((int)GroundTypes.GroundIndex);
+                        lastTerrainHit = "Outside";
+                    }
+                    else if (areaManager.currentRoom == "InsideCave")
+                    {
+                        playerSFX.AreaUpdateGroundType((int)GroundTypes.RockIndex);
+                        lastTerrainHit = "InsideCave";
+                    }
+                }
+            }
+
+            yield return null;
+        }
+    }
+
+    // This is the RayCast method uses a raycast, and is not in use.
+    // This is called from PlayerSoundEffects in the 'Human' child of the Player Transform.
+    // Currently in a state that may not make sense due to attempting to fix.
 
     public IEnumerator DetectGroundType()
     {
@@ -158,11 +234,12 @@ public class PlayerWalk : MonoBehaviour
                     if (rayHit.collider.gameObject.layer == waterLayer)
                     {
                         WaterDetected(rayTransform);
-                        playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
+          
+                        playerSFX.RayUpdateGroundType(rayTransform, (int)GroundTypes.WaterIndex);
 
                         Debug.Log("Ground type detected: Water");
 
-                        lastTerrainHit = rayHit;
+                        lastTerrainHit = rayHit.ToString();
                         groundTypeUpdated = true;
 
                         continue;
@@ -179,12 +256,12 @@ public class PlayerWalk : MonoBehaviour
                         // Check if  ground = grass and the ray is not coming from the player head
                         if (rayHit.collider.gameObject.layer == grassGroundLayer)
                         {
-                            playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
+                            playerSFX.RayUpdateGroundType(rayTransform, (int)GroundTypes.GroundIndex);
                             Debug.Log("Ground type detected: Grass");
 
-                            if (rayHit.collider != lastTerrainHit.collider)
+                            if (rayHit.collider.ToString() != lastTerrainHit)
                             {
-                                lastTerrainHit = rayHit;
+                                lastTerrainHit = rayHit.ToString();
                                 groundTypeUpdated = true;
                             }
 
@@ -194,12 +271,12 @@ public class PlayerWalk : MonoBehaviour
                         // Check if ground = cave and the ray is not coming from the player head
                         if (rayHit.collider.gameObject.layer == caveGroundLayer)
                         {
-                            playerSFX.UpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
+                            playerSFX.RayUpdateGroundType(rayTransform, (int)GroundTypes.RockIndex);
                             Debug.Log("Ground type detected: Cave");
 
-                            if (rayHit.collider != lastTerrainHit.collider)
+                            if (rayHit.collider.ToString() != lastTerrainHit)
                             {
-                                lastTerrainHit = rayHit;
+                                lastTerrainHit = rayHit.ToString();
                                 groundTypeUpdated = true;
                             }
 

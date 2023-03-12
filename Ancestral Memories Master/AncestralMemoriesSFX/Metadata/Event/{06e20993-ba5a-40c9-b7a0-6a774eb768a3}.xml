@@ -81,7 +81,7 @@
 	</object>
 	<object class="EventMixerMaster" id="{d4baf8db-5498-4918-bf7d-bc6e7b287558}">
 		<property name="volume">
-			<value>-46</value>
+			<value>-12</value>
 		</property>
 		<relationship name="effectChain">
 			<destination>{2b2a0aa3-4ea8-4b68-be45-c551c21286d9}</destination>
@@ -120,12 +120,10 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{2b2a0aa3-4ea8-4b68-be45-c551c21286d9}">
 		<relationship name="effects">
-			<destination>{e13ae928-f4fc-4dc8-9767-d71ee59c531d}</destination>
 			<destination>{97383fcb-2c88-45c2-8ae9-1c099c35849d}</destination>
 			<destination>{5c56586b-921e-43e6-9870-8c6df06890e2}</destination>
 			<destination>{66dc870c-2c40-4266-9858-4b942c6d5a54}</destination>
 			<destination>{4289be09-8cb9-4fcd-9abf-206251baeb11}</destination>
-			<destination>{2f62a712-e625-442d-a340-fcf67cd3fd05}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{683da1cf-92c2-4d56-8a60-c31c39bad3a5}" />
@@ -153,14 +151,6 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{233250ef-cd4b-477e-86a6-577744b760dc}" />
-	<object class="MixerSend" id="{e13ae928-f4fc-4dc8-9767-d71ee59c531d}">
-		<property name="inputFormat">
-			<value>1</value>
-		</property>
-		<relationship name="mixerReturn">
-			<destination>{cbdda855-a249-4968-9ea0-188570299b7e}</destination>
-		</relationship>
-	</object>
 	<object class="MixerBusFader" id="{97383fcb-2c88-45c2-8ae9-1c099c35849d}" />
 	<object class="DistortionEffect" id="{5c56586b-921e-43e6-9870-8c6df06890e2}">
 		<property name="level">
@@ -186,23 +176,6 @@
 		</property>
 		<property name="crossoverSlope">
 			<value>0</value>
-		</property>
-	</object>
-	<object class="CompressorEffect" id="{2f62a712-e625-442d-a340-fcf67cd3fd05}">
-		<property name="threshold">
-			<value>-43.5</value>
-		</property>
-		<property name="ratio">
-			<value>20</value>
-		</property>
-		<property name="attackTime">
-			<value>5.5999999</value>
-		</property>
-		<property name="releaseTime">
-			<value>700</value>
-		</property>
-		<property name="gain">
-			<value>22.5</value>
 		</property>
 	</object>
 	<object class="RandomizerModulator" id="{0dc3cf2e-903e-43a8-943f-8090c4ca4a1c}">

@@ -73,6 +73,8 @@ public class AreaManager : MonoBehaviour
         string area = portal.exitPortal.GetComponent<AreaName>().areaName;
         currentRoom = area;
 
+        playerWalk.CheckAreaForFootSteps(currentRoom);
+
         isEntering = false;
 
         playerWalk.StartCoroutine(playerWalk.WalkToward(portal.exitPortal.gameObject, "Exit", null, nullHit));

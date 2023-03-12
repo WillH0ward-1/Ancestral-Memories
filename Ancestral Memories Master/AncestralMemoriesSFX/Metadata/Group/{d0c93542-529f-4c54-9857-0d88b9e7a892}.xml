@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="MixerGroup" id="{d0c93542-529f-4c54-9857-0d88b9e7a892}">
 		<property name="name">
 			<value>NPCS</value>
@@ -17,8 +17,10 @@
 	<object class="MixerBusEffectChain" id="{ddfcb46b-a025-45ed-adca-edda3b8ce1a3}">
 		<relationship name="effects">
 			<destination>{e45e4a19-6077-49b4-a2a9-8f06520e95c6}</destination>
+			<destination>{ebdfe12e-2338-4191-ad85-8981849c58a6}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{38b15735-677e-4eed-82df-77b882ac1b48}" />
 	<object class="MixerBusFader" id="{e45e4a19-6077-49b4-a2a9-8f06520e95c6}" />
+	<object class="Sidechain" id="{ebdfe12e-2338-4191-ad85-8981849c58a6}" />
 </objects>
