@@ -7,8 +7,7 @@ public interface IStats
     void Heal(float healFactor);
     void SetHealth(int value);
     void TakeDamage(float damageTaken);
-    void DepleteFaith(float faithModifer);
-    void GainFaith(float faithModifier);
+    void FaithModify(float faithModifer);
     void Evolve(float evolution);
     void ContractDisease();
     void PsychModifier(float psychFactor);

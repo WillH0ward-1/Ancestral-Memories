@@ -56,7 +56,7 @@ public class AnimalAI : MonoBehaviour
 
     private float agentRadius = 0.4f;
 
-    private PlayFlute fluteControl;
+    private FluteControl fluteControl;
 
     private FollowersManager followManager;
 
@@ -73,7 +73,7 @@ public class AnimalAI : MonoBehaviour
         animator = transform.GetComponentInChildren<Animator>();
 
         interactable = transform.GetComponent<Interactable>();
-        fluteControl = player.GetComponentInChildren<PlayFlute>();
+        fluteControl = player.GetComponentInChildren<FluteControl>();
         followManager = player.GetComponentInChildren<FollowersManager>();
 
         ChangeState(AIState.Idle);

@@ -323,7 +323,7 @@ public class MapObjGen : MonoBehaviour
         //FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
-        FireWoodPoissonDisc(fireWoodSampler);
+        //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);

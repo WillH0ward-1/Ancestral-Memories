@@ -42,7 +42,7 @@ public class InteractCamera : MonoBehaviour
 
     private GameObject hoverObj;
 
-    public PlayFlute fluteControl;
+    public FluteControl fluteControl;
 
     void Update()
     {
@@ -64,7 +64,7 @@ public class InteractCamera : MonoBehaviour
                     }
 
                     lastHit = hit.transform.gameObject;
-                    outlineControl = lastHit.transform.GetComponent<OutlineControl>();
+                    outlineControl = lastHit.transform.GetComponentInChildren<OutlineControl>();
 
                     if (!Input.GetMouseButtonUp(1) && !behaviour.behaviourIsActive && !areaManager.traversing)
                     {
@@ -116,18 +116,15 @@ public class InteractCamera : MonoBehaviour
                 }
 
 
-                if (!areaManager.traversing || behaviour.isPsychdelicMode)
+                if (!behaviour.behaviourIsActive && !behaviour.dialogueIsActive && !areaManager.traversing)
                 {
                     lookAtTarget.position = hit.point;
-                } else if (areaManager.traversing) //|| fluteControl.fluteActive)
+                } else if (behaviour.behaviourIsActive || behaviour.dialogueIsActive || areaManager.traversing) //|| fluteControl.fluteActive)
                 {
                     lookAtTarget.position = defaultTarget.transform.position;
                 }
             }
 
-        } else if (behaviour.behaviourIsActive || behaviour.dialogueIsActive)
-        {
-            lookAtTarget.position = defaultTarget.transform.position;
-        }
+        } 
     }
 }

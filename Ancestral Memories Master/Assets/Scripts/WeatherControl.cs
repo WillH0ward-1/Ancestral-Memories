@@ -70,7 +70,6 @@ public class WeatherControl : MonoBehaviour
 
         while (active)
         {
-
             foreach (Transform t in windAffectedRendererList)
             {
                 foreach (Material m in t.GetComponentInChildren<Renderer>().sharedMaterials)

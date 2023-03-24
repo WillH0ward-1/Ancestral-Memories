@@ -29,6 +29,7 @@ public class DisasterManager : MonoBehaviour
         }
     }
     */
+    
 
     void GetRandomDisaster()
     {

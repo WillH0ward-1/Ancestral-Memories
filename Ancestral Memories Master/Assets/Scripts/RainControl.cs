@@ -14,7 +14,7 @@ public class RainControl : MonoBehaviour
     public LerpTerrain lerpTerrain;
 
     public ParticleSystem.EmissionModule emission;
-    public float emissionMultiplier = 500;
+    public float emissionMultiplier = 128;
 
     void Start()
     {
@@ -131,9 +131,13 @@ public class RainControl : MonoBehaviour
     [SerializeField] private float rainStrengthTarget;
     float emissionRate;
     [SerializeField] public float emissionRateOverTime;
-     
+
+    public CloudControl clouds;
+
     public IEnumerator StartRaining()
     {
+        clouds.OverrideCloudPower(clouds.cloudPersistanceMax);
+
         emissionRateOverTime = 0;
         emission.rateOverTime = emissionRateOverTime;
 
@@ -156,7 +160,7 @@ public class RainControl : MonoBehaviour
 
             rainStrengthTarget = maxEmissionOverTime;
             emission.rateOverTime = Mathf.Lerp(emissionRateOverTime, rainStrengthTarget, time);
-            maxEmissionOverTime = weather.windStrength * emissionMultiplier + 1; // (Yields a range of 0 - 1 * emissionMultiplier + 1 (Prevents a zero value))
+            maxEmissionOverTime = weather.windStrength * emissionMultiplier + 1; // (Yields a range of 0 - 1 * emissionMultiplier 
 
             yield return null;
         }
@@ -174,6 +178,8 @@ public class RainControl : MonoBehaviour
 
     public IEnumerator StopRaining(bool retrigger)
     {
+        clouds.StopCloudPowerOverride();
+
         emissionRateOverTime = 0;
         emission.enabled = false;
         isRaining = false;

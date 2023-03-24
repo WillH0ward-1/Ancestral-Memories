@@ -86,7 +86,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public Shake earthQuake;
 
     public float depleteHealthFactor = 0.1f;
-    public float depleteFaithFactor = 0.1f;
+    public float depleteFaithFactor = -0.1f;
     public float depleteHungerFactor = 0.1f;
 
     public GameObject spawnDestination;
@@ -209,7 +209,7 @@ public class CharacterClass : MonoBehaviour, IStats
     {
         if (!isBlessed)
         {
-            DepleteFaith(depleteFaithFactor);
+            FaithModify(depleteFaithFactor);
             Hunger(depleteHungerFactor);
         }
     }
@@ -242,7 +242,6 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public IEnumerator CheckForRevive()
     {
-
         if (faith < 50) // In order to revive, currentFaith needs to be > x. 
         {
             StartCoroutine(Revive()); // Start Revive
@@ -317,69 +316,63 @@ public class CharacterClass : MonoBehaviour, IStats
         }
     }
 
-    public virtual void DepleteFaith(float faithDamage)
+    public virtual void FaithModify(float faithFactor)
     {
-        if (!isBlessed)
-        {
-            OnFaithChanged?.Invoke(faith, minStat, maxStat);
+        OnFaithChanged?.Invoke(faith, minStat, maxStat);
 
-            faith -= faithDamage;
-            faithBar.UpdateFaith(faith / maxStat);
-
-            if (faith <= maxStat / 2 && isBlessed)
-            {
-                isBlessed = false;
-                Debug.Log("Player is no longer blessed.");
-            }
-
-            if (faith <= minStat )
-            {
-                faith = minStat;
-                isFaithless = true;
-                Debug.Log("Player is faithless!");  
-          
-            }
-            else
-            {
-                isFaithless = false;
-            }
-        }
-    }
-
-    public virtual void GainFaith(float faithFactor)
-    {
-        if (!isBlessed)
-        {
-            faith += faithFactor;
-            faithBar.UpdateFaith(faith / maxStat);
-
-            if (faith >= maxStat)
-            {
-                faith = maxStat;
-                Debug.Log("Player has max faith!");
-
-                if (!isBlessed)
-                {
-                    StartCoroutine(TransendenceTimer());
-                }
-            }
-
-        }
-    }
-
-    public virtual IEnumerator TransendenceTimer()
-    {
-        //yield return new WaitForSeconds(Random.Range(10, 180));
+        faith += faithFactor;
+        faithBar.UpdateFaith(faith / maxStat);
 
         if (faith >= maxStat)
         {
             faith = maxStat;
-            isBlessed = true;
+            Debug.Log("Player has max faith!");
 
-            Debug.Log("Player is blessed.");
-
-            yield break;
+            if (!isBlessed)
+            {
+                StartCoroutine(TransendenceTimer());
+            }
         }
+        else if (faith <= minStat)
+        {
+            faith = minStat;
+            isFaithless = true;
+            Debug.Log("Player is faithless!");
+        }
+        else
+        {
+            isFaithless = false;
+        }
+
+        if (faith <= maxStat / 2 && isBlessed)
+        {
+            isBlessed = false;
+            Debug.Log("Player is no longer blessed.");
+        }
+        
+    }
+
+    public float minBlessedDuration = 10f;
+    public float maxBlessedDuration = 15f;
+
+    public virtual IEnumerator TransendenceTimer()
+    {
+        float remainingTime = Random.Range(minBlessedDuration, maxBlessedDuration);
+        isBlessed = true;
+        Debug.Log("Player is blessed.");
+
+        while (remainingTime > 0 && isBlessed)
+        {
+            remainingTime -= Time.deltaTime;
+            yield return null;
+        }
+
+        if (isBlessed)
+        {
+            isBlessed = false;
+        }
+
+        yield break;
     }
 
     public virtual void TakeDamage(float damage)

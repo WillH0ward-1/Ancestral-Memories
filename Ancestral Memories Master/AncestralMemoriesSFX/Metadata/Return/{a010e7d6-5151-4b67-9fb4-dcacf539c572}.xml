@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.01.00">
+<objects serializationModel="Studio.02.02.00">
 	<object class="MixerReturn" id="{a010e7d6-5151-4b67-9fb4-dcacf539c572}">
 		<property name="name">
 			<value>PsychedelicFX</value>
@@ -17,17 +17,8 @@
 	<object class="MixerBusEffectChain" id="{48db36d5-866b-46b9-a51e-4e6ce9fdcceb}">
 		<relationship name="effects">
 			<destination>{498cd0c4-b6e6-4fb8-b1f4-56441e7f56ee}</destination>
-			<destination>{ceee4d5b-af28-492f-bf73-2b298358b754}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{1a60a013-9e62-4d3e-808d-60db07e785e8}" />
 	<object class="MixerBusFader" id="{498cd0c4-b6e6-4fb8-b1f4-56441e7f56ee}" />
-	<object class="ChorusEffect" id="{ceee4d5b-af28-492f-bf73-2b298358b754}">
-		<property name="rate">
-			<value>0.0149999997</value>
-		</property>
-		<property name="depth">
-			<value>100</value>
-		</property>
-	</object>
 </objects>

@@ -13,6 +13,8 @@ public class PlayerSoundEffects : MonoBehaviour
     private AreaManager areaManager;
     [SerializeField] private PlayerWalk playerWalk;
 
+    private Player player;
+
     [SerializeField] private EventReference WalkEventPath;
     [SerializeField] private EventReference HitTreeEventPath;
     [SerializeField] private EventReference WhooshEventPath;
@@ -38,6 +40,7 @@ public class PlayerSoundEffects : MonoBehaviour
     private void Awake()
     {
         rigidBody = transform.parent.GetComponent<Rigidbody>();
+        player = transform.parent.GetComponent<Player>();
     }
 
     public void AreaUpdateGroundType(int index)
@@ -80,13 +83,21 @@ public class PlayerSoundEffects : MonoBehaviour
 
     // These are triggered by animation events. See Human to get access to the Animator and it's contained Animation sheet.
 
+    public CharacterBehaviours behaviours;
+
+    void TriggerInstruments()
+    {
+        if (behaviours.isPsychdelicMode)
+        {
+            musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject, true);
+            musicManager.PlayOneShot(MusicManager.Instruments.JawHarp.ToString(), transform.gameObject, false);
+        }
+    }
+
     void PlayLeftFootStep()
     {
-        // Only trigger the musical element if the player is running
-        if (playerWalk.speed >= playerWalk.runThreshold)
-        {
-            musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject);
-        }
+
+        TriggerInstruments();
 
         CheckGroundType();
 
@@ -99,10 +110,7 @@ public class PlayerSoundEffects : MonoBehaviour
 
     void PlayRightFootStep()
     {
-        if (playerWalk.speed >= playerWalk.runThreshold)
-        {
-            musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject);
-        }
+        TriggerInstruments();
 
         CheckGroundType();
 
@@ -168,7 +176,7 @@ public class PlayerSoundEffects : MonoBehaviour
     }
 
 
-    void EatEvent()
+    public void EatEvent()
     {
         EventInstance eatEvent = RuntimeManager.CreateInstance(EatEventPath);
         RuntimeManager.AttachInstanceToGameObject(eatEvent, transform, rigidBody);
@@ -206,18 +214,15 @@ public class PlayerSoundEffects : MonoBehaviour
         hitTreeEvent.start();
         hitTreeEvent.release();
 
-        Shake camShake = cam.GetComponent<Shake>();
-        shakeMultiplier = UnityEngine.Random.Range(shakeMultiplier, shakeMultiplier);
-
         float minShakeDuration = 1;
         float maxShakeDuration = 2;
 
         float duration = UnityEngine.Random.Range(minShakeDuration, maxShakeDuration);
 
-        //float minShakeMultiplier = 1;
-        //float maxShakeMultiplier = 2;
-
+        shakeMultiplier = UnityEngine.Random.Range(shakeMultiplier, shakeMultiplier);
+        Shake camShake = cam.GetComponent<Shake>();
         StartCoroutine(camShake.ScreenShake(duration, shakeMultiplier));
+
         //shakeMultiplier = Random.Range(1, 1.1);
     }
 
@@ -230,15 +235,19 @@ public class PlayerSoundEffects : MonoBehaviour
 
     public void HitCount()
     {
+        killTreeThreshold = UnityEngine.Random.Range(4, 9);
+
         numberOfHits++;
+
+        if (player.isBlessed)
+        {
+            player.isBlessed = false;
+        }
 
         if (numberOfHits >= killTreeThreshold)
         {
             targetTree.transform.GetComponentInChildren<TreeDeathManager>().Fall();
-
             numberOfHits = 0;
-
-            return;
         }
     }
 

@@ -199,11 +199,13 @@ public class CamControl : MonoBehaviour
         
         if (camFollowTarget)
         {
-            // Smooth camera follow
             Vector3 desiredPosition = new Vector3(camTarget.position.x, camTarget.position.y + camFollowOffset.y, camTarget.position.z + camFollowOffset.z);
 
-            Vector3 SmoothedPosition = Vector3.Lerp(transform.position, desiredPosition, SmoothSpeed);
+            Vector3 SmoothedPosition = Vector3.Lerp(transform.position, desiredPosition, SmoothSpeed * Time.deltaTime);
             transform.position = SmoothedPosition;
+
+            Quaternion desiredRotation = Quaternion.LookRotation(camTarget.position - transform.position, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, SmoothSpeed * Time.deltaTime);
 
         }
     }
@@ -230,17 +232,19 @@ public class CamControl : MonoBehaviour
 
             //panoramaRotateSpeed = Input.mousePosition.x;
 
+            /*
             if (Input.mousePosition.x <= Screen.width / 2 || Input.mousePosition.x >= Screen.width / 2){
                 rotateSpeed = 0;
             }
 
             if (Input.mousePosition.x > Screen.width / 2){
-                rotateSpeed = -panoramaRotateSpeed;
+                rotateSpeed += panoramaRotateSpeed;
             }
 
             if (Input.mousePosition.x < Screen.width / 2){
-                rotateSpeed = +panoramaRotateSpeed;
+                rotateSpeed += panoramaRotateSpeed;
             }
+                 */
 
             if (cam.orthographicSize >= maxOrthoZoom){
                 cam.orthographicSize = maxOrthoZoom;
@@ -248,6 +252,17 @@ public class CamControl : MonoBehaviour
 
             if (cam.orthographicSize <= minOrthoZoom){
                 cam.orthographicSize = minOrthoZoom;
+            }
+
+            float panoramaRotateSpeed = 1;
+
+            if (Random.value < 0.5f)
+            {
+                rotateSpeed = +panoramaRotateSpeed;
+            }
+            else
+            {
+                rotateSpeed = -panoramaRotateSpeed;
             }
 
             if (panoramaRotateSpeed != 0){
@@ -561,8 +576,10 @@ public class CamControl : MonoBehaviour
 
             if (psychModeEnding)
             {
+      
                 psychModeEnding = false;
                 behaviours.isPsychdelicMode = false;
+                psychFXactive = false;
 
                 //costumeControl.SwitchHumanState();
                 yield break;
@@ -577,7 +594,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float minPsychModeLength = 7f;
     [SerializeField] private float maxPsychModeLength = 15f;
 
-    [SerializeField] private bool psychFXactive = false;
+    public bool psychFXactive = false;
     [SerializeField] private bool psychModeEnding = false;
 
     private IEnumerator PsychedelicFX()
@@ -620,10 +637,12 @@ public class CamControl : MonoBehaviour
 
     private IEnumerator EndPsychMode()
     {
-        psychFXactive = false;
+
         psychModeEnding = true;
 
+        cam.transform.SetParent(null, true);
         FromPsychToGameZoom();
+
 
         while (psychModeEnding)
         {

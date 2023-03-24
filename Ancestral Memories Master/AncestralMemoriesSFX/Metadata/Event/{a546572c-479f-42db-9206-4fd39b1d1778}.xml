@@ -60,6 +60,12 @@
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{d4ba6101-432e-48e2-b1af-f59a2a42c43d}">
+		<property name="maxVoices">
+			<value>64</value>
+		</property>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
 		<property name="minimumDistance">
 			<value>0</value>
 		</property>
@@ -76,6 +82,12 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{1811705e-90ed-4199-b054-ef03437427fe}">
+		<property name="volume">
+			<value>-1.5</value>
+		</property>
+		<relationship name="modulators">
+			<destination>{50c88dbf-1f8c-4344-9bd0-c6b7510a2b68}</destination>
+		</relationship>
 		<relationship name="effectChain">
 			<destination>{6abe15ab-30c8-4424-a746-59d6c64f9d41}</destination>
 		</relationship>
@@ -97,6 +109,14 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{68a74414-eb6e-45da-966f-78c47d3742af}" />
+	<object class="RandomizerModulator" id="{50c88dbf-1f8c-4344-9bd0-c6b7510a2b68}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>0.5</value>
+		</property>
+	</object>
 	<object class="MixerBusEffectChain" id="{6abe15ab-30c8-4424-a746-59d6c64f9d41}">
 		<relationship name="effects">
 			<destination>{7b6809b6-7ba7-4095-bb2f-cdb4515e1add}</destination>

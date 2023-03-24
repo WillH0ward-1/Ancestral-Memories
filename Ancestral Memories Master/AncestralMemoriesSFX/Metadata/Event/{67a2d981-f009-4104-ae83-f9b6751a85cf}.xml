@@ -187,7 +187,6 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{7cfb0560-25b8-4735-bb9f-9fc382d2e832}">
 		<relationship name="effects">
-			<destination>{93cae9d9-1904-4211-802b-5b0770fbc4ef}</destination>
 			<destination>{3f849e95-8f74-4c8b-a975-48dcbd5fc95c}</destination>
 			<destination>{8138e409-bacb-4cce-a324-860bc7c83e95}</destination>
 			<destination>{79404d96-3a10-4bff-ac1b-dd5c2d9c44dc}</destination>
@@ -220,14 +219,6 @@
 		<property name="nameOfPropertyBeingAutomated">
 			<value>attackTime</value>
 		</property>
-	</object>
-	<object class="MixerSend" id="{93cae9d9-1904-4211-802b-5b0770fbc4ef}">
-		<property name="inputFormat">
-			<value>1</value>
-		</property>
-		<relationship name="mixerReturn">
-			<destination>{cbdda855-a249-4968-9ea0-188570299b7e}</destination>
-		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{3f849e95-8f74-4c8b-a975-48dcbd5fc95c}" />
 	<object class="SpatialiserEffect" id="{8138e409-bacb-4cce-a324-860bc7c83e95}" />

@@ -340,7 +340,7 @@ public class CharacterBehaviours : MonoBehaviour
 
 
     [SerializeField] private float faithFactor = 0.25f;
-    [SerializeField] private float hungerFactor = 1f;
+    [SerializeField] private float hungerReplenishFactor = 1f;
 
     float minPulseTrigger = 1;
     float maxPulseTrigger = 1;
@@ -350,7 +350,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Pray(GameObject hitObject)
     {
-        cinematicCam.scrollOverride = true;
+
+        cinematicCam.scrollOverride = false;
         behaviourIsActive = true;
         //pulseActive = true;
 
@@ -360,7 +361,9 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.ToPrayerZoom();
 
         StartCoroutine(GainFaith());
-        auraParticles.StartParticles();
+
+
+        //auraParticles.StartParticles();
         playerAudioSFX.PlayPrayerAudioLoop();
         //StartCoroutine(PrayerPulseEffect());
         //god.StartGodRay(hitObject.transform, false);
@@ -377,25 +380,24 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
 
-        cinematicCam.scrollOverride = false;
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
         
     }
 
-    [SerializeField] private PlayFlute fluteControl;
+    [SerializeField] private FluteControl fluteControl;
 
     private IEnumerator PlayMusic()
     {
-        cinematicCam.scrollOverride = true;
+        cinematicCam.scrollOverride = false;
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
-        //cinematicCam.ToPlayMusicZoom();
+        cinematicCam.ToPlayMusicZoom();
 
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         fluteControl.EnableFluteControl();
 
@@ -406,7 +408,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = false;
         player.ChangeAnimationState(PLAYER_IDLE);
         fluteControl.StopAll();
-        cinematicCam.scrollOverride = false;
+        //cinematicCam.scrollOverride = false;
         cinematicCam.ToGameZoom();
 
         yield break;
@@ -462,7 +464,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         while (behaviourIsActive)
         {
-            player.GainFaith(faithFactor);
+            player.FaithModify(faithFactor);
             yield return null;
         }
 
@@ -478,7 +480,7 @@ public class CharacterBehaviours : MonoBehaviour
             {
                 player.isBlessed = false;
             }
-            player.DepleteFaith(faithFactor);
+            player.FaithModify(faithFactor);
             yield return null;
         }
     }
@@ -495,7 +497,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        StartCoroutine(GainFaith());
+ 
 
         player.ChangeAnimationState(randomDanceAnim);
 
@@ -531,14 +533,12 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         cinematicCam.ToActionZoom();
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
-
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
         int minChance = 0;
         int maxChance = 1;
@@ -565,6 +565,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         pickUpManager.DestroyPickup();
         behaviourIsActive = false;
+
         cinematicCam.ToGameZoom();
 
         yield break;
@@ -582,6 +583,9 @@ public class CharacterBehaviours : MonoBehaviour
             yield return new WaitForSeconds(psychBuffer);
 
             psychModeIncoming = false;
+
+            cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+            cinematicCam.transform.SetParent(player.transform);
             cinematicCam.ToPsychedelicZoom();
       
         }
@@ -595,7 +599,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         while (time <= 5f)
         {
-            player.HealHunger(hungerFactor);
+            player.HealHunger(hungerReplenishFactor);
             time += Time.deltaTime * 2f;
 
             yield return null;
@@ -633,12 +637,17 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
         // cinematicCam.ToGameZoom();
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+
         player.ChangeAnimationState(PLAYER_VOMIT);
     
         vomit.Play();
-       yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+
+        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+
         behaviourIsActive = false;
+
         vomit.Stop();
         yield break;
 
@@ -648,9 +657,14 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
+        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-       
+
+        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
+
         yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
 
@@ -696,8 +710,6 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        player.ChangeAnimationState(PLAYER_STANDUPFROMSIT);
-
         behaviourIsActive = false;
 
         cinematicCam.ToGameZoom();
@@ -737,7 +749,6 @@ public class CharacterBehaviours : MonoBehaviour
         tool.Wield(wieldedStoneAxe, sheathedStoneAxe);
 
         behaviourIsActive = true;
-        StartCoroutine(LoseFaith());
 
 
         float time = 0;

@@ -66,13 +66,13 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{99ed5ff4-7e99-405d-832d-3c82ab0fc056}">
 		<property name="maxVoices">
-			<value>9</value>
+			<value>1</value>
 		</property>
 		<property name="voiceStealing">
 			<value>2</value>
 		</property>
-		<property name="dopplerEnabled">
-			<value>true</value>
+		<property name="priority">
+			<value>4</value>
 		</property>
 		<property name="dopplerScale">
 			<value>0</value>
@@ -116,9 +116,6 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{65ea44f3-60e3-4920-a629-dd2ea2d0b990}">
-		<property name="volume">
-			<value>10</value>
-		</property>
 		<property name="pitch">
 			<value>-17</value>
 		</property>
@@ -161,6 +158,9 @@
 	<object class="SingleSound" id="{530fa09f-0652-4805-86b4-261b6896e5e4}">
 		<property name="startOffset">
 			<value>40</value>
+		</property>
+		<property name="looping">
+			<value>true</value>
 		</property>
 		<relationship name="automators">
 			<destination>{cb345c4b-2d9f-42fc-9a6e-ad52a6792c72}</destination>
@@ -373,7 +373,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>7000.00098</value>
+			<value>16500</value>
 		</property>
 		<property name="curveShape">
 			<value>0.100550108</value>
@@ -384,7 +384,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>1166.66675</value>
+			<value>2375</value>
 		</property>
 	</object>
 </objects>

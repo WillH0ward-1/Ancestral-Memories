@@ -41,6 +41,9 @@ public class PlayerWalk : MonoBehaviour
     const string PLAYER_DRUNKWALK = "Player_drunkWalk";
     const string PLAYER_DRUNKRUN = "Player_drunkRun";
 
+    const string PLAYER_CURIOUS = "Player_curious";
+
+
     bool playerIsCrouched = false;
 
     [SerializeField] private float walkThreshold = 0;
@@ -324,14 +327,24 @@ public class PlayerWalk : MonoBehaviour
 
         distance = Vector3.Distance(playerPosition, rayHit.point);
 
-        if (distance >= distanceThreshold) return;
+        if (distance >= distanceThreshold)
+        {
+            return;
+        }
 
         MoveAgent(rayHit.point, distance, playerPosition);
     }
 
     private void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
     {
-        speed = cursorDistance / distanceRatios;
+        if (!behaviours.isPsychdelicMode)
+        {
+            speed = cursorDistance / distanceRatios;
+        } else if (behaviours.isPsychdelicMode)
+        {
+            speed = runThreshold + 1;
+        }
+
         agent.destination = hitPoint;
         agent.speed = speed;
         walkAnimFactor = speed / animFactor;
@@ -346,28 +359,20 @@ public class PlayerWalk : MonoBehaviour
             {
                 ChangeState(PLAYER_WALK);
             }
-            else if (player.isStarving)
+            else if (!behaviours.isPsychdelicMode && player.isStarving)
             {
                 ChangeState(PLAYER_STARVINGWALK);
             }
             else if (behaviours.isPsychdelicMode)
             {
-                ChangeState(PLAYER_DRUNKWALK);
+                ChangeState(PLAYER_WALK);
             }
 
         }
 
         if (speed >= runThreshold)
         {
-            if (!behaviours.isPsychdelicMode)
-            {
-                ChangeState(PLAYER_RUN);
-            }
-            else if (behaviours.isPsychdelicMode)
-            {
-                ChangeState(PLAYER_RUN);
-                //ChangeState(PLAYER_DRUNKRUN);
-            }
+            ChangeState(PLAYER_RUN);
         }
     }
 
@@ -376,7 +381,7 @@ public class PlayerWalk : MonoBehaviour
     public bool reachedDestination = false;
     public float closeDistance = 5.0f;
 
-    private float walkTowardSpeed;
+    [SerializeField] private float walkTowardSpeed = 16;
 
     private Vector3 destination;
     [SerializeField] private Vector3 defaultBoundsSize;
@@ -479,7 +484,6 @@ public class PlayerWalk : MonoBehaviour
 
         reachedDestination = false;
         ChangeState(PLAYER_RUN);
-        walkTowardSpeed = runThreshold + 1;
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);
         agent.destination = destination;
@@ -562,20 +566,21 @@ public class PlayerWalk : MonoBehaviour
 
     public void StopAgent()
     {
-        player.AdjustAnimationSpeed(defaultAnimSpeed / 2);
+
+        player.AdjustAnimationSpeed(defaultAnimSpeed);
 
         if (!behaviours.isPsychdelicMode && !player.isStarving)
         {
             ChangeState(PLAYER_IDLE);
         }
-        if (player.isStarving)
+        if (!behaviours.isPsychdelicMode && player.isStarving)
         {
             ChangeState(PLAYER_STARVINGIDLE);
 
         }
         else if (behaviours.isPsychdelicMode)
         {
-            ChangeState(PLAYER_DRUNKIDLE);
+            ChangeState(PLAYER_CURIOUS);
         }
 
         agent.ResetPath();

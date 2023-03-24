@@ -6,7 +6,6 @@ public class BillBoardCam : MonoBehaviour
 {
     float yRotation;
     public Camera cam;
-    private Transform target;
 
     private void Start()
     {
@@ -16,7 +15,7 @@ public class BillBoardCam : MonoBehaviour
 
     void Update()
     {
-        if (target == null)
+        if (cam == null)
         {
             return;
         }

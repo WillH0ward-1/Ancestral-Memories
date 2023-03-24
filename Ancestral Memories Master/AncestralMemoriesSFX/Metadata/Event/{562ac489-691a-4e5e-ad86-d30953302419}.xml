@@ -30,7 +30,6 @@
 		</relationship>
 		<relationship name="parameters">
 			<destination>{f2b33407-a792-4a4a-bd44-dc3444438b0f}</destination>
-			<destination>{b70f56d0-e345-4696-a3a2-e28227faa887}</destination>
 		</relationship>
 		<relationship name="banks">
 			<destination>{6b2e74f9-c99a-44b8-99c7-1e3761f6e45b}</destination>
@@ -57,15 +56,18 @@
 			<destination>{94f1dc36-8be2-41da-b0e8-b82dd86c5126}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{2f889ca9-3cb1-4e11-b4bc-a8fb338c78d2}</destination>
+			<destination>{9f646f1e-0f5a-42c3-8a24-00edb4d1a644}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{6fed4989-c2f1-4fb5-87b4-f5da99b64a0d}">
 		<property name="maxVoices">
-			<value>30</value>
+			<value>25</value>
 		</property>
 		<property name="voiceStealing">
 			<value>2</value>
+		</property>
+		<property name="priority">
+			<value>4</value>
 		</property>
 		<property name="dopplerEnabled">
 			<value>true</value>
@@ -77,7 +79,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>150</value>
+			<value>200</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{28131738-4149-4d29-967f-e6a6ecd8f23f}" />
@@ -91,12 +93,10 @@
 			<destination>{8f710a6f-1fca-4e3a-969d-601e8ce4109e}</destination>
 		</relationship>
 	</object>
-	<object class="ParameterProxy" id="{b70f56d0-e345-4696-a3a2-e28227faa887}">
-		<relationship name="preset">
-			<destination>{607a96a6-3f6f-4fd1-bbf5-91e064279fa1}</destination>
-		</relationship>
-	</object>
 	<object class="EventMixerMaster" id="{d48edc2b-36c6-4d23-bc0c-6119f429e052}">
+		<property name="volume">
+			<value>-3.5</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{43880208-9b10-4983-b3d8-4a8b7e326808}</destination>
 		</relationship>
@@ -137,7 +137,10 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>150</value>
+			<value>200</value>
+		</property>
+		<property name="extentMode">
+			<value>1</value>
 		</property>
 	</object>
 </objects>

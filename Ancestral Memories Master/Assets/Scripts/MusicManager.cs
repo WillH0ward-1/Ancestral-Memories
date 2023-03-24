@@ -7,10 +7,8 @@ using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
 
-
 public class MusicManager : MonoBehaviour
 {
-
     public enum Modes
     {
         Major,
@@ -27,16 +25,16 @@ public class MusicManager : MonoBehaviour
 
     public Dictionary<Modes, string[]> ModeInfo = new() 
     {
-        { Modes.Major, new string[] { "C", "D", "E", "F", "G", "A", "B" } },
-        { Modes.Aeolian, new string[] { "C", "D", "Ds", "F", "G", "Gs", "As" } },
-        { Modes.Dorian, new string[] { "C", "D", "Ds", "F", "G", "A", "As" } },
-        { Modes.Phrygian, new string[] { "C", "Cs", "Ds", "F", "G", "Gs", "As" } },
-        { Modes.Lydian, new string[] { "C", "D", "E", "Fs", "G", "A", "B" } },
-        { Modes.Mixolydian, new string[] { "C", "D", "E", "F", "G", "A", "As" } },
-        { Modes.Locrian, new string[] { "C", "Cs", "Ds", "F", "Fs", "Gs", "As" } },
-        { Modes.Klezmer, new string[] { "C", "D", "Ds", "Fs", "G", "A", "As" } },
-        { Modes.SeAsian, new string[] { "C", "Cs", "E", "F", "G", "Gs", "B" } },
-        { Modes.Chromatic, new string[] { "C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B" } }
+        { Modes.Major, new string[] { "C", "D", "E", "F", "G", "A", "B", "C2" } },
+        { Modes.Aeolian, new string[] { "C", "D", "Ds", "F", "G", "Gs", "As", "C2" } },
+        { Modes.Dorian, new string[] { "C", "D", "Ds", "F", "G", "A", "As", "C2" } },
+        { Modes.Phrygian, new string[] { "C", "Cs", "Ds", "F", "G", "Gs", "As", "C2" } },
+        { Modes.Lydian, new string[] { "C", "D", "E", "Fs", "G", "A", "B", "C2" } },
+        { Modes.Mixolydian, new string[] { "C", "D", "E", "F", "G", "A", "As", "C2" } },
+        { Modes.Locrian, new string[] { "C", "Cs", "Ds", "F", "Fs", "Gs", "As", "C2" } },
+        { Modes.Klezmer, new string[] { "C", "D", "Ds", "Fs", "G", "A", "As", "C2" } },
+        { Modes.SeAsian, new string[] { "C", "Cs", "E", "F", "G", "Gs", "B", "C2" } },
+        { Modes.Chromatic, new string[] { "C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B", "C2" } }
     };
 
     [SerializeField] private string currentlyPlaying;
@@ -54,32 +52,40 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private int faithModulateOutput;
 
     [SerializeField] private EventReference strings_EventPath;
+    [SerializeField] private EventReference pianoTail_EventPath;
     [SerializeField] private EventReference plateScrapeSynth_EventPath;
     [SerializeField] private EventReference jawHarp_EventPath;
     [SerializeField] private EventReference hangDrum_EventPath;
     [SerializeField] private EventReference marimba_EventPath;
     [SerializeField] private EventReference playerFlute_EventPath;
     [SerializeField] private EventReference sine_EventPath;
+    [SerializeField] private EventReference darkAmbientSwell_EventPath;
 
     public enum Instruments // The Instruments type containing the names of instruments
-                            // is held in the InstrumentInfo dictionary
+                            // This is held in the InstrumentInfo dictionary
     {
         Strings,
+        PianoTail,
         PlateScrapeSynth,
         HangDrum,
+        JawHarp,
         Marimba,
         PlayerFlute,
-        Sine
+        Sine,
+        DarkAmbientSwell
     }
 
     public Dictionary<Instruments, EventReference> InstrumentInfo = new() // Holds the name and FMOD reference
     {
         { Instruments.Strings, new EventReference() },
+        { Instruments.PianoTail, new EventReference() },
         { Instruments.PlateScrapeSynth, new EventReference() },
         { Instruments.HangDrum, new EventReference() },
+        { Instruments.JawHarp, new EventReference() },
         { Instruments.Marimba, new EventReference() },
         { Instruments.PlayerFlute, new EventReference() },
-        { Instruments.Sine, new EventReference() }
+        { Instruments.Sine, new EventReference() },
+        { Instruments.DarkAmbientSwell, new EventReference() }
     };
 
     public int stringsVoiceCount = 4; // Initialise voice counts here. 
@@ -97,11 +103,14 @@ public class MusicManager : MonoBehaviour
                                       // as one object, along with it's instrument name
     {
         InstrumentInfo[Instruments.Strings] = strings_EventPath;
+        InstrumentInfo[Instruments.PianoTail] = plateScrapeSynth_EventPath;
         InstrumentInfo[Instruments.PlateScrapeSynth] = plateScrapeSynth_EventPath;
         InstrumentInfo[Instruments.HangDrum] = hangDrum_EventPath;
+        InstrumentInfo[Instruments.JawHarp] = jawHarp_EventPath;
         InstrumentInfo[Instruments.Marimba] = marimba_EventPath;
         InstrumentInfo[Instruments.PlayerFlute] = playerFlute_EventPath;
         InstrumentInfo[Instruments.Sine] = sine_EventPath;
+        InstrumentInfo[Instruments.DarkAmbientSwell] = darkAmbientSwell_EventPath;
     }
 
     public float minBuffer = 10f;
@@ -144,13 +153,14 @@ public class MusicManager : MonoBehaviour
                                          // between events and progressions. More control over this in future would be nice.
         {
             case "Outside" when characterBehaviours.isPsychdelicMode:
-                StartCoroutine(PlayNote(GetRandomInstrument().ToString(), stringsVoiceCount, null, true));
+                StartCoroutine(PlayNote(Instruments.Sine.ToString(), stringsVoiceCount, null, true));
                 break;
             case "Outside":
                 StartCoroutine(PlayNote(Instruments.Strings.ToString(), stringsVoiceCount, null, true));
                 break;
             case "InsideCave":
                 StartCoroutine(PlayNote(Instruments.PlateScrapeSynth.ToString(), stringsVoiceCount, null, true));
+                StartCoroutine(PlayNote(Instruments.DarkAmbientSwell.ToString(), stringsVoiceCount, null, true));
                 break;
             default:
                 StartCoroutine(PlayNote(Instruments.Strings.ToString(), stringsVoiceCount, null, true));
@@ -271,11 +281,11 @@ public class MusicManager : MonoBehaviour
         }
     }
 
-    public static string[] Shuffle(string[] array) // Random Shuffle
+    public static string[] Shuffle(string[] array) // Random Shuffle - https://alessandrofama.com/tutorials/fmod/unity/shuffle-playlist
     {
         for (int i = 0; i < array.Length - 1; i++)
         {
-            int randomNumber = (int)UnityEngine.Random.Range(0, array.Length);
+            int randomNumber = UnityEngine.Random.Range(0, array.Length);
             int randomIndex = randomNumber;
             string currentIndex = array[i];
             array[i] = array[randomIndex];
@@ -335,8 +345,8 @@ public class MusicManager : MonoBehaviour
             //Debug.Log(key);
             //Debug.Log(instrumentInstance);
 
-            activeVoices.Add(instrumentInstance, note); // Add note object containing the FMOD instance 
-                                                        // and the corrosponding note name to dictionary.
+            activeVoices.Add(instrumentInstance, note); // Create the 'Voice' object (containing the FMOD instance 
+                                                        // and the corrosponding note name) to 'active voices'.
 
             activeNotes.Add(note); // Add note name to its own separate list too.
 
@@ -373,7 +383,7 @@ public class MusicManager : MonoBehaviour
 
     private List<string> notesList;
 
-    public void PlayOneShot(string instrumentName, GameObject emitter) // Use 'Find References', it's called
+    public void PlayOneShot(string instrumentName, GameObject emitter, bool isProgrammerEvent) // Use 'Find References', it's called
     {                                                                 // by other scripts
         EventReference eventPath = GetInstrumentEvent(instrumentName);
 
@@ -382,22 +392,27 @@ public class MusicManager : MonoBehaviour
 
         notesList = notesToUse.ToList();
 
-        string key = instrumentFileRootName + "/" + instrumentName + "/" + note;
-
-        Debug.Log(key);
-
         EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath);
 
         Debug.Log(instrumentInstance);
 
-        GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
-        instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
-        instrumentInstance.setCallback(callbackDelegate);
+        if (isProgrammerEvent)
+        {
 
-        RuntimeManager.AttachInstanceToGameObject(instrumentInstance, emitter.transform);
+            string key = instrumentFileRootName + "/" + instrumentName + "/" + note;
+            //Debug.Log(key);
+            GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
+            instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
+            instrumentInstance.setCallback(callbackDelegate);
+        }
+        else
+        {
 
-        instrumentInstance.start();
-        instrumentInstance.release();
+            RuntimeManager.AttachInstanceToGameObject(instrumentInstance, emitter.transform);
+
+            instrumentInstance.start();
+            instrumentInstance.release();
+        }
     }
 
     /*

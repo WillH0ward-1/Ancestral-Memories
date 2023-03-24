@@ -70,9 +70,6 @@
 		<property name="voiceStealing">
 			<value>2</value>
 		</property>
-		<property name="priority">
-			<value>1</value>
-		</property>
 		<property name="dopplerEnabled">
 			<value>true</value>
 		</property>
@@ -83,7 +80,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>300</value>
+			<value>350</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{86527add-46dd-4eb3-9661-0201bfebfef3}" />
@@ -112,6 +109,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{c5c30a8f-0cda-4702-b9a2-f67a186a7955}">
+		<property name="volume">
+			<value>10</value>
+		</property>
 		<relationship name="automators">
 			<destination>{8560957f-0833-4d8d-9233-5bdb0492ed2d}</destination>
 		</relationship>
@@ -185,6 +185,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{8e181957-0d9f-4d06-99fc-6da06243ddad}">
+		<property name="volume">
+			<value>2.5</value>
+		</property>
 		<property name="name">
 			<value>Crow</value>
 		</property>
@@ -225,7 +228,6 @@
 			<destination>{9db5f317-3fac-4c80-98b4-37192d1307f6}</destination>
 			<destination>{a6c206a9-9b1d-4be9-838b-514df750e629}</destination>
 			<destination>{69f68ccb-4fe4-49b9-a613-7a4ae71d745d}</destination>
-			<destination>{65602586-fd8f-4d00-9e99-7c8b2363586a}</destination>
 			<destination>{e0e9e93e-9616-4f6d-846d-2c87419845e0}</destination>
 		</relationship>
 	</object>
@@ -270,16 +272,8 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>300</value>
+			<value>350</value>
 		</property>
-	</object>
-	<object class="MixerSend" id="{65602586-fd8f-4d00-9e99-7c8b2363586a}">
-		<property name="inputFormat">
-			<value>2</value>
-		</property>
-		<relationship name="mixerReturn">
-			<destination>{cbdda855-a249-4968-9ea0-188570299b7e}</destination>
-		</relationship>
 	</object>
 	<object class="MixerSend" id="{e0e9e93e-9616-4f6d-846d-2c87419845e0}">
 		<property name="inputFormat">

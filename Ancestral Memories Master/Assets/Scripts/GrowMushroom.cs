@@ -21,18 +21,21 @@ public class MushroomGrowth : MonoBehaviour
 
     public bool growMushrooms = true;
 
+    public Player player;
+
     private void Start()
     {
         scaleControl = transform.GetComponent<ScaleControl>();
 
         StartCoroutine(GrowAndShrink());
+        
     }
 
     private IEnumerator GrowAndShrink()
     {
         growMushrooms = true;
 
-        while (growMushrooms)
+        while (growMushrooms && player.faith > 50)
         {
             yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
 
@@ -46,6 +49,9 @@ public class MushroomGrowth : MonoBehaviour
 
             yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
 
+            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+        } if (player.faith < 50)
+        {
             yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
         }
     }

@@ -29,12 +29,9 @@ public class CloudControl : MonoBehaviour
 
         foreach (Material m in sharedMaterials)
         {
-
-            m.SetFloat("_CloudsPower", cloudPowerMin);
+            m.SetFloat("_CloudsPower", cloudPersistanceMin);
             m.SetFloat("_WindSpeed", cloudSpeedMin);
-
         }
-        
 
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
@@ -44,16 +41,32 @@ public class CloudControl : MonoBehaviour
 
     float time = 0;
 
-    public float cloudPowerMin = 1f;
-    public float cloudPowerMax = 1.6f;
+    public float cloudPersistanceMin = 1f;
+    public float cloudPersistanceMax = 1.6f;
 
     public float cloudSpeedMin = 25f;
     public float cloudSpeedMax = 250;
 
+    private bool cloudPowerOverride = false;
+    private float overrideCloudPower = 0f;
+
+    public float lerpSpeed = 1f;
     private void CloudModifier(float faith, float minKarma, float maxKarma)
     {
         var t = Mathf.InverseLerp(minKarma, maxKarma, faith);
-        float cloudPowerOutput = Mathf.Lerp(cloudPowerMax, cloudPowerMin, t);
+
+        float cloudPowerOutput = 0;
+
+        if (cloudPowerOverride)
+        {
+            cloudPowerOutput = Mathf.Lerp(targetCloudPower, Mathf.Lerp(targetCloudPower, overrideCloudPower, t), Time.deltaTime * lerpSpeed); ;
+        }
+        else
+        {
+            // smoothly transition to the new value over time
+            cloudPowerOutput = Mathf.Lerp(targetCloudPower, Mathf.Lerp(cloudPersistanceMax, cloudPersistanceMin, t), Time.deltaTime * lerpSpeed);
+        }
+
         float cloudSpeedOutput = Mathf.Lerp(1, 0, t);
 
         targetCloudPower = cloudPowerOutput;
@@ -67,6 +80,11 @@ public class CloudControl : MonoBehaviour
         UpdateClouds();
     }
 
+    private void TriggerRainCloud()
+    {
+
+    }
+
     private void UpdateClouds()
     {
         foreach (Material m in sharedMaterials)
@@ -74,5 +92,16 @@ public class CloudControl : MonoBehaviour
             m.SetFloat("_CloudPersistance", targetCloudPower);
             m.SetFloat("_WindSpeed", targetCloudSpeed);
         }
+    }
+
+    public void OverrideCloudPower(float value)
+    {
+        cloudPowerOverride = true;
+        overrideCloudPower = value;
+    }
+
+    public void StopCloudPowerOverride()
+    {
+        cloudPowerOverride = false;
     }
 }
