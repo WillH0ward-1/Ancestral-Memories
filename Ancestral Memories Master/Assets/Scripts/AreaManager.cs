@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-
 public class AreaManager : MonoBehaviour
 {
     public CharacterBehaviours behaviours;
@@ -53,6 +52,8 @@ public class AreaManager : MonoBehaviour
 
     public IEnumerator EnterPortal(GameObject interactedPortal)
     {
+        behaviours.ToFrontCam();
+
         traversing = true;
         isEntering = true;
 
@@ -70,6 +71,8 @@ public class AreaManager : MonoBehaviour
 
     public IEnumerator ExitPortal(Portal portal)
     {
+        behaviours.ToFrontCam();
+
         string area = portal.exitPortal.GetComponent<AreaName>().areaName;
         currentRoom = area;
 

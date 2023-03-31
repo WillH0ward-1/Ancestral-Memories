@@ -64,8 +64,17 @@
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{411d859d-7c3d-4c08-b26d-87553557911b}">
+		<property name="maxVoices">
+			<value>64</value>
+		</property>
 		<property name="priority">
 			<value>4</value>
+		</property>
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="dopplerScale">
+			<value>500</value>
 		</property>
 		<property name="minimumDistance">
 			<value>0</value>
@@ -112,6 +121,9 @@
 	<object class="EventMixerMaster" id="{9782f736-fc86-4108-86ce-0a4fe75b1389}">
 		<property name="volume">
 			<value>3.5</value>
+		</property>
+		<property name="pitch">
+			<value>-2</value>
 		</property>
 		<relationship name="automators">
 			<destination>{b6c32f4d-09b2-4295-9f15-f05b37ee1df4}</destination>
@@ -497,7 +509,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>10</value>
+			<value>3</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{c81ea3dc-0e58-4155-b138-d5eda28b4bcb}">
@@ -505,7 +517,7 @@
 			<value>0.0042372881355932203</value>
 		</property>
 		<property name="value">
-			<value>6.5</value>
+			<value>-0.5</value>
 		</property>
 		<property name="curveShape">
 			<value>1</value>

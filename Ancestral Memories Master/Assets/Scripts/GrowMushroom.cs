@@ -27,32 +27,68 @@ public class MushroomGrowth : MonoBehaviour
     {
         scaleControl = transform.GetComponent<ScaleControl>();
 
-        StartCoroutine(GrowAndShrink());
-        
+        StartCoroutine(WaitForPlayerAssignmentAndGrowShrink());
     }
+
+    private IEnumerator WaitForPlayerAssignmentAndGrowShrink()
+    {
+        while (player == null) 
+        {
+            yield return null;
+        }
+
+        StartCoroutine(GrowAndShrink());
+    }
+
 
     private IEnumerator GrowAndShrink()
     {
-        growMushrooms = true;
-
-        while (growMushrooms && player.faith > 50)
+        while (true)
         {
-            yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
+            if (player.faith > 50)
+            {
+                // Start grow buffer
+                yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
 
+                // Grow the mushroom if player faith is still above 50
+                if (player.faith > 50)
+                {
+                    growMushrooms = true;
+                    growthInstance = RuntimeManager.CreateInstance(growthEvent);
+                    RuntimeManager.AttachInstanceToGameObject(growthInstance, transform);
 
-            growthInstance = RuntimeManager.CreateInstance(growthEvent);
-            RuntimeManager.AttachInstanceToGameObject(growthInstance, transform);
+                    growthInstance.start();
+                    yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkScale, growScale, Random.Range(minGrowDuration, maxGrowDuration), 0));
+                    growthInstance.release();
 
-            growthInstance.start();
-            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkScale, growScale, Random.Range(minGrowDuration, maxGrowDuration), 0));
-            growthInstance.release();
+                    // Wait for the mushroom's Lifetime
+                    float lifetime = Random.Range(minGrowDelay, maxGrowDelay);
+                    float elapsedTime = 0f;
 
-            yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
+                    while (elapsedTime < lifetime && player.faith > 50)
+                    {
+                        elapsedTime += Time.deltaTime;
+                        yield return null;
+                    }
 
-            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
-        } if (player.faith < 50)
-        {
-            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+                    // Shrink the mushroom
+                    if (growMushrooms)
+                    {
+                        growMushrooms = false;
+                        yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+                    }
+                }
+            }
+            else
+            {
+                if (growMushrooms)
+                {
+                    growMushrooms = false;
+                    yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+                }
+
+                yield return null;
+            }
         }
     }
 }

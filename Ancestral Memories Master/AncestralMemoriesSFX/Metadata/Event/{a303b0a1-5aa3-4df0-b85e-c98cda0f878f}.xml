@@ -70,8 +70,11 @@
 		<property name="voiceStealing">
 			<value>2</value>
 		</property>
-		<property name="priority">
-			<value>1</value>
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="minimumDistance">
+			<value>0</value>
 		</property>
 		<property name="maximumDistance">
 			<value>450</value>
@@ -182,6 +185,9 @@
 	<object class="MixerBusFader" id="{e383bacc-4606-49d1-a330-a83fa6d3287d}" />
 	<object class="MixerBusFader" id="{52a57d48-dd78-4700-84fe-00b992fdfea6}" />
 	<object class="SpatialiserEffect" id="{4ad4fa06-d2f0-4e71-ac14-89f23ef9f3eb}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
 		<property name="maximumDistance">
 			<value>450</value>
 		</property>

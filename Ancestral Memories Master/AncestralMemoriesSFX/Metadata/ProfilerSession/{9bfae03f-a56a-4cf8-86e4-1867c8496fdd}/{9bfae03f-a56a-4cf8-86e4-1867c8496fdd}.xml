@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ProfilerSession" id="{9bfae03f-a56a-4cf8-86e4-1867c8496fdd}">
+		<property name="name">
+			<value>New Session</value>
+		</property>
+		<property name="outputFormat">
+			<value>0</value>
+		</property>
+		<relationship name="folder">
+			<destination>{edc8ba5f-f98b-4903-948f-4b9013e33f86}</destination>
+		</relationship>
+		<relationship name="mixer">
+			<destination>{ff299575-7e97-4c58-826a-6aad771385e3}</destination>
+		</relationship>
+		<relationship name="masterTrack">
+			<destination>{8ad80e15-01e7-4d35-a1a1-430a1e21c577}</destination>
+		</relationship>
+		<relationship name="automatableProperties">
+			<destination>{65986367-513d-4051-8849-84b6e210e38e}</destination>
+		</relationship>
+		<relationship name="markerTracks">
+			<destination>{d1012a55-ae5e-40dc-94cc-b66a75c4f9b8}</destination>
+		</relationship>
+		<relationship name="timeline">
+			<destination>{727baf54-9acf-441c-88ff-e232f47831af}</destination>
+		</relationship>
+		<relationship name="profilerTracks">
+			<destination>{6484cde8-48cf-47c1-ab46-0e64e51262c7}</destination>
+			<destination>{af3189f9-0904-4516-adef-241c528e05ce}</destination>
+			<destination>{c7fa2230-a613-4dfc-bb7a-bf579b453def}</destination>
+			<destination>{466dea20-9ec2-4da4-aa9a-a1deccc6e5fa}</destination>
+			<destination>{36e1101f-0652-4ec2-9a0a-3315795f17e7}</destination>
+			<destination>{e7a62ad4-e57d-4a8a-b200-9cbb12361e29}</destination>
+			<destination>{197e1352-5321-4724-91ac-3fbcbf71fa32}</destination>
+			<destination>{10c06bd2-3f90-4ae2-a940-19088ad06c0f}</destination>
+			<destination>{69af6af3-be63-4e6f-9329-c46854655dd9}</destination>
+			<destination>{745bff98-eb5e-4bf9-ac25-9af65e38e7ea}</destination>
+			<destination>{6c7866f6-ce8f-40ba-93c1-173cd015eb09}</destination>
+			<destination>{64def369-6304-4fd0-a8f5-5f0c84804b86}</destination>
+			<destination>{d75cc434-91ac-44d4-84c5-58d10daba724}</destination>
+		</relationship>
+		<relationship name="profilerSystemTrack">
+			<destination>{142e2d8c-5ef6-4e3e-bc61-ad61eef2cf2d}</destination>
+		</relationship>
+	</object>
+	<object class="EventMixer" id="{ff299575-7e97-4c58-826a-6aad771385e3}">
+		<relationship name="masterBus">
+			<destination>{22e6565a-14c9-4334-9115-f5cfec86edd3}</destination>
+		</relationship>
+	</object>
+	<object class="MasterTrack" id="{8ad80e15-01e7-4d35-a1a1-430a1e21c577}">
+		<relationship name="mixerGroup">
+			<destination>{22e6565a-14c9-4334-9115-f5cfec86edd3}</destination>
+		</relationship>
+	</object>
+	<object class="EventAutomatableProperties" id="{65986367-513d-4051-8849-84b6e210e38e}" />
+	<object class="MarkerTrack" id="{d1012a55-ae5e-40dc-94cc-b66a75c4f9b8}" />
+	<object class="Timeline" id="{727baf54-9acf-441c-88ff-e232f47831af}">
+		<relationship name="markers">
+			<destination>{363b92b1-4826-46c2-bd75-12dccb4c27c2}</destination>
+			<destination>{c28ec576-496d-4771-9c16-85ae356aa3c5}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{6484cde8-48cf-47c1-ab46-0e64e51262c7}">
+		<relationship name="objectBeingTracked">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{af3189f9-0904-4516-adef-241c528e05ce}">
+		<relationship name="objectBeingTracked">
+			<destination>{8843388a-3e55-4cb3-8ef9-e3f031aeec53}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{c7fa2230-a613-4dfc-bb7a-bf579b453def}">
+		<relationship name="objectBeingTracked">
+			<destination>{00ccf386-1fbd-4402-996e-b2557462f4a0}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{466dea20-9ec2-4da4-aa9a-a1deccc6e5fa}">
+		<relationship name="objectBeingTracked">
+			<destination>{529861a5-7477-475a-ac8c-8cf7f05cf0a1}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{36e1101f-0652-4ec2-9a0a-3315795f17e7}">
+		<relationship name="objectBeingTracked">
+			<destination>{8e5f2a82-8c49-4440-9963-531fc983a66b}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{e7a62ad4-e57d-4a8a-b200-9cbb12361e29}">
+		<relationship name="objectBeingTracked">
+			<destination>{53fda273-cfe3-40d4-b439-a152043a45ae}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{197e1352-5321-4724-91ac-3fbcbf71fa32}">
+		<relationship name="objectBeingTracked">
+			<destination>{9c1a9bab-794c-4ed7-9d1b-7784acba60e0}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{10c06bd2-3f90-4ae2-a940-19088ad06c0f}">
+		<relationship name="objectBeingTracked">
+			<destination>{a303b0a1-5aa3-4df0-b85e-c98cda0f878f}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{69af6af3-be63-4e6f-9329-c46854655dd9}">
+		<relationship name="objectBeingTracked">
+			<destination>{4e2eb697-9baf-497f-8a37-3558dc3ed860}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{745bff98-eb5e-4bf9-ac25-9af65e38e7ea}">
+		<relationship name="objectBeingTracked">
+			<destination>{67a2d981-f009-4104-ae83-f9b6751a85cf}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{6c7866f6-ce8f-40ba-93c1-173cd015eb09}">
+		<relationship name="objectBeingTracked">
+			<destination>{9ed359f5-19c1-438f-a135-3bda1a0ac584}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{64def369-6304-4fd0-a8f5-5f0c84804b86}">
+		<relationship name="objectBeingTracked">
+			<destination>{8a86da0c-728f-4a65-932b-19f755912ab2}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerTrack" id="{d75cc434-91ac-44d4-84c5-58d10daba724}">
+		<relationship name="objectBeingTracked">
+			<destination>{20d919a0-75b9-462f-a9de-48ce1e78f2a1}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerSystemTrack" id="{142e2d8c-5ef6-4e3e-bc61-ad61eef2cf2d}">
+		<relationship name="automationTracks">
+			<destination>{6f45ffbf-9c4e-4ee9-a05f-1ca68d2acaca}</destination>
+			<destination>{b9c319d5-4dbb-476c-8a8f-fcacf031d900}</destination>
+			<destination>{ac8de3cf-8ee3-4edf-a971-159df288d182}</destination>
+			<destination>{fd2b75f6-b4f4-4249-a466-94328b6a3b80}</destination>
+			<destination>{22ddc422-fe32-441d-b6db-c107be046956}</destination>
+			<destination>{1117439b-0f0c-4420-9322-ad553c3edfe0}</destination>
+			<destination>{2f823fb5-0722-45e6-9a0e-b73690f05f20}</destination>
+			<destination>{4e05f1ad-aac1-4b96-a939-b656060430d6}</destination>
+			<destination>{22c69956-6abd-4c7e-944e-0e65fe6f81a4}</destination>
+			<destination>{85c26cfd-92c1-4176-ac3c-8adf114e6ccd}</destination>
+			<destination>{b92d0fc2-9450-43fa-abe2-41e23a606299}</destination>
+		</relationship>
+		<relationship name="objectBeingTracked">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="EventMixerMaster" id="{22e6565a-14c9-4334-9115-f5cfec86edd3}">
+		<property name="name">
+			<value>Capture</value>
+		</property>
+		<relationship name="effectChain">
+			<destination>{0102cf3c-82be-4b65-9f11-0c2dc6ff9de3}</destination>
+		</relationship>
+		<relationship name="panner">
+			<destination>{271d4e38-df29-4983-bf79-27238feebcc3}</destination>
+		</relationship>
+		<relationship name="mixer">
+			<destination>{ff299575-7e97-4c58-826a-6aad771385e3}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerRecordingMarker" id="{363b92b1-4826-46c2-bd75-12dccb4c27c2}">
+		<property name="position">
+			<value>0</value>
+		</property>
+		<property name="name">
+			<value>12:58:50 PM</value>
+		</property>
+		<relationship name="timeline">
+			<destination>{727baf54-9acf-441c-88ff-e232f47831af}</destination>
+		</relationship>
+		<relationship name="markerTrack">
+			<destination>{d1012a55-ae5e-40dc-94cc-b66a75c4f9b8}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerRecordingMarker" id="{c28ec576-496d-4771-9c16-85ae356aa3c5}">
+		<property name="position">
+			<value>1.2373333333333334</value>
+		</property>
+		<property name="name">
+			<value>01:00:06 PM</value>
+		</property>
+		<relationship name="timeline">
+			<destination>{727baf54-9acf-441c-88ff-e232f47831af}</destination>
+		</relationship>
+		<relationship name="markerTrack">
+			<destination>{d1012a55-ae5e-40dc-94cc-b66a75c4f9b8}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{6f45ffbf-9c4e-4ee9-a05f-1ca68d2acaca}">
+		<property name="graphType">
+			<value>10</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{b9c319d5-4dbb-476c-8a8f-fcacf031d900}">
+		<property name="graphType">
+			<value>0</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{ac8de3cf-8ee3-4edf-a971-159df288d182}">
+		<property name="graphType">
+			<value>9</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{fd2b75f6-b4f4-4249-a466-94328b6a3b80}">
+		<property name="graphType">
+			<value>104</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{22ddc422-fe32-441d-b6db-c107be046956}">
+		<property name="graphType">
+			<value>105</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{1117439b-0f0c-4420-9322-ad553c3edfe0}">
+		<property name="graphType">
+			<value>1</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{2f823fb5-0722-45e6-9a0e-b73690f05f20}">
+		<property name="graphType">
+			<value>11</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{4e05f1ad-aac1-4b96-a939-b656060430d6}">
+		<property name="graphType">
+			<value>8</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{22c69956-6abd-4c7e-944e-0e65fe6f81a4}">
+		<property name="graphType">
+			<value>2</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{85c26cfd-92c1-4176-ac3c-8adf114e6ccd}">
+		<property name="graphType">
+			<value>3</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="ProfilerGraph" id="{b92d0fc2-9450-43fa-abe2-41e23a606299}">
+		<property name="graphType">
+			<value>4</value>
+		</property>
+		<relationship name="objectBeingGraphed">
+			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusEffectChain" id="{0102cf3c-82be-4b65-9f11-0c2dc6ff9de3}">
+		<relationship name="effects">
+			<destination>{c459bc1c-661a-47d2-86d9-1f0dfebb4802}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusPanner" id="{271d4e38-df29-4983-bf79-27238feebcc3}" />
+	<object class="MixerBusFader" id="{c459bc1c-661a-47d2-86d9-1f0dfebb4802}" />
+</objects>

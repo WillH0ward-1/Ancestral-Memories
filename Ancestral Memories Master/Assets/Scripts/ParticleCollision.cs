@@ -12,7 +12,14 @@ public class ParticleCollision : MonoBehaviour
     [SerializeField] private float currentWindStrength = 0;
     [SerializeField] private float stability = 0;
     [SerializeField] private float instability = 1;
+
+    float targetLeafDensity;
+
     [SerializeField] private float currentHarmonicStability;
+    [SerializeField] private float currentLeafDensity;
+
+
+
     [SerializeField] private float targetHarmonicStability;
     public bool windIsActive;
     private StudioGlobalParameterTrigger globalParams;
@@ -52,21 +59,29 @@ public class ParticleCollision : MonoBehaviour
             FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
             ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
             flower.transform.position = position;
-            flower.transform.localScale = new(0, 0, 0);
+            //flower.transform.localScale = new(0, 0, 0);
             flower.SetActive(true);
             StartCoroutine(FlowerLifeTime(flowerGrow, scaleControl));
         }
         //flower.transform.position = position;
-
     }
+
+    [SerializeField] private float minFlowerLifeTime = 5f;
+    [SerializeField] private float maxFlowerLifeTime = 15f;
+
     private IEnumerator FlowerLifeTime(FlowerGrow flowerGrow, ScaleControl scaleControl)
     {
+        float flowerLifeTime = Random.Range(minFlowerLifeTime, maxFlowerLifeTime);
 
         flowerGrow.GrowFlower();
         yield return new WaitUntil(() => scaleControl.isFullyGrown);
+        yield return new WaitForSeconds(flowerLifeTime);
+
         flowerGrow.ShrinkFlower(); // The object is returned to the pool from here
         yield break;
     }
+
+    private int nextFlowerIndex = 0;
 
     public GameObject GetPooledObject()
     {
@@ -74,15 +89,25 @@ public class ParticleCollision : MonoBehaviour
         {
             return null;
         }
-        for (int i = 0; i < maxPoolSize; i++)
+
+        int startIndex = nextFlowerIndex;
+        do
         {
-            if (!pooledObjects[i].activeInHierarchy)
+            if (!pooledObjects[nextFlowerIndex].activeInHierarchy)
             {
-                return pooledObjects[i];
+                GameObject flower = pooledObjects[nextFlowerIndex];
+                nextFlowerIndex = (nextFlowerIndex + 1) % maxPoolSize;
+                return flower;
             }
-        }
-        return null;
+            nextFlowerIndex = (nextFlowerIndex + 1) % maxPoolSize;
+        } while (startIndex != nextFlowerIndex);
+
+        // All flowers are active, so return the oldest flower in the pool.
+        GameObject oldestFlower = pooledObjects[nextFlowerIndex];
+        nextFlowerIndex = (nextFlowerIndex + 1) % maxPoolSize;
+        return oldestFlower;
     }
+
     [SerializeField] private RainControl rainManager;
     private Vector3 particlePos;
     private GameObject particleGameObject;
@@ -102,12 +127,10 @@ public class ParticleCollision : MonoBehaviour
         }
 
         Debug.Log("Particle hit ground!");
-        // RaycastHit hitFloor;
-        //var ray = Physics.Raycast(transform.position, Vector3.down, out hitFloor, Mathf.Infinity, groundLayerMask);
         Vector3 hitLocation = particlePos;
         Vector3 screenCoords = cam.WorldToViewportPoint(hitLocation);
 
-        bool onScreen =     // ScottGameSounds! https://youtu.be/PGwq4K5j6B4?t=1673  
+        bool onScreen =
             screenCoords.x > 0 &&
             screenCoords.x < 1 &&
             screenCoords.y > 0 &&
@@ -118,12 +141,9 @@ public class ParticleCollision : MonoBehaviour
         Debug.Log(hitLocation);
 
         musicManager.PlayOneShot(MusicManager.Instruments.PianoTail.ToString(), particleGameObject, true);
-
-        //RuntimeManager.PlayOneShot(rainSFX, hitLocation);
         
-
-        //lightningStrikeEvent.setVolume();
     }
+
     private bool rainIsActive = false;
     private bool harmonicStabilityActive;
 
@@ -137,7 +157,12 @@ public class ParticleCollision : MonoBehaviour
             {
                 yield break;
             }
+
             currentHarmonicStability = targetHarmonicStability;
+            currentLeafDensity = targetLeafDensity;
+
+            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", currentHarmonicStability);
+            RuntimeManager.StudioSystem.setParameterByName("LeafDensity", currentLeafDensity);
 
             yield return null;
         }
@@ -160,6 +185,7 @@ public class ParticleCollision : MonoBehaviour
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
         float output = Mathf.Lerp(instability, stability, t);
         targetHarmonicStability = output;
+        targetLeafDensity = output;
     }
 
 }

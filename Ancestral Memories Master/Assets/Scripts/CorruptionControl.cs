@@ -92,6 +92,8 @@ public class CorruptionControl : MonoBehaviour
 
     private float modifier = 0f;
 
+    public RainControl rain;
+
     private void UpdateCorruption(float output)
     {
         modifier = output;
@@ -105,7 +107,17 @@ public class CorruptionControl : MonoBehaviour
             foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
             {
                 m.SetFloat("_Karma", modifier);
-                m.SetFloat("_LeafDensity", modifier);
+
+                if (rain != null)
+                {
+                    if (!rain.drought)
+                    {
+                        m.SetFloat("_LeafDensity", modifier);
+                    } else if (rain.drought)
+                    {
+                        m.SetFloat("_LeafDensity", newMin);
+                    }
+                }
 
                 if (behaviours.isPsychdelicMode)
                 {

@@ -7,9 +7,9 @@ public class LerpTerrain : MonoBehaviour
 {
     public CharacterClass player;
 
-    public float Desert = 1f;
+    public float Desert = 0f;
 
-    public float Oasis = 16f;
+    public float Oasis = 12f;
 
     public float Wet = 22f;
 
@@ -27,13 +27,14 @@ public class LerpTerrain : MonoBehaviour
     [SerializeField] private float currentState;
 
     // Start is called before the first frame update
+
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
         //Vector4 initState = new Vector4(0, Oasis, 0, 0);
 
         GetRenderers();
-
+        ToState(Oasis, 0.1f);
         //StartCoroutine(SetTerrainState(Desert));
     }
 

@@ -35,37 +35,44 @@ public class RainControl : MonoBehaviour
     [SerializeField] private bool triggerDrought;
 
     public Player player;
+    public CharacterBehaviours behaviours;
 
     public float maxEmissionOverTime;
 
     private void Awake()
     {
-        triggerDrought = false;
 
         transform.parent.SetParent(player.transform);
+
+        behaviours = player.transform.GetComponentInChildren<CharacterBehaviours>();
+
         //weather = transform.GetComponent<WeatherControl>();
 
     }
 
     public IEnumerator ChanceOfRain()
     {
-        triggerDrought = false;
-
         if (!isRaining)
         {
             float time = 0;
             float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
-
-            int trigger = Random.Range(0, 1);
-
-            if (trigger == 1)
-            {
-                //triggerDrought = true;
-            }
+            float rainDuration = 0;
+            float maxRainDuration = 10f; // Set this value to the desired maximum rain duration
 
             while (time <= rainWaitDuration)
             {
                 time += Time.deltaTime;
+
+                // Check if the rain duration has elapsed
+                if (isRaining)
+                {
+                    rainDuration += Time.deltaTime;
+                    if (rainDuration >= maxRainDuration)
+                    {
+                        break;
+                    }
+                }
+
                 yield return null;
             }
 
@@ -76,21 +83,20 @@ public class RainControl : MonoBehaviour
                     StartCoroutine(ChanceOfRain());
                     yield break;
                 }
-
-                if (triggerDrought)
-                {
-                    //StartCoroutine(lerpTerrain.ToDesert(15f));
-                    yield break;
-                }
-                else if (!triggerDrought)
+                else if (!isRaining && player.faith >= 50)
                 {
                     StartCoroutine(StartRaining());
+                }
+                else if (player.faith <= 50 && triggerDrought)
+                {
+                    StartCoroutine(Drought());
                     yield break;
                 }
+
             }
 
             yield break;
-        } 
+        }
     }
 
     public float minDroughtDuration = 30f;
@@ -111,7 +117,7 @@ public class RainControl : MonoBehaviour
 
             if (time >= droughtDuration)
             {
-                StartCoroutine(StartRaining());
+                StartCoroutine(ChanceOfRain());
                 yield break;
             }
 
@@ -134,15 +140,24 @@ public class RainControl : MonoBehaviour
 
     public CloudControl clouds;
 
+    public float rainDanceMultiplier = 1f;
+    public float minRainDanceMultiplier = 1f;
+    public float maxRainDanceMultiplier = 5f;
+
     public IEnumerator StartRaining()
     {
+
         clouds.OverrideCloudPower(clouds.cloudPersistanceMax);
 
         emissionRateOverTime = 0;
-        emission.rateOverTime = emissionRateOverTime;
+        emission.rateOverTime = emissionRateOverTime * rainDanceMultiplier;
 
         isRaining = true;
-        drought = false;
+
+        if (drought)
+        {
+            drought = false;
+        }
 
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 

@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 
@@ -11,7 +10,6 @@ public class CamControl : MonoBehaviour
     public RPCamera rpCamera;
     private Camera cam;
     public Camera movementCam;
-    public bool cinematicActive = false;
 
     public bool scrollOverride = false;
 
@@ -161,14 +159,13 @@ public class CamControl : MonoBehaviour
         offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
     }
 
-    //[ExecuteInEditMode]
     void Update()
     {
         rpCamera.UpdateProjection(true);
 
         if (!scrollOverride)
         {
-            if (!cinematicActive && !behaviours.behaviourIsActive)
+            if (!behaviours.behaviourIsActive)
             {
                 camFollowTarget = true;
                 camRotateAround = true;
@@ -194,9 +191,12 @@ public class CamControl : MonoBehaviour
             cameraOffset = camTurnAngle * cameraOffset;
             Vector3 newPos = player.transform.position + cameraOffset;
             transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor);
+
+            Quaternion prevRotation = transform.rotation;
             transform.LookAt(player.transform.position);
+            transform.rotation = Quaternion.Slerp(prevRotation, transform.rotation, smoothFactor);
         }
-        
+
         if (camFollowTarget)
         {
             Vector3 desiredPosition = new Vector3(camTarget.position.x, camTarget.position.y + camFollowOffset.y, camTarget.position.z + camFollowOffset.z);
@@ -206,7 +206,6 @@ public class CamControl : MonoBehaviour
 
             Quaternion desiredRotation = Quaternion.LookRotation(camTarget.position - transform.position, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, SmoothSpeed * Time.deltaTime);
-
         }
     }
 
@@ -219,57 +218,39 @@ public class CamControl : MonoBehaviour
 
     public IEnumerator PanoramaZoom()
     {
-        //ToPanoramaZoom();
-
-        // audioListener.StartCoroutine(audioListener.MoveAudioListener(cam.transform.gameObject, attenuationSwitchSpeed));
-
         panoramaScroll = true;
 
         while (panoramaScroll == true && behaviours.behaviourIsActive)
         {
-            target = cam.orthographicSize += Input.GetAxis("Mouse ScrollWheel") * panoramaScrollSpeed; // Use this when using Orthographic Camera.
-            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, target, panoramaSmoothFactor);
+            float orthoTarget = cam.orthographicSize - Input.GetAxis("Mouse ScrollWheel") * panoramaScrollSpeed; // Use this when using Orthographic Camera.
 
-            //panoramaRotateSpeed = Input.mousePosition.x;
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, orthoTarget, panoramaSmoothFactor * Time.deltaTime);
+            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minOrthoZoom, maxOrthoZoom);
+        
+            float screenWidthThird = Screen.width / 3;
+            float screenWidthHalf = Screen.width / 2;
+            float rotationFactor = 5f;
 
-            /*
-            if (Input.mousePosition.x <= Screen.width / 2 || Input.mousePosition.x >= Screen.width / 2){
-                rotateSpeed = 0;
-            }
-
-            if (Input.mousePosition.x > Screen.width / 2){
-                rotateSpeed += panoramaRotateSpeed;
-            }
-
-            if (Input.mousePosition.x < Screen.width / 2){
-                rotateSpeed += panoramaRotateSpeed;
-            }
-                 */
-
-            if (cam.orthographicSize >= maxOrthoZoom){
-                cam.orthographicSize = maxOrthoZoom;
-            }
-
-            if (cam.orthographicSize <= minOrthoZoom){
-                cam.orthographicSize = minOrthoZoom;
-            }
-
-            float panoramaRotateSpeed = 1;
-
-            if (Random.value < 0.5f)
+            if (Input.mousePosition.x < screenWidthThird)
             {
-                rotateSpeed = +panoramaRotateSpeed;
+                // Rotate right
+                float distanceFromCenter = screenWidthHalf - Input.mousePosition.x;
+                rotateSpeed = panoramaRotateSpeed * (distanceFromCenter / screenWidthHalf) * rotationFactor;
             }
-            else
+            else if (Input.mousePosition.x > screenWidthThird * 2)
             {
-                rotateSpeed = -panoramaRotateSpeed;
+                // Rotate left
+                float distanceFromCenter = Input.mousePosition.x - screenWidthHalf;
+                rotateSpeed = -panoramaRotateSpeed * (distanceFromCenter / screenWidthHalf) * rotationFactor;
             }
 
-            if (panoramaRotateSpeed != 0){
+
+            if (rotateSpeed != 0)
+            {
                 camTurnAngle = Quaternion.AngleAxis(Time.deltaTime * rotateSpeed, Vector3.up);
                 cameraOffset = camTurnAngle * cameraOffset;
                 Vector3 newPos = player.transform.position + cameraOffset;
-                transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor);
+                transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor * Time.deltaTime);
                 transform.LookAt(player.transform.position);
             }
 
@@ -277,28 +258,6 @@ public class CamControl : MonoBehaviour
         }
 
         yield break;
-    }
-
-
-    void SetCamClipPlane()
-    {
-        if (behaviours.isPsychdelicMode == true)
-        {
-            rpCamera.rpCam.farClipPlane = 5000;
-            rpCamera.rpCam.nearClipPlane = -1000;
-        }
-
-        if (cinematicActive == true)
-        {
-            rpCamera.rpCam.farClipPlane = 5000;
-            rpCamera.rpCam.nearClipPlane = -1000;
-        }
-
-        else if (!cinematicActive && !behaviours.isPsychdelicMode)
-        {
-            rpCamera.rpCam.farClipPlane = 1000;
-            rpCamera.rpCam.nearClipPlane = -65;
-        }
     }
 
     void CancelLastCam()
@@ -313,8 +272,6 @@ public class CamControl : MonoBehaviour
     {
         CancelLastCam();
         isSpawning = true;
-        cinematicActive = false; // Level introduction.
-        SetCamClipPlane();
         zoomDestination = spawnZoom;
         orthoDestination = spawnOrtho;
         StartCoroutine(Zoom(toSpawnZoomDuration, zoomDestination, orthoDestination));
@@ -324,14 +281,16 @@ public class CamControl : MonoBehaviour
 
     public void ToPanoramaZoom()
     {
-        CancelLastCam();
-        panoramaScroll = false;
-        panoramaCamBuffer = true;
-        cinematicActive = false;
-        SetCamClipPlane();
-        zoomDestination = panoramaZoom;
-        orthoDestination = panoramaOrtho;
-        StartCoroutine(Zoom(toPanoramaZoomDuration, zoomDestination, orthoDestination));
+        if (!behaviours.isPsychdelicMode)
+        {
+            CancelLastCam();
+            panoramaScroll = false;
+            panoramaCamBuffer = true;
+            zoomDestination = panoramaZoom;
+            orthoDestination = panoramaOrtho;
+
+            StartCoroutine(Zoom(toPanoramaZoomDuration, zoomDestination, orthoDestination));
+        }
     }
 
     public void ToActionZoom()
@@ -339,8 +298,6 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = true;
-            SetCamClipPlane();
             zoomDestination = actionZoom;
             orthoDestination = actionOrtho;
             StartCoroutine(Zoom(toActionZoomDuration, zoomDestination, orthoDestination));
@@ -352,8 +309,6 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = true;
-            SetCamClipPlane();
             zoomDestination = prayerZoom;
             orthoDestination = prayerOrtho;
             StartCoroutine(Zoom(toPrayerZoomDuration, zoomDestination, orthoDestination));
@@ -365,8 +320,6 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = true;
-            SetCamClipPlane();
             zoomDestination = playMusicZoom;
             orthoDestination = playMusicOrtho;
             StartCoroutine(Zoom(toPlayMusicZoomDuration, zoomDestination, orthoDestination));
@@ -378,8 +331,6 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = true;
-            SetCamClipPlane();
             zoomDestination = frontFaceZoom;
             orthoDestination = frontFaceOrtho;
             StartCoroutine(Zoom(toFrontFaceZoomDuration, zoomDestination, orthoDestination));
@@ -391,9 +342,7 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = false;
             camTarget = player.transform;
-            SetCamClipPlane();
             zoomDestination = gameModeZoom;
             orthoDestination = gameModeOrtho;
             StartCoroutine(Zoom(toGameZoomDuration, zoomDestination, orthoDestination));
@@ -402,9 +351,7 @@ public class CamControl : MonoBehaviour
 
     public void FromPsychToGameZoom()
     {
-        cinematicActive = false;
         camTarget = player.transform;
-        SetCamClipPlane();
         zoomDestination = gameModeZoom;
         orthoDestination = gameModeOrtho;
         StartCoroutine(Zoom(toPsychedelicZoomDuration, zoomDestination, orthoDestination));
@@ -415,8 +362,6 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = true;
-            SetCamClipPlane();
             zoomDestination = cutSceneZoom;
             orthoDestination = cutSceneOrtho;
             StartCoroutine(Zoom(toCinematicZoomDuration, zoomDestination, orthoDestination));
@@ -428,8 +373,6 @@ public class CamControl : MonoBehaviour
         if (!behaviours.isPsychdelicMode)
         {
             CancelLastCam();
-            cinematicActive = false;
-            SetCamClipPlane();
             zoomDestination = dialogueZoom;
             orthoDestination = dialogueOrtho;
             StartCoroutine(Zoom(toDialogueZoomDuration, zoomDestination, orthoDestination));
@@ -444,8 +387,6 @@ public class CamControl : MonoBehaviour
         {
             //costumeControl.SwitchHumanState();
             CancelLastCam();
-            cinematicActive = false;
-            SetCamClipPlane();
             zoomDestination = psychedelicZoom;
             orthoDestination = psychedelicOrtho;
             StartCoroutine(Zoom(toPsychedelicZoomDuration, zoomDestination, orthoDestination));
@@ -457,8 +398,6 @@ public class CamControl : MonoBehaviour
     {
         CancelLastCam();
         camTarget = interactedPortal.transform;
-        cinematicActive = false;
-        SetCamClipPlane();
         float lerpDuration = toNewRoomZoomDuration;
         zoomDestination = toRoomZoom;
         orthoDestination = toRoomOrtho;
@@ -467,47 +406,6 @@ public class CamControl : MonoBehaviour
 
     [SerializeField] private float rotationSpeedMultiplier = 1f;
     [SerializeField] float rotationDuration = 1;
-
-    IEnumerator UserZoomBuffer()
-    {
-        float zoomBuffer = 4f;
-        yield return new WaitForSeconds(zoomBuffer); // buffer until player can take control of the scrollbar.
-        //AllowUserZoom();
-        yield break;
-    }
-
-    /*
-
-    IEnumerator AllowUserZoom()
-    {
-        while (!cinematicActive == true)
-        {
-            if (MainCam.orthographic)
-            {
-                MainCam.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Use this when using Orthographic Camera.
-            }
-            else
-            {
-                MainCam.fieldOfView -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed; // Otherwise, use this (Perspective Camera).
-            }
-
-            if (MainCam.orthographicSize >= maxZoom)
-            {
-                MainCam.orthographicSize = maxZoom;
-            }
-
-            if (MainCam.orthographicSize <= minZoom)
-            {
-                MainCam.orthographicSize = minZoom;
-            }
-
-            continue;
-        }
-
-        yield return null;
-
-    }
-    */
 
     public float turnSpeed = 4.0f;
 
@@ -527,20 +425,16 @@ public class CamControl : MonoBehaviour
 
     private System.Func<float, float> func;
 
+    public float spawnBuffer = 1f;
+
+
     IEnumerator Zoom(float duration, float zoomDestination, float orthographicTarget)
     {
-        zoomDestinationRef = zoomDestination;
-
         orthoTargetRef = orthographicTarget;
 
-        if (panoramaCamBuffer == true)
-        {
-            StartCoroutine(PanoramaZoom());
-            panoramaCamBuffer = false;
-            yield break;
-        }
+        zoomDestinationRef = zoomDestination;
 
-        if (zoomDestinationRef == psychedelicZoom)
+        if (zoomDestination == psychedelicZoom)
         {
             StartCoroutine(PsychedelicFX());
         }
@@ -567,8 +461,17 @@ public class CamControl : MonoBehaviour
             currentZoom = zoomDestinationRef;
             currentOrthoZoom = orthoTargetRef;
 
+            if (panoramaCamBuffer == true)
+            {
+                StartCoroutine(PanoramaZoom());
+                panoramaCamBuffer = false;
+                yield break;
+            }
+
             if (isSpawning)
             {
+                yield return new WaitForSeconds(spawnBuffer);
+
                 ToGameZoom();
                 isSpawning = false;
                 yield break;
@@ -666,15 +569,15 @@ public class CamControl : MonoBehaviour
     public IEnumerator MoveCamToPosition(GameObject target, GameObject lookAtTarget, float duration)
     {
         float time = 0f;
-        Vector3 newPosition = target.transform.position;
         Transform lookTarget = lookAtTarget.transform;
-
-        System.Func<float, float> func = Lerp.GetLerpFunction(lerpParams.lerpType);
+        float forwardOffset = 5f;
 
         while (time <= 1)
         {
+            Vector3 newPosition = target.transform.position - target.transform.forward * forwardOffset;
+
             cam.transform.LookAt(lookTarget);
-            cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, func(time));
+            cam.transform.position = Vector3.Lerp(cam.transform.position, newPosition, time);
             time += Time.deltaTime / duration;
 
             yield return null;

@@ -74,14 +74,11 @@
 		<property name="dopplerEnabled">
 			<value>true</value>
 		</property>
-		<property name="dopplerScale">
-			<value>500</value>
-		</property>
 		<property name="minimumDistance">
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>400</value>
+			<value>550</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{4b0292c4-4547-4f49-9764-caff21ab309a}" />
@@ -113,10 +110,13 @@
 	</object>
 	<object class="ParameterProxy" id="{061e68b3-dda3-4b49-8d34-b98f73938693}">
 		<relationship name="preset">
-			<destination>{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}</destination>
+			<destination>{39a8138d-a050-4fa5-a78c-3f6c7e0ff6d9}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{50a370e5-cdbd-45fa-9caf-47a1fcb584fe}">
+		<property name="pitch">
+			<value>-1</value>
+		</property>
 		<relationship name="automators">
 			<destination>{aee2d017-3809-485c-adc0-6dd84df5760c}</destination>
 		</relationship>
@@ -296,7 +296,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>400</value>
+			<value>550</value>
 		</property>
 	</object>
 	<object class="ThreeEQEffect" id="{c5d5fca0-fb6d-4e90-ba0f-67e89a65fef1}">
@@ -324,7 +324,7 @@
 	</object>
 	<object class="AutomationCurve" id="{56c99de9-6c87-4d3e-ab4e-b33af62d333a}">
 		<relationship name="parameter">
-			<destination>{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}</destination>
+			<destination>{39a8138d-a050-4fa5-a78c-3f6c7e0ff6d9}</destination>
 		</relationship>
 		<relationship name="automationPoints">
 			<destination>{ef916ad9-3028-4738-9ecc-d30e56b453ba}</destination>
@@ -354,7 +354,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>-25.5</value>
+			<value>-19.5</value>
 		</property>
 		<property name="curveShape">
 			<value>0.379965872</value>
@@ -365,7 +365,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>-12.8500023</value>
+			<value>-8.50000191</value>
 		</property>
 	</object>
 	<object class="Automator" id="{4d96628c-604a-40f3-9abb-9a72660cf465}">
@@ -381,7 +381,7 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-1.55743122</value>
 		</property>
 		<property name="curveShape">
 			<value>1</value>
@@ -400,15 +400,15 @@
 			<value>0.80000000000000004</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-1.55743122</value>
 		</property>
 		<property name="curveShape">
-			<value>-0.124633446</value>
+			<value>0.649461389</value>
 		</property>
 	</object>
 	<object class="AutomationCurve" id="{5302a35d-49c7-4092-95a9-a41bae4e7ba4}">
 		<relationship name="parameter">
-			<destination>{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}</destination>
+			<destination>{39a8138d-a050-4fa5-a78c-3f6c7e0ff6d9}</destination>
 		</relationship>
 		<relationship name="automationPoints">
 			<destination>{0088fc5d-f908-4980-998d-84918ee295eb}</destination>
@@ -417,7 +417,7 @@
 	</object>
 	<object class="AutomationCurve" id="{0bdc0b4f-e5b7-4b1b-a9fa-6139642cb7a0}">
 		<relationship name="parameter">
-			<destination>{3b95159b-a19a-4f0e-9fd7-a3a307ce2fcf}</destination>
+			<destination>{39a8138d-a050-4fa5-a78c-3f6c7e0ff6d9}</destination>
 		</relationship>
 		<relationship name="automationPoints">
 			<destination>{cf2fe6c5-fa2b-4e7e-9558-9db28d4efd81}</destination>

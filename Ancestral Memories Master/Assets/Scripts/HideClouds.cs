@@ -28,9 +28,9 @@ public class HideClouds : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (camControl.currentZoom < 0) {
+        if (camControl.currentZoom <= 0) {
             meshRenderer.enabled = false;
-        } else if (camControl.currentZoom >= 0)
+        } else if (camControl.currentZoom > 0)
         {
             meshRenderer.enabled = true;
         }

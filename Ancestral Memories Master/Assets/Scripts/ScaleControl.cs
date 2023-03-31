@@ -79,8 +79,14 @@ public class ScaleControl : MonoBehaviour
             float rainMultiplier = 1f;
             float initialMultiplier = 1f;
 
+            float timeX = 0;
+            float timeY = 0;
+            float timeZ = 0;
+
             while (time <= 1f) //&& rain.isRaining)
             {
+                rainMultiplier = rainControl.rainParticles.emission.rateOverTime.constant / 5;
+
                 if (scaleObject.transform.CompareTag("Trees"))
                 {
                     if (rainControl.isRaining && transform.CompareTag("Trees"))  
@@ -97,17 +103,25 @@ public class ScaleControl : MonoBehaviour
 
                 growthPercent = time;
 
+                timeX += Time.deltaTime * rainMultiplier * initialMultiplier / (duration * xAxisGrowMultiplier);
+                timeY += Time.deltaTime * rainMultiplier * initialMultiplier / (duration * yAxisGrowMultiplier);
+                timeZ += Time.deltaTime * rainMultiplier * initialMultiplier / (duration * zAxisGrowMultiplier);
+
+                growthPercent = time;
+
                 if (scaleObject.transform.CompareTag("Trees") && !treeKillManager.treeFalling)
                 {
-                    localScaleX = Mathf.Lerp(scaleStart.x, scaleDestination.x, time * xAxisGrowMultiplier);
-                    localScaleY = Mathf.Lerp(scaleStart.y, scaleDestination.y, time * yAxisGrowMultiplier);
-                    localScaleZ = Mathf.Lerp(scaleStart.z, scaleDestination.z, time * zAxisGrowMultiplier);
-                } else
+                    localScaleX = Mathf.Lerp(scaleStart.x, scaleDestination.x, timeX);
+                    localScaleY = Mathf.Lerp(scaleStart.y, scaleDestination.y, timeY);
+                    localScaleZ = Mathf.Lerp(scaleStart.z, scaleDestination.z, timeZ);
+                }
+                else
                 {
                     localScaleX = Mathf.Lerp(scaleStart.x, scaleDestination.x, time);
                     localScaleY = Mathf.Lerp(scaleStart.y, scaleDestination.y, time);
                     localScaleZ = Mathf.Lerp(scaleStart.z, scaleDestination.z, time);
                 }
+
 
                 scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
 

@@ -596,8 +596,8 @@ public class MapObjGen : MonoBehaviour
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
             treeInstance.transform.gameObject.AddComponent<CorruptionControl>();
-
-            CorruptionControl corruptionControl = treeInstance.transform.GetComponent<CorruptionControl>();
+            CorruptionControl corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
+            corruptionControl.rain = rainControl;
 
             corruptionControl.player = player;
             corruptionControl.behaviours = behaviours;
@@ -608,6 +608,7 @@ public class MapObjGen : MonoBehaviour
             treeAudio.timeManager = timeCycleManager;
             treeAudio.weatherManager = weather;
 
+      
             //corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
             //corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
             //corruptionControl.player = player;
@@ -743,6 +744,13 @@ public class MapObjGen : MonoBehaviour
         ScaleControl treeGrowControl = treeTransform.GetComponent<ScaleControl>();
         TreeDeathManager treeDeathManager = treeTransform.GetComponent<TreeDeathManager>();
         DirtExplode dirt = treeTransform.GetComponentInChildren<DirtExplode>();
+        GameObject dirtExplodeObj = dirt.transform.gameObject;
+
+        CorruptionControl dirtCorruption = dirtExplodeObj.transform.GetComponent<CorruptionControl>();
+        dirtCorruption.player = player;
+        dirtCorruption.behaviours = behaviours;
+
+        dirtCorruption.CorruptionModifierActive = true;
 
         var interactable = tree.GetComponent<Interactable>();
         interactable.enabled = false;
@@ -805,10 +813,12 @@ public class MapObjGen : MonoBehaviour
         emission.enabled = true;
         dirtExplodeParticles.Play();
 
-        tree.GetComponent<CorruptionControl>().CorruptionModifierActive = true;
+        tree.GetComponentInChildren<CorruptionControl>().CorruptionModifierActive = true;
         TreeAudioSFX treeAudio = tree.GetComponent<TreeAudioSFX>();
+
         treeAudio.PlayTreeSproutSFX();
         treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
+
         TreeDeathManager treeDeathManager = tree.GetComponent<TreeDeathManager>();
         treeDeathManager.treeAudioSFX = treeAudio;
 
@@ -999,6 +1009,9 @@ public class MapObjGen : MonoBehaviour
             GameObject randomMushroom = GetRandomMapObject(mushrooms);
 
             GameObject mushroomInstance = Instantiate(randomMushroom, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            MushroomGrowth mushroomGrowth = mushroomInstance.transform.GetComponent<MushroomGrowth>();
+            mushroomGrowth.player = player;
 
             mushroomInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 

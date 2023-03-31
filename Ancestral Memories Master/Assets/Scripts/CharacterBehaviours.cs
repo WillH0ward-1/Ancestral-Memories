@@ -99,6 +99,7 @@ public class CharacterBehaviours : MonoBehaviour
     private PlayerSoundEffects playerAudioSFX;
 
     public MusicManager musicManager;
+    public CloudControl clouds;
 
     public TimeCycleManager timeManager;
 
@@ -277,7 +278,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_DROWN);
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         behaviourIsActive = false;
 
@@ -314,7 +315,9 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = true;
 
+        clouds.ManualCloudOverrideStart();
         cinematicCam.ToPanoramaZoom();
+        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         //audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
 
@@ -322,6 +325,8 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         behaviourIsActive = false;
+        clouds.ManualCloudOverrideStop();
+
         cinematicCam.panoramaScroll = false;
 
         //audioListener.SetDefaultAttenuation();
@@ -356,9 +361,12 @@ public class CharacterBehaviours : MonoBehaviour
         //pulseActive = true;
 
         player.ChangeAnimationState(PLAYER_PRAYER_START);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
+
         cinematicCam.ToPrayerZoom();
+        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         StartCoroutine(GainFaith());
 
@@ -396,7 +404,6 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
         cinematicCam.ToPlayMusicZoom();
-
         cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         fluteControl.EnableFluteControl();
@@ -422,12 +429,12 @@ public class CharacterBehaviours : MonoBehaviour
         if (player.hunger <= 25)
         {
             player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
-            yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+            yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         } else
         {
             player.ChangeAnimationState(PLAYER_TOCROUCH);
-            yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+            yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         }
 
@@ -493,15 +500,18 @@ public class CharacterBehaviours : MonoBehaviour
         return randomAnimation;
     }
 
+    public RainControl rainControl;
+
     public IEnumerator Dance(string randomDanceAnim)
     {
         behaviourIsActive = true;
 
- 
-
         player.ChangeAnimationState(randomDanceAnim);
 
         cinematicCam.ToPanoramaZoom();
+
+        rainControl.rainDanceMultiplier = rainControl.maxRainDanceMultiplier;
+
         //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
@@ -513,6 +523,9 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.panoramaScroll = false;
 
         cinematicCam.ToGameZoom();
+
+        rainControl.rainDanceMultiplier = rainControl.minRainDanceMultiplier;
+
         yield break;
     }
 
@@ -532,6 +545,8 @@ public class CharacterBehaviours : MonoBehaviour
         pickUpManager.pickedUpObject = hitObject;
 
         player.ChangeAnimationState(PLAYER_PICKUP);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+
         cinematicCam.ToActionZoom();
         cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
@@ -539,6 +554,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         int minChance = 0;
         int maxChance = 1;
@@ -551,6 +567,7 @@ public class CharacterBehaviours : MonoBehaviour
             {
                 StartCoroutine(PsychedelicModeBuffer());
                 StartCoroutine(HealHunger());
+                behaviourIsActive = false;
             }
         }
         else if (chance >= maxChance / 2)
@@ -564,8 +581,6 @@ public class CharacterBehaviours : MonoBehaviour
         }
 
         pickUpManager.DestroyPickup();
-        behaviourIsActive = false;
-
         cinematicCam.ToGameZoom();
 
         yield break;
@@ -617,12 +632,13 @@ public class CharacterBehaviours : MonoBehaviour
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_PICKUP);
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         behaviourIsActive = false;
 
@@ -636,19 +652,18 @@ public class CharacterBehaviours : MonoBehaviour
     public IEnumerator Vomit()
     {
         behaviourIsActive = true;
-        // cinematicCam.ToGameZoom();
 
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
-
-        player.ChangeAnimationState(PLAYER_VOMIT);
-    
+         
         vomit.Play();
 
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+        player.ChangeAnimationState(PLAYER_VOMIT);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+
+        vomit.Stop();
 
         behaviourIsActive = false;
 
-        vomit.Stop();
         yield break;
 
     }
@@ -660,17 +675,15 @@ public class CharacterBehaviours : MonoBehaviour
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
-
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
-
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
         player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
-        if (player.faith <= player.maxStat / 2)
+        if (player.faith < player.maxStat / 2)
         {
             StartCoroutine(Vomit());
             yield break;
@@ -682,7 +695,27 @@ public class CharacterBehaviours : MonoBehaviour
 
             yield break;
         }
+    }
 
+    private IEnumerator WaitForAnimationCompletion(Animator animator)
+    {
+        int layerIndex = 0;
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
+        int startStateNameHash = stateInfo.fullPathHash;
+
+        // Wait for one frame to ensure the animation has started
+        yield return null;
+
+        // Wait until the animation has looped back or the animator has transitioned to a new state
+        while (true)
+        {
+            stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
+            if (stateInfo.fullPathHash != startStateNameHash || stateInfo.normalizedTime >= 1.0f)
+            {
+                break;
+            }
+            yield return null;
+        }
     }
 
     public IEnumerator ResetGame()
@@ -728,6 +761,11 @@ public class CharacterBehaviours : MonoBehaviour
         timeManager.timeMultiplier = timeManager.defaultTimeMultiplier;
 
         yield break;
+    }
+
+    public void ToFrontCam()
+    {
+        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
     }
 
     public bool isPsychdelicMode = false;
@@ -795,7 +833,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingAngledPivot, lookAtTarget, camMoveDuration));
+        ToFrontCam();
 
         player.ChangeAnimationState(PLAYER_KINDLEFIRE);
         yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
@@ -830,6 +868,8 @@ public class CharacterBehaviours : MonoBehaviour
         dialogueIsActive = true;
         dialogue = hitObject.transform.GetComponent<Dialogue>();
         dialogue.StartDialogue(dialogue, player);
+
+        ToFrontCam();
 
         player.ChangeAnimationState(PLAYER_IDLE);
 

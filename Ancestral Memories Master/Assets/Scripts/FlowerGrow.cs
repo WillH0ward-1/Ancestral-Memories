@@ -6,8 +6,10 @@ public class FlowerGrow : MonoBehaviour
 {
     [SerializeField] private ScaleControl scaleControl;
 
-    [SerializeField] private Vector3 scaleStart;
-    [SerializeField] private Vector3 scaleTarget;
+    [SerializeField] private Vector3 scaleStart = new (0.001f, 0.001f, 0.001f);
+    [SerializeField] private Vector3 growTarget = new(3f, 3f, 3f);
+
+    [SerializeField] private Vector3 shrinkTarget = new(0.0001f, 0.0001f, 0.0001f);
 
     [SerializeField] private float growDuration;
     [SerializeField] private float shrinkDuration;
@@ -24,18 +26,13 @@ public class FlowerGrow : MonoBehaviour
 
     public void GrowFlower()
     {
-        scaleStart = new(0, 0, 0);
-        scaleTarget = new(5, 5, 5);
-
-        StartCoroutine(scaleControl.LerpScale(transform.gameObject, scaleStart, scaleTarget, growDuration, delay));
+        StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkTarget, growTarget, growDuration, delay));
     }
 
     public void ShrinkFlower()
     {
-        scaleTarget = new(0.1f, 0.1f, 0.1f);
-        shrinkDuration = 2f;
 
-        StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, scaleTarget, shrinkDuration, delay));
+        StartCoroutine(scaleControl.LerpScale(transform.gameObject, growTarget, shrinkTarget, shrinkDuration, delay));
         StartCoroutine(WaitUntilShrunk());
     }
 

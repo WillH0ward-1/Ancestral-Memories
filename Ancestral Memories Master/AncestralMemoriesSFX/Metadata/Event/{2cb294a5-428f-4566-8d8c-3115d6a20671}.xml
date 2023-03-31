@@ -59,7 +59,23 @@
 			<destination>{75da32b6-f042-4bbf-b07e-b9af9d2c11b4}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{bffec57a-6b95-439c-a332-90ac85b2061d}" />
+	<object class="EventAutomatableProperties" id="{bffec57a-6b95-439c-a332-90ac85b2061d}">
+		<property name="maxVoices">
+			<value>64</value>
+		</property>
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+		<property name="maximumDistance">
+			<value>30</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{3c290ebb-3ade-42eb-b0b1-8893674df235}" />
 	<object class="Timeline" id="{f17a1b62-6f03-47c3-91c7-de3a311fcbeb}">
 		<property name="isProxyEnabled">
@@ -72,6 +88,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{571bc9c1-cfe0-450a-9918-383e084dcd1c}">
+		<property name="volume">
+			<value>-2</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{712156da-6199-447e-969e-cd7192c318ab}</destination>
 		</relationship>
@@ -132,7 +151,14 @@
 	</object>
 	<object class="MixerBusFader" id="{e8fd430f-8635-4999-8f51-b97e92e899eb}" />
 	<object class="MixerBusFader" id="{729d750e-a155-4e86-8b78-e49461179658}" />
-	<object class="SpatialiserEffect" id="{083dc789-e639-45f9-b351-edfc97692833}" />
+	<object class="SpatialiserEffect" id="{083dc789-e639-45f9-b351-edfc97692833}">
+		<property name="minimumDistance">
+			<value>0</value>
+		</property>
+		<property name="maximumDistance">
+			<value>30</value>
+		</property>
+	</object>
 	<object class="RandomizerModulator" id="{95f7b43f-9052-4736-813a-d6638d2bc26a}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>pitch</value>

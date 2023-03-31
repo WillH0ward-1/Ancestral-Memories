@@ -124,9 +124,6 @@
             "m_Id": "ca37afb99cda4b3ebc43ab645cf0a422"
         },
         {
-            "m_Id": "e399842242744b8d9ef621464f9facf9"
-        },
-        {
             "m_Id": "f69c964509ce4463a3d4692769308d82"
         },
         {
@@ -520,20 +517,6 @@
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "e399842242744b8d9ef621464f9facf9"
-                },
-                "m_SlotId": 1011703051
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "e399842242744b8d9ef621464f9facf9"
-                },
-                "m_SlotId": 1
-            },
-            "m_InputSlot": {
-                "m_Node": {
                     "m_Id": "49f934fffe174e30b244b636b013abdf"
                 },
                 "m_SlotId": 0
@@ -752,6 +735,7 @@
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "0b9c4b2512a74cfbbc635d7ef977002b",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "bc182ebe04fa4aaf9349902d4558e085"
     },
@@ -764,6 +748,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_SupportsLODCrossFade": false,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
 }
@@ -1880,31 +1865,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "4e258745dfb44a4fa6484edd53d6f36c",
-    "m_Id": 1011703051,
-    "m_DisplayName": "Color",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "_Color",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0,
-        "w": 1.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "4eef30956d1a4226bddd302a942973bc",
     "m_Name": "",
@@ -2033,31 +1993,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "5afa5e45e7c74dd6bc5ad167a85cbacd",
-    "m_Id": 1,
-    "m_DisplayName": "Color",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Color",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "5c331916187649ee92975072ad426fbd",
     "m_Id": 3,
@@ -2133,7 +2068,8 @@
     },
     "m_TextureType": 0,
     "m_NormalMapSpace": 0,
-    "m_EnableGlobalMipBias": true
+    "m_EnableGlobalMipBias": true,
+    "m_MipSamplingMode": 0
 }
 
 {
@@ -3319,7 +3255,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalLitSubTarget",
     "m_ObjectId": "bc182ebe04fa4aaf9349902d4558e085",
     "m_WorkflowMode": 1,
@@ -3631,29 +3567,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "d038f8185b0148fbbd924e1bb9426a9a",
-    "m_Id": -951920802,
-    "m_DisplayName": "Normal",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "_Normal",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "d0f5e58c4ea94e198f457ef75cb1f5e0",
     "m_Id": 1,
@@ -3852,61 +3765,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.SubGraphNode",
-    "m_ObjectId": "e399842242744b8d9ef621464f9facf9",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Cardinal Lighting",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 4.999997615814209,
-            "y": 102.9999771118164,
-            "width": 208.0,
-            "height": 326.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "4e258745dfb44a4fa6484edd53d6f36c"
-        },
-        {
-            "m_Id": "ea2c0c40b62142379d3f79a939a4a184"
-        },
-        {
-            "m_Id": "d038f8185b0148fbbd924e1bb9426a9a"
-        },
-        {
-            "m_Id": "5afa5e45e7c74dd6bc5ad167a85cbacd"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"6694b21c75497a447941f83782b2baec\",\n        \"type\": 3\n    }\n}",
-    "m_PropertyGuids": [
-        "7d494a7e-6c7e-4bae-ac34-c3e3a74f69e9",
-        "af97ab5a-6adf-4513-88dc-e88b918c9632",
-        "b1e1c075-0bf7-4e5f-a653-6f237a4f931b"
-    ],
-    "m_PropertyIds": [
-        1011703051,
-        1408930204,
-        -951920802
-    ],
-    "m_Dropdowns": [],
-    "m_DropdownSelectedEntries": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "e9d27899d1a34fb9b7ff59fa5c12f9c0",
     "m_Id": 0,
@@ -3923,21 +3781,6 @@
         "x": 0.0,
         "y": 0.0
     },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "ea2c0c40b62142379d3f79a939a4a184",
-    "m_Id": 1408930204,
-    "m_DisplayName": "Smoothness",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "_Smoothness",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
     "m_Labels": []
 }
 

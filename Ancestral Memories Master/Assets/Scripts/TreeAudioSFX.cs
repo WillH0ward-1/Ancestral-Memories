@@ -28,7 +28,7 @@ public class TreeAudioSFX : MonoBehaviour
     {
         scaleControl = transform.GetComponent<ScaleControl>();
         rigidBody = transform.GetComponent<Rigidbody>();
-
+        treeFallManager = transform.GetComponent<TreeDeathManager>();
         interactable = transform.GetComponent<Interactable>();
     }
 

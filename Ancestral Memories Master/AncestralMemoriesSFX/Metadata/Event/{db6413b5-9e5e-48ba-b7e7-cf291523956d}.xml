@@ -72,11 +72,17 @@
 		<property name="priority">
 			<value>1</value>
 		</property>
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
 		<property name="minimumDistance">
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>550</value>
+			<value>600</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{442bdfa4-cfdb-4593-b769-34b65de5ed73}" />
@@ -99,6 +105,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{b72a7717-21d8-4e49-ab0b-2f5d48fc7459}">
+		<property name="pitch">
+			<value>-1.20000005</value>
+		</property>
 		<relationship name="automators">
 			<destination>{c2b028f7-e703-476f-b4e1-cebf4156f333}</destination>
 		</relationship>
@@ -234,7 +243,7 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>550</value>
+			<value>600</value>
 		</property>
 	</object>
 	<object class="MixerBusFader" id="{e98d8895-4f0b-49f7-a218-af357ca603a1}" />

@@ -82,6 +82,8 @@ public class WindObjectPool : MonoBehaviour
         }
     }
 
+    public float windStrength;
+
     public IEnumerator WaitLifeTime(EventInstance wind3DInstance)
     {
         bool active = true;
@@ -89,7 +91,8 @@ public class WindObjectPool : MonoBehaviour
 
         while (active && elapsedTime < lifetime)
         {
-            wind3DInstance.setParameterByName("WindStrength", weather.windStrength);
+            windStrength = weather.windStrength;
+            wind3DInstance.setParameterByName("WindStrength", windStrength);
 
             elapsedTime += Time.deltaTime;
 
