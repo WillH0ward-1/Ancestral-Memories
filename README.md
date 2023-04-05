@@ -23,8 +23,6 @@ Disclaimers:
 
 -	The audio reliably loads every other time the game is loaded (when you enter play mode). When the audio isn't present during play mode, restart the game. However, make preparations for sudden spike in volume. All of the sounds that accumulate while the game is running seem to load at once, that means that the longer the game is left running, the more severe this effect. This can be very loud given enough sounds over time. So, in the case you are in play mode and there is no sound, perhaps lower the volume of your device before re-entering edit mode, particularly if wearing headphones.
 
--	
-
 -	Using the flute inside the cave reliably causes the player movement to break. Think this is some strange Boolean issue where the movement input goes out of sync as it’s disabled/enabled during ‘Flute mode’.
 
 -	Generative music may sometimes fail to update the musical mode and get stuck in one mode (rare, possibly related to using the editor/other applications simultaneously)
