@@ -1,10 +1,8 @@
  SHAMANIC
-SYNTHESESIA
+SYNESTHESIA
 
 Technical Sound Design and Implementation
 Audio For Games 2022
-
-You may notice the disparity between the file names ‘Ancestral Memories’ and the title of the game 'Shamanic Synthesesia'. ‘Ancestral Memories’ was a working title, and in a bid to not potentially mess anything up before the submission, it hasn’t been renamed. (This has caused problems in the past).
 
 Shamanic SYNESTHESIA is a novel, audio-focused ambient environment in which a natural ecosystem deteriorates or blooms as the result of player-driven actions. The theme of the game is a synthesis of Neanderthalic, Shamanic and Biblical themes. The graphical style utilises warped graphics to evoke and embrace certain distinct imperfections of early-1990’s 3D, while not strictly adhering to their limitations. The audio asset design also considers this aesthetic. The world contains a variety of trees and plants with individual growth cycles of life and death. The player may play their shell-flute, which plays alongside the generative music composition. The world also contains interactable NPC’s each with their own distinct audio design and implementation methods.
 
@@ -13,6 +11,8 @@ Recommended Versions:
 Unity: 2022.2.5f1
 Unity FMOD Integration: 2.02.11
 FMOD Studio: 2.02.11
+
+Across the project you may notice the disparity between the file names ‘Ancestral Memories’ and the title of the game 'Shamanic Synesthesia'. ‘Ancestral Memories’ was a working title, and in a bid to not potentially mess anything up before submitting my work to my uni, it hasn’t been renamed. (This has caused problems in the past).
 
 When the project is opened, you will receive a warning regarding the Input System. Select ‘No’. This project uses the old input system.
 When you open the project, you will need to open the relevant scene. The name of the scene is ‘MainIsland’.
@@ -29,6 +29,8 @@ Disclaimers:
 
 -	Because of the unique camera type (reverse perspective cam), selecting things can be unreliable as the frustrum dilates as the player rotates the mouse wheel, which affects the scripts responsible for selecting items. A custom camera projection matrix fed to the RayCast would be required to fix this, this is beyond the scope of this project.
 
+-	The full development of this game spanned approximately 7 months. I was as involved with the entire codebase as I possibly could be. Its development brought about many technical challenges and learning curves that required extensive research in all manner of areas of game development to overcome them. 
+
 -	In the StudioEventEmitter class (FMOD script) – a modification has been made to check if an activeEmitter is null before updating its playing status. This was causing a really bad issue before, I think to do with the execution of my emitter generation. This fixed it mostly, as it’s far more reliable now than it was (No sound would work until Unity was opened/re-opened.)
 
 -	The method to change the footstep parameter is quite confusing, as there are two separate methods. One uses ray casting, and the other uses the AreaManager to set directly via a ‘currentRoom’ variable. 
@@ -38,6 +40,10 @@ Notable assets/resources:
 -	Sebastian Lague’s Random Terrain Generation Series.
 The Map Generator script is entirely written by Sebastian Lague, this project is in fact a fork of Episode 21 of Sebastian Lague’s Procedural Landmass Generation. As this terrain was not originally made with URP materials, there have been many modifications to control the visual appearance of the mesh using URP Shadergraph.
 https://github.com/SebLague/Procedural-Landmass-Generation/tree/master/Proc%20Gen%20E21. Adaptations were made where required
+
+URP shader for the terrain was based on this tutorial!:
+https://www.youtube.com/watch?v=uJSxqr3a0cA
+(Check out 'Skullborn', the game made by the dev who made this tutorial: https://store.steampowered.com/app/1841200/Skullborn/)
 
 -	Gregory Schlomoff’s Poisson Disc sampling method. http://gregschlom.com/devlog/2014/06/29/Poisson-disc-sampling-Unity.html
 Found in ‘PoissonDiscSampler.cs’
