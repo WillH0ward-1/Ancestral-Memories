@@ -30,8 +30,6 @@ Disclaimers:
 
 -	Because of the unique camera type (reverse perspective cam), selecting things can be unreliable as the frustrum dilates as the player rotates the mouse wheel, which affects the scripts responsible for selecting items. A custom camera projection matrix fed to the RayCast would be required to fix this, this is beyond the scope of this project.
 
--	The full development of this game spanned approximately 7 months. I was as involved with the entire codebase as I possibly could be. Its development brought about many technical challenges and learning curves that required extensive research in all manner of areas of game development to overcome them. 
-
 -	In the StudioEventEmitter class (FMOD script) – a modification has been made to check if an activeEmitter is null before updating its playing status. This was causing a really bad issue before, I think to do with the execution of my emitter generation. This fixed it mostly, as it’s far more reliable now than it was (No sound would work until Unity was opened/re-opened.)
 
 -	The method to change the footstep parameter is quite confusing, as there are two separate methods. One uses ray casting, and the other uses the AreaManager to set directly via a ‘currentRoom’ variable. 
