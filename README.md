@@ -4,7 +4,8 @@ SYNESTHESIA
 Technical Sound Design and Implementation
 Audio For Games 2022
 
-Shamanic SYNESTHESIA is a novel, audio-focused ambient environment in which a natural ecosystem deteriorates or blooms as the result of player-driven actions. The theme of the game is a synthesis of Neanderthalic, Shamanic and Biblical themes. The graphical style utilises warped graphics to evoke and embrace certain distinct imperfections of early-1990’s 3D, while not strictly adhering to their limitations. The audio asset design also considers this aesthetic. The world contains a variety of trees and plants with individual growth cycles of life and death. The player may play their shell-flute, which plays alongside the generative music composition. The world also contains interactable NPC’s each with their own distinct audio design and implementation methods.
+Shamanic SYNESTHESIA is a novel, audio-focused ambient environment in which a natural ecosystem deteriorates or blooms as the result of player-driven actions. The theme of the game is a synthesis of Neanderthalic, Shamanic and Biblical themes. The graphical style is a combination of retro aesthetic qualities from various 1990s/Early 2000s 3D graphics (Microsoft DOS,PS1, Dreamcast, N64) while not strictly adhering to one particular look.
+The world contains a variety of trees and plants with individual growth cycles of life and death. The player may play their shell-flute, which plays alongside the generative music composition. The world also contains interactable NPC’s each with their own distinct audio design and implementation methods.
 
 Recommended Versions:
 
