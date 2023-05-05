@@ -96,7 +96,7 @@ public class CharacterBehaviours : MonoBehaviour
     private float defaultAnimSpeed = 1;
     private float animSpeed = 1;
 
-    private PlayerSoundEffects playerAudioSFX;
+    private AudioSFXManager playerAudioSFX;
 
     public MusicManager musicManager;
     public CloudControl clouds;
@@ -112,7 +112,7 @@ public class CharacterBehaviours : MonoBehaviour
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
         waterCheck = player.GetComponent<CheckIfUnderwater>();
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
-        playerAudioSFX = player.GetComponentInChildren<PlayerSoundEffects>();
+        playerAudioSFX = player.GetComponentInChildren<AudioSFXManager>();
         vomit.Stop();
         
         //animSpeed = player.activeAnimator.speed;
@@ -178,6 +178,16 @@ public class CharacterBehaviours : MonoBehaviour
                 break;
             case "ResetGame":
                 StartCoroutine(ResetGame());
+                break;
+            case "InstructHarvest":
+                HumanAI humanAI = hitObject.transform.GetComponentInChildren<HumanAI>();
+                if (humanAI != null)
+                {
+                    humanAI.ChangeState(HumanAI.AIState.Harvesting);
+                } else
+                {
+                    Debug.Log("No HumanAI component found on " + hitObject + "!");
+                }
                 break;
             //Look();
             default:
@@ -313,25 +323,27 @@ public class CharacterBehaviours : MonoBehaviour
         firstPersonController.SetActive(firstPersonCamActive);
         */
 
-        behaviourIsActive = true;
+       // behaviourIsActive = true;
 
-        clouds.ManualCloudOverrideStart();
-        cinematicCam.ToPanoramaZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        cinematicCam.ToRTSMode();
+
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         //audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
 
-        Debug.Log("Click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+       // Debug.Log("Click to exit this action.");
+       // yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        behaviourIsActive = false;
-        clouds.ManualCloudOverrideStop();
+       // behaviourIsActive = false;
 
-        cinematicCam.panoramaScroll = false;
-
+     //   if (cinematicCam.panoramaScroll == true)
+     //   {
+      //      cinematicCam.panoramaScroll = false;
+     //   }
+   
         //audioListener.SetDefaultAttenuation();
 
-        cinematicCam.ToGameZoom();
+
 
         /*cinematicCamActive = !cinematicCamActive;
        firstPersonCamActive = !firstPersonCamActive;

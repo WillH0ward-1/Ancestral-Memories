@@ -8,11 +8,11 @@ public class PickUpObject : MonoBehaviour
     public Transform rightHand;
     private ScaleControl growControl;
 
-    [SerializeField] private PlayerSoundEffects playerAudioSFX;
+    [SerializeField] private AudioSFXManager playerAudioSFX;
 
     private void Awake()
     {
-        playerAudioSFX = transform.GetComponent<PlayerSoundEffects>();
+        playerAudioSFX = transform.GetComponent<AudioSFXManager>();
     }
 
     public void PickUpItem() {

@@ -20,7 +20,7 @@ public class PlayerWalk : MonoBehaviour
     public CharacterClass player;
     public GameObject playerObject;
 
-    [SerializeField] private PlayerSoundEffects playerSFX;
+    [SerializeField] private AudioSFXManager playerSFX;
 
     private string currentState;
 
@@ -296,24 +296,29 @@ public class PlayerWalk : MonoBehaviour
 
     void Update()
     {
-      
-        if (!stopOverride)
+        if (!camControl.isRTSmode)
         {
-            if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
+            if (!stopOverride)
             {
-                if (Input.GetMouseButton(0) && !player.hasDied)
+                if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
                 {
-                    CastRayToGround();
-                }
-
-                if (Input.GetMouseButtonUp(0))
-                {
-                    if (!agent.isStopped && !player.hasDied)
+                    if (Input.GetMouseButton(0) && !player.hasDied)
                     {
-                        StopAgent();
+                        CastRayToGround();
+                    }
+
+                    if (Input.GetMouseButtonUp(0))
+                    {
+                        if (!agent.isStopped && !player.hasDied)
+                        {
+                            StopAgent();
+                        }
                     }
                 }
             }
+        } else
+        {
+            StopAgent();
         }
     }
 
@@ -396,10 +401,10 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] private float distanceToDestination;
     [SerializeField] private float inRangeThreshold = 30f;
 
-    [SerializeField] private float minimumStopDistance = 1f;
-    [SerializeField] private float treeHarvestStopDistance = 6f;
-    [SerializeField] private float talkStopDistance = 10f;
-    [SerializeField] private float enterRoomStopDistance = 10f;
+    public float minimumStopDistance = 1f;
+    public float treeHarvestStopDistance = 6f;
+    public float talkStopDistance = 10f;
+    public float enterRoomStopDistance = 10f;
     [SerializeField] float timeout = 10f;
 
     public MusicManager musicManager;
@@ -462,6 +467,10 @@ public class PlayerWalk : MonoBehaviour
                 destinationGizmo.transform.localScale = defaultBoundsSize * 2;
                 inRangeThreshold = enterRoomStopDistance;
                 break;
+            case "InstructHarvest":
+                destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+                inRangeThreshold = talkStopDistance;
+                break;
             default:
                 boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
                 destinationGizmo.transform.localScale = boundsSize;
@@ -523,8 +532,6 @@ public class PlayerWalk : MonoBehaviour
             Destroy(destinationGizmoInstance);
         }
 
-        yield return new WaitUntil(() => distanceToDestination <= inRangeThreshold);
-
         reachedDestination = true;
 
         if (!areaManager.traversing)
@@ -566,7 +573,6 @@ public class PlayerWalk : MonoBehaviour
 
     public void StopAgent()
     {
-
         player.AdjustAnimationSpeed(defaultAnimSpeed);
 
         if (!behaviours.isPsychdelicMode && !player.isStarving)

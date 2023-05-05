@@ -99,13 +99,22 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
 
-		    corruptionControl = tmp.AddComponent<CorruptionControl>();
+			// Add a physics material with high friction and bounciness
+			var physicsMaterial = new PhysicMaterial();
+			physicsMaterial.staticFriction = 1000f;
+			physicsMaterial.dynamicFriction = 1000f;
+			physicsMaterial.bounciness = 0f;
+	
+			var meshCollider = tmp.GetComponent<MeshCollider>();
+			meshCollider.material = physicsMaterial;
+
+			corruptionControl = tmp.AddComponent<CorruptionControl>();
 
 			corruptionControl.player = player;
 			corruptionControl.behaviours = behaviours;
 
 			corruptionControl.CorruptionModifierActive = true;
-			
+
 			mapObjectGen.GenerateMapObjects();
 
 			lerpTerrain = tmp.AddComponent<LerpTerrain>();
@@ -130,7 +139,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 		}
 
-    }
+	}
 
 	public IEnumerator EnableContacts(GameObject tmp)
 	{

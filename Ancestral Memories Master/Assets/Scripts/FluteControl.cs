@@ -15,7 +15,7 @@ public class FluteControl : MonoBehaviour
 
     [SerializeField] private Player player;
     [SerializeField] private CharacterBehaviours behaviours;
-    [SerializeField] private PlayerSoundEffects playerSFX;
+    [SerializeField] private AudioSFXManager playerSFX;
 
     [SerializeField] private Camera cam;
     [SerializeField] private LayerMask targetLayer;

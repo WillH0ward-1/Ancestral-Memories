@@ -14,7 +14,7 @@ public class RainControl : MonoBehaviour
     public LerpTerrain lerpTerrain;
 
     public ParticleSystem.EmissionModule emission;
-    public float emissionMultiplier = 128;
+    public float emissionMultiplier = 128f;
 
     void Start()
     {
@@ -109,7 +109,7 @@ public class RainControl : MonoBehaviour
         float time = 0;
         float droughtDuration = Random.Range(minDroughtDuration, maxDroughtDuration);
 
-        StartCoroutine(lerpTerrain.ToDesert(15));
+        StartCoroutine(lerpTerrain.ToDesert(15f));
 
         while (time < droughtDuration)
         {

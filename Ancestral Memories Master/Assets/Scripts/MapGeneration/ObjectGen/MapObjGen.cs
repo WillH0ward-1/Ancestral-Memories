@@ -340,6 +340,8 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(npcList);
         ListCleanup(grassList);
 
+        SetupCorruptionControl();
+
         EnableStudioEmitters(grassList);
 
         StartCoroutine(StartTreeGrowth(treeList));
@@ -441,15 +443,6 @@ public class MapObjGen : MonoBehaviour
             deform.player = player;
 
             deform.enabled = false;
-
-            animalInstance.transform.gameObject.AddComponent<CorruptionControl>();
-            CorruptionControl corruptionControl = animalInstance.transform.GetComponent<CorruptionControl>();
-
-            corruptionControl.player = player;
-            corruptionControl.behaviours = behaviours;
-            corruptionControl.CorruptionModifierActive = true;
-            corruptionControl.newMin = 1;
-            corruptionControl.newMax = 0;
 
             //NavMeshAgent agent = animalInstance.GetComponentInChildren<NavMeshAgent>();
             AnimalAI animalAI = animalInstance.GetComponentInChildren<AnimalAI>();
@@ -584,6 +577,30 @@ public class MapObjGen : MonoBehaviour
 
     public WeatherControl weather;
 
+    void SetupCorruptionControl()
+    {
+        foreach (GameObject mapObj in mapObjectList)
+        {
+            CorruptionControl corruptionControl = mapObj.transform.gameObject.GetComponent<CorruptionControl>();
+            if (corruptionControl == null)
+            {
+                corruptionControl = mapObj.transform.gameObject.AddComponent<CorruptionControl>();
+            }
+
+            corruptionControl.rain = rainControl;
+            corruptionControl.player = player;
+            corruptionControl.behaviours = behaviours;
+
+            if (mapObj.transform.CompareTag("Animal"))
+            {
+                corruptionControl.newMin = 1;
+                corruptionControl.newMax = 0;
+            }
+
+            corruptionControl.CorruptionModifierActive = true;
+        }
+    }
+
     void TreePoissonDisc(PoissonDiscSampler treeSampler)
     {
 
@@ -595,36 +612,10 @@ public class MapObjGen : MonoBehaviour
 
             treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            treeInstance.transform.gameObject.AddComponent<CorruptionControl>();
-            CorruptionControl corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
-            corruptionControl.rain = rainControl;
-
-            corruptionControl.player = player;
-            corruptionControl.behaviours = behaviours;
-            corruptionControl.CorruptionModifierActive = false;
-
             TreeAudioSFX treeAudio = treeInstance.transform.GetComponent<TreeAudioSFX>();
 
             treeAudio.timeManager = timeCycleManager;
             treeAudio.weatherManager = weather;
-
-      
-            //corruptionControl = rockInstance.transform.GetComponent<CorruptionControl>();
-            //corruptionControl = treeInstance.transform.GetComponentInChildren<CorruptionControl>();
-            //corruptionControl.player = player;
-
-            //leafControl = treeInstance.transform.GetComponentInChildren<LeafControl>();
-            //leafControl.player = player;
-
-
-            /*
-            new Vector3(
-            Random.Range(minTreeScale.x, maxTreeScale.x),
-            Random.Range(minTreeScale.y, maxTreeScale.y),
-            Random.Range(minTreeScale.z, maxTreeScale.z));
-            */
-
-            //treeInstance.tag = treeTag;
 
             int treeLayer = LayerMask.NameToLayer("Trees");
             treeInstance.layer = treeLayer;
@@ -636,11 +627,8 @@ public class MapObjGen : MonoBehaviour
             TreeDeathManager treeDeathManager = treeInstance.GetComponent<TreeDeathManager>();
             treeDeathManager.mapObjGen = this;
 
-            //treeSFX.treeFallManager = treeFallManager;
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
             weather.windAffectedRendererList.Add(treeInstance.transform);
+
             treeList.Add(treeInstance);
         }
     }
@@ -743,13 +731,11 @@ public class MapObjGen : MonoBehaviour
         Transform treeTransform = tree.transform;
         ScaleControl treeGrowControl = treeTransform.GetComponent<ScaleControl>();
         TreeDeathManager treeDeathManager = treeTransform.GetComponent<TreeDeathManager>();
+       
         DirtExplode dirt = treeTransform.GetComponentInChildren<DirtExplode>();
         GameObject dirtExplodeObj = dirt.transform.gameObject;
 
         CorruptionControl dirtCorruption = dirtExplodeObj.transform.GetComponent<CorruptionControl>();
-        dirtCorruption.player = player;
-        dirtCorruption.behaviours = behaviours;
-
         dirtCorruption.CorruptionModifierActive = true;
 
         var interactable = tree.GetComponent<Interactable>();
@@ -772,44 +758,14 @@ public class MapObjGen : MonoBehaviour
 
         StartCoroutine(WaitForGrowDelay(tree, dirtExplodeParticles, emission, treeGrowthDelay));
 
-        if (!treeTransform.CompareTag("AppleTree"))
-        {
-            StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
-        }
-        else if (treeTransform.CompareTag("AppleTree"))
-        {
-            StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
-
-            foreach (Transform apple in treeTransform)
-            {
-                var appleTransform = apple.transform;
-
-                appleTransform.GetComponent<Renderer>().enabled = false;
-
-                if (!appleTransform.CompareTag("Apple"))
-                {
-                    continue;
-                }
-
-                var appleGrowControl = appleTransform.GetComponent<ScaleControl>();
-                var appleRigidbody = appleTransform.GetComponent<Rigidbody>();
-
-                appleRigidbody.isKinematic = true;
-
-                Vector3 appleScaleDestination = new Vector3(maxAppleScale.x, maxAppleScale.y, maxAppleScale.z);
-                apple.GetComponent<Renderer>().enabled = true;
-
-                StartCoroutine(appleGrowControl.LerpScale(apple.gameObject, zeroScale, appleScaleDestination, appleGrowDuration, appleGrowthDelay));
-                StartCoroutine(WaitUntilFruitGrown(apple.gameObject, appleGrowControl));
-            }
-        }
-
-        //StartCoroutine(treeShader.GrowLeaves(30f));
+        StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
+       
     }
 
     private IEnumerator WaitForGrowDelay(GameObject tree, ParticleSystem dirtExplodeParticles, ParticleSystem.EmissionModule emission, float treeGrowthDelay)
     {
         yield return new WaitForSeconds(treeGrowthDelay);
+
         emission.enabled = true;
         dirtExplodeParticles.Play();
 
@@ -819,9 +775,12 @@ public class MapObjGen : MonoBehaviour
         treeAudio.PlayTreeSproutSFX();
         treeAudio.StartCoroutine(treeAudio.StartTreeGrowthSFX());
 
+        FruitControl fruitControl = tree.GetComponent<FruitControl>();
+
+        StartCoroutine(fruitControl.FruitGrowthBuffer());
+
         TreeDeathManager treeDeathManager = tree.GetComponent<TreeDeathManager>();
         treeDeathManager.treeAudioSFX = treeAudio;
-
 
         StartCoroutine(ParticleTimeOut(dirtExplodeParticles));
 
@@ -905,12 +864,6 @@ public class MapObjGen : MonoBehaviour
 
             grassInstance.transform.gameObject.AddComponent<CorruptionControl>();
 
-            CorruptionControl corruptionControl = grassInstance.transform.GetComponent<CorruptionControl>();
-
-            corruptionControl.player = player;
-            corruptionControl.behaviours = behaviours;
-            corruptionControl.CorruptionModifierActive = true;
-
             mapObjectList.Add(grassInstance);
             weather.windAffectedRendererList.Add(grassInstance.transform);
             grassList.Add(grassInstance);
@@ -988,10 +941,6 @@ public class MapObjGen : MonoBehaviour
             Random.Range(minRockScale.z, maxRockScale.z));
 
             rockInstance.tag = rockTag;
-
-            CorruptionControl corruptionControl = rockInstance.transform.gameObject.AddComponent<CorruptionControl>();
-            corruptionControl.player = player;
-            corruptionControl.behaviours = behaviours;
 
             int rockLayer = LayerMask.NameToLayer("Rocks");
             rockInstance.layer = rockLayer;

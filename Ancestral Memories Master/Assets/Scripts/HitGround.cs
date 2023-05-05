@@ -5,54 +5,55 @@ using UnityEngine;
 public class HitGround : MonoBehaviour
 {
     public bool hit = false;
-    [SerializeField] private Vector3 fallForce = new Vector3(0, -10, 0);
 
-    private WaterFloat floating;
+    [SerializeField] private WaterFloat floating;
+    private Rigidbody rigidBody;
+    private LayerMask hitGroundLayer;
 
     private void Awake()
     {
-        floating = transform.gameObject.GetComponent<WaterFloat>();
+        floating = GetComponent<WaterFloat>();
         floating.enabled = false;
 
+        hitGroundLayer = LayerMask.GetMask("Ground", "Water", "Rocks", "Cave");
+
         hit = false;
-       
+        rigidBody = GetComponent<Rigidbody>();
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-
-        if (other.CompareTag("Walkable") || other.CompareTag("Water") || other.CompareTag("Rocks") || other.CompareTag("Cave"))
+        if ((hitGroundLayer.value & (1 << other.gameObject.layer)) != 0)
         {
-
-
-            Rigidbody rigidBody = gameObject.transform.GetComponent<Rigidbody>();
+            hit = true;
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
-            rigidBody.velocity = new Vector3(0, 0, 0);
+            rigidBody.velocity = Vector3.zero;
 
-           ///
-           //rigidBody.AddForce(fallForce, ForceMode.Force);
-
-            hit = true;
-
-            if (other.CompareTag("Water")){
-
-                floating.enabled = true;
-                StartCoroutine(floating.Float(transform.gameObject));
-
-                return;
-
+            if (other.CompareTag("Water"))
+            {
+                CheckWaterDepth(other);
             }
-
-            return;
-
-
-        } else
-        {
-            hit = false;
-            return;
         }
-        
     }
 
+    private void CheckWaterDepth(Collider waterCollider)
+    {
+        float floatDepthThreshold = 1f;
+
+        if (Physics.Raycast(transform.position, -transform.up, out RaycastHit hit, Mathf.Infinity, hitGroundLayer))
+        {
+            float distanceToGround = hit.distance;
+
+            if (distanceToGround >= floatDepthThreshold)
+            {
+                floating.enabled = true;
+                StartCoroutine(floating.Float(transform.gameObject));
+            }
+            else
+            {
+                floating.enabled = false;
+            }
+        }
+    }
 }

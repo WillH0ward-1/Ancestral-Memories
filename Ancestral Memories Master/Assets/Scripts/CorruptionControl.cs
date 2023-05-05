@@ -6,8 +6,7 @@ using System.Linq;
 
 public class CorruptionControl : MonoBehaviour
 {
-    private float targetCorruption = 1f;
-    private float currentCorruption = 0f;
+    [SerializeField] private float currentCorruptionVal;
 
     public Player player;
     public CharacterBehaviours behaviours;
@@ -69,62 +68,83 @@ public class CorruptionControl : MonoBehaviour
     
     float time = 0;
 
-    void Update()
-    {
-        currentCorruption = Mathf.Lerp(currentCorruption, targetCorruption, 2f * Time.deltaTime);
-
-    }
-
     public float newMin = 0;
     public float newMax = 1;
 
-     
     private void CorruptionModifier(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float output = Mathf.Lerp(newMin, newMax, t);
+        float faithOutput = Mathf.Lerp(newMin, newMax, t);
 
-        targetCorruption = output;
-
-        UpdateCorruption(output);
-
+        UpdateCorruption(faithOutput);
     }
 
     private float modifier = 0f;
+    [SerializeField] float manualLeafLerpSpeed = 1f;
 
     public RainControl rain;
 
-    private void UpdateCorruption(float output)
+    [SerializeField] private bool LeafManualOverrideActive = false;
+
+    public float overrideModifer;
+
+    private IEnumerator LeafOverride(float modifier, float target, float duration)
     {
-        modifier = output;
+        LeafManualOverrideActive = true;
 
-        if (!CorruptionModifierActive)
+        float time = 0f;
+
+        while (time < duration && LeafManualOverrideActive)
         {
-            modifier = newMin;
+            time += Time.deltaTime / duration;
+
+            overrideModifer = Mathf.Lerp(modifier, target, time);
+
+            yield return null;
         }
-        else
+
+        overrideModifer = target;
+
+        LeafManualOverrideActive = false;
+
+        yield break;
+    }
+
+    private void UpdateCorruption(float faithOutput)
+    {
+        float currentCorruption = faithOutput;
+        currentCorruptionVal = Mathf.Lerp(currentCorruption, faithOutput, 2f * Time.deltaTime);
+
+        foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
         {
-            foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
+            m.SetFloat("_Karma", currentCorruptionVal);
+
+            if (transform.CompareTag("Trees"))
             {
-                m.SetFloat("_Karma", modifier);
-
-                if (rain != null)
+                if (rain != null && rain.drought)
                 {
-                    if (!rain.drought)
+                    if (!LeafManualOverrideActive)
                     {
-                        m.SetFloat("_LeafDensity", modifier);
-                    } else if (rain.drought)
-                    {
-                        m.SetFloat("_LeafDensity", newMin);
+                        StartCoroutine(LeafOverride(currentCorruptionVal, newMin, manualLeafLerpSpeed));
                     }
-                }
 
-                if (behaviours.isPsychdelicMode)
+                    m.SetFloat("_LeafDensity", overrideModifer);
+                } else
                 {
-                    m.SetFloat("_WarpStrength", modifier);
+                    m.SetFloat("_LeafDensity", currentCorruptionVal);
                 }
             }
-            
+            else 
+            {
+                m.SetFloat("_LeafDensity", currentCorruptionVal);
+            }
+
+                
+            if (behaviours.isPsychdelicMode)
+            {
+                m.SetFloat("_WarpStrength", modifier);
+            }
         }
     }
+    
 }

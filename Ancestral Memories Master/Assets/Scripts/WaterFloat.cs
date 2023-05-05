@@ -32,8 +32,7 @@ public class WaterFloat : MonoBehaviour
         bobObjectY = bobObject.transform.position.y;
         bobObjectZ = bobObject.transform.position.z;
 
-
-        targetY = bobObjectY - bobObjectY / 5;
+        targetY = bobObjectY / 5;
 
         float time = 0;
 

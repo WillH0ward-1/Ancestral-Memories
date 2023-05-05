@@ -38,6 +38,7 @@ public class TreeDeathManager : MonoBehaviour
 
     private IEnumerator FallToGround()
     {
+        StartCoroutine(transform.GetComponent<FruitControl>().StopFruitGrowth());
 
         treeDead = true;
 

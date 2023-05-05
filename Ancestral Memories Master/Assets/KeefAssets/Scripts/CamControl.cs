@@ -46,6 +46,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float dialogueZoom = 0;
     [SerializeField] private float panoramaZoom = 0;
     [SerializeField] private float playMusicZoom = 0;
+    [SerializeField] private float rtsModeZoom = 0;
 
     [Header("========================================================================================================================")]
     [Header("Target Orthographic Size")]
@@ -62,6 +63,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float dialogueOrtho = 0;
     [SerializeField] private float panoramaOrtho = 0;
     [SerializeField] private float playMusicOrtho = 0;
+    [SerializeField] private float rtsModeOrtho = 0;
 
     [Header("========================================================================================================================")]
     [Header("Zoom Duration")]
@@ -76,6 +78,7 @@ public class CamControl : MonoBehaviour
     [SerializeField] private float toDialogueZoomDuration = 1f;
     [SerializeField] private float toPanoramaZoomDuration = 1f;
     [SerializeField] private float toPlayMusicZoomDuration = 1f;
+    [SerializeField] private float toRTSmodeZoomDuration = 1f;
 
     public float toPsychedelicZoomDuration = 60f;
 
@@ -110,6 +113,8 @@ public class CamControl : MonoBehaviour
 
     public void Start()
     {
+        isRTSmode = false;
+
         rpCamera.perspective = initZoom;
         cam.orthographicSize = initOrtho;
         camTarget = player.transform;
@@ -152,60 +157,73 @@ public class CamControl : MonoBehaviour
 
     private Vector3 offset;
 
+    private CloudControl clouds;
+
     void Awake()
     {
         cam = GetComponent<Camera>();
         behaviours = player.GetComponent<CharacterBehaviours>();
         offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
+        clouds = behaviours.clouds;
     }
 
     void Update()
     {
         rpCamera.UpdateProjection(true);
 
-        if (!scrollOverride)
+        if (!isRTSmode)
         {
-            if (!behaviours.behaviourIsActive)
+            if (!scrollOverride)
+            {
+                if (!behaviours.behaviourIsActive)
+                {
+                    camFollowTarget = true;
+                    camRotateAround = true;
+                }
+                else
+                {
+                    camFollowTarget = false;
+                    camRotateAround = false;
+                }
+            }
+            else
             {
                 camFollowTarget = true;
                 camRotateAround = true;
             }
-            else
-            {
-                camFollowTarget = false;
-                camRotateAround = false;
-            }
-        }
-        else
+        } else
         {
-            camFollowTarget = true;
-            camRotateAround = true;
+            camFollowTarget = false;
+            camRotateAround = false;
         }
     }
 
     private void LateUpdate()
     {
-        if (camRotateAround && !panoramaScroll)
+        if (!isRTSmode)
         {
-            camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * speed, Vector3.up);
-            cameraOffset = camTurnAngle * cameraOffset;
-            Vector3 newPos = player.transform.position + cameraOffset;
-            transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor);
+            if (camRotateAround && !panoramaScroll)
+            {
+                camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * speed, Vector3.up);
+                cameraOffset = camTurnAngle * cameraOffset;
+                Vector3 newPos = player.transform.position + cameraOffset;
+                transform.position = Vector3.Slerp(transform.position, newPos, smoothFactor);
 
-            Quaternion prevRotation = transform.rotation;
-            transform.LookAt(player.transform.position);
-            transform.rotation = Quaternion.Slerp(prevRotation, transform.rotation, smoothFactor);
-        }
+                Quaternion prevRotation = transform.rotation;
+                transform.LookAt(player.transform.position);
+                transform.rotation = Quaternion.Slerp(prevRotation, transform.rotation, smoothFactor);
+            }
 
-        if (camFollowTarget)
-        {
-            Vector3 desiredPosition = new Vector3(camTarget.position.x, camTarget.position.y + camFollowOffset.y, camTarget.position.z + camFollowOffset.z);
+            if (camFollowTarget)
+            {
+                Vector3 desiredPosition = new Vector3(camTarget.position.x, camTarget.position.y + camFollowOffset.y, camTarget.position.z + camFollowOffset.z);
 
-            Vector3 SmoothedPosition = Vector3.Lerp(transform.position, desiredPosition, SmoothSpeed * Time.deltaTime);
-            transform.position = SmoothedPosition;
+                Vector3 SmoothedPosition = Vector3.Lerp(transform.position, desiredPosition, SmoothSpeed * Time.deltaTime);
+                transform.position = SmoothedPosition;
 
-            Quaternion desiredRotation = Quaternion.LookRotation(camTarget.position - transform.position, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, SmoothSpeed * Time.deltaTime);
+                Quaternion desiredRotation = Quaternion.LookRotation(camTarget.position - transform.position, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, SmoothSpeed * Time.deltaTime);
+            }
         }
     }
 
@@ -215,6 +233,61 @@ public class CamControl : MonoBehaviour
 
     private float target;
     private float rotateSpeed;
+
+    public bool isRTSmode = false;
+
+    [SerializeField] private float minScrollZoom = 12;
+    [SerializeField] private float maxScrollZoom = 50;
+
+    [SerializeField] private float RTScamSpeed = 1;
+
+    public IEnumerator RTSMode()
+    {
+        StartCoroutine(WaitForRTScancel());
+
+        isRTSmode = true;
+
+        while (isRTSmode)
+        {
+            // Get the movement input from the player
+            float horizontalMovement = Input.GetAxis("Horizontal");
+            float verticalMovement = Input.GetAxis("Vertical");
+
+            // Use the movement input to change the camera position
+            Vector3 newPosition = cam.transform.position;
+            newPosition.x += horizontalMovement * RTScamSpeed * Time.deltaTime;
+            newPosition.y += verticalMovement * RTScamSpeed * Time.deltaTime;
+            cam.transform.position = newPosition;
+
+            // Get the scroll input from the player
+            float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+            float orthoTarget = cam.orthographicSize - scrollInput * panoramaScrollSpeed;
+
+            // Use this when using Orthographic Camera.
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, orthoTarget, panoramaSmoothFactor * Time.deltaTime);
+            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minScrollZoom, maxScrollZoom);
+
+            // Calculate the new camera position based on the movement input
+            Vector3 cameraPos = cam.transform.position;
+            cameraPos.x += horizontalMovement * RTScamSpeed * Time.deltaTime;
+            cameraPos.y += verticalMovement * RTScamSpeed * Time.deltaTime;
+            cam.transform.position = cameraPos;
+
+            yield return null;
+        }
+
+        yield break;
+    }
+
+
+    public IEnumerator WaitForRTScancel()
+    {
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+
+        isRTSmode = false;
+        ToGameZoom();
+        clouds.ManualCloudOverrideStop();
+    }
 
     public IEnumerator PanoramaZoom()
     {
@@ -275,6 +348,19 @@ public class CamControl : MonoBehaviour
         zoomDestination = spawnZoom;
         orthoDestination = spawnOrtho;
         StartCoroutine(Zoom(toSpawnZoomDuration, zoomDestination, orthoDestination));
+    }
+
+    public void ToRTSMode()
+    {
+        clouds.ManualCloudOverrideStart();
+
+        CancelLastCam();
+
+        zoomDestination = rtsModeZoom;
+        orthoDestination = rtsModeOrtho;
+
+        StartCoroutine(Zoom(toPanoramaZoomDuration, zoomDestination, orthoDestination));
+        StartCoroutine(RTSMode());
     }
 
     bool panoramaCamBuffer = false;
