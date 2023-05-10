@@ -78,6 +78,10 @@ public class TerrainGenerator : MonoBehaviour {
 
 	[SerializeField] private RainControl rainControl;
 
+	[SerializeField] private float staticFriction = 1000f;
+	[SerializeField] private float dynamicFriction = 1000f;
+	[SerializeField] private float bounciness = 0f;
+
 	void Start() {
 
 		textureSettings.ApplyToMaterial(mapMaterial);
@@ -98,15 +102,6 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.isStatic = true;
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
-
-			// Add a physics material with high friction and bounciness
-			var physicsMaterial = new PhysicMaterial();
-			physicsMaterial.staticFriction = 1000f;
-			physicsMaterial.dynamicFriction = 1000f;
-			physicsMaterial.bounciness = 0f;
-	
-			var meshCollider = tmp.GetComponent<MeshCollider>();
-			meshCollider.material = physicsMaterial;
 
 			corruptionControl = tmp.AddComponent<CorruptionControl>();
 
@@ -147,13 +142,20 @@ public class TerrainGenerator : MonoBehaviour {
 
 		yield return new WaitUntil(() => (collider = tmp.GetComponentInChildren<Collider>()) != null);
 
-		collider.providesContacts = true;
+		collider.providesContacts = false;
 
+		// Add a physics material with high friction and bounciness
+		var physicsMaterial = new PhysicMaterial();
+		physicsMaterial.staticFriction = staticFriction;
+		physicsMaterial.dynamicFriction = dynamicFriction;
+		physicsMaterial.bounciness = bounciness;
+		physicsMaterial.frictionCombine = PhysicMaterialCombine.Maximum;
+		collider.material = physicsMaterial;
 		yield break;
 	}
 
 	void Update() {
-
+		/*
 		viewerPosition = new Vector2 (viewer.position.x, viewer.position.z);
 
 		if (viewerPosition != viewerPositionOld) {
@@ -166,6 +168,7 @@ public class TerrainGenerator : MonoBehaviour {
 			viewerPositionOld = viewerPosition;
 			UpdateVisibleChunks ();
 		}
+		*/
 	}
 		
 	void UpdateVisibleChunks() {

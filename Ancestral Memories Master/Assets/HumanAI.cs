@@ -20,6 +20,8 @@ public class HumanAI : MonoBehaviour
     const string PLANT = "Citizen_PlantTree";
     const string PICKUP = "Citizen_PickUp";
     const string FLEE = "Citizen_RunScared";
+    public const string GETUPFRONT = "Citizen_StandUpFromFront";
+    public const string GETUPBACK = "Citizen_StandUpFromBack";
 
     public enum AIState { Idle, Walking, Harvesting, Running, Following, Dialogue }
 
@@ -133,6 +135,37 @@ public class HumanAI : MonoBehaviour
     [SerializeField] float maxActionBuffer = 10;
 
     private bool overriden = false;
+
+    public IEnumerator GetUp(bool isFacingUp)
+    {
+        if (!agent.enabled)
+        {
+            agent.enabled = true;
+        }
+        if (!animator.enabled)
+        {
+            animator.enabled = true;
+        }
+
+        if (isFacingUp)
+        {
+            ChangeAnimationState(GETUPFRONT);
+        }
+        else
+        {
+            ChangeAnimationState(GETUPBACK);
+        }
+
+        float timer = animator.GetCurrentAnimatorStateInfo(0).length;
+        while (timer > 0f)
+        {
+            timer -= Time.deltaTime;
+            yield return null;
+        }
+
+        ChangeState(AIState.Idle);
+
+    }
 
     private IEnumerator Idle()
     {
@@ -600,6 +633,8 @@ public class HumanAI : MonoBehaviour
 
     public IEnumerator StopAllBehaviours()
     {
+        agent.enabled = false;
+        animator.enabled = false;
         StopAllCoroutines();
 
         yield break;

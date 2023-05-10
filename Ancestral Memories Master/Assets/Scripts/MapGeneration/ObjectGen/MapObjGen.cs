@@ -46,6 +46,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] seaShells;
     [SerializeField] private GameObject[] pedestals;
     [SerializeField] private GameObject[] cave;
+    [SerializeField] private GameObject[] humans;
 
     [Header("========================================================================================================================")]
     [Header("Layer Masks")]
@@ -95,6 +96,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minCaveScale;
     [SerializeField] Vector3 maxCaveScale;
 
+    [SerializeField] Vector3 minHumanScale;
+    [SerializeField] Vector3 maxHumanScale;
+
     [Header("========================================================================================================================")]
 
     [Header("Object Rotation")]
@@ -121,6 +125,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumSeaShellRadius = 70;
     [SerializeField] float minimumPedestalRadius = 70;
     [SerializeField] float minimumCaveRadius = 70;
+    [SerializeField] float minimumHumanRadius = 70;
 
     [Header("========================================================================================================================")]
 
@@ -150,6 +155,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string fireWoodTag = "FireWood";
     private readonly string seaShellTag = "SeaShell";
     private readonly string pedestalTag = "Pedestal";
+    private readonly string humanTag = "Human";
 
     [Header("========================================================================================================================")]
 
@@ -286,6 +292,8 @@ public class MapObjGen : MonoBehaviour
 
     private Vector3[] waterEmitterVerts;
 
+    public Vector3 humanAverageScale = new Vector3(1.03f, 0.59f, 0.83f);
+
     public void GenerateMapObjects()
     {
 
@@ -314,6 +322,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler seaShellSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumSeaShellRadius);
         PoissonDiscSampler pedestalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumPedestalRadius);
         PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
+        PoissonDiscSampler humanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumHumanRadius);
 
         TreePoissonDisc(treeSampler);
         //AppleTreePoissonDisc(appleTreeSampler);
@@ -327,6 +336,7 @@ public class MapObjGen : MonoBehaviour
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
+        HumanPoissonDisc(humanSampler);
 
         SetOffset();
         EnableNavMeshAgents(npcList);
@@ -459,6 +469,61 @@ public class MapObjGen : MonoBehaviour
 
             mapObjectList.Add(animalInstance);
             npcList.Add(animalInstance);
+
+            //GroundCheck(instantiatedPrefab);
+            //WaterCheck();
+        }
+    }
+
+    public List<GameObject> humanPopulationList;
+
+    void HumanPoissonDisc(PoissonDiscSampler humanSampler)
+    {
+        foreach (Vector2 sample in humanSampler.Samples())
+        {
+            GameObject randomHuman = GetRandomMapObject(humans);
+
+            GameObject humanInstance = Instantiate(randomHuman, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            humanInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            humanInstance.tag = humanTag;
+
+            int humanLayer = LayerMask.NameToLayer("Human");
+            humanInstance.layer = humanLayer;
+
+            float averageScale = (humanAverageScale.x + humanAverageScale.y + humanAverageScale.z) / 3f;
+
+            float minScale = 0.8f * averageScale; // 80% of average scale
+            float maxScale = 1.2f * averageScale; // 120% of average scale
+
+            float randomScale = Random.Range(minScale, maxScale);
+
+            humanInstance.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
+
+
+            humanInstance.transform.SetParent(hierarchyRoot.transform);
+
+            LerpDeformation deform = humanInstance.transform.GetComponentInChildren<LerpDeformation>();
+            deform.player = player;
+            deform.enabled = false;
+
+            //NavMeshAgent agent = animalInstance.GetComponentInChildren<NavMeshAgent>();
+            HumanAI humanAI = humanInstance.GetComponentInChildren<HumanAI>();
+            humanAI.player = player;
+            humanAI.playerBehaviours = behaviours;
+
+            FLookAnimator lookAnimator = humanInstance.GetComponentInChildren<FLookAnimator>();
+            lookAnimator.enabled = true;
+            lookAnimator.ObjectToFollow = player.transform;
+
+            humanAI.lookAnimator = lookAnimator;
+
+            deform.enabled = true;
+
+            mapObjectList.Add(humanInstance);
+            npcList.Add(humanInstance);
+            humanPopulationList.Add(humanInstance);
 
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
