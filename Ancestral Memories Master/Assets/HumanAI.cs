@@ -27,7 +27,6 @@ public class HumanAI : MonoBehaviour
 
     [SerializeField] private AIState state = AIState.Idle;
 
-
     [SerializeField] private AIState currentAIState;
     [SerializeField] private bool behaviourActive = false;
 
@@ -89,11 +88,11 @@ public class HumanAI : MonoBehaviour
 
         ragdollController = transform.GetComponentInChildren<RagdollController>();
 
-        ChangeState(AIState.Idle);
-
         treeLayer = LayerMask.GetMask("Trees");
 
         playerWalk = player.GetComponentInChildren<PlayerWalk>();
+
+        ChangeState(AIState.Idle);
 
     }
 
@@ -130,6 +129,7 @@ public class HumanAI : MonoBehaviour
 
     }
 
+
     [SerializeField] float time;
     [SerializeField] float minActionBuffer = 3;
     [SerializeField] float maxActionBuffer = 10;
@@ -146,6 +146,10 @@ public class HumanAI : MonoBehaviour
         {
             animator.enabled = true;
         }
+        if (!lookAnimator.enabled)
+        {
+            lookAnimator.enabled = true;
+        }
 
         if (isFacingUp)
         {
@@ -156,14 +160,19 @@ public class HumanAI : MonoBehaviour
             ChangeAnimationState(GETUPBACK);
         }
 
-        float timer = animator.GetCurrentAnimatorStateInfo(0).length;
-        while (timer > 0f)
+        float time = 0;
+        float duration = GetAnimLength();
+
+        while (time <= duration)
         {
-            timer -= Time.deltaTime;
+            time += Time.deltaTime / duration;
+
             yield return null;
         }
 
         ChangeState(AIState.Idle);
+        StartCoroutine(ragdollController.TriggerRagdollTest());
+        yield break;
 
     }
 
@@ -635,6 +644,7 @@ public class HumanAI : MonoBehaviour
     {
         agent.enabled = false;
         animator.enabled = false;
+        lookAnimator.enabled = false;
         StopAllCoroutines();
 
         yield break;
@@ -688,4 +698,34 @@ public class HumanAI : MonoBehaviour
     {
         animator.speed = newSpeed;
     }
+
+    public float animLength;
+
+    private float GetAnimLength()
+    {
+        animLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+        return animLength;
+    }
+
+    private IEnumerator WaitForAnimationCompletion(Animator animator)
+    {
+        int layerIndex = 0;
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
+        int startStateNameHash = stateInfo.fullPathHash;
+
+        // Wait for one frame to ensure the animation has started
+        yield return null;
+
+        // Wait until the animation has looped back or the animator has transitioned to a new state
+        while (true)
+        {
+            stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
+            if (stateInfo.fullPathHash != startStateNameHash || stateInfo.normalizedTime >= 1.0f)
+            {
+                break;
+            }
+            yield return null;
+        }
+    }
+
 }

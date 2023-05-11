@@ -96,8 +96,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minCaveScale;
     [SerializeField] Vector3 maxCaveScale;
 
-    [SerializeField] Vector3 minHumanScale;
-    [SerializeField] Vector3 maxHumanScale;
+    [SerializeField] private Vector3 humanAverageScale = new Vector3(1.03f, 0.59f, 0.83f);
 
     [Header("========================================================================================================================")]
 
@@ -165,7 +164,6 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] float yOffset;
-
     [SerializeField] private float mapSizeX = 0;
     [SerializeField] private float mapSizeY = 0;
     [SerializeField] private float mapSizeZ = 0;
@@ -175,15 +173,11 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private float initY = 0;
 
     [SerializeField] private Player player;
-
     public RadialMenu radialMenu;
-
     public Camera cam;
 
     [SerializeField] int vertSampleFactor;
-
     [SerializeField] private bool invertSpreadOrigin = false;
-
     private Vector3 mapCenter;
 
     [Header("========================================================================================================================")]
@@ -191,17 +185,14 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private Transform EmittersContainer;
-
     [SerializeField] private GameObject waterSoundEmitter;
     [SerializeField] private Transform waterEmitterTransform;
     [SerializeField] private Transform waterEmitterRoot;
-
     [SerializeField] private List<GameObject> waterEmitters;
 
     [Header("========================================================================================================================")]
     [Header("Behaviours Reference")]
     [Space(10)]
-
 
     [SerializeField] private CharacterBehaviours behaviours;
 
@@ -209,10 +200,7 @@ public class MapObjGen : MonoBehaviour
     [Header("Weather")]
     [Space(10)]
 
-
     [SerializeField] private RainControl rainControl;
-
-
     [SerializeField] private TreeDeathManager treeFallManager;
 
     public TimeCycleManager timeCycleManager;
@@ -292,8 +280,6 @@ public class MapObjGen : MonoBehaviour
 
     private Vector3[] waterEmitterVerts;
 
-    public Vector3 humanAverageScale = new Vector3(1.03f, 0.59f, 0.83f);
-
     public void GenerateMapObjects()
     {
 
@@ -339,7 +325,6 @@ public class MapObjGen : MonoBehaviour
         HumanPoissonDisc(humanSampler);
 
         SetOffset();
-        EnableNavMeshAgents(npcList);
 
         GroundCheck();
         DestroyDeadZones();
@@ -355,6 +340,8 @@ public class MapObjGen : MonoBehaviour
         EnableStudioEmitters(grassList);
 
         StartCoroutine(StartTreeGrowth(treeList));
+
+        EnableNavMeshAgents(npcList);
         //RandomizeTreecolours();
 
     }
@@ -534,7 +521,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (GameObject instance in list)
         {
-            NavMeshAgent navMeshAgent = instance.GetComponent<NavMeshAgent>();
+            NavMeshAgent navMeshAgent = instance.GetComponentInChildren<NavMeshAgent>();
             navMeshAgent.enabled = true;
         }
         

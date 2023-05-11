@@ -51,6 +51,11 @@ public class TerrainGenerator : MonoBehaviour {
 	{
 		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
 
+		foreach (NavMeshSurface surface in surfaces)
+		{
+			surface.RemoveData();
+		}
+
 		foreach (NavMeshSurface surface in surfaces) {
 			surface.BuildNavMesh();
 		}
