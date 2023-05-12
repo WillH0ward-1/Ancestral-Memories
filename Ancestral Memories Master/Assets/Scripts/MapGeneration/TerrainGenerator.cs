@@ -47,8 +47,22 @@ public class TerrainGenerator : MonoBehaviour {
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
 	List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
+	public bool useRandomSeed = false;
+	public int defaultSeed = 9;
 	private void Awake()
 	{
+		if (useRandomSeed)
+		{
+			heightMapSettings.noiseSettings.seed = new System.Random().Next();
+		}
+		else if (!useRandomSeed)
+		{
+			heightMapSettings.noiseSettings.seed = defaultSeed;
+
+		}
+
+
+
 		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
 
 		foreach (NavMeshSurface surface in surfaces)
@@ -88,7 +102,7 @@ public class TerrainGenerator : MonoBehaviour {
 	[SerializeField] private float bounciness = 0f;
 
 	void Start() {
-
+		 
 		textureSettings.ApplyToMaterial(mapMaterial);
 		textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
 
