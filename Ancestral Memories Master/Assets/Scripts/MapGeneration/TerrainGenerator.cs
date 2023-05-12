@@ -47,21 +47,44 @@ public class TerrainGenerator : MonoBehaviour {
 	Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
 	List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
-	public bool useRandomSeed = false;
+	public int customSeed = 0;
 	public int defaultSeed = 9;
+
+	public enum SeedSettingState
+	{
+		UseDefaultSeed,
+		UseRandomSeed,
+		UseCustomSeed,
+		None
+	}
+
+	[SerializeField]
+	private SeedSettingState seedSettingState = SeedSettingState.UseDefaultSeed;
+
+	private void SetSeed(SeedSettingState seedSettingState)
+	{
+		switch (seedSettingState)
+		{
+			case SeedSettingState.UseDefaultSeed:
+				heightMapSettings.noiseSettings.seed = defaultSeed;
+				break;
+			case SeedSettingState.UseRandomSeed:
+				heightMapSettings.noiseSettings.seed = new System.Random().Next();
+				break;
+			case SeedSettingState.UseCustomSeed:
+				heightMapSettings.noiseSettings.seed = customSeed;
+				break;
+			case SeedSettingState.None:
+				break;
+			default:
+				Debug.LogError("Invalid seed setting state.");
+				break;
+		}
+	}
+
 	private void Awake()
 	{
-		if (useRandomSeed)
-		{
-			heightMapSettings.noiseSettings.seed = new System.Random().Next();
-		}
-		else if (!useRandomSeed)
-		{
-			heightMapSettings.noiseSettings.seed = defaultSeed;
-
-		}
-
-
+		SetSeed(SeedSettingState.UseRandomSeed);
 
 		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
 
