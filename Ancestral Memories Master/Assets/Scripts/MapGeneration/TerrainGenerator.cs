@@ -84,7 +84,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private void Awake()
 	{
-		SetSeed(SeedSettingState.UseRandomSeed);
+		SetSeed(seedSettingState);
 
 		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
 
