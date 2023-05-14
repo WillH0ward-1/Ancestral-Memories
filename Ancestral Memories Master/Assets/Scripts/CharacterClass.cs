@@ -86,7 +86,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public Shake earthQuake;
 
     public float depleteHealthFactor = 0.1f;
-    public float depleteFaithFactor = -0.1f;
+    public float depleteFaithFactor = -0.01f;
     public float depleteHungerFactor = 0.1f;
 
     public GameObject spawnDestination;

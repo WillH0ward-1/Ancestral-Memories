@@ -48,6 +48,8 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] cave;
     [SerializeField] private GameObject[] humans;
 
+    [SerializeField] private GameObject spawnPointPrefab;
+
     [Header("========================================================================================================================")]
     [Header("Layer Masks")]
     [Space(10)]
@@ -111,6 +113,7 @@ public class MapObjGen : MonoBehaviour
     [Header("Density")]
     [Space(10)]
 
+    [SerializeField] float minimumHumanRadiusminimumSpawnPointRadius = 70;
     [SerializeField] float minimumTreeRadius = 70;
     [SerializeField] float minimumAppleTreeRadius = 70;
     [SerializeField] float minimumGrassRadius = 70;
@@ -125,7 +128,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumPedestalRadius = 70;
     [SerializeField] float minimumCaveRadius = 70;
     [SerializeField] float minimumHumanRadius = 70;
-
+    [SerializeField] float minimumSpawnPointRadius = 70;
     [Header("========================================================================================================================")]
 
     [Header("Navmesh")]
@@ -296,6 +299,7 @@ public class MapObjGen : MonoBehaviour
 
         //GenerateOceanEmitters(sampleWidth, sampleHeight);
 
+        PoissonDiscSampler spawnPointsSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumSpawnPointRadius);
         PoissonDiscSampler treeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTreeRadius);
         PoissonDiscSampler appleTreeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumAppleTreeRadius);
         PoissonDiscSampler grassSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumGrassRadius);
@@ -323,25 +327,39 @@ public class MapObjGen : MonoBehaviour
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
         //HumanPoissonDisc(humanSampler);
+        SpawnPointsPoissonDisc(spawnPointsSampler);
 
         SetOffset();
 
-        GroundCheck();
+        foreach (GameObject obj in mapObjectList)
+        {
+            GroundCheck(obj);
+        }
+
+        foreach (GameObject obj in spawnPointsList)
+        {
+            GroundCheck(obj);
+        }
+
         DestroyDeadZones();
 
         StartCoroutine(WaterSFXEmitterGen());
 
+        ListCleanup(spawnPointsList);
         ListCleanup(mapObjectList);
+        ListCleanup(treeList);
         ListCleanup(npcList);
         ListCleanup(grassList);
 
-        SetupCorruptionControl();
+        SetupCorruptionControl(mapObjectList);
 
         EnableStudioEmitters(grassList);
 
         StartCoroutine(StartTreeGrowth(treeList));
 
         EnableNavMeshAgents(npcList);
+
+        player.transform.GetComponentInChildren<SpawnPoints>().SetSpawnPosition(spawnPointsList);
         //RandomizeTreecolours();
 
     }
@@ -410,11 +428,25 @@ public class MapObjGen : MonoBehaviour
             perimeterPoint.transform.SetParent(hierarchyRoot.transform);
         }
     }
-    */
+    */ 
 
     public GameObject GetRandomMapObject(GameObject[] mapElements)
     {
         return mapElements[Random.Range(0, mapElements.Length)];
+    }
+
+    public List<GameObject> spawnPointsList;
+
+    void SpawnPointsPoissonDisc(PoissonDiscSampler spawnPointSampler)
+    {
+        foreach (Vector2 sample in spawnPointSampler.Samples())
+        {
+            GameObject spawnPoint = spawnPointPrefab;
+            GameObject spawnPointInstance = Instantiate(spawnPoint, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            spawnPointInstance.transform.SetParent(hierarchyRoot.transform);
+
+            spawnPointsList.Add(spawnPointInstance);
+        }
     }
 
 
@@ -629,9 +661,9 @@ public class MapObjGen : MonoBehaviour
 
     public WeatherControl weather;
 
-    void SetupCorruptionControl()
+    void SetupCorruptionControl(List<GameObject> list)
     {
-        foreach (GameObject mapObj in mapObjectList)
+        foreach (GameObject mapObj in list)
         {
             CorruptionControl corruptionControl = mapObj.transform.gameObject.GetComponent<CorruptionControl>();
             if (corruptionControl == null)
@@ -889,7 +921,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)
     {
         foreach (Vector2 sample in grassSampler.Samples())
@@ -1087,101 +1118,93 @@ public class MapObjGen : MonoBehaviour
         }
     }
     
-    void GroundCheck()
+    void GroundCheck(GameObject obj)
     {
 
-        foreach (GameObject mapObject in mapObjectList)
+        if (Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
         {
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
+            //Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
+
+            if (downHit.collider.CompareTag(waterTag))
             {
-                //Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
-
-                if (downHit.collider.CompareTag(waterTag))
-                {
-                    DestroyObject();
-                    //Debug.Log("Water Ahoy!");
-                }
-
-                if (downHit.collider == null)
-                {
-                    DestroyObject();
-                    //Debug.Log("Nothing detected.");
-                }
+                DestroyObject();
+                //Debug.Log("Water Ahoy!");
             }
 
-            void DestroyObject()
+            if (downHit.collider == null)
             {
-                if (Application.isEditor)
-                {
-                    DestroyImmediate(mapObject);
-                    // Debug.Log("Object destroyed in Editor.");
-                }
-                else if (!Application.isEditor)
-                {
-                    Destroy(mapObject);
-                    // Debug.Log("Object destroyed in game.");
-                }
+                DestroyObject();
+                //Debug.Log("Nothing detected.");
             }
         }
 
-        AnchorToGround();
+        void DestroyObject()
+        {
+            if (Application.isEditor)
+            {
+                DestroyImmediate(obj);
+                // Debug.Log("Object destroyed in Editor.");
+            }
+            else if (!Application.isEditor)
+            {
+                Destroy(obj);
+                // Debug.Log("Object destroyed in game.");
+            }
+        }
+
+        AnchorToGround(obj);
     }
 
-
-    void AnchorToGround()
+    void AnchorToGround(GameObject obj)
     {
-        ListCleanup(mapObjectList);
-
-        foreach (GameObject mapObject in mapObjectList)
+        if (obj != null)
         {
-
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
+            if (Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayerMask))
             {
                 float distance = hitFloor.distance;
 
-                float x = mapObject.transform.position.x;
-                float y = mapObject.transform.position.y - distance;
-                float z = mapObject.transform.position.z;
+                float x = obj.transform.position.x;
+                float y = obj.transform.position.y - distance;
+                float z = obj.transform.position.z;
 
                 Vector3 newPosition = new Vector3(x, y, z);
 
-                mapObject.transform.position = newPosition;
+                obj.transform.position = newPosition;
 
                 //Debug.Log("Clamped to Ground!");
                 //Debug.Log("Distance: " + distance);
             }
         }
+        
 
     }
 
     void DestroyDeadZones()
     {
-        foreach (GameObject mapObject in mapObjectList)
+        if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
         {
-            if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+            if (hitFloor.collider.CompareTag("DeadZone"))
             {
-                if (hitFloor.collider.CompareTag("DeadZone"))
-                {
-                    //Debug.Log("DeadZone hit.");
-                    DestroyObject();
-                }
-            }
-
-
-            void DestroyObject()
-            {
-                if (Application.isEditor)
-                {
-                    Debug.Log("Object destroyed in Editor.");
-                    DestroyImmediate(mapObject);
-                }
-                else
-                {
-                    Debug.Log("Object destroyed in game.");
-                    Destroy(mapObject);
-                }
+                //Debug.Log("DeadZone hit.");
+                DestroyObject();
             }
         }
+
+
+        void DestroyObject()
+        {
+            if (Application.isEditor)
+            {
+                Debug.Log("Object destroyed in Editor.");
+                DestroyImmediate(mapObject);
+            }
+            else
+            {
+                Debug.Log("Object destroyed in game.");
+                Destroy(mapObject);
+            }
+        }
+        
     }
 
     void SetOffset()
