@@ -5,6 +5,7 @@ using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using Pathfinding;
 
 public class PlayerWalk : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class PlayerWalk : MonoBehaviour
     public Camera cam;
     public CamControl cineCam;
 
-    public NavMeshAgent agent;
+    //public NavMeshAgent agent;
 
     public CharacterClass player;
     public GameObject playerObject;
@@ -80,10 +81,14 @@ public class PlayerWalk : MonoBehaviour
 
     [SerializeField] private CamControl camControl;
 
+    private RichAI aiPath;
+
     void Awake()
     {
-        agent.stoppingDistance = defaultStoppingDistance;
-        agent = GetComponent<NavMeshAgent>();
+        //agent.stoppingDistance = defaultStoppingDistance;
+        //agent = GetComponent<NavMeshAgent>();
+
+
         //StopAgent();
 
         head.Add(playerHead);
@@ -101,6 +106,10 @@ public class PlayerWalk : MonoBehaviour
 
     private void Start()
     {
+
+        aiPath = GetComponentInChildren<RichAI>();
+        aiPath.endReachedDistance = defaultStoppingDistance;
+
         ChangeState(PLAYER_IDLE);
         //StartCoroutine(DetectWater());
     }
@@ -309,7 +318,7 @@ public class PlayerWalk : MonoBehaviour
 
                     if (Input.GetMouseButtonUp(0))
                     {
-                        if (!agent.isStopped && !player.hasDied)
+                        if (!aiPath.reachedEndOfPath && !player.hasDied)
                         {
                             StopAgent();
                         }
@@ -350,11 +359,17 @@ public class PlayerWalk : MonoBehaviour
             speed = runThreshold + 1;
         }
 
-        agent.destination = hitPoint;
-        agent.speed = speed;
+//agent.destination = hitPoint;
+//agent.speed = speed;
         walkAnimFactor = speed / animFactor;
-        agent.isStopped = false;
-        agent.acceleration = 10000;
+        //agent.isStopped = false;
+        //agent.acceleration = 10000;
+
+        aiPath.destination = hitPoint;
+        aiPath.maxSpeed = speed;
+        aiPath.acceleration = 10000;
+        walkAnimFactor = speed / animFactor;
+        aiPath.canMove = true;
 
         player.AdjustAnimationSpeed(walkAnimFactor);
 
@@ -372,7 +387,6 @@ public class PlayerWalk : MonoBehaviour
             {
                 ChangeState(PLAYER_WALK);
             }
-
         }
 
         if (speed >= runThreshold)
@@ -495,9 +509,14 @@ public class PlayerWalk : MonoBehaviour
         ChangeState(PLAYER_RUN);
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);
-        agent.destination = destination;
-        agent.speed = walkTowardSpeed;
-        agent.isStopped = false;
+
+        //agent.destination = destination;
+        //agent.speed = walkTowardSpeed;
+        //agent.isStopped = false;
+
+        aiPath.destination = destination;
+        aiPath.maxSpeed = speed;
+        aiPath.canMove = true;
 
         float timeElapsed = 0f;
         float distanceToDestination = Vector3.Distance(player.transform.position, destination);
@@ -527,7 +546,8 @@ public class PlayerWalk : MonoBehaviour
         void CancelWalkToward()
         {
             reachedDestination = true;
-            agent.stoppingDistance = defaultStoppingDistance;
+//agent.stoppingDistance = defaultStoppingDistance;
+        
             behaviours.SheatheItem();
             Destroy(destinationGizmoInstance);
         }
@@ -539,20 +559,23 @@ public class PlayerWalk : MonoBehaviour
             StopAgent();
             Destroy(destinationGizmoInstance);
 
-            agent.stoppingDistance = defaultStoppingDistance;
+//agent.stoppingDistance = defaultStoppingDistance;
+
+            aiPath.endReachedDistance = defaultStoppingDistance;
             Debug.Log("Arrived.");
-            agent.transform.LookAt(hitObject.transform.position);
+            transform.LookAt(hitObject.transform.position);
 
             behaviours.ChooseBehaviour(selectedChoice, hitObject);
             yield break;
         } else if (areaManager.traversing)
         {
-            agent.stoppingDistance = defaultStoppingDistance;
+            //agent.stoppingDistance = defaultStoppingDistance;
+            aiPath.endReachedDistance = defaultStoppingDistance;
             Debug.Log("ToTeleport.");
 
             if (areaManager.isEntering)
             {
-                StartCoroutine(areaManager.Teleport(agent, teleportTarget));
+//StartCoroutine(areaManager.Teleport(agent, teleportTarget));
 
             }
             else if (!areaManager.isEntering)
@@ -589,9 +612,12 @@ public class PlayerWalk : MonoBehaviour
             ChangeState(PLAYER_CURIOUS);
         }
 
-        agent.ResetPath();
+        //agent.ResetPath();
+        //agent.isStopped = true;
 
-        agent.isStopped = true;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
         //Debug.Log("Player moving?" + agent.isStopped);
     }
 

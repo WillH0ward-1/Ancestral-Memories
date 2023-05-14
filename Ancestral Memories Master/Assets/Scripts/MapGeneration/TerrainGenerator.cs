@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
+using Pathfinding;
 
 public class TerrainGenerator : MonoBehaviour {
 
@@ -84,6 +85,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private void Awake()
 	{
+
 		SetSeed(seedSettingState);
 
 		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
@@ -98,6 +100,7 @@ public class TerrainGenerator : MonoBehaviour {
 		}
 		//mapObjGen.meshWorldSize = meshSettings.MeshWorldSize;
 	}
+
 
 	private GameObject FindChildGameObject(GameObject parent, string terrainChunkName)
     {
@@ -124,8 +127,22 @@ public class TerrainGenerator : MonoBehaviour {
 	[SerializeField] private float dynamicFriction = 1000f;
 	[SerializeField] private float bounciness = 0f;
 
+	[SerializeField] private GridGraph gridGraph;
+	[SerializeField] private NavMeshGraph navGraph;
+
+	private Mesh mesh;
+
 	void Start() {
-		 
+
+		navGraph = AstarPath.active.data.navmesh;
+
+		/*
+		gridGraph = AstarPath.active.data.gridGraph;
+
+		gridGraph.depth = (int)(meshSettings.meshWorldSize / 9);
+		gridGraph.width = (int)(meshSettings.meshWorldSize / 9);
+		*/
+
 		textureSettings.ApplyToMaterial(mapMaterial);
 		textureSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
 
@@ -137,7 +154,6 @@ public class TerrainGenerator : MonoBehaviour {
 		UpdateVisibleChunks();
 
 		GameObject tmp = FindChildGameObject(mapObject, terrainChunkName);
-
 
 		if (tmp != null)
 		{
@@ -152,13 +168,18 @@ public class TerrainGenerator : MonoBehaviour {
 
 			corruptionControl.CorruptionModifierActive = true;
 
-			mapObjectGen.GenerateMapObjects();
-
 			lerpTerrain = tmp.AddComponent<LerpTerrain>();
 			lerpTerrain.player = player;
 			rainControl.lerpTerrain = lerpTerrain;
 
 			StartCoroutine(EnableContacts(tmp));
+
+			MeshFilter meshFilter = tmp.GetComponentInChildren<MeshFilter>();
+
+			Debug.Log("MESHFILTER:" + meshFilter);
+
+			StartCoroutine(GetMesh(tmp));
+
 			//Interactable interactable = tmp.AddComponent<Interactable>();
 			//GameObject terrainObject = tmp;
 			//mapObjGen.terrain = terrainObject;
@@ -178,7 +199,24 @@ public class TerrainGenerator : MonoBehaviour {
 
 	}
 
-	public IEnumerator EnableContacts(GameObject tmp)
+	private IEnumerator GetMesh(GameObject tmp)
+	{
+		// Get the MeshFilter component from the desired GameObject
+		MeshFilter meshFilter = GetComponentInChildren<MeshFilter>();
+
+		// Wait until the Mesh is not null
+		yield return new WaitUntil(() => (meshFilter = tmp.GetComponentInChildren<MeshFilter>()) != null);
+
+		// Set the sourceMesh of the NavmeshGraph to the Mesh
+		navGraph.sourceMesh = meshFilter.mesh;
+
+		// Rescan the NavmeshGraph to apply the changes
+		AstarPath.active.Scan();
+		mapObjectGen.GenerateMapObjects();
+		yield break;
+	}
+
+public IEnumerator EnableContacts(GameObject tmp)
 	{
 		Collider collider = null;
 

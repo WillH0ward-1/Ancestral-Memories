@@ -287,7 +287,7 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public void RespawnPlayerToStart()
     {
-        playerWalk.agent.Warp(spawnDestination.transform.position);
+        //playerWalk.agent.Warp(spawnDestination.transform.position);
     }
 
     public virtual event Action<float, float, float> OnFaithChanged;
