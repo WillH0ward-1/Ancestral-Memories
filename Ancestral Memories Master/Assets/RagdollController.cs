@@ -139,7 +139,7 @@ public class RagdollController : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(TriggerRagdollTest());
+        //StartCoroutine(TriggerRagdollTest());
     }
 
     public IEnumerator TriggerRagdollTest()

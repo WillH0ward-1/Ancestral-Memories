@@ -6,6 +6,7 @@ using UnityEngine.AI;
 using Deform;
 using FIMSpace.FLook;
 using FMODUnity;
+using Pathfinding;
 
 public class MapObjGen : MonoBehaviour
 {
@@ -47,7 +48,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] pedestals;
     [SerializeField] private GameObject[] cave;
     [SerializeField] private GameObject[] humans;
-
+    
     [SerializeField] private GameObject spawnPointPrefab;
 
     [Header("========================================================================================================================")]
@@ -320,13 +321,13 @@ public class MapObjGen : MonoBehaviour
         //FoliagePoissonDisc(foliageSampler);
         //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
-        //AnimalPoissonDisc(animalSampler);
+        AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
         //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
-        //HumanPoissonDisc(humanSampler);
+        HumanPoissonDisc(humanSampler);
         SpawnPointsPoissonDisc(spawnPointsSampler);
 
         SetOffset();
@@ -357,7 +358,7 @@ public class MapObjGen : MonoBehaviour
 
         StartCoroutine(StartTreeGrowth(treeList));
 
-        EnableNavMeshAgents(npcList);
+        //EnableNavMeshAgents(npcList);
 
         player.transform.GetComponentInChildren<SpawnPoints>().SetSpawnPosition(spawnPointsList);
         //RandomizeTreecolours();
@@ -392,43 +393,6 @@ public class MapObjGen : MonoBehaviour
 
     private List<Vector3> XspawnPositions;
     private List<Vector3> ZspawnPositions;
-
-    /*[SerializeField] GameObject EmitterHierarchyParent;
-    [SerializeField] GameObject OceanSoundEmitter;
-
-    void GenerateOceanEmitters(float sampleWidth, float sampleHeight)
-    {
-        float Z = sampleWidth / 2;
-        float X = sampleHeight / 2;
-        float initY = 0;
-
-        Vector3 positiveX = new(X + xOffset, initY, 0);
-        Vector3 positiveZ = new(0, initY, Z += zOffset);
-
-        Vector3 negativeX = new(-X - zOffset, initY, 0);
-        Vector3 negativeZ = new(0, initY, -Z);
-
-        XspawnPositions.Add(positiveX);
-        XspawnPositions.Add(negativeX);
-
-        ZspawnPositions.Add(positiveZ);
-        ZspawnPositions.Add(negativeZ);
-
-        foreach (Vector3 spawnPoint in XspawnPositions)
-        {
-            GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
-            mapObjectList.Add(perimeterPoint);
-            perimeterPoint.transform.SetParent(hierarchyRoot.transform);
-        }
-
-        foreach (Vector3 spawnPoint in ZspawnPositions)
-        {
-            GameObject perimeterPoint = Instantiate(OceanSoundEmitter, spawnPoint, Quaternion.identity, EmitterHierarchyParent.transform);
-            mapObjectList.Add(perimeterPoint);
-            perimeterPoint.transform.SetParent(hierarchyRoot.transform);
-        }
-    }
-    */ 
 
     public GameObject GetRandomMapObject(GameObject[] mapElements)
     {
@@ -553,6 +517,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (GameObject instance in list)
         {
+            RichAI aiPath = GetComponentInChildren<RichAI>();
             NavMeshAgent navMeshAgent = instance.GetComponentInChildren<NavMeshAgent>();
             navMeshAgent.enabled = true;
         }

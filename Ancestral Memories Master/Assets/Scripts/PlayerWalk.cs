@@ -359,11 +359,12 @@ public class PlayerWalk : MonoBehaviour
             speed = runThreshold + 1;
         }
 
-//agent.destination = hitPoint;
-//agent.speed = speed;
-        walkAnimFactor = speed / animFactor;
+        //agent.destination = hitPoint;
+        //agent.speed = speed;
         //agent.isStopped = false;
         //agent.acceleration = 10000;
+
+        walkAnimFactor = speed / animFactor;
 
         aiPath.destination = hitPoint;
         aiPath.maxSpeed = speed;

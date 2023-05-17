@@ -7,6 +7,7 @@ using UnityEngine.AI;
 using System.Collections.Generic;
 using System.Collections;
 using FIMSpace.FLook;
+using Pathfinding;
 
 public class AnimalAI : MonoBehaviour
 {
@@ -37,7 +38,6 @@ public class AnimalAI : MonoBehaviour
     [SerializeField] float fleeMultiplier = 1;
     bool reverseFlee = false;
     Vector3 closestEdge;
-    float distanceToEdge;
 
     [SerializeField] float distanceToPlayer;
 
@@ -47,6 +47,8 @@ public class AnimalAI : MonoBehaviour
     List<Vector3> previousIdlePoints = new List<Vector3>();
 
     public CharacterBehaviours playerBehaviours;
+
+    [SerializeField] private float defaultStoppingDistance = 1f;
 
     float timeStuck = 0;
     [SerializeField] private bool shouldFlee = true;
@@ -62,13 +64,19 @@ public class AnimalAI : MonoBehaviour
 
     private string currentState;
 
+    private RichAI aiPath;
+
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-        agent.stoppingDistance = 0;
-        agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
-        agent.autoBraking = false;
-        agent.radius = agentRadius;
+        //agent = GetComponent<NavMeshAgent>();
+        //agent.stoppingDistance = 0;
+        //agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
+        //agent.autoBraking = false;
+        //agent.radius = agentRadius;
+
+        aiPath = transform.GetComponentInChildren<RichAI>();
+        aiPath.endReachedDistance = defaultStoppingDistance;
+        aiPath.acceleration = 10000;
 
         animator = transform.GetComponentInChildren<Animator>();
 
@@ -115,12 +123,17 @@ public class AnimalAI : MonoBehaviour
 
     private bool overriden = false;
 
+
     private IEnumerator Idle()
     {
         ChangeAnimationState(IDLE);
 
-        agent.speed = 0f;
-        agent.ResetPath();
+        //agent.speed = 0f;
+        //agent.ResetPath();
+
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
 
         previousIdlePoints.Add(transform.position);
 
@@ -167,7 +180,7 @@ public class AnimalAI : MonoBehaviour
 
             yield return null;
         }
-
+         
         yield break;
     }
 
@@ -175,17 +188,23 @@ public class AnimalAI : MonoBehaviour
     {
         ChangeAnimationState(WALK);
 
-        agent.speed = walkingSpeed;
-        agent.SetDestination(destination);
+        //agent.speed = walkingSpeed;
+        //agent.SetDestination(destination);
+        aiPath.canMove = true;
+        aiPath.maxSpeed = walkingSpeed;
+
+        aiPath.destination = destination;
 
         behaviourActive = true;
 
         while (behaviourActive)
         {
+
             if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
                 ChangeState(AIState.Following);
-            } else if (DoneReachingDestination())
+            }
+            else if (aiPath.reachedDestination)
             {
                 ChangeState(AIState.Eating);
             }
@@ -200,6 +219,8 @@ public class AnimalAI : MonoBehaviour
     [SerializeField] float maxRandWalkDistance = 15;
     [SerializeField] float randWalkDistance;
 
+    public float followDistance = 15f;
+
     private void ChangeState(AIState newState)
     {
         StopAllCoroutines();
@@ -210,10 +231,12 @@ public class AnimalAI : MonoBehaviour
         if (state == AIState.Following)
         {
             followManager.AddFollower(transform.gameObject);
-            agent.stoppingDistance = 15f;
+            //agent.stoppingDistance = 15f;
+            aiPath.endReachedDistance = followDistance;
         } else
         {
-            agent.stoppingDistance = 0f;
+            //agent.stoppingDistance = 0f;
+            aiPath.endReachedDistance = defaultStoppingDistance;
         }
 
         if (state != AIState.Following && followManager.followers.Contains(transform.gameObject))
@@ -312,22 +335,28 @@ public class AnimalAI : MonoBehaviour
     }
 
     float distance;
+    float distanceToEdge;
 
     private IEnumerator Run()
     {
         ChangeAnimationState(RUN);
 
-        agent.speed = runningSpeed;
+        //agent.speed = runningSpeed;
+        aiPath.canMove = true;
+        aiPath.maxSpeed = runningSpeed;
 
         behaviourActive = true;
 
         while (behaviourActive)
         {
             //Set NavMesh Agent Speed
-            agent.speed = runningSpeed;
+
+            //agent.speed = runningSpeed;
+            aiPath.maxSpeed = runningSpeed;
+
             if (reverseFlee)
             {
-                if (DoneReachingDestination() && timeStuck < 0)
+                if (aiPath.reachedDestination && timeStuck < 0)
                 {
                     reverseFlee = false;
                 }
@@ -341,6 +370,8 @@ public class AnimalAI : MonoBehaviour
                 Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeMultiplier);
                 distance = (transform.position - player.transform.position).sqrMagnitude;
                 //Find the closest NavMesh edge
+
+                /*
                 NavMeshHit hit;
                 if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
                 {
@@ -348,6 +379,16 @@ public class AnimalAI : MonoBehaviour
                     distanceToEdge = hit.distance;
                     //Debug.DrawLine(transform.position, closestEdge, Color.red);
                 }
+                */
+
+                GraphNode nearestNode = AstarPath.active.GetNearest(transform.position, NNConstraint.Default).node;
+                if (nearestNode != null)
+                {
+                    Vector3 closestEdge = nearestNode.ClosestPointOnNode(transform.position);
+                    distanceToEdge = Vector3.Distance(transform.position, closestEdge);
+                    // Debug.DrawLine(transform.position, closestEdge, Color.red);
+                }
+
                 if (distanceToEdge < 1f)
                 {
                     if (timeStuck > 1.5f)
@@ -365,18 +406,26 @@ public class AnimalAI : MonoBehaviour
                 }
                 if (distance < rangeThreshold * rangeThreshold)
                 {
-                    agent.SetDestination(runTo);
+                    //agent.SetDestination(runTo);
+                    aiPath.destination = runTo;
                 }
             }
 
+            /*
             if (agent.velocity.sqrMagnitude < 0.1f * 0.1f)
+            {
+                ChangeState(AIState.Idle);
+            }
+            */
+
+            if (aiPath.velocity.sqrMagnitude < 0.1f * 0.1f)
             {
                 ChangeState(AIState.Idle);
             }
 
             else
             {
-                if (DoneReachingDestination())
+                if (aiPath.reachedDestination)
                 {
                     ChangeState(AIState.Idle);
                 }
@@ -389,15 +438,20 @@ public class AnimalAI : MonoBehaviour
     private IEnumerator Follow()
     {
         behaviourActive = true;
-        agent.speed = walkingSpeed;
+
+        //agent.speed = walkingSpeed;
+        aiPath.canMove = true;
+        aiPath.maxSpeed = walkingSpeed;
+
+        aiPath.destination = player.transform.position;
 
         while (behaviourActive)
         {
             ChangeAnimationState(WALK);
 
-            agent.SetDestination(player.transform.position);
+            //agent.SetDestination(player.transform.position);
 
-            if (DoneReachingDestination() || inRange)
+            if (aiPath.reachedDestination || inRange)
             {              
                 ChangeState(AIState.Idle);
             }
@@ -410,6 +464,7 @@ public class AnimalAI : MonoBehaviour
 
     bool DoneReachingDestination()
     {
+        /*
         if (!agent.pathPending)
         {
             if (agent.remainingDistance <= agent.stoppingDistance)
@@ -417,6 +472,19 @@ public class AnimalAI : MonoBehaviour
                 if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                 {
                     //Done reaching the Destination
+                    return true;
+                }
+            }
+        }
+        */
+
+        if (!aiPath.pathPending)
+        {
+            if (aiPath.remainingDistance <= aiPath.endReachedDistance)
+            {
+                if (!aiPath.hasPath || aiPath.velocity.sqrMagnitude == 0f)
+                {
+                    // Done reaching the destination
                     return true;
                 }
             }
@@ -441,6 +509,8 @@ public class AnimalAI : MonoBehaviour
     }
 
 
+    /*
+
     Vector3 RandomNavSphere(Vector3 origin, float distance)
     {
         Vector3 randomDirection = Random.insideUnitSphere * distance;
@@ -452,6 +522,23 @@ public class AnimalAI : MonoBehaviour
         NavMesh.SamplePosition(randomDirection, out navHit, distance, NavMesh.AllAreas);
 
         return navHit.position;
+    }
+    */
+
+    Vector3 RandomNavSphere(Vector3 origin, float distance)
+    {
+        Vector3 randomDirection = Random.insideUnitSphere * distance;
+        randomDirection += origin;
+
+        NNInfo nearestNode = AstarPath.active.GetNearest(randomDirection);
+        if (nearestNode.node != null && nearestNode.node.Walkable)
+        {
+            return (Vector3)nearestNode.position;
+        }
+        else
+        {
+            return origin;
+        }
     }
 
     public virtual void ChangeAnimationState(string newState)
