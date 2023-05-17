@@ -477,8 +477,8 @@ public class MapObjGen : MonoBehaviour
 
             float averageScale = (humanAverageScale.x + humanAverageScale.y + humanAverageScale.z) / 3f;
 
-            float minScale = 0.8f * averageScale; // 80% of average scale
-            float maxScale = 1.2f * averageScale; // 120% of average scale
+            float minScale = 0.95f * averageScale;
+            float maxScale = 1.02f * averageScale; 
 
             float randomScale = Random.Range(minScale, maxScale);
 

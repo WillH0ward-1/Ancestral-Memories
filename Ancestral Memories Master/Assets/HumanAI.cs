@@ -663,8 +663,16 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            ChangeAnimationState(WALK);
-
+            if (!inRange)
+            {
+                ChangeAnimationState(RUN);
+                aiPath.maxSpeed = runningSpeed;
+            }
+            else
+            {
+                ChangeAnimationState(WALK);
+                aiPath.maxSpeed = walkingSpeed;
+            }
             //agent.SetDestination(player.transform.position);
 
             if (aiPath.reachedDestination || inRange)
