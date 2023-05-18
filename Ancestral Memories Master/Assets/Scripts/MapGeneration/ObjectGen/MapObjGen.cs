@@ -7,6 +7,7 @@ using Deform;
 using FIMSpace.FLook;
 using FMODUnity;
 using Pathfinding;
+using ProceduralModeling;
 
 public class MapObjGen : MonoBehaviour
 {
@@ -48,7 +49,8 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] pedestals;
     [SerializeField] private GameObject[] cave;
     [SerializeField] private GameObject[] humans;
-    
+    [SerializeField] private GameObject[] proceduralTrees;
+
     [SerializeField] private GameObject spawnPointPrefab;
 
     [Header("========================================================================================================================")]
@@ -315,7 +317,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
         PoissonDiscSampler humanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumHumanRadius);
 
-        TreePoissonDisc(treeSampler);
+        //TreePoissonDisc(treeSampler);
         //AppleTreePoissonDisc(appleTreeSampler);
         GrassPoissonDisc(grassSampler);
         //FoliagePoissonDisc(foliageSampler);
@@ -329,6 +331,9 @@ public class MapObjGen : MonoBehaviour
         //CavePoissonDisc(caveSampler);
         HumanPoissonDisc(humanSampler);
         SpawnPointsPoissonDisc(spawnPointsSampler);
+
+        ProceduralTreePoissonDisc(treeSampler);
+
 
         SetOffset();
 
@@ -351,12 +356,16 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(treeList);
         ListCleanup(npcList);
         ListCleanup(grassList);
+        ListCleanup(humanPopulationList);
 
         SetupCorruptionControl(mapObjectList);
 
+        RandomizeHumanRace();
+
         EnableStudioEmitters(grassList);
 
-        StartCoroutine(StartTreeGrowth(treeList));
+        StartCoroutine(StartProceduralTreeGrowth(treeList));
+        //StartCoroutine(StartTreeGrowth(treeList));
 
         //EnableNavMeshAgents(npcList);
 
@@ -365,7 +374,39 @@ public class MapObjGen : MonoBehaviour
 
     }
 
-    void ListCleanup(List<GameObject> list)
+    public IEnumerator StartProceduralTreeGrowth(List<GameObject> treeList)
+    {
+        foreach (GameObject tree in treeList)
+        {
+            PTGrowing ptGrowing = tree.GetComponentInChildren<PTGrowing>();
+            ptGrowing.GrowTree();
+        }
+
+        yield break;
+    }
+
+    private void RandomizeHumanRace()
+    {
+        int populationSize = humanPopulationList.Count;
+        float stepSize = 1f / populationSize;
+
+        for (int i = 0; i < populationSize; i++)
+        {
+            GameObject human = humanPopulationList[i];
+            float skinToneValue = i * stepSize;
+            Renderer[] renderers = human.GetComponentsInChildren<Renderer>();
+
+            foreach (Renderer renderer in renderers)
+            {
+                Material[] materials = renderer.materials;
+                foreach (Material material in materials)
+                {
+                    material.SetFloat("_SkinTone", skinToneValue);
+                }
+            }
+        }
+    }
+        void ListCleanup(List<GameObject> list)
     {
         for (var i = list.Count - 1; i > -1; i--)
         {
@@ -650,9 +691,48 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    void TreePoissonDisc(PoissonDiscSampler treeSampler)
+    void ProceduralTreePoissonDisc(PoissonDiscSampler treeSampler)
     {
 
+        foreach (Vector2 sample in treeSampler.Samples())
+        {
+            GameObject randomTree = GetRandomMapObject(proceduralTrees);
+
+            GameObject treeInstance = Instantiate(randomTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+
+            Vector3 treeScale = new Vector3(maxTreeScale.x, maxTreeScale.y, maxTreeScale.z);
+
+            treeInstance.transform.localScale = treeScale;
+
+            treeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            //TreeAudioSFX treeAudio = treeInstance.transform.GetComponent<TreeAudioSFX>();
+
+            //treeAudio.timeManager = timeCycleManager;
+            //treeAudio.weatherManager = weather;
+
+            PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
+
+            ptGrow.GrowTree();
+
+            int treeLayer = LayerMask.NameToLayer("Trees");
+            treeInstance.layer = treeLayer;
+
+            mapObjectList.Add(treeInstance);
+
+            treeInstance.transform.SetParent(hierarchyRoot.transform);
+
+            //TreeDeathManager treeDeathManager = treeInstance.GetComponent<TreeDeathManager>();
+            //treeDeathManager.mapObjGen = this;
+
+            //weather.windAffectedRendererList.Add(treeInstance.transform);
+
+            treeList.Add(treeInstance);
+        }
+    }
+
+    void TreePoissonDisc(PoissonDiscSampler treeSampler)
+    {
         foreach (Vector2 sample in treeSampler.Samples())
         {
             GameObject randomTree = GetRandomMapObject(trees);
