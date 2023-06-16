@@ -16,6 +16,7 @@ namespace ProceduralModeling {
 		[SerializeField, Range(0.5f, 5f)] protected float length = 1f;
 		[SerializeField, Range(0.1f, 2f)] protected float radius = 0.15f;
 
+
 		const float PI2 = Mathf.PI * 2f;
 
 		public static Mesh Build(TreeData data, int generations, float length, float radius) {
@@ -117,6 +118,7 @@ namespace ProceduralModeling {
 
 	}
 
+
 	[System.Serializable]
 	public class TreeData {
 		public int randomSeed = 0;
@@ -125,6 +127,7 @@ namespace ProceduralModeling {
         [Range(-45f, 0f)] public float growthAngleMin = -15f;
         [Range(0f, 45f)] public float growthAngleMax = 15f;
         [Range(1f, 10f)] public float growthAngleScale = 4f;
+        [Range(0f, 45f)] public float branchingAngle = 15f;
 		[Range(4, 20)] public int heightSegments = 10, radialSegments = 8;
 		[Range(0.0f, 0.35f)] public float bendDegree = 0.1f;
 
@@ -153,7 +156,6 @@ namespace ProceduralModeling {
 		public float GetRandomBendDegree() {
 			return rnd.Range(-bendDegree, bendDegree);
 		}
-
 	}
 
 	public class TreeBranch {
@@ -225,7 +227,10 @@ namespace ProceduralModeling {
                         nb = segment.Frame.Binormal;
                     } else
                     {
-                        var rot = Quaternion.AngleAxis(i * 90f, tangent);
+                        var phi = Quaternion.AngleAxis(i * 90f, tangent);
+                        // var psi = Quaternion.AngleAxis(data.branchingAngle, normal) * Quaternion.AngleAxis(data.branchingAngle, binormal);
+                        var psi = Quaternion.AngleAxis(data.branchingAngle, normal);
+                        var rot = phi * psi;
                         nt = rot * tangent;
                         nn = rot * normal;
                         nb = rot * binormal;

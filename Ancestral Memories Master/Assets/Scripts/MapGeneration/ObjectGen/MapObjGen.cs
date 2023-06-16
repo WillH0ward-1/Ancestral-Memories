@@ -378,6 +378,8 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (GameObject tree in treeList)
         {
+            //ProceduralModelingBase ptBase = tree.GetComponentInChildren<ProceduralModelingBase>();
+            //ptBase.player = player;
             PTGrowing ptGrowing = tree.GetComponentInChildren<PTGrowing>();
             ptGrowing.GrowTree();
         }

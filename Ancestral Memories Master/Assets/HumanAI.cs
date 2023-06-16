@@ -24,7 +24,7 @@ public class HumanAI : MonoBehaviour
     public const string GETUPFRONT = "Citizen_StandUpFromFront";
     public const string GETUPBACK = "Citizen_StandUpFromBack";
 
-    public enum AIState { Idle, Walking, Harvesting, Running, Following, Dialogue }
+    public enum AIState { Idle, Walking, Harvesting, Running, Following, Dialogue, Conversate }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -249,6 +249,54 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
+    public List<GameObject> NearbyAI;
+    public bool isTalking = false;
+    public bool isListening = false;
+
+    private IEnumerator EnterConversation()
+    {
+        ChangeAnimationState(IDLE);
+
+        //agent.speed = 0f;
+        //agent.ResetPath();
+
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        previousIdlePoints.Add(transform.position);
+
+        if (previousIdlePoints.Count > 5)
+        {
+            previousIdlePoints.RemoveAt(0);
+        }
+
+        time = Random.Range(minActionBuffer, maxActionBuffer);
+
+        behaviourActive = true;
+
+        // Spherecast variables
+        float spherecastRadius = 25f;
+
+        LayerMask humanLayer = LayerMask.GetMask("Human");
+
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, spherecastRadius, humanLayer);
+        List<GameObject> nearbyAI = new List<GameObject>();
+
+        // Add the detected Human objects to the nearbyAI list
+        foreach (var collider in hitColliders)
+        {
+            GameObject nearbyObject = collider.gameObject;
+            nearbyAI.Add(nearbyObject);
+        }
+
+        // Update the public defined list (NearbyAI) with nearbyAI
+        NearbyAI = nearbyAI;
+
+        yield break;
+    }
+
+
     private IEnumerator Walk(Vector3 destination)
     {
         ChangeAnimationState(WALK);
@@ -318,6 +366,9 @@ public class HumanAI : MonoBehaviour
             {
                 case AIState.Idle:
                     StartCoroutine(Idle());
+                    break;
+                case AIState.Conversate:
+                    StartCoroutine(EnterConversation());
                     break;
                 case AIState.Harvesting:
                     StartCoroutine(WalkToward(treeLayer));

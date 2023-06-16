@@ -8,8 +8,8 @@ namespace ProceduralModeling
     {
         private Material material;
 
-        private bool isDead;
-        public bool isGrowing;
+        private bool isDead = false;
+        public bool isGrowing = false;
 
         public float minLifeTimeSeconds = 10f;
         public float maxLifeTimeSeconds = 25f;
@@ -20,26 +20,27 @@ namespace ProceduralModeling
 
         public float minGrowBuffer = 10f;
         public float maxGrowBuffer = 60f;
+        public float growBuffer = 0f;
+
+        public float minGrowDuration = 30f;
+        public float maxGrowDuration = 45f;
+        private float growDuration = 0f;
+
+        public int minGrowKey = 0;
+        public int maxGrowKey = 1;
 
         private ProceduralTree proceduralTree; // Assume you have the reference to the ProceduralTree
 
         private TreeData treeData;
 
-        public float minLengthAttenuation = 0f;
-        public float maxLengthAttenuation = 0.95f;
 
         private void Awake()
         {
             proceduralTree = GetComponentInChildren<ProceduralTree>();
+            material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
+            material.SetFloat(kGrowingKey, minGrowKey);
 
-            treeData.lengthAttenuation = minLengthAttenuation;
-        }
-        private void OnEnable()
-        {
-            material = GetComponent<MeshRenderer>().material;
-            material.SetFloat(kGrowingKey, 0f);
-            isDead = true;
         }
 
         public void GrowTree()
@@ -49,50 +50,50 @@ namespace ProceduralModeling
 
             treeData.randomSeed = Random.Range(0, int.MaxValue);
 
-            StartCoroutine(GrowBuffer(lifeTimeSeconds));
+            StartCoroutine(GrowBuffer());
         }
 
-        public IEnumerator GrowBuffer(float lifeTimeSeconds)
+        public IEnumerator GrowBuffer()
         {
             float time = 0f;
-            float duration = Random.Range(minGrowBuffer, maxGrowBuffer);
+            growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
 
             while (time < 1f)
             {
-                time += Time.deltaTime / duration;
+                time += Time.deltaTime / growBuffer;
 
                 yield return null;
             }
 
-            StartCoroutine(IGrowing(lifeTimeSeconds));
+            StartCoroutine(IGrowing());
 
             yield break;
         }
 
-        private IEnumerator IGrowing(float duration)
+        private IEnumerator IGrowing()
         {
             float time = 0f;
             isDead = false;
+            growDuration = Random.Range(minGrowDuration, maxGrowDuration);
+            growDuration *= 1000;
 
             while (time < 1f)
             {
                 if (!isDead)
                 {
-                    treeData.lengthAttenuation = Mathf.Lerp(minLengthAttenuation, maxLengthAttenuation, time);
-                   // material.SetFloat(kGrowingKey, treeData.lengthAttenuation);
-                    time += Time.deltaTime / duration;
-                } 
+                    isGrowing = true;
+                    float currentGrowing = material.GetFloat(kGrowingKey);
+                    float newGrowing = Mathf.Lerp(currentGrowing, maxGrowKey, time);
+                    material.SetFloat(kGrowingKey, newGrowing);
+                    time += Time.deltaTime / growDuration;
+                }
 
                 yield return null;
             }
 
-            treeData.lengthAttenuation = maxLengthAttenuation;
-
             if (!isDead)
             {
                 StartCoroutine(Die());
-
-                yield break;
             }
 
             yield break;
@@ -100,30 +101,29 @@ namespace ProceduralModeling
 
         public float minDeathDuration = 2f;
         public float maxDeathDuration = 5f;
-        public float deathDuration = 1;
+        private float deathDuration = 1f;
 
         private IEnumerator Die()
         {
+            isGrowing = false;
             isDead = true;
 
             deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
-            float time = 0;
 
-            float currentLength = treeData.lengthAttenuation;
+            float time = 0;
+            float currentGrowing = material.GetFloat(kGrowingKey);
 
             while (time < 1f)
             {
                 if (isDead)
                 {
-                    treeData.lengthAttenuation = Mathf.Lerp(currentLength, minLengthAttenuation, time / deathDuration);
-                    //material.SetFloat(kGrowingKey, treeData.lengthAttenuation);
+                    float newGrowing = Mathf.Lerp(currentGrowing, minGrowKey, time);
+                    material.SetFloat(kGrowingKey, newGrowing);
                     time += Time.deltaTime / deathDuration;
                 }
 
                 yield return null;
             }
-
-            treeData.lengthAttenuation = minLengthAttenuation;
 
             Revive();
 
@@ -140,9 +140,8 @@ namespace ProceduralModeling
         public void Revive()
         {
             GrowTree();
-
-
         }
+
 
         private void OnDestroy()
         {
