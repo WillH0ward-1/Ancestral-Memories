@@ -4,72 +4,107 @@ using UnityEngine;
 [ExecuteAlways]
 public class TimeCycleManager : MonoBehaviour
 {
-    //Scene References
+    // TimeColor definition
+    [System.Serializable]
+    public class TimeColor
+    {
+        public Color color;
+    }
+
+    // Scene References
     [SerializeField] private Light DirectionalLight;
     [SerializeField] private LightingPreset Preset;
-    //Variables
+    [SerializeField] private TimeColor[] timeColors;
+
+    // Variables
     [SerializeField, Range(0, 24)] public float timeOfDay;
     public float timeMultiplier = 0.25f;
     public float defaultTimeMultiplier = 0.25f;
+    public bool isNightTime; // Night time flag
+    public bool updateInEditor = true; // Update in editor flag
+    public GameObject skyBox;
 
-    public bool isNightTime;
+    private Material material; // This will now be automatically assigned
+    private float lastRealTime;
 
-    [SerializeField] private NightSwitch nightSwitch;
 
     private void Awake()
     {
         defaultTimeMultiplier = 0.25f;
         timeMultiplier = defaultTimeMultiplier;
+        Renderer renderer = skyBox.GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            material = renderer.sharedMaterial;
+        }
+        else
+        {
+            Debug.LogError("No Renderer found on this GameObject or its children.");
+        }
+
+        lastRealTime = Time.realtimeSinceStartup;
     }
 
     private void Update()
     {
-        if (Preset == null)
+        if (Application.isPlaying || updateInEditor)
+        {
+            UpdateTimeAndLight();
+        }
+    }
+
+    private void OnValidate()
+    {
+        if (updateInEditor)
+        {
+            UpdateTimeAndLight();
+        }
+    }
+
+    private void UpdateTimeAndLight()
+    {
+        if (Preset == null || material == null)
             return;
+
+        float timeDelta = Application.isPlaying
+            ? Time.deltaTime
+            : (Time.realtimeSinceStartup - lastRealTime);
+
+        lastRealTime = Time.realtimeSinceStartup;
+
+        //(Replace with a reference to the game time)
+        timeOfDay += timeDelta * timeMultiplier;
+        timeOfDay %= 24; //Modulus to ensure always between 0-24
+
+        isNightTime = timeOfDay < 6 || timeOfDay >= 18; // Define night time hours here
+
+        UpdateLight(timeOfDay / 24f);
 
         if (Application.isPlaying)
         {
-            //(Replace with a reference to the game time)
-            timeOfDay += Time.deltaTime * timeMultiplier;
-            timeOfDay %= 24; //Modulus to ensure always between 0-24
-            UpdateLight(timeOfDay / 24f);
+            RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
         }
-        else
-        {
-            UpdateLight(timeOfDay / 24f);
-        }
-
-        RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
     }
 
-    [SerializeField] private float nightThresholdMin = 6f;
-    [SerializeField] private float nightThresholdMax = 22f;
 
     private void UpdateLight(float timePercent)
     {
-        /*
-        if (timeOfDay <= nightThresholdMin || timeOfDay >= nightThresholdMax)
-        {
-            isNightTime = true;
-            if (!nightSwitch.nightTime)
-            {
-                nightSwitch.StartCoroutine(nightSwitch.ToNightSky());
-            }
-        } else
-        {
-            isNightTime = false;
-            if (!nightSwitch.dayTime)
-            {
-                nightSwitch.StartCoroutine(nightSwitch.ToDaySky());
-            }
-        }
-        */
+        // Update sky color
+        int currentColorIndex = Mathf.FloorToInt(timePercent * (timeColors.Length - 1));
+        int nextColorIndex = (currentColorIndex + 1) % timeColors.Length;
 
-        //Set ambient and fog
+        Color currentColor = timeColors[currentColorIndex].color;
+        Color nextColor = timeColors[nextColorIndex].color;
+        float t = Mathf.InverseLerp(currentColorIndex / (float)(timeColors.Length - 1), (currentColorIndex + 1) / (float)(timeColors.Length - 1), timePercent);
+        Color lerpedColor = Color.Lerp(currentColor, nextColor, t);
+
+        material.SetColor("_SkyColour", lerpedColor);
+
+        // Set ambient and fog
         RenderSettings.ambientLight = Preset.AmbientColor.Evaluate(timePercent);
         RenderSettings.fogColor = Preset.FogColor.Evaluate(timePercent);
 
-        //If the directional light is set then rotate and set it's color, I actually rarely use the rotation because it casts tall shadows unless you clamp the value
+        // If the directional light is set then rotate and set its color
         if (DirectionalLight != null)
         {
             DirectionalLight.color = Preset.DirectionalColor.Evaluate(timePercent);
@@ -82,23 +117,20 @@ public class TimeCycleManager : MonoBehaviour
             var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
             Debug.Log("time of day (Fmod) = " + fmodTod);
         }
-
     }
 
-
-
-    //Try to find a directional light to use if we haven't set one
-    private void OnValidate()
+    // Try to find a directional light to use if we haven't set one
+    private void OnEnable()
     {
         if (DirectionalLight != null)
             return;
 
-        //Search for lighting tab sun
+        // Search for lighting tab sun
         if (RenderSettings.sun != null)
         {
             DirectionalLight = RenderSettings.sun;
         }
-        //Search scene for light that fits criteria (directional)
+        // Search scene for light that fits criteria (directional)
         else
         {
             Light[] lights = GameObject.FindObjectsOfType<Light>();
@@ -112,5 +144,4 @@ public class TimeCycleManager : MonoBehaviour
             }
         }
     }
-
 }
