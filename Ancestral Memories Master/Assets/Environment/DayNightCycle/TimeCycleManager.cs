@@ -47,6 +47,7 @@ public class TimeCycleManager : MonoBehaviour
 
     private void UpdateLight(float timePercent)
     {
+        /*
         if (timeOfDay <= nightThresholdMin || timeOfDay >= nightThresholdMax)
         {
             isNightTime = true;
@@ -62,6 +63,7 @@ public class TimeCycleManager : MonoBehaviour
                 nightSwitch.StartCoroutine(nightSwitch.ToDaySky());
             }
         }
+        */
 
         //Set ambient and fog
         RenderSettings.ambientLight = Preset.AmbientColor.Evaluate(timePercent);

@@ -728,8 +728,10 @@ public class MapObjGen : MonoBehaviour
             //treeDeathManager.mapObjGen = this;
 
             //weather.windAffectedRendererList.Add(treeInstance.transform);
-
+            ShaderLightColor lightColour = treeInstance.GetComponentInChildren<ShaderLightColor>();
+            //lightColour.sceneLight =
             treeList.Add(treeInstance);
+
         }
     }
 
