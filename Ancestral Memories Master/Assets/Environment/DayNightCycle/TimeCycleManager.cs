@@ -16,7 +16,7 @@ public class TimeCycleManager : MonoBehaviour
 
     // Scene References
     [SerializeField] private Light DirectionalLight;
-    [SerializeField] private TimeColor[] timeColors;
+    public TimeColor[] timeColors;
 
     // Variables
     [SerializeField, Range(0, 24)] public float timeOfDay;
@@ -42,24 +42,6 @@ public class TimeCycleManager : MonoBehaviour
             Debug.LogError("MapObjGen has not been assigned.");
             return null;
         }
-    }
-
-    private void Start()
-    {
-        if (!Application.isEditor)
-        {
-            StartCoroutine(WaitUntilMapObjectsGenerated());
-        }
-    }
-
-    private IEnumerator WaitUntilMapObjectsGenerated()
-    {
-        while (!mapObjGen.mapObjectsGenerated)
-        {
-            yield return null; // Wait for one frame
-        }
-
-        StartCoroutine(UpdateLightColorContinuously());
     }
 
     private void Awake()
@@ -149,38 +131,6 @@ public class TimeCycleManager : MonoBehaviour
         {
             var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
             Debug.Log("time of day (Fmod) = " + fmodTod);
-        }
-    }
-
-    private IEnumerator UpdateLightColorContinuously()
-    {
-        while (true)
-        {
-            var treeList = GetTreeList();
-            if (treeList != null) // Check if tree list is not null
-            {
-                foreach (GameObject tree in treeList)
-                {
-                    ShaderLightColor treeLightColor = tree.GetComponentInChildren<ShaderLightColor>();
-
-                    if (treeLightColor != null)
-                    {
-                        int currentColorIndex = Mathf.FloorToInt(timeOfDay * (timeColors.Length - 1));
-                        int nextColorIndex = (currentColorIndex + 1) % timeColors.Length;
-
-                        Color currentLightColor = timeColors[currentColorIndex].lightColor;
-                        Color nextLightColor = timeColors[nextColorIndex].lightColor;
-
-                        float t = Mathf.InverseLerp(currentColorIndex / (float)(timeColors.Length - 1), (currentColorIndex + 1) / (float)(timeColors.Length - 1), timeOfDay);
-
-                        Color lerpedLightColor = Color.Lerp(currentLightColor, nextLightColor, t);
-
-                        treeLightColor.UpdateLightColor(lerpedLightColor);
-                    }
-                }
-            }
-
-            yield return new WaitForSeconds(0.1f); // Set the interval of updating color here
         }
     }
 
