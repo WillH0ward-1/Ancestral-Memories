@@ -6,16 +6,15 @@ public class ShaderLightColor : MonoBehaviour
     private Renderer rend;
     private MaterialPropertyBlock propBlock;
 
-    private void Start()
+    private void Awake() // Using Awake instead of Start to ensure it is called even if the script is not enabled
     {
         rend = GetComponent<Renderer>();
         propBlock = new MaterialPropertyBlock();
     }
 
-    private void Update()
+    public void UpdateLightColor(Color lightColor)
     {
-        propBlock.SetColor("_LightColor", sceneLight.color);
-        propBlock.SetVector("_LightDir", -sceneLight.transform.forward);
+        propBlock.SetColor("_LightColor", lightColor);
         rend.SetPropertyBlock(propBlock);
     }
 }

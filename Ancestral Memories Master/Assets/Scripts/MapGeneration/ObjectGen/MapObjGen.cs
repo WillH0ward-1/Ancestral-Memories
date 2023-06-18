@@ -286,8 +286,11 @@ public class MapObjGen : MonoBehaviour
 
     private Vector3[] waterEmitterVerts;
 
+    public bool mapObjectsGenerated = false;
+
     public void GenerateMapObjects()
     {
+        mapObjectsGenerated = false;
 
        // ResetPosOffset(mapObject.transform);
         ResetPosOffset();
@@ -357,6 +360,8 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(npcList);
         ListCleanup(grassList);
         ListCleanup(humanPopulationList);
+
+        mapObjectsGenerated = true;
 
         SetupCorruptionControl(mapObjectList);
 
@@ -728,8 +733,7 @@ public class MapObjGen : MonoBehaviour
             //treeDeathManager.mapObjGen = this;
 
             //weather.windAffectedRendererList.Add(treeInstance.transform);
-            ShaderLightColor lightColour = treeInstance.GetComponentInChildren<ShaderLightColor>();
-            //lightColour.sceneLight =
+
             treeList.Add(treeInstance);
 
         }
