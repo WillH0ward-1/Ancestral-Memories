@@ -42,10 +42,13 @@ namespace ProceduralModeling
 					DestroyImmediate(Filter.sharedMesh);
 				}
 			}
+
+			ClearLeaves();
 			Filter.sharedMesh = Build();
 		}
 
 		protected abstract Mesh Build();
+		protected abstract void ClearLeaves();
 
 	}
 
