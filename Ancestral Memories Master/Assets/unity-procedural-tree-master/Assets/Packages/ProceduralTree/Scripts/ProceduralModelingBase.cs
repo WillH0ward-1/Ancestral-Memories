@@ -47,7 +47,7 @@ namespace ProceduralModeling
 		}
 
 		protected abstract Mesh Build();
-		protected abstract void ClearLeaves();
+		public abstract void ClearLeaves();
 	}
 
 }
