@@ -10,6 +10,7 @@ namespace ProceduralModeling
 
         private bool isDead = false;
         public bool isGrowing = false;
+        public bool isFullyGrown = false;
 
         public float minLifeTimeSeconds = 10f;
         public float maxLifeTimeSeconds = 25f;
@@ -33,6 +34,7 @@ namespace ProceduralModeling
 
         private TreeData treeData;
 
+        private LeafScaler leafScaler;
 
         private void Awake()
         {
@@ -41,6 +43,8 @@ namespace ProceduralModeling
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, minGrowKey);
 
+            leafScaler = GetComponent<LeafScaler>();
+            leafScaler.SetLeafScale(0);
         }
 
         public void GrowTree()
@@ -91,10 +95,8 @@ namespace ProceduralModeling
                 yield return null;
             }
 
-            if (!isDead)
-            {
-                StartCoroutine(Die());
-            }
+            isFullyGrown = true;
+            StartCoroutine(leafScaler.GrowLeaves(leafScaler.minGrowthScale, leafScaler.maxGrowthScale, leafScaler.lerpSpeed));
 
             yield break;
         }
@@ -130,9 +132,11 @@ namespace ProceduralModeling
             yield break;
         }
 
-
         public void CutDown()
         {
+            StopCoroutine(leafScaler.GrowLeaves(0f, 0f, 0f));
+            leafScaler.SetLeafScale(0);
+
             StartCoroutine(Die());
             isDead = true;
         }
@@ -140,8 +144,8 @@ namespace ProceduralModeling
         public void Revive()
         {
             GrowTree();
+            StartCoroutine(leafScaler.GrowLeaves(leafScaler.minGrowthScale, leafScaler.maxGrowthScale, leafScaler.lerpSpeed));
         }
-
 
         private void OnDestroy()
         {

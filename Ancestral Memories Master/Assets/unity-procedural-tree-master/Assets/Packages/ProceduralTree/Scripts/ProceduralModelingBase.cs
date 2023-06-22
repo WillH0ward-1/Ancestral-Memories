@@ -43,13 +43,11 @@ namespace ProceduralModeling
 				}
 			}
 
-			ClearLeaves();
 			Filter.sharedMesh = Build();
 		}
 
 		protected abstract Mesh Build();
 		protected abstract void ClearLeaves();
-
 	}
 
 }

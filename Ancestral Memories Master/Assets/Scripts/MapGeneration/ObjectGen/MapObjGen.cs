@@ -523,14 +523,11 @@ public class MapObjGen : MonoBehaviour
             int humanLayer = LayerMask.NameToLayer("Human");
             humanInstance.layer = humanLayer;
 
-            float averageScale = (humanAverageScale.x + humanAverageScale.y + humanAverageScale.z) / 3f;
+            float randomXScale = humanAverageScale.x;
+            float randomYScale = humanAverageScale.y;
+            float randomZScale = humanAverageScale.z;
 
-            float minScale = 0.95f * averageScale;
-            float maxScale = 1.02f * averageScale; 
-
-            float randomScale = Random.Range(minScale, maxScale);
-
-            humanInstance.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
+            humanInstance.transform.localScale = new Vector3(randomXScale, randomYScale, randomZScale);
 
 
             humanInstance.transform.SetParent(hierarchyRoot.transform);
