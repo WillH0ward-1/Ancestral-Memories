@@ -31,28 +31,26 @@ namespace ProceduralModeling
 		{
 			isLeafListInitialized = false;
 			leafScaler = GetComponent<LeafScaler>();
+			leafScaler.proceduralTree = this;
+		
 			if (leafScaler == null)
 			{
 				Debug.LogError("LeafScaler component not found on this GameObject.");
 			}
+
 			leafRoot = transform.Find("LeafRoot");
 		}
-	
+
 		void OnDisable()
 		{
 			ClearLeaves();
 		}
 
+		/*
 		private float previousLeafSize = 1f;
 
 		private void OnValidate()
 		{
-			// Ensure leafScaler is set in OnValidate as well, since it might be called before Start
-			if (leafScaler == null)
-			{
-				leafScaler = GetComponent<LeafScaler>();
-			}
-
 			// If leafSize changed and leafScaler exists, adjust the scale of the leaves
 			if (leafScaler != null && leafSize != previousLeafSize)
 			{
@@ -60,10 +58,11 @@ namespace ProceduralModeling
 				previousLeafSize = leafSize;
 			}
 		}
+		*/
 
 		public static Mesh Build(ProceduralTree treeInstance, TreeData data, int generations, float length, float radius, float leafSize, Material leafMat)
 		{
-			data.Setup();			
+			data.Setup();
 
 			var root = new TreeBranch(
 				generations,
@@ -73,7 +72,7 @@ namespace ProceduralModeling
 				leafMat
 			);
 
-			treeInstance.GenerateLeaves(root, leafSize, leafMat);
+			treeInstance.GenerateLeaves(root, leafMat);
 
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
@@ -83,7 +82,8 @@ namespace ProceduralModeling
 
 			float maxLength = TraverseMaxLength(root);
 
-			Traverse(root, (branch) => {
+			Traverse(root, (branch) =>
+			{
 				var offset = vertices.Count;
 
 				var vOffset = branch.Offset / maxLength;
@@ -152,7 +152,8 @@ namespace ProceduralModeling
 		static float TraverseMaxLength(TreeBranch branch)
 		{
 			float max = 0f;
-			branch.Children.ForEach(c => {
+			branch.Children.ForEach(c =>
+			{
 				max = Mathf.Max(max, TraverseMaxLength(c));
 			});
 			return branch.Length + max;
@@ -162,7 +163,8 @@ namespace ProceduralModeling
 		{
 			if (from.Children.Count > 0)
 			{
-				from.Children.ForEach(child => {
+				from.Children.ForEach(child =>
+				{
 					Traverse(child, action);
 				});
 			}
@@ -171,109 +173,133 @@ namespace ProceduralModeling
 
 		public List<GameObject> leafList;
 
-	void GenerateLeaves(TreeBranch root, float size, Material leafMat)
-	{
-		ClearLeaves();
+		public Mesh LeafMesh { get; private set; }
+		public Material LeafMaterial { get; private set; }
+		private int maxInstances;
 
-		leafList = new List<GameObject>();
-		isLeafListInitialized = true;
+		[SerializeField] private LinkedList<Matrix4x4> matrixList = new LinkedList<Matrix4x4>();
 
-		Traverse(root, (branch) =>
+		[SerializeField]
+		[ArraySize(0)] // This attribute ensures the array size is displayed correctly in the inspector
+		private Matrix4x4[] matrices;
+
+		public Matrix4x4[] Matrices
 		{
+			get { return matrices; }
+			private set { matrices = value; }
+		}
 
-			if (branch.Children.Count == 0)
-			{ // If branch has no children, it's an end branch.
-				foreach (var segment in branch.Segments)
-				{
-					var lastSegment = branch.Segments.Last();
-
-					var leafObj = GameObject.CreatePrimitive(PrimitiveType.Quad);
-					leafObj.transform.localScale = new Vector3(size, size, size);
-					leafObj.GetComponent<MeshRenderer>().material = leafMat;
-
-					// Translate position to world space
-					var position = transform.TransformPoint(lastSegment.Position);
-					leafObj.transform.position = position;
-
-					// Randomly rotate the leaf
-					leafObj.transform.rotation = Quaternion.Euler(
-						UnityEngine.Random.Range(0, 360),
-						UnityEngine.Random.Range(0, 360),
-						UnityEngine.Random.Range(0, 360)
-					);
-
-					// Set the leaf's parent to be the leaf root.
-					leafObj.transform.parent = leafRoot;
-
-					leafList.Add(leafObj);
-				}
-			}
-		});
-
-		PositionLeaves(root);
-	}
-
-	void PositionLeaves(TreeBranch root)
-	{
-		int leafIndex = 0;
-		Traverse(root, (branch) =>
+		[AttributeUsage(AttributeTargets.Field)]
+		public class ArraySizeAttribute : PropertyAttribute
 		{
-			if (branch.Children.Count == 0)
+			public int Size { get; private set; }
+
+			public ArraySizeAttribute(int size)
 			{
-				foreach (var segment in branch.Segments)
-				{
-					var lastSegment = branch.Segments.Last();
-
-					if (leafIndex >= leafList.Count)
-					{
-						break;
-					}
-
-					var leafObj = leafList[leafIndex];
-
-					// Translate position to world space
-					var position = transform.TransformPoint(lastSegment.Position);
-					leafObj.transform.position = position;
-
-					// Randomly rotate the leaf
-					leafObj.transform.rotation = Quaternion.Euler(
-						UnityEngine.Random.Range(0, 360),
-						UnityEngine.Random.Range(0, 360),
-						UnityEngine.Random.Range(0, 360)
-					);
-
-					leafIndex++;
-				}
-			}
-		});
-	}
-
-	public override void ClearLeaves()
-	{
-		// Delete all leaves
-		foreach (var leaf in leafList)
-		{
-			if (leaf != null)
-			{
-				if (Application.isPlaying)
-				{
-					Destroy(leaf);
-				}
-				else
-				{
-					DestroyImmediate(leaf, false);
-				}
+				Size = size;
 			}
 		}
 
-		// Clear the leafList
-		leafList.Clear();
+		public List<Quaternion> LeafRotations = new List<Quaternion>();
 
-		// Reset the initialization flag
-		isLeafListInitialized = false;
-	}
+		void GenerateLeaves(TreeBranch root, Material leafMat)
+		{
+			ClearLeaves();
+
+			Traverse(root, (branch) =>
+			{
+				if (branch.Children.Count == 0) // If branch has no children, it's an end branch.
+				{
+					foreach (var segment in branch.Segments)
+					{
+						var lastSegment = branch.Segments.Last();
+
+						// Translate position to world space
+						var position = transform.TransformPoint(lastSegment.Position);
+
+						Quaternion rotation = UnityEngine.Random.rotation;
+
+						Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.zero);
+						matrixList.AddLast(matrix);
+
+						LeafRotations.Add(rotation);
+					}
+				}
+			});
+
+			maxInstances = matrixList.Count;
+
+			if (maxInstances > 0)
+			{
+				Matrices = new Matrix4x4[maxInstances];
+				int index = 0;
+				foreach (var matrix in matrixList)
+				{
+					Matrices[index] = matrix;
+					index++;
+				}
+			}
+
+			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().mesh;  // Replace with your actual leaf mesh
+			LeafMaterial = leafMat;
+			LeafMaterial.enableInstancing = true;  // Enable GPU instancing for the material
+
+			leafScaler.RecordOriginalMatrices();
+		}
 
 
+
+
+		void OnRenderObject()
+		{
+			if (LeafMesh != null && LeafMaterial != null && Matrices != null)
+			{
+				Graphics.DrawMeshInstanced(LeafMesh, 0, LeafMaterial, Matrices, Mathf.Min(maxInstances, 1023));
+			}
+		}
+
+		void PositionLeaves(TreeBranch root)
+		{
+			int leafIndex = 0;
+			Traverse(root, (branch) =>
+			{
+				if (branch.Children.Count == 0)
+				{
+					foreach (var segment in branch.Segments)
+					{
+						var lastSegment = branch.Segments.Last();
+
+						if (leafIndex >= leafList.Count)
+						{
+							break;
+						}
+
+						var leafObj = leafList[leafIndex];
+
+						// Translate position to world space
+						var position = transform.TransformPoint(lastSegment.Position);
+						leafObj.transform.position = position;
+
+						// Randomly rotate the leaf
+						leafObj.transform.rotation = Quaternion.Euler(
+							UnityEngine.Random.Range(0, 360),
+							UnityEngine.Random.Range(0, 360),
+							UnityEngine.Random.Range(0, 360)
+						);
+
+						leafIndex++;
+					}
+				}
+			});
+		}
+
+		public override void ClearLeaves()
+		{
+			matrixList.Clear();
+
+			// Reset the initialization flag
+			isLeafListInitialized = false;
+		}
 	}
 
 
@@ -294,6 +320,7 @@ namespace ProceduralModeling
 
 		public void Setup()
 		{
+			randomSeed = UnityEngine.Random.Range(0, int.MaxValue);
 			rnd = new Rand(randomSeed);
 		}
 
@@ -505,5 +532,5 @@ namespace ProceduralModeling
 			return Mathf.Lerp(a, b, v);
 		}
 	}
-
 }
+

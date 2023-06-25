@@ -1,69 +1,106 @@
 using System.Collections;
 using System.Collections.Generic;
+using ProceduralModeling;
 using UnityEngine;
 
 public class LeafScaler : MonoBehaviour
 {
-    public ProceduralModeling.ProceduralTree proceduralTree;
+    public ProceduralTree proceduralTree;
+    public PTGrowing pTGrowing;
 
     public float minGrowthScale = 0f; // The minimum scale for the leaves
     public float maxGrowthScale = 1f; // The maximum scale for the leaves
-    public float lerpSpeed = 1f; // The speed at which the leaf growth occurs
+    [SerializeField] private float growthScale;
 
-    public bool isRendererEnabled = true;
+    [SerializeField] private float currentScale = 0f;
+
+    [SerializeField] private bool isLerping = false;
+    [SerializeField] private float lerpStart;
+    [SerializeField] private float lerpEnd;
+    public float lerpduration;
+    [SerializeField] private float lerpTimeElapsed;
 
     private void OnEnable()
     {
-        proceduralTree = transform.GetComponent<ProceduralModeling.ProceduralTree>();
+        pTGrowing = transform.GetComponentInChildren<PTGrowing>();
     }
 
-    public IEnumerator GrowLeaves(float startScale, float targetScale, float lerpSpeed)
+    public void LerpScale(float start, float end, float duration)
     {
-        SetLeafScale(startScale);
+        isLerping = true;
+        lerpStart = start;
+        lerpEnd = end;
+        lerpduration = duration;
+        lerpTimeElapsed = 0;
+    }
 
-        float t = 0f;
-
-        while (t < 1f)
+    private void Update()
+    {
+        if (proceduralTree != null)
         {
-            t += Time.deltaTime * lerpSpeed;
+            if (isLerping)
+            {
+                if (lerpTimeElapsed < lerpduration)
+                {
+                    currentScale = Mathf.Lerp(lerpStart, lerpEnd, lerpTimeElapsed / lerpduration);
+                    SetLeafScale(currentScale);
+                    lerpTimeElapsed += Time.deltaTime;
+                }
+                else
+                {
+                    currentScale = lerpEnd;
+                    SetLeafScale(currentScale);
+                    isLerping = false;
+                }
+            }
+        }
+    }
 
-            float scale = Mathf.Lerp(startScale, targetScale, t);
-            SetLeafScale(scale);
-            yield return null;
+    private Matrix4x4[] originalMatrices;  // Keep track of the original scale
+
+    public void RecordOriginalMatrices()
+    {
+        if (proceduralTree != null && proceduralTree.Matrices != null)
+        {
+            originalMatrices = new Matrix4x4[proceduralTree.Matrices.Length];
+            for (int i = 0; i < proceduralTree.Matrices.Length; i++)
+            {
+                originalMatrices[i] = proceduralTree.Matrices[i];
+            }
         }
     }
 
     public void SetLeafScale(float scale)
     {
-        if (scale < 1f)
+        if (proceduralTree != null && originalMatrices != null)
         {
-            DisableRenderers();
-        } else
-        {
-            EnableRenderers();
-        }
+            for (int i = 0; i < originalMatrices.Length; i++)
+            {
+                // Extract the original translation from the matrix
+                Vector3 originalTranslation = originalMatrices[i].GetColumn(3);
 
-        foreach (var leaf in proceduralTree.leafList)
-        {
-            leaf.transform.localScale = new Vector3(scale, scale, scale);
+                // Get the stored rotation
+                Quaternion originalRotation = proceduralTree.LeafRotations[i];
+
+                // Create a new scale vector
+                Vector3 scaleVector = new Vector3(scale, scale, scale);
+
+                // Construct a new matrix with the original rotation, original translation, and new scale
+                proceduralTree.Matrices[i] = Matrix4x4.TRS(originalTranslation, originalRotation, scaleVector);
+            }
         }
     }
 
-    public void EnableRenderers()
-    {
-        foreach (var leaf in proceduralTree.leafList)
-        {
-            leaf.GetComponent<MeshRenderer>().enabled = true;
-            isRendererEnabled = true;
-        }
-    }
 
-    public void DisableRenderers()
-    {
-        foreach (var leaf in proceduralTree.leafList)
-        {
-            leaf.GetComponent<MeshRenderer>().enabled = false;
-            isRendererEnabled = false;
-        }
-    }
+
+
+
+
+
+
+
+
+
+
+
 }

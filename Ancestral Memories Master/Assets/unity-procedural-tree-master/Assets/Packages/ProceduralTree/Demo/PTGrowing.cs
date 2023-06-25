@@ -7,153 +7,183 @@ namespace ProceduralModeling
     public class PTGrowing : MonoBehaviour
     {
         private Material material;
+        private ProceduralTree proceduralTree;
+        private TreeData treeData;
+        private LeafScaler leafScaler;
 
-        private bool isDead = false;
         public bool isGrowing = false;
         public bool isFullyGrown = false;
 
         public float minLifeTimeSeconds = 10f;
         public float maxLifeTimeSeconds = 25f;
-
         public float lifeTimeSecs = 60f;
 
         private const string kGrowingKey = "_T";
 
         public float minGrowBuffer = 10f;
         public float maxGrowBuffer = 60f;
-        public float growBuffer = 0f;
-
         public float minGrowDuration = 30f;
         public float maxGrowDuration = 45f;
-        private float growDuration = 0f;
+        public float minDeathDuration = 2f;
+        public float maxDeathDuration = 5f;
 
-        public int minGrowKey = 0;
-        public int maxGrowKey = 1;
+        private float growBuffer;
+        private float growDuration;
+        private float deathDuration;
 
-        private ProceduralTree proceduralTree; // Assume you have the reference to the ProceduralTree
+        private bool isDead = false;
 
-        private TreeData treeData;
+        public enum State
+        {
+            Buffering,
+            Growing,
+            Alive,
+            Dying,
+            Reviving
+        }
 
-        private LeafScaler leafScaler;
+        public State currentState;
+        private float time = 0f;
 
         private void Awake()
         {
             proceduralTree = GetComponentInChildren<ProceduralTree>();
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
-            material.SetFloat(kGrowingKey, minGrowKey);
+            material.SetFloat(kGrowingKey, 0);
 
-            leafScaler = GetComponent<LeafScaler>();
-            leafScaler.SetLeafScale(0);
+            leafScaler = gameObject.GetComponent<LeafScaler>();
+
+            currentState = State.Buffering;
+            time = 0f;
         }
 
         public void GrowTree()
         {
-            float lifeTimeSeconds = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
-            lifeTimeSecs = lifeTimeSeconds;
-
-            treeData.randomSeed = Random.Range(0, int.MaxValue);
-
-            StartCoroutine(GrowBuffer());
+            currentState = State.Buffering;
+            time = 0f;
+            treeData.Setup();
+            leafScaler.SetLeafScale(leafScaler.minGrowthScale);
+            StartCoroutine(GrowBuffer(false));
         }
 
-        public IEnumerator GrowBuffer()
+        private IEnumerator GrowBuffer(bool reseed)
         {
-            float time = 0f;
+    
+
+            /*
+            if (reseed)
+            {
+                proceduralTree.Rebuild();
+            }
+            */
+
+            time = 0f;
             growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
 
-            while (time < 1f)
+            while (time < growBuffer)
             {
-                time += Time.deltaTime / growBuffer;
-
+                time += Time.deltaTime;
                 yield return null;
             }
 
-            StartCoroutine(IGrowing());
+            time = 0f;
 
-            yield break;
+            StartCoroutine(Growing());
         }
 
-        private IEnumerator IGrowing()
+        private IEnumerator Growing()
         {
-            float time = 0f;
+            currentState = State.Growing;
+
+            time = 0f;
             isDead = false;
             growDuration = Random.Range(minGrowDuration, maxGrowDuration);
-            growDuration *= 1000;
 
-            while (time < 1f)
+            while (time < growDuration)
             {
                 if (!isDead)
                 {
                     isGrowing = true;
-                    float currentGrowing = material.GetFloat(kGrowingKey);
-                    float newGrowing = Mathf.Lerp(currentGrowing, maxGrowKey, time);
+                    float t = time / growDuration;
+                    float newGrowing = Mathf.Lerp(0, 1, t);
                     material.SetFloat(kGrowingKey, newGrowing);
-                    time += Time.deltaTime / growDuration;
+                    time += Time.deltaTime;
                 }
 
                 yield return null;
             }
 
+            isGrowing = false;
             isFullyGrown = true;
-            StartCoroutine(leafScaler.GrowLeaves(leafScaler.minGrowthScale, leafScaler.maxGrowthScale, leafScaler.lerpSpeed));
 
-            yield break;
+            leafScaler.LerpScale(leafScaler.minGrowthScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
+
+            time = 0f;
+
+            StartCoroutine(Lifetime());
         }
 
-        public float minDeathDuration = 2f;
-        public float maxDeathDuration = 5f;
-        private float deathDuration = 1f;
-
-        private IEnumerator Die()
+        private IEnumerator Lifetime()
         {
-            isGrowing = false;
-            isDead = true;
+            currentState = State.Alive;
 
-            deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
+            lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
 
-            float time = 0;
-            float currentGrowing = material.GetFloat(kGrowingKey);
-
-            while (time < 1f)
+            while (time < lifeTimeSecs)
             {
-                if (isDead)
-                {
-                    float newGrowing = Mathf.Lerp(currentGrowing, minGrowKey, time);
-                    material.SetFloat(kGrowingKey, newGrowing);
-                    time += Time.deltaTime / deathDuration;
-                }
+                time += Time.deltaTime;
 
                 yield return null;
             }
 
-            Revive();
+            time = 0f;
+            StartCoroutine(Dying());
+        }
 
-            yield break;
+        private IEnumerator Dying()
+        {
+            currentState = State.Dying;
+
+            leafScaler.LerpScale(leafScaler.maxGrowthScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+
+            yield return new WaitForSeconds(leafScaler.lerpduration);
+
+            deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
+            isDead = true;
+            isFullyGrown = false;
+
+            while (time < deathDuration)
+            {
+                float t = time / deathDuration;
+                float newGrowing = Mathf.Lerp(1, 0, t);
+                material.SetFloat(kGrowingKey, newGrowing);
+                time += Time.deltaTime;
+                yield return null;
+            }
+
+            time = 0f;
+            StartCoroutine(Reviving());
+
+        }
+
+        private IEnumerator Reviving()
+        {
+            currentState = State.Reviving;
+            yield return StartCoroutine(GrowBuffer(true));
         }
 
         public void CutDown()
         {
-            StopCoroutine(leafScaler.GrowLeaves(0f, 0f, 0f));
-            leafScaler.SetLeafScale(0);
-
-            StartCoroutine(Die());
-            isDead = true;
+            StopAllCoroutines();
+            leafScaler.SetLeafScale(leafScaler.minGrowthScale);
+            time = 0f;
+            StartCoroutine(Dying());
         }
 
         public void Revive()
         {
-            GrowTree();
-            StartCoroutine(leafScaler.GrowLeaves(leafScaler.minGrowthScale, leafScaler.maxGrowthScale, leafScaler.lerpSpeed));
-        }
-
-        private void OnDestroy()
-        {
-            if (material != null)
-            {
-                Destroy(material);
-                material = null;
-            }
+            StartCoroutine(GrowBuffer(true));
         }
     }
 }

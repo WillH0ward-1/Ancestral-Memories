@@ -717,7 +717,7 @@ public class MapObjGen : MonoBehaviour
 
             PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
 
-            ptGrow.GrowTree();
+            //ptGrow.GrowTree();
 
             int treeLayer = LayerMask.NameToLayer("Trees");
             treeInstance.layer = treeLayer;
@@ -729,7 +729,7 @@ public class MapObjGen : MonoBehaviour
             //TreeDeathManager treeDeathManager = treeInstance.GetComponent<TreeDeathManager>();
             //treeDeathManager.mapObjGen = this;
 
-            //weather.windAffectedRendererList.Add(treeInstance.transform);
+            weather.windAffectedRendererList.Add(treeInstance.transform);
 
             treeList.Add(treeInstance);
 
@@ -893,7 +893,7 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(WaitForGrowDelay(tree, dirtExplodeParticles, emission, treeGrowthDelay));
 
         StartCoroutine(treeGrowControl.LerpScale(tree, zeroScale, treeScaleDestination, treeGrowDuration, treeGrowthDelay));
-       
+        
     }
 
     private IEnumerator WaitForGrowDelay(GameObject tree, ParticleSystem dirtExplodeParticles, ParticleSystem.EmissionModule emission, float treeGrowthDelay)
