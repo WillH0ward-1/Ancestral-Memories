@@ -27,12 +27,15 @@ namespace ProceduralModeling
 		private LeafScaler leafScaler;
 		private Transform leafRoot;
 
+		private TreeFruitManager treeFruitManager;
+
 		void OnEnable()
 		{
 			isLeafListInitialized = false;
 			leafScaler = GetComponent<LeafScaler>();
+			treeFruitManager = GetComponent<TreeFruitManager>();
 			leafScaler.proceduralTree = this;
-		
+			
 			if (leafScaler == null)
 			{
 				Debug.LogError("LeafScaler component not found on this GameObject.");
@@ -73,6 +76,7 @@ namespace ProceduralModeling
 			);
 
 			treeInstance.GenerateLeaves(root, leafMat);
+			treeInstance.GenerateFruitPoints(root);
 
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
@@ -247,6 +251,34 @@ namespace ProceduralModeling
 			leafScaler.RecordOriginalMatrices();
 		}
 
+		public List<Vector3> FruitPoints = new List<Vector3>();
+
+		private void GenerateFruitPoints(TreeBranch root)
+		{
+			FruitPoints.Clear();
+
+			Traverse(root, (branch) =>
+			{
+				if (branch.Children.Count == 0) // If branch has no children, it's an end branch.
+				{
+					foreach (var segment in branch.Segments)
+					{
+						var lastSegment = branch.Segments.Last();
+
+						// Translate position to world space
+						var position = transform.TransformPoint(lastSegment.Position);
+
+						FruitPoints.Add(position);
+					}
+				}
+			});
+
+			int fruitCount = Mathf.Min(treeFruitManager.maxFruits, FruitPoints.Count);
+
+			treeFruitManager.InitializeFruits(fruitCount);
+		}
+
+
 
 
 
@@ -300,55 +332,70 @@ namespace ProceduralModeling
 			// Reset the initialization flag
 			isLeafListInitialized = false;
 		}
+
+
 	}
 
 
-	[System.Serializable]
-	public class TreeData
-	{
-		public int randomSeed = 0;
-		[Range(0.25f, 0.95f)] public float lengthAttenuation = 0.8f, radiusAttenuation = 0.5f;
-		[Range(1, 3)] public int branchesMin = 1, branchesMax = 3;
-		[Range(-45f, 0f)] public float growthAngleMin = -15f;
-		[Range(0f, 45f)] public float growthAngleMax = 15f;
-		[Range(1f, 10f)] public float growthAngleScale = 4f;
-		[Range(0f, 45f)] public float branchingAngle = 15f;
-		[Range(4, 20)] public int heightSegments = 10, radialSegments = 8;
-		[Range(0.0f, 0.35f)] public float bendDegree = 0.1f;
+[System.Serializable]
+public class TreeData
+{
+    public int randomSeed = 0;
+    [Range(0.25f, 0.95f)] public float lengthAttenuation = 0.8f, radiusAttenuation = 0.5f;
+    [Range(1, 3)] public int branchesMin = 1, branchesMax = 3;
+    [Range(-45f, 0f)] public float growthAngleMin = -15f;
+    [Range(0f, 45f)] public float growthAngleMax = 15f;
+    [Range(1f, 10f)] public float growthAngleScale = 4f;
+    [Range(0f, 45f)] public float branchingAngle = 15f;
+    [Range(4, 20)] public int heightSegments = 10, radialSegments = 8;
+    [Range(0.0f, 0.35f)] public float bendDegree = 0.1f;
 
-		Rand rnd;
+    Rand rnd;
 
-		public void Setup()
-		{
-			randomSeed = UnityEngine.Random.Range(0, int.MaxValue);
-			rnd = new Rand(randomSeed);
-		}
+    public void Setup()
+    {
+        randomSeed = UnityEngine.Random.Range(0, int.MaxValue);
+        rnd = new Rand(randomSeed);
+    }
 
-		public int Range(int a, int b)
-		{
-			return rnd.Range(a, b);
-		}
+    public void Grow()
+    {
+        randomSeed++;
+        rnd = new Rand(randomSeed);
+    }
 
-		public float Range(float a, float b)
-		{
-			return rnd.Range(a, b);
-		}
+    public void Shrink()
+    {
+        randomSeed--;
+        rnd = new Rand(randomSeed);
+    }
 
-		public int GetRandomBranches()
-		{
-			return rnd.Range(branchesMin, branchesMax + 1);
-		}
+    public int Range(int a, int b)
+    {
+        return rnd.Range(a, b);
+    }
 
-		public float GetRandomGrowthAngle()
-		{
-			return rnd.Range(growthAngleMin, growthAngleMax);
-		}
+    public float Range(float a, float b)
+    {
+        return rnd.Range(a, b);
+    }
 
-		public float GetRandomBendDegree()
-		{
-			return rnd.Range(-bendDegree, bendDegree);
-		}
-	}
+    public int GetRandomBranches()
+    {
+        return rnd.Range(branchesMin, branchesMax + 1);
+    }
+
+    public float GetRandomGrowthAngle()
+    {
+        return rnd.Range(growthAngleMin, growthAngleMax);
+    }
+
+    public float GetRandomBendDegree()
+    {
+        return rnd.Range(-bendDegree, bendDegree);
+    }
+}
+
 
 	public class TreeBranch
 	{

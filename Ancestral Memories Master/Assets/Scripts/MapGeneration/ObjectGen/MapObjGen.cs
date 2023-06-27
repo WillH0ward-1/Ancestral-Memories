@@ -717,6 +717,9 @@ public class MapObjGen : MonoBehaviour
 
             PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
 
+            TreeAudioManager treeAudioManager = treeInstance.transform.GetComponentInChildren<TreeAudioManager>();
+            treeAudioManager.timeManager = timeCycleManager;
+            treeAudioManager.weatherManager = weather;
             //ptGrow.GrowTree();
 
             int treeLayer = LayerMask.NameToLayer("Trees");
@@ -733,6 +736,16 @@ public class MapObjGen : MonoBehaviour
 
             treeList.Add(treeInstance);
 
+            RandomiseTreeTextures();
+
+        }
+    }
+
+    private void RandomiseTreeTextures()
+    {
+        foreach (var tree in treeList)
+        {
+            tree.GetComponent<RandomizeTreeTexture>().ApplyRandomTexture();
         }
     }
 

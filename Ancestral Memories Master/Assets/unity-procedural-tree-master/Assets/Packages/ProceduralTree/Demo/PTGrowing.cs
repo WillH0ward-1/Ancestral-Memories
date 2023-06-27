@@ -28,10 +28,12 @@ namespace ProceduralModeling
         public float maxDeathDuration = 5f;
 
         private float growBuffer;
-        private float growDuration;
-        private float deathDuration;
+        public float growDuration;
+        public float deathDuration;
 
-        private bool isDead = false;
+        public bool isDead = false;
+
+        private TreeFruitManager treeFruitManager;
 
         public enum State
         {
@@ -43,7 +45,9 @@ namespace ProceduralModeling
         }
 
         public State currentState;
-        private float time = 0f;
+        public float time = 0f;
+
+        private TreeAudioManager treeAudioSFX;
 
         private void Awake()
         {
@@ -53,10 +57,13 @@ namespace ProceduralModeling
             material.SetFloat(kGrowingKey, 0);
 
             leafScaler = gameObject.GetComponent<LeafScaler>();
+            treeAudioSFX = GetComponent<TreeAudioManager>();  // Fetch the TreeAudioSFX component
+            treeFruitManager = GetComponent<TreeFruitManager>(); // Fetch the TreeFruitManager component
 
             currentState = State.Buffering;
             time = 0f;
         }
+
 
         public void GrowTree()
         {
@@ -94,11 +101,16 @@ namespace ProceduralModeling
 
         private IEnumerator Growing()
         {
+            //treeAudioSFX.PlayTreeSproutSFX();  // Play sprouting sound effect
+            isFullyGrown = false;
+
             currentState = State.Growing;
 
             time = 0f;
             isDead = false;
             growDuration = Random.Range(minGrowDuration, maxGrowDuration);
+
+            treeAudioSFX.StartTreeGrowthSFX(State.Growing);
 
             while (time < growDuration)
             {
@@ -127,8 +139,11 @@ namespace ProceduralModeling
         private IEnumerator Lifetime()
         {
             currentState = State.Alive;
+            isDead = false;
 
             lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
+
+            treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
 
             while (time < lifeTimeSecs)
             {
@@ -145,13 +160,20 @@ namespace ProceduralModeling
         {
             currentState = State.Dying;
 
-            leafScaler.LerpScale(leafScaler.maxGrowthScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
-
-            yield return new WaitForSeconds(leafScaler.lerpduration);
-
             deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
             isDead = true;
             isFullyGrown = false;
+
+            leafScaler.LerpScale(leafScaler.maxGrowthScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+
+            foreach (GameObject fruit in treeFruitManager.fruits)
+            {
+                StartCoroutine(treeFruitManager.Fall(fruit, fruit.transform));
+            }
+
+            treeAudioSFX.StartTreeGrowthSFX(State.Dying);
+
+            yield return new WaitForSeconds(leafScaler.lerpduration);
 
             while (time < deathDuration)
             {
@@ -163,11 +185,10 @@ namespace ProceduralModeling
             }
 
             time = 0f;
-            StartCoroutine(Reviving());
-
+            StartCoroutine(Revive());
         }
 
-        private IEnumerator Reviving()
+        private IEnumerator Revive()
         {
             currentState = State.Reviving;
             yield return StartCoroutine(GrowBuffer(true));
@@ -177,13 +198,9 @@ namespace ProceduralModeling
         {
             StopAllCoroutines();
             leafScaler.SetLeafScale(leafScaler.minGrowthScale);
+            treeFruitManager.ClearFruits(); // Clear fruits during CutDown
             time = 0f;
             StartCoroutine(Dying());
-        }
-
-        public void Revive()
-        {
-            StartCoroutine(GrowBuffer(true));
         }
     }
 }

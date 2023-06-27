@@ -10,8 +10,14 @@ public class HitGround : MonoBehaviour
     private Rigidbody rigidBody;
     private LayerMask hitGroundLayer;
 
+    // Reference to the TreeFruitManager
+    private TreeFruitManager fruitManager;
+
     private void Awake()
     {
+        // Get the TreeFruitManager reference
+        fruitManager = FindObjectOfType<TreeFruitManager>();
+
         floating = GetComponent<WaterFloat>();
         floating.enabled = false;
 
@@ -29,7 +35,10 @@ public class HitGround : MonoBehaviour
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
             rigidBody.velocity = Vector3.zero;
+            StartCoroutine(
 
+                        // Start decay
+            fruitManager.Decay(gameObject));
             if (other.CompareTag("Water"))
             {
                 CheckWaterDepth(other);

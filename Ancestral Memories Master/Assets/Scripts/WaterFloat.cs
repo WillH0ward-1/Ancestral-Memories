@@ -20,10 +20,6 @@ public class WaterFloat : MonoBehaviour
 
     float targetY;
 
-    private void Awake()
-    {
-    
-    }
     public IEnumerator Float(GameObject bobObject)
     {
         isFloating = true;
