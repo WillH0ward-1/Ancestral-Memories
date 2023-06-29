@@ -1,4 +1,7 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using Pathfinding;
+using Pathfinding.RVO;
 using UnityEngine;
 
 namespace ProceduralModeling
@@ -35,6 +38,11 @@ namespace ProceduralModeling
 
         private TreeFruitManager treeFruitManager;
 
+        private RVOSquareObstacle obstacle;
+
+        private bool isNavMeshCutEnabled = false;
+        private Coroutine navMeshCutCoroutine;
+
         public enum State
         {
             Buffering,
@@ -49,6 +57,8 @@ namespace ProceduralModeling
 
         private TreeAudioManager treeAudioSFX;
 
+        private PTGrowingManager pTGrowingManager;
+
         private void Awake()
         {
             proceduralTree = GetComponentInChildren<ProceduralTree>();
@@ -59,9 +69,27 @@ namespace ProceduralModeling
             leafScaler = gameObject.GetComponent<LeafScaler>();
             treeAudioSFX = GetComponent<TreeAudioManager>();  // Fetch the TreeAudioSFX component
             treeFruitManager = GetComponent<TreeFruitManager>(); // Fetch the TreeFruitManager component
+            obstacle = GetComponent<RVOSquareObstacle>();
 
             currentState = State.Buffering;
             time = 0f;
+
+            // Get a reference to the PTGrowingManager in the scene
+            pTGrowingManager = FindObjectOfType<PTGrowingManager>();
+
+            if (pTGrowingManager != null)
+            {
+                pTGrowingManager.RegisterPTGrowing(this);
+            }
+
+            DisableNavMeshCut();
+        }
+
+        private void OnDestroy()
+        {
+            // Unregister this PTGrowing instance from the manager
+            pTGrowingManager?.UnregisterPTGrowing(this);
+
         }
 
 
@@ -76,15 +104,6 @@ namespace ProceduralModeling
 
         private IEnumerator GrowBuffer(bool reseed)
         {
-    
-
-            /*
-            if (reseed)
-            {
-                proceduralTree.Rebuild();
-            }
-            */
-
             time = 0f;
             growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
 
@@ -101,16 +120,16 @@ namespace ProceduralModeling
 
         private IEnumerator Growing()
         {
-            //treeAudioSFX.PlayTreeSproutSFX();  // Play sprouting sound effect
             isFullyGrown = false;
-
             currentState = State.Growing;
-
             time = 0f;
             isDead = false;
             growDuration = Random.Range(minGrowDuration, maxGrowDuration);
 
             treeAudioSFX.StartTreeGrowthSFX(State.Growing);
+
+            yield return null;
+            EnableNavMeshCut();
 
             while (time < growDuration)
             {
@@ -184,6 +203,9 @@ namespace ProceduralModeling
                 yield return null;
             }
 
+            yield return null;
+            DisableNavMeshCut();
+
             time = 0f;
             StartCoroutine(Revive());
         }
@@ -201,6 +223,52 @@ namespace ProceduralModeling
             treeFruitManager.ClearFruits(); // Clear fruits during CutDown
             time = 0f;
             StartCoroutine(Dying());
+        }
+
+        public void EnableNavMeshCut()
+        {
+            if (obstacle != null)
+            {
+                obstacle.enabled = true;
+            }
+        }
+
+        public void DisableNavMeshCut()
+        {
+            if (obstacle != null)
+            {
+                obstacle.enabled = false;
+            }
+        }
+
+        // Internal method to enable NavmeshCut
+        public void EnableNavMeshCutInternal()
+        {
+            if (obstacle != null)
+            {
+                obstacle.enabled = true;
+            }
+
+            /*
+            if (pTGrowingManager != null)
+            {
+                pTGrowingManager.CompleteTask(this);
+            }
+            */
+        }
+
+        // Internal method to disable NavmeshCut
+        public void DisableNavMeshCutInternal()
+        {
+            if (obstacle != null)
+            {
+                obstacle.enabled = false;
+            }
+
+            if (pTGrowingManager != null)
+            {
+                pTGrowingManager.CompleteTask(this);
+            }
         }
     }
 }

@@ -244,7 +244,12 @@ namespace ProceduralModeling
 				}
 			}
 
+#if UNITY_EDITOR
+
 			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().mesh;  // Replace with your actual leaf mesh
+#else
+			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().sharedMesh;  // Replace with your actual leaf mesh
+#endif
 			LeafMaterial = leafMat;
 			LeafMaterial.enableInstancing = true;  // Enable GPU instancing for the material
 

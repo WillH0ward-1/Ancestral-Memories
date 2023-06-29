@@ -378,7 +378,7 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToPrayerZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         StartCoroutine(GainFaith());
 
@@ -416,7 +416,7 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
         cinematicCam.ToPlayMusicZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         fluteControl.EnableFluteControl();
 
@@ -745,7 +745,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_SITTINGFLOORIDLE);
 
@@ -878,7 +878,7 @@ public class CharacterBehaviours : MonoBehaviour
         //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
 
         dialogueIsActive = true;
-        dialogue = hitObject.transform.GetComponent<Dialogue>();
+        dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
         dialogue.StartDialogue(dialogue, player);
 
         ToFrontCam();
