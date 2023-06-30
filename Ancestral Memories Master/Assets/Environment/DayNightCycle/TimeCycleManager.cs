@@ -104,7 +104,7 @@ public class TimeCycleManager : MonoBehaviour
     private void UpdateLight(float timePercent)
     {
         // Update sky color
-        int currentColorIndex = Mathf.FloorToInt(timePercent * (timeColors.Length - 1));
+        int currentColorIndex = Mathf.FloorToInt(timePercent * timeColors.Length);
         int nextColorIndex = (currentColorIndex + 1) % timeColors.Length;
 
         Color currentSkyColor = timeColors[currentColorIndex].skyColor;
@@ -112,10 +112,25 @@ public class TimeCycleManager : MonoBehaviour
         Color currentLightColor = timeColors[currentColorIndex].lightColor;
         Color nextLightColor = timeColors[nextColorIndex].lightColor;
 
-        float t = Mathf.InverseLerp(currentColorIndex / (float)(timeColors.Length - 1), (currentColorIndex + 1) / (float)(timeColors.Length - 1), timePercent);
+        float t = Mathf.InverseLerp(currentColorIndex / (float)timeColors.Length, (currentColorIndex + 1) / (float)timeColors.Length, timePercent);
 
-        Color lerpedSkyColor = Color.Lerp(currentSkyColor, nextSkyColor, t);
-        Color lerpedLightColor = Color.Lerp(currentLightColor, nextLightColor, t);
+        Color lerpedSkyColor;
+        Color lerpedLightColor;
+
+        if (nextColorIndex == 0 && timePercent < (1f / timeColors.Length))
+        {
+            // Handle seamless transition from last colors to first colors
+            Color lastSkyColor = timeColors[timeColors.Length - 1].skyColor;
+            Color lastLightColor = timeColors[timeColors.Length - 1].lightColor;
+
+            lerpedSkyColor = Color.Lerp(lastSkyColor, nextSkyColor, t);
+            lerpedLightColor = Color.Lerp(lastLightColor, nextLightColor, t);
+        }
+        else
+        {
+            lerpedSkyColor = Color.Lerp(currentSkyColor, nextSkyColor, t);
+            lerpedLightColor = Color.Lerp(currentLightColor, nextLightColor, t);
+        }
 
         material.SetColor("_SkyColour", lerpedSkyColor);
 
@@ -133,6 +148,7 @@ public class TimeCycleManager : MonoBehaviour
             Debug.Log("time of day (Fmod) = " + fmodTod);
         }
     }
+
 
     // Try to find a directional light to use if we haven't set one
     private void OnEnable()

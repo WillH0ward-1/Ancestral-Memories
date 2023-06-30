@@ -1,21 +1,15 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.ParticleSystem;
 
 public class Flammable : MonoBehaviour
 {
-    [SerializeField] private  GameObject fire;
+    [SerializeField] private GameObject firePrefab;
     private Mesh mesh;
     private Vector3[] vertices;
     int sampleDensity;
-    private Vector3 firePosition;
-    private GameObject flammableObject;
 
     private ScaleControl scaleControl;
-
-    float xMultiplier;
-    float yMultiplier;
-    float zMultiplier;
 
     [SerializeField] int vertSampleFactor;
 
@@ -24,7 +18,16 @@ public class Flammable : MonoBehaviour
     [SerializeField] private int minFireSpreadDelay = 0;
     [SerializeField] private int maxFireSpreadDelay = 5;
 
-    private FireController fireManager;
+    [SerializeField] private float startFireLightIntensityTarget;
+    [SerializeField] private float startFireEmissionRateTarget;
+    [SerializeField] private float startFireDuration;
+    //[SerializeField] private float startFireDelay;
+
+    [SerializeField] private float endFireDuration;
+    //[SerializeField] private float endFireDelay;
+
+    private float minFireDuration = 3;
+    private float maxFireDuration = 6;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -35,27 +38,11 @@ public class Flammable : MonoBehaviour
         }
     }
 
-    Vector3 scale;
-
     private void Start()
     {
-        flammableObject = transform.gameObject;
         mesh = GetComponent<MeshFilter>().mesh;
         vertices = mesh.vertices;
         scaleControl = GetComponent<ScaleControl>();
-    }
-
-    private Vector3 ScalarValue()
-    {
-        Vector3 scalar;
-
-        xMultiplier = flammableObject.transform.localScale.x;
-        yMultiplier = flammableObject.transform.localScale.y;
-        zMultiplier = flammableObject.transform.localScale.z;
-
-        scalar = new  (xMultiplier, yMultiplier, zMultiplier);
-
-        return scalar;
     }
 
     private IEnumerator CatchFire()
@@ -70,15 +57,12 @@ public class Flammable : MonoBehaviour
         {
             for (int i = 0; i < vertices.Length; i++)
             {
-
-                // vertices[i] += Vector3.up * Time.deltaTime;
-
                 if (i >= vertices.Length)
                 {
                     yield break;
                 }
 
-                fireManager.StartFire(flammableObject.transform, flammableObject.transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]));
+                StartFire(transform, transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]));
 
                 i += sampleDensity;
 
@@ -89,20 +73,17 @@ public class Flammable : MonoBehaviour
 
             StartCoroutine(BurnToGround());
 
-        } else if (invertSpreadOrigin)
+        }
+        else if (invertSpreadOrigin)
         {
-            for (int i = vertices.Length; i --> 0;)
+            for (int i = vertices.Length; i-- > 0;)
             {
-
-                // vertices[i] += Vector3.up * Time.deltaTime;
-
                 if (i <= 0)
                 {
                     yield break;
                 }
 
-                GameObject fireInstance = Instantiate(fire, flammableObject.transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]), Quaternion.identity);
-                fireInstance.transform.SetParent(flammableObject.transform, true);
+                StartFire(transform, transform.localToWorldMatrix.MultiplyPoint3x4(vertices[i]));
 
                 i -= sampleDensity;
 
@@ -121,13 +102,74 @@ public class Flammable : MonoBehaviour
 
     private IEnumerator BurnToGround()
     {
-        StartCoroutine(scaleControl.LerpScale(transform.gameObject, transform.localScale, new Vector3(transform.localScale.x, 0, transform.localScale.y), fallDuration, 0f));
+        StartCoroutine(scaleControl.LerpScale(gameObject, transform.localScale, new Vector3(transform.localScale.x, 0, transform.localScale.y), fallDuration, 0f));
 
         yield return new WaitForSeconds(fallDuration);
 
-        Destroy(transform.gameObject);
+        Destroy(gameObject);
         yield return null;
 
     }
 
+    public void StartFire(Transform targetTransform, Vector3 target)
+    {
+        float startFireLightIntensityTarget = 20;
+        float startFireEmissionRateTarget = 20;
+        float startFireDuration = 10f;
+        float startFireDelay = Random.Range(1, 2);
+
+        StartCoroutine(FireControl(targetTransform, target, startFireLightIntensityTarget, startFireEmissionRateTarget, startFireDuration, startFireDelay));
+    }
+
+    public IEnumerator FireControl(Transform targetTransform, Vector3 target, float targetLightIntensity, float targetEmissionRate, float duration, float delayStart)
+    {
+        GameObject newFire = Instantiate(firePrefab, new Vector3(target.x, target.y, target.z), Quaternion.identity);
+
+        if (targetTransform.CompareTag("Trees") || targetTransform.CompareTag("AppleTree"))
+        {
+            newFire.transform.SetParent(targetTransform, true);
+        }
+
+        ParticleSystem fireParticles = newFire.transform.GetComponentInChildren<ParticleSystem>();
+
+        EmissionModule emission = fireParticles.emission;
+        emission.rateOverTime = 0;
+        Collider triggerCollider = fireParticles.transform.GetComponent<Collider>();
+        triggerCollider.enabled = false;
+        Light fireLight = fireParticles.transform.GetComponentInChildren<Light>();
+        fireLight.intensity = 0;
+        float fireLightIntensity = fireLight.intensity;
+
+        yield return new WaitForSeconds(delayStart);
+
+        float time = 0;
+
+        while (time <= 1f)
+        {
+            time += Time.deltaTime / duration;
+
+            fireLightIntensity = Mathf.Lerp(fireLightIntensity, targetLightIntensity, time);
+            fireLight.intensity = fireLightIntensity;
+            emission.rateOverTime = Mathf.Lerp(emission.rateOverTime.constant, targetEmissionRate, time);
+
+            yield return null;
+        }
+
+        if (time >= 1f)
+        {
+            float fireLength = Random.Range(minFireDuration, maxFireDuration);
+            yield return new WaitForSeconds(fireLength);
+
+            KillFire(newFire, targetTransform, target, 0, 0, endFireDuration, Random.Range(1, 2));
+
+            yield break;
+        }
+    }
+
+    void KillFire(GameObject newFire, Transform targetTransform, Vector3 target, float targetLightIntensity, float targetEmissionRate, float duration, float delayStart)
+    {
+        StartCoroutine(FireControl(targetTransform, target, targetLightIntensity, targetEmissionRate, duration, delayStart));
+
+        Destroy(newFire);
+    }
 }

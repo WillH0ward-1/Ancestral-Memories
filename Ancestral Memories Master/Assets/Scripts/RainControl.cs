@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class RainControl : MonoBehaviour
 {
+    private MapObjGen mapObjGen;
 
     [SerializeField] private WeatherControl weather;
 
@@ -45,7 +46,7 @@ public class RainControl : MonoBehaviour
         transform.parent.SetParent(player.transform);
 
         behaviours = player.transform.GetComponentInChildren<CharacterBehaviours>();
-
+        mapObjGen = FindObjectOfType<MapObjGen>();
         //weather = transform.GetComponent<WeatherControl>();
 
     }
@@ -110,6 +111,7 @@ public class RainControl : MonoBehaviour
         float droughtDuration = Random.Range(minDroughtDuration, maxDroughtDuration);
 
         StartCoroutine(lerpTerrain.ToDesert(15f));
+        mapObjGen.KillAllTreeProduce();
 
         while (time < droughtDuration)
         {
@@ -123,7 +125,9 @@ public class RainControl : MonoBehaviour
 
             yield return null;
         }
-    
+
+        yield break;
+
     }
 
     [SerializeField] private float rainDuration;
@@ -158,6 +162,8 @@ public class RainControl : MonoBehaviour
         {
             drought = false;
         }
+
+        mapObjGen.ReviveAllDeadProduce();
 
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 

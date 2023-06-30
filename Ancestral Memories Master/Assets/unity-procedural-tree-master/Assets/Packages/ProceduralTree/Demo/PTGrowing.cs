@@ -43,6 +43,8 @@ namespace ProceduralModeling
         private bool isNavMeshCutEnabled = false;
         private Coroutine navMeshCutCoroutine;
 
+        public RainControl weatherControl;
+
         public enum State
         {
             Buffering,
@@ -51,6 +53,8 @@ namespace ProceduralModeling
             Dying,
             Reviving
         }
+
+        public MapObjGen mapObjGen;
 
         public State currentState;
         public float time = 0f;
@@ -95,6 +99,7 @@ namespace ProceduralModeling
 
         public void GrowTree()
         {
+            isFullyGrown = false;
             currentState = State.Buffering;
             time = 0f;
             treeData.Setup();
@@ -146,10 +151,6 @@ namespace ProceduralModeling
             }
 
             isGrowing = false;
-            isFullyGrown = true;
-
-            leafScaler.LerpScale(leafScaler.minGrowthScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
-
             time = 0f;
 
             StartCoroutine(Lifetime());
@@ -158,11 +159,16 @@ namespace ProceduralModeling
         private IEnumerator Lifetime()
         {
             currentState = State.Alive;
+            isFullyGrown = true;
             isDead = false;
 
             lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
 
-            treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
+            if (!weatherControl.drought)
+            {
+                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
+                treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
+            }
 
             while (time < lifeTimeSecs)
             {
@@ -177,14 +183,17 @@ namespace ProceduralModeling
 
         private IEnumerator Dying()
         {
+            float time = 0f;
+
             currentState = State.Dying;
+
+            isFullyGrown = false;
 
             deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
             isDead = true;
-            isFullyGrown = false;
 
-            leafScaler.LerpScale(leafScaler.maxGrowthScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
-
+            leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+            
             foreach (GameObject fruit in treeFruitManager.fruits)
             {
                 StartCoroutine(treeFruitManager.Fall(fruit, fruit.transform));
@@ -192,7 +201,13 @@ namespace ProceduralModeling
 
             treeAudioSFX.StartTreeGrowthSFX(State.Dying);
 
-            yield return new WaitForSeconds(leafScaler.lerpduration);
+            while (time < leafScaler.lerpduration)
+            {
+                time += Time.deltaTime;
+                yield return null;
+            }
+
+            time = 0f;
 
             while (time < deathDuration)
             {
@@ -203,29 +218,55 @@ namespace ProceduralModeling
                 yield return null;
             }
 
+            isFullyGrown = false;
+
             yield return null;
             DisableNavMeshCut();
 
-            time = 0f;
             StartCoroutine(Revive());
         }
 
         private IEnumerator Revive()
         {
+            isFullyGrown = false;
             currentState = State.Reviving;
             yield return StartCoroutine(GrowBuffer(true));
         }
 
         public void CutDown()
         {
-            StopAllCoroutines();
-            leafScaler.SetLeafScale(leafScaler.minGrowthScale);
+            leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
             treeFruitManager.ClearFruits(); // Clear fruits during CutDown
             time = 0f;
             StartCoroutine(Dying());
         }
 
-        public void EnableNavMeshCut()
+        public void GrowLeaves()
+        {
+            if (isFullyGrown)
+            {
+                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
+            }
+        }
+
+
+        public void KillLeaves()
+        {
+            if (isFullyGrown)
+            {
+                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+            }
+        }
+
+        public void KillFruits()
+        {
+            foreach (GameObject fruit in treeFruitManager.fruits)
+            {
+                StartCoroutine(treeFruitManager.Fall(fruit, fruit.transform));
+            }
+        }
+
+    public void EnableNavMeshCut()
         {
             if (obstacle != null)
             {

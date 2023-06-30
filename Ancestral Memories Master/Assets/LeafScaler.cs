@@ -10,7 +10,7 @@ public class LeafScaler : MonoBehaviour
 
     public float minGrowthScale = 0f; // The minimum scale for the leaves
     public float maxGrowthScale = 1f; // The maximum scale for the leaves
-    [SerializeField] private float growthScale;
+    public float growthScale;
 
     [SerializeField] private float currentScale = 0f;
 
@@ -32,6 +32,11 @@ public class LeafScaler : MonoBehaviour
         lerpEnd = end;
         lerpduration = duration;
         lerpTimeElapsed = 0;
+    }
+
+    public float CurrentScale
+    {
+        get { return currentScale; }
     }
 
     private void Update()

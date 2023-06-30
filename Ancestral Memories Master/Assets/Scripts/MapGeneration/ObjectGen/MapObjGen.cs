@@ -369,6 +369,8 @@ public class MapObjGen : MonoBehaviour
 
         EnableStudioEmitters(grassList);
 
+        GetPTGrowComponents();
+
         StartCoroutine(StartProceduralTreeGrowth(treeList));
         //StartCoroutine(StartTreeGrowth(treeList));
 
@@ -716,10 +718,14 @@ public class MapObjGen : MonoBehaviour
             //treeAudio.weatherManager = weather;
 
             PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
+            ptGrow.mapObjGen = this;
+            ptGrow.weatherControl = rainControl;
 
             TreeAudioManager treeAudioManager = treeInstance.transform.GetComponentInChildren<TreeAudioManager>();
             treeAudioManager.timeManager = timeCycleManager;
             treeAudioManager.weatherManager = weather;
+
+            
             //ptGrow.GrowTree();
 
             int treeLayer = LayerMask.NameToLayer("Trees");
@@ -740,6 +746,37 @@ public class MapObjGen : MonoBehaviour
 
         }
     }
+
+    private List<PTGrowing> ptGrowComponents = new List<PTGrowing>();
+
+    private void GetPTGrowComponents()
+    {
+        ptGrowComponents.Clear();
+
+        foreach (GameObject tree in treeList)
+        {
+            PTGrowing ptGrow = tree.GetComponentInChildren<PTGrowing>();
+            ptGrowComponents.Add(ptGrow);
+        }
+    }
+
+    public void KillAllTreeProduce()
+    {
+        foreach (PTGrowing ptGrow in ptGrowComponents)
+        {
+            ptGrow.KillLeaves();
+            ptGrow.KillFruits();
+        }
+    }
+
+    public void ReviveAllDeadProduce()
+    {
+        foreach (PTGrowing ptGrow in ptGrowComponents)
+        {
+            ptGrow.GrowLeaves();
+        }
+    }
+
 
     private void RandomiseTreeTextures()
     {
@@ -895,7 +932,7 @@ public class MapObjGen : MonoBehaviour
         emission.enabled = false;
 
         treeDeathManager.scaleControl = treeGrowControl;
-        treeGrowControl.rainControl = rainControl;
+//        treeGrowControl.rainControl = rainControl;
 
         treeGrowDuration = Random.Range(minTreeGrowDuration, maxTreeGrowDuration);
         appleGrowDuration = Random.Range(minAppleGrowDuration, maxAppleGrowDuration);
@@ -1117,7 +1154,7 @@ public class MapObjGen : MonoBehaviour
 
             ScaleControl mushroomGrowControl = mushroomInstance.transform.GetComponent<ScaleControl>();
 
-            mushroomGrowControl.rainControl = rainControl;
+//            mushroomGrowControl.rainControl = rainControl;
 
             mushroomInstance.tag = mushroomTag;
 

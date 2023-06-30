@@ -45,7 +45,7 @@ public class ParticleCollision : MonoBehaviour
             ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
             //FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
 
-            scaleControl.rainControl = rainManager;
+//            scaleControl.rainControl = rainManager;
 
         }
         StartCoroutine(HarmonicStability());

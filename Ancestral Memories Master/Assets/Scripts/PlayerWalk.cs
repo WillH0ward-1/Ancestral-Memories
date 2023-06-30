@@ -382,7 +382,7 @@ public class PlayerWalk : MonoBehaviour
             }
             else if (!behaviours.isPsychdelicMode && player.isStarving)
             {
-                ChangeState(PLAYER_STARVINGWALK);
+                ChangeState(PLAYER_WALK); // Change this if we want to make the player walk animation respond to starvation
             }
             else if (behaviours.isPsychdelicMode)
             {

@@ -49,20 +49,6 @@ namespace ProceduralModeling
 			ClearLeaves();
 		}
 
-		/*
-		private float previousLeafSize = 1f;
-
-		private void OnValidate()
-		{
-			// If leafSize changed and leafScaler exists, adjust the scale of the leaves
-			if (leafScaler != null && leafSize != previousLeafSize)
-			{
-				leafScaler.SetLeafScale(leafSize);
-				previousLeafSize = leafSize;
-			}
-		}
-		*/
-
 		public static Mesh Build(ProceduralTree treeInstance, TreeData data, int generations, float length, float radius, float leafSize, Material leafMat)
 		{
 			data.Setup();
