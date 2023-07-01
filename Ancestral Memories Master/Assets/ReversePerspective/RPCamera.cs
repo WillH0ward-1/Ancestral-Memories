@@ -105,6 +105,32 @@ public class RPCamera : MonoBehaviour {
 		return m;
 	}
 
+	public Ray CustomScreenPointToRay(Vector3 screenPosition)
+	{
+		Vector3 normalizedViewportPosition = new Vector3(
+			(screenPosition.x - rpCam.pixelRect.x) / rpCam.pixelRect.width * 2 - 1,
+			(screenPosition.y - rpCam.pixelRect.y) / rpCam.pixelRect.height * 2 - 1,
+			screenPosition.z);
+
+		Matrix4x4 cameraToWorldMatrix = rpCam.cameraToWorldMatrix;
+		Matrix4x4 projectionMatrixInverse = rpCam.projectionMatrix.inverse;
+
+		Vector3 nearClipPos = new Vector3(normalizedViewportPosition.x, normalizedViewportPosition.y, -1);
+		Vector3 farClipPos = new Vector3(normalizedViewportPosition.x, normalizedViewportPosition.y, 1);
+
+		Vector3 nearWorldPos = cameraToWorldMatrix.MultiplyPoint3x4(projectionMatrixInverse.MultiplyPoint3x4(nearClipPos));
+		Vector3 farWorldPos = cameraToWorldMatrix.MultiplyPoint3x4(projectionMatrixInverse.MultiplyPoint3x4(farClipPos));
+
+		// Adjust the positions using the perspective
+		float adjustedPerspective = 1 + perspective * 0.01f;
+		nearWorldPos.y /= adjustedPerspective;
+		farWorldPos.y /= adjustedPerspective;
+
+		return new Ray(nearWorldPos, farWorldPos - nearWorldPos);
+	}
+
+
+
 
 	void OnDrawGizmosSelected()
 	{

@@ -24,6 +24,12 @@ public class InteractCamera : MonoBehaviour
 
     Ray ray;
 
+    RPCamera rpCamera;
+
+    private void Awake()
+    {
+        rpCamera = FindObjectOfType<RPCamera>();
+    }
     private void Start()
     {
         cam = player.GetComponent<Player>().interactableCam; 
@@ -46,9 +52,10 @@ public class InteractCamera : MonoBehaviour
 
     void Update()
     {
-        ray = cam.ScreenPointToRay(Input.mousePosition);
+        ray = rpCamera.CustomScreenPointToRay(Input.mousePosition);
 
-        
+        Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red); // This will draw the ray in the Scene view
+
         if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
         {
             
