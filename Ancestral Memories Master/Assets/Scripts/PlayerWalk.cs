@@ -305,7 +305,7 @@ public class PlayerWalk : MonoBehaviour
 
     void Update()
     {
-        if (!camControl.isRTSmode)
+        if (!camControl.panoramaScroll)
         {
             if (!stopOverride)
             {

@@ -7,7 +7,6 @@ using System;
 
 public class HumanSFX : MonoBehaviour
 {
-    public Player player;
     private Rigidbody rigidBody;
 
     [SerializeField] private EventReference WalkEventPath;
@@ -23,7 +22,7 @@ public class HumanSFX : MonoBehaviour
 
     private void Awake()
     {
-        playerSFX = player.GetComponentInChildren<AudioSFXManager>();
+        playerSFX = FindObjectOfType<AudioSFXManager>();
 
         WalkEventPath = playerSFX.WalkEventPath;
         HitTreeEventPath = playerSFX.HitTreeEventPath;

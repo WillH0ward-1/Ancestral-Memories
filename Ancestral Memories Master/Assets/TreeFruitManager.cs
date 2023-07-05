@@ -6,6 +6,7 @@ using UnityEngine;
 public class TreeFruitManager : MonoBehaviour
 {
     public GameObject fruitPrefab; // Assign this in the inspector
+    public Player player;
     public List<GameObject> fruits; // Stores the pooled fruit game objects
     public int maxFruits; // Maximum number of fruits we want to instantiate
     public float growTime = 3f;
@@ -21,31 +22,51 @@ public class TreeFruitManager : MonoBehaviour
     private LayerMask hitGroundLayer;
     private Queue<GameObject> fruitPool; // Pool of inactive fruit game objects
 
+    public MapObjGen mapObjGen;
+
+    public bool isBearingFruit = false;
+
     private void Awake()
     {
         hitGroundLayer = LayerMask.GetMask("Ground", "Water", "Rocks", "Cave");
         fruitPool = new Queue<GameObject>();
     }
 
+    // Declare a Dictionary to hold the references to the FoodAttributes of each fruit
+    public Dictionary<GameObject, FoodAttributes> fruitAttributesDict;
+
     public void InitializeFruits(int maxFruits)
     {
         fruits = new List<GameObject>();
         fruitPool = new Queue<GameObject>();
+        fruitAttributesDict = new Dictionary<GameObject, FoodAttributes>(); // Initialize the dictionary
 
         for (int i = 0; i < maxFruits; i++)
         {
             GameObject fruit = Instantiate(fruitPrefab);
             fruit.SetActive(false);
+            FoodAttributes foodAttributes = fruit.GetComponentInChildren<FoodAttributes>();
+            foodAttributes.treeFruitManager = this;
             DisableFruitGravity(fruit);
             fruits.Add(fruit);
             fruitPool.Enqueue(fruit);
+
+            fruitAttributesDict[fruit] = foodAttributes; // Store the reference to the FoodAttributes component in the dictionary
+        }
+
+        foreach (GameObject fruit in fruits)
+        {
+            mapObjGen.foodSourcesList.Add(fruit);
         }
     }
+
+
 
     public void SpawnFruits(List<Vector3> fruitPoints)
     {
         if (Random.value > 0.5f)
         {
+            isBearingFruit = false;
             return;
         }
 
@@ -73,6 +94,12 @@ public class TreeFruitManager : MonoBehaviour
             }
 
             GameObject fruit = fruitPool.Dequeue();
+
+            if (fruitAttributesDict.TryGetValue(fruit, out FoodAttributes foodAttributes))
+            {
+                foodAttributes.isDead = false;
+            }
+
             ResetFruit(fruit, fruitPoints[i]); // Reset the fruit's state and set its position
             fruit.SetActive(true);
             StartCoroutine(GrowFruit(fruit, fruit.transform));
@@ -212,10 +239,27 @@ public class TreeFruitManager : MonoBehaviour
         }
     }
 
+    public float waitToDecay = 5f;
+
+    public float DetermineFruitDecay()
+    {
+        float fruitDecayBuffer = player.faith / 10;
+
+        return fruitDecayBuffer;
+    }
+
     public IEnumerator Decay(GameObject fruit)
     {
         float decayBuffer = Random.Range(minDecayTime, maxDecayTime);
         float timeElapsed = 0;
+
+        waitToDecay = DetermineFruitDecay();
+
+        while (timeElapsed < waitToDecay)
+        {
+            yield return null;
+        }
+
 
         Vector3 initialScale = fruit.transform.localScale;  // Get the current scale of the fruit
         Vector3 targetScale = Vector3.zero;  // Set the target scale to zero
@@ -229,6 +273,10 @@ public class TreeFruitManager : MonoBehaviour
 
         fruit.transform.localScale = targetScale;
         fruit.SetActive(false);
+        if (fruitAttributesDict.TryGetValue(fruit, out FoodAttributes foodAttributes))
+        {
+            foodAttributes.isDead = true;
+        }
         fruitPool.Enqueue(fruit); // Add the fruit back to the pool for reuse
 
         yield break;

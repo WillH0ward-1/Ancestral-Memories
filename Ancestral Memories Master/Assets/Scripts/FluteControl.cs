@@ -48,7 +48,9 @@ public class FluteControl : MonoBehaviour
     */
 
     private Vector2 screenCenter;
- 
+
+    public bool fluteModeActive = false;
+
     private void Awake()
     {
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
@@ -63,6 +65,7 @@ public class FluteControl : MonoBehaviour
 
     public void EnableFluteControl()
     {
+        fluteModeActive = true;
         StartCoroutine(CastRayToScreen());
     }
 
@@ -172,7 +175,12 @@ public class FluteControl : MonoBehaviour
 
     public void StopAll()
     {
+        if (fluteModeActive)
+        {
+            fluteModeActive = false;
+        }
         StopFluteSound();
         StopAllCoroutines();
     }
 }
+

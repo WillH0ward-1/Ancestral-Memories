@@ -64,7 +64,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     const string PLAYER_THUNDERSTRUCK = "Player_thunderstruck";
     const string PLAYER_FALLFLATONFLOOR = "Player_FallFlatOnFloor";
-    const string PLAYER_FACEDOWNIDLE = "Player_FaceDownIdle"; 
+    const string PLAYER_FACEDOWNIDLE = "Player_FaceDownIdle";
 
     const string PLAYER_STANDUPFROMFLOOR = "Player_StandUpFromFloor";
     const string PLAYER_DROWN = "Player_Drown";
@@ -75,7 +75,7 @@ public class CharacterBehaviours : MonoBehaviour
 
 
     const string PLAYER_SLEEPING = "Player_SleepingOnFloor";
-  
+
     public string[] danceAnimClips;
 
     private float animationLength;
@@ -114,7 +114,7 @@ public class CharacterBehaviours : MonoBehaviour
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
         playerAudioSFX = player.GetComponentInChildren<AudioSFXManager>();
         vomit.Stop();
-        
+
         //animSpeed = player.activeAnimator.speed;
     }
 
@@ -167,27 +167,28 @@ public class CharacterBehaviours : MonoBehaviour
             case "Talk":
                 if (!dialogueIsActive)
                 {
-                StartCoroutine(Talk(hitObject));
+                    StartCoroutine(Talk(hitObject));
                 }
                 break;
             case "Sleep":
                 StartCoroutine(Sleep(hitObject));
+                break;
+            case "InstructHarvest":
+                HumanAI humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
+                if (humanAI != null)
+                {
+                    humanAI.ChangeState(HumanAI.AIState.Harvest);
+                }
+                else
+                {
+                    Debug.Log("No HumanAI component found on " + hitObject + "!");
+                }
                 break;
             case "PlayMusic":
                 StartCoroutine(PlayMusic());
                 break;
             case "ResetGame":
                 StartCoroutine(ResetGame());
-                break;
-            case "InstructHarvest":
-                HumanAI humanAI = hitObject.transform.GetComponentInChildren<HumanAI>();
-                if (humanAI != null)
-                {
-                    humanAI.ChangeState(HumanAI.AIState.Harvesting);
-                } else
-                {
-                    Debug.Log("No HumanAI component found on " + hitObject + "!");
-                }
                 break;
             //Look();
             default:
@@ -222,7 +223,8 @@ public class CharacterBehaviours : MonoBehaviour
     int randTarget = 1;
     private bool isSkeleton = false;
 
-    public IEnumerator Electrocution() {
+    public IEnumerator Electrocution()
+    {
 
         animSpeed = defaultAnimSpeed;
         behaviourIsActive = true;
@@ -254,7 +256,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         float timeOnFloor = Random.Range(GetAnimLength(), maxTimeOnFloor);
         yield return new WaitForSeconds(timeOnFloor);
-     
+
         player.ChangeAnimationState(PLAYER_STANDUPFROMFLOOR);
         float time = 0;
         float duration = GetAnimLength();
@@ -323,27 +325,24 @@ public class CharacterBehaviours : MonoBehaviour
         firstPersonController.SetActive(firstPersonCamActive);
         */
 
-       // behaviourIsActive = true;
+        behaviourIsActive = true;
 
-        cinematicCam.ToRTSMode();
-
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        clouds.ManualCloudOverrideStart();
+        cinematicCam.ToPanoramaZoom();
 
         //audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
 
-       // Debug.Log("Click to exit this action.");
-       // yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        Debug.Log("Click to exit this action.");
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-       // behaviourIsActive = false;
+        behaviourIsActive = false;
+        clouds.ManualCloudOverrideStop();
 
-     //   if (cinematicCam.panoramaScroll == true)
-     //   {
-      //      cinematicCam.panoramaScroll = false;
-     //   }
-   
+        cinematicCam.panoramaScroll = false;
+
         //audioListener.SetDefaultAttenuation();
 
-
+        cinematicCam.ToGameZoom();
 
         /*cinematicCamActive = !cinematicCamActive;
        firstPersonCamActive = !firstPersonCamActive;
@@ -378,7 +377,6 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
         cinematicCam.ToPrayerZoom();
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         StartCoroutine(GainFaith());
 
@@ -396,14 +394,14 @@ public class CharacterBehaviours : MonoBehaviour
         auraParticles.StopParticles();
 
         playerAudioSFX.StopPrayerAudio();
-       // pulseActive = false;
+        // pulseActive = false;
 
         player.ChangeAnimationState(PLAYER_PRAYER_END);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
-        
+
     }
 
     [SerializeField] private FluteControl fluteControl;
@@ -416,7 +414,7 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
         cinematicCam.ToPlayMusicZoom();
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         fluteControl.EnableFluteControl();
 
@@ -443,7 +441,8 @@ public class CharacterBehaviours : MonoBehaviour
             player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
             yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
 
-        } else
+        }
+        else
         {
             player.ChangeAnimationState(PLAYER_TOCROUCH);
             yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
@@ -614,7 +613,7 @@ public class CharacterBehaviours : MonoBehaviour
             cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
             cinematicCam.transform.SetParent(player.transform);
             cinematicCam.ToPsychedelicZoom();
-      
+
         }
 
         yield break;
@@ -666,7 +665,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
-         
+
         vomit.Play();
 
         player.ChangeAnimationState(PLAYER_VOMIT);
@@ -737,19 +736,16 @@ public class CharacterBehaviours : MonoBehaviour
         yield return null;
     }
 
-    float timeMultiplyFactor = 1f;
+    public float timeMultiplyFactor = 2;
 
     public IEnumerator Reflect()
     {
-        
+
         behaviourIsActive = true;
 
         cinematicCam.ToActionZoom();
-        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
-
         player.ChangeAnimationState(PLAYER_SITTINGFLOORIDLE);
 
-        timeMultiplyFactor = 2f;
         StartCoroutine(ChangeTimeScale(timeMultiplyFactor));
 
         Debug.Log("Click to exit this action.");
@@ -878,7 +874,7 @@ public class CharacterBehaviours : MonoBehaviour
         //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
 
         dialogueIsActive = true;
-        dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
+        dialogue = hitObject.transform.GetComponent<Dialogue>();
         dialogue.StartDialogue(dialogue, player);
 
         ToFrontCam();
@@ -911,7 +907,7 @@ public class CharacterBehaviours : MonoBehaviour
         return animLength;
     }
 
-  
+
 
 
 }

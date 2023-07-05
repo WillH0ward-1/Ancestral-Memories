@@ -27,6 +27,8 @@ public class TitleUIControl : MonoBehaviour
 
     public IEnumerator FadeTextToFullAlpha(float t)
     {
+        text.enabled = true;
+
         yield return new WaitForSeconds(fadeDelay);
 
         isFading = true;
@@ -59,6 +61,8 @@ public class TitleUIControl : MonoBehaviour
 
     public IEnumerator FadeTextToZeroAlpha(float t)
     {
+        text.enabled = true;
+
         isFading = true;
 
         text.color = new Color(text.color.r, text.color.g, text.color.b, alphaRange.y);

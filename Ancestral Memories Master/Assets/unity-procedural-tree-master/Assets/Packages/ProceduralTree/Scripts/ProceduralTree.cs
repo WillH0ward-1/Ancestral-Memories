@@ -18,6 +18,7 @@ namespace ProceduralModeling
 		[SerializeField, Range(0.5f, 5f)] protected float length = 1f;
 		[SerializeField, Range(0.1f, 2f)] protected float radius = 0.15f;
 		[SerializeField, Range(0f, 10f)] protected float leafSize = 0f;
+
 		[SerializeField] private Material leafMat;
 		const float PI2 = Mathf.PI * 2f;
 
@@ -28,6 +29,8 @@ namespace ProceduralModeling
 		private Transform leafRoot;
 
 		private TreeFruitManager treeFruitManager;
+
+		private bool generateMeshCollider = false;
 
 		void OnEnable()
 		{
@@ -63,6 +66,7 @@ namespace ProceduralModeling
 
 			treeInstance.GenerateLeaves(root, leafMat);
 			treeInstance.GenerateFruitPoints(root);
+			treeInstance.GenerateMeshCollider();
 
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
@@ -159,6 +163,26 @@ namespace ProceduralModeling
 				});
 			}
 			action(from);
+		}
+
+		void GenerateMeshCollider()
+        {
+			if (generateMeshCollider)
+			{
+				if (MeshCollider.sharedMesh != null)
+				{
+					if (Application.isPlaying)
+					{
+						Destroy(MeshCollider.sharedMesh);
+					}
+					else
+					{
+						DestroyImmediate(MeshCollider.sharedMesh);
+					}
+				}
+
+				MeshCollider.sharedMesh = Build();
+			}
 		}
 
 		public List<GameObject> leafList;

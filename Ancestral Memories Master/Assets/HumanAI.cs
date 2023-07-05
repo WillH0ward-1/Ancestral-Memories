@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Collections;
 using FIMSpace.FLook;
 using Pathfinding;
+using ProceduralModeling;
+using System;
 
 public class HumanAI : MonoBehaviour
 {
@@ -20,11 +22,12 @@ public class HumanAI : MonoBehaviour
     const string HARVEST = "Citizen_HarvestTree";
     const string PLANT = "Citizen_PlantTree";
     const string PICKUP = "Citizen_PickUp";
+    const string EATSTANDING = "Citizen_EatStanding";
     const string FLEE = "Citizen_RunScared";
     public const string GETUPFRONT = "Citizen_StandUpFromFront";
     public const string GETUPBACK = "Citizen_StandUpFromBack";
 
-    public enum AIState { Idle, Walking, Harvesting, Running, Following, Dialogue, Conversate }
+    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -44,7 +47,7 @@ public class HumanAI : MonoBehaviour
     Vector3 closestEdge;
     float distanceToEdge;
 
-    [SerializeField] float distanceToPlayer;
+    [SerializeField] float distanceToTarget;
 
     public FLookAnimator lookAnimator;
     private Interactable interactable;
@@ -77,67 +80,52 @@ public class HumanAI : MonoBehaviour
 
     private RichAI aiPath;
 
+    public bool inRange = false;
+
+    private void Awake()
+    {
+        formationController = FindObjectOfType<FormationController>();
+    }
+
+    public Dictionary<AIState, Action<GameObject>> stateActions = new Dictionary<AIState, Action<GameObject>>();
+
+
+
     void Start()
     {
-        /*
-        agent = GetComponent<NavMeshAgent>();
-        agent.stoppingDistance = 0;
-        agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
-        agent.autoBraking = false;
-        agent.radius = agentRadius;
-        */
 
         aiPath = transform.GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
         aiPath.acceleration = 10000;
-
         animator = transform.GetComponentInChildren<Animator>();
-
+        aiBehaviours = transform.GetComponentInChildren<AIBehaviours>();
         interactable = transform.GetComponent<Interactable>();
         fluteControl = player.GetComponentInChildren<FluteControl>();
         followManager = player.GetComponentInChildren<FollowersManager>();
-
         ragdollController = transform.GetComponentInChildren<RagdollController>();
-
-        treeLayer = LayerMask.GetMask("Trees");
-
         playerWalk = player.GetComponentInChildren<PlayerWalk>();
+
+        stateActions[AIState.Harvest] = (target) => StartCoroutine(Harvest(target));
+        stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
+
 
         ChangeState(AIState.Idle);
 
     }
 
-    void Update()
+    void LookAt()
     {
-        distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
-
-        UpdateRange();
-
         if (!ragdollController.isRagdollActive)
         {
-            if (player.faith <= 50)
+            if (inRange || fluteControl.fluteActive)
             {
-                shouldFlee = true;
-                interactable.enabled = false;
-
-                if (!inRange && !fluteControl.fluteActive)
-                {
-                    lookAnimator.enabled = false;
-                }
+                lookAnimator.enabled = true;
             }
-
-            else if (player.faith >= 50)
+            else
             {
-                shouldFlee = false;
-                interactable.enabled = true;
-
-                if (inRange || fluteControl.fluteActive)
-                {
-                    lookAnimator.enabled = true;
-                }
+                lookAnimator.enabled = false;
             }
         }
-
     }
 
 
@@ -205,7 +193,7 @@ public class HumanAI : MonoBehaviour
             previousIdlePoints.RemoveAt(0);
         }
 
-        time = Random.Range(minActionBuffer, maxActionBuffer);
+        time = UnityEngine.Random.Range(minActionBuffer, maxActionBuffer);
 
         behaviourActive = true;
 
@@ -228,16 +216,10 @@ public class HumanAI : MonoBehaviour
 
             int minChance = 0;
             int maxChance = 4;
-            int randNumber = Random.Range(minChance, maxChance);
+            int randNumber = UnityEngine.Random.Range(minChance, maxChance);
 
             if (time <= 0)
             {
-
-                if (randNumber <= maxChance / 2)
-                {
-                    ChangeState(AIState.Walking);
-                }
-                else
                 {
                     ChangeState(AIState.Idle);
                 }
@@ -252,6 +234,7 @@ public class HumanAI : MonoBehaviour
     public List<GameObject> NearbyAI;
     public bool isTalking = false;
     public bool isListening = false;
+    private FormationController formationController;
 
     private IEnumerator EnterConversation()
     {
@@ -271,7 +254,7 @@ public class HumanAI : MonoBehaviour
             previousIdlePoints.RemoveAt(0);
         }
 
-        time = Random.Range(minActionBuffer, maxActionBuffer);
+        time = UnityEngine.Random.Range(minActionBuffer, maxActionBuffer);
 
         behaviourActive = true;
 
@@ -300,9 +283,6 @@ public class HumanAI : MonoBehaviour
     private IEnumerator Walk(Vector3 destination)
     {
         ChangeAnimationState(WALK);
-
-        //agent.speed = walkingSpeed;
-        //agent.SetDestination(destination);
         aiPath.canMove = true;
         aiPath.maxSpeed = walkingSpeed;
 
@@ -312,7 +292,6 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
-
             if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
                 ChangeState(AIState.Following);
@@ -333,6 +312,7 @@ public class HumanAI : MonoBehaviour
     [SerializeField] float randWalkDistance;
 
     public float followDistance = 15f;
+    public FormationManager.FormationType Formation { get; set; }
 
     public void ChangeState(AIState newState)
     {
@@ -360,7 +340,7 @@ public class HumanAI : MonoBehaviour
                 followManager.RemoveFollower(transform.gameObject);
             }
 
-            randWalkDistance = Random.Range(minRandWalkDistance, maxRandWalkDistance);
+            randWalkDistance = UnityEngine.Random.Range(minRandWalkDistance, maxRandWalkDistance);
 
             switch (state)
             {
@@ -370,9 +350,19 @@ public class HumanAI : MonoBehaviour
                 case AIState.Conversate:
                     StartCoroutine(EnterConversation());
                     break;
-                case AIState.Harvesting:
-                    StartCoroutine(WalkToward(treeLayer));
+                case AIState.Harvest:
+                    GameObject tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
+                    if (tree != null)
+                    {
+                        // For example, make the agent walk towards a tree in a circle formation of size 5
+                        StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest]));
+                    }
+                    else
+                    {
+                        Debug.Log("No valid tree found. Can't start WalkToward.");
+                    }
                     break;
+
                 case AIState.Walking:
                     StartCoroutine(Walk(RandomNavSphere(transform.position, randWalkDistance)));
                     break;
@@ -380,10 +370,14 @@ public class HumanAI : MonoBehaviour
                     StartCoroutine(Run());
                     break;
                 case AIState.Following:
-                    StartCoroutine(Follow());
+                    StartCoroutine(Follow(player.transform));
                     break;
                 case AIState.Dialogue:
                     StartCoroutine(DialogueActive());
+                    break;
+                case AIState.HuntFood:
+                    GameObject fruit = GetClosest(mapObjGen.foodSourcesList, aiBehaviours.ValidateFruit);
+                    StartCoroutine(WalkTowards(fruit, formationController, FormationManager.FormationType.None, 0f, stateActions[AIState.Eat]));
                     break;
                 default:
                     break;
@@ -393,120 +387,120 @@ public class HumanAI : MonoBehaviour
         }
     }
 
-    private LayerMask treeLayer;
+    private GameObject GetClosest(List<GameObject> objects, AIBehaviours.ValidateObject validate)
+    {
+        GameObject closestGameObject = null;
+        float smallestDistance = float.MaxValue;
+
+        foreach (GameObject obj in objects)
+        {
+            if (!validate(obj))
+            {
+                continue;
+            }
+
+            float distance = Vector3.Distance(transform.position, obj.transform.position);
+
+            Debug.Log("Valid object " + obj.name + " at distance: " + distance);
+
+            if (distance < smallestDistance)
+            {
+                Debug.Log("New closest object found: " + obj.name);
+                smallestDistance = distance;
+                closestGameObject = obj;
+            }
+        }
+
+        if (closestGameObject == null)
+        {
+            Debug.Log("No valid objects found.");
+        }
+
+        return closestGameObject;
+    }
 
     public float inRangeThreshold = 5f;
     public float sphereCastRadius = 10f;
+    public float treeHarvestDistance = 15f;
 
-    [SerializeField] private List<Transform> hitTrees;
+    [SerializeField] private List<Transform> hitObjects;
 
     private bool isSphereCastVisualizerEnabled = false;
 
-    private IEnumerator WalkToward(LayerMask layer)
+    private AIBehaviours aiBehaviours;
+
+    private IEnumerator WalkTowards(GameObject target, FormationController formationController, FormationManager.FormationType formationType, float formationSize, Action<GameObject> action)
     {
-        if (isSphereCastVisualizerEnabled)
-        {
-            StartCoroutine(SphereCastVisualizer());
-        }
+        Debug.Log("Walking towards: " + target + "!");
 
-        Debug.Log("Looking for tree...");
-
-        bool cast = true;
-
-        Transform closestHit = null;
-
-        if (layer == treeLayer)
-        {
-            inRangeThreshold = playerWalk.treeHarvestStopDistance;
-        } else
-        {
-            inRangeThreshold = playerWalk.minimumStopDistance;
-        }
-
-        GameObject harvestObject = null;
-
-        while (cast)
-        {
-            hitTrees.Clear(); // Clear the list before each sphere cast
-
-            if (Physics.SphereCast(transform.position, sphereCastRadius, transform.forward, out RaycastHit hit, Mathf.Infinity, layer))
-            {
-                Transform hitTransform = hit.transform;
-                hitTrees.Add(hitTransform);
-            }
-
-            if (hitTrees.Count == 0)
-            {
-                // No trees were hit by the sphere cast.
-                yield return null;
-                continue;
-            }
-
-            foreach (Transform hitTransform in hitTrees)
-            {
-                GameObject hitObject = hitTransform.gameObject;
-                TreeDeathManager treeManager = hitObject.GetComponentInChildren<TreeDeathManager>();
-                ScaleControl treeGrowControl = hitObject.GetComponentInChildren<ScaleControl>();
-
-                if (treeGrowControl != null && !treeGrowControl.isFullyGrown)
-                {
-                    // The tree is not fully grown, look for another tree.
-                    continue;
-                }
-
-                if (treeManager != null && treeManager.treeDead)
-                {
-                    // The tree is dead, look for another tree.
-                    continue;
-                }
-
-                if (closestHit == null || Vector3.Distance(transform.position, hitTransform.position) < Vector3.Distance(transform.position, closestHit.position))
-                {
-                    closestHit = hitTransform;
-                }
-            }
-
-            if (closestHit == null)
-            {
-                // No trees are alive.
-                yield return null;
-                continue;
-            }
-
-            harvestObject = closestHit.gameObject;
-            Debug.Log("First " + closestHit.name);
-            yield return null;
-        }
-
-
-        ChangeAnimationState(WALK);
-
-        //agent.speed = walkingSpeed;
-        //agent.SetDestination(closestHit.position);
-
+        aiPath.endReachedDistance = treeHarvestDistance;
         aiPath.canMove = true;
-        aiPath.maxSpeed = walkingSpeed;
 
-        Vector3 destination = closestHit.position;
+        Vector3 destination = target.transform.position;
+
+        if (formationController != null && formationType != FormationManager.FormationType.None)
+        {
+            // First we need to get the group this agent belongs to
+            FormationController.Group group = formationController.GetGroupForAgent(this);
+            if (group != null)
+            {
+                // Get the positions of the formation
+                List<Vector3> formationPositions = FormationManager.GetPositions(target.transform.position, formationType, group.agents.Count, formationSize);
+                // Get this agent's index in the formation
+                int index = group.agents.IndexOf(this);
+                // Set the destination to the position corresponding to this agent in the formation
+                destination = formationPositions[index];
+            }
+        }
 
         aiPath.destination = destination;
 
         behaviourActive = true;
 
-        float distanceToDestination = Vector3.Distance(transform.position, destination);
-
-        while (behaviourActive && distanceToDestination > inRangeThreshold)
+        while (behaviourActive)
         {
-            distanceToDestination = Vector3.Distance(transform.position, destination);
+            UpdateRange(target.transform);
+
+            if (!aiPath.reachedDestination)
+            {
+                if (inRunningRange)
+                {
+                    ChangeAnimationState(RUN);
+                    aiPath.maxSpeed = runningSpeed;
+                }
+                else if (inWalkingRange)
+                {
+                    ChangeAnimationState(WALK);
+                    aiPath.maxSpeed = walkingSpeed;
+                }
+            }
+
+            if (aiPath.reachedDestination)
+            {
+                ChangeAnimationState(IDLE);
+                action(target); 
+            }
 
             yield return null;
         }
 
-        StartCoroutine(Harvest(harvestObject));
+        if (formationController != null)
+        {
+            formationController.UnregisterAgent(this);
+        }
+
+        ChangeAnimationState(IDLE);
 
         yield break;
-
     }
+
+
+
+    public void SetTargetPosition(Vector3 targetPosition)
+    {
+        aiPath.destination = targetPosition;
+    }
+
 
     public float sphereCastVisualizerDuration = 2;
 
@@ -531,8 +525,10 @@ public class HumanAI : MonoBehaviour
         Destroy(sphere);
     }
 
-    private IEnumerator Harvest(GameObject tree)
+    private IEnumerator Harvest(GameObject target)
     {
+        // Use target here as needed
+
         //agent.speed = 0f;
         //agent.ResetPath();
 
@@ -546,6 +542,25 @@ public class HumanAI : MonoBehaviour
 
         yield break;
     }
+
+    private IEnumerator PickUpEat(GameObject target)
+    {
+        // Use target here as needed
+
+        //agent.speed = 0f;
+        //agent.ResetPath();
+
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        ChangeAnimationState(PICKUP);
+
+        behaviourActive = true;
+
+        yield break;
+    }
+
 
     private IEnumerator DialogueActive()
     {
@@ -563,44 +578,35 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-    private IEnumerator Eat()
+    private IEnumerator Eat(GameObject food)
     {
-        //ChangeAnimationState(EAT);
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
 
-        behaviourActive = true;
+        float time = 0;
+        float duration = 0;
 
-        while (behaviourActive)
+        ChangeAnimationState(PICKUP);
+
+        time = 0;
+        duration = GetAnimLength();
+
+        while (time <= duration)
         {
-            while (time >= 0)
-            {
-                if (!inRange)
-                {
-                    if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
-                    {
-                        ChangeState(AIState.Following);
-                    }
-                }
+            time += Time.deltaTime / duration;
 
-                time -= Time.deltaTime;
+            yield return null;
+        }
 
-                yield return null;
-            }
+        ChangeAnimationState(EATSTANDING);
 
-            if (time <= 0)
-            {
-                int minChance = 0;
-                int maxChance = 4;
-                int randNumber = Random.Range(minChance, maxChance);
+        time = 0;
+        duration = GetAnimLength();
 
-                if (randNumber <= maxChance / 2)
-                {
-                    ChangeState(AIState.Walking);
-                }
-                else
-                {
-                    ChangeState(AIState.Idle);
-                }
-            }
+        while (time <= duration)
+        {
+            time += Time.deltaTime / duration;
 
             yield return null;
         }
@@ -614,8 +620,6 @@ public class HumanAI : MonoBehaviour
     private IEnumerator Run()
     {
         ChangeAnimationState(RUN);
-
-        //agent.speed = runningSpeed;
         aiPath.canMove = true;
         aiPath.maxSpeed = runningSpeed;
 
@@ -623,9 +627,6 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            //Set NavMesh Agent Speed
-            //agent.speed = runningSpeed;
-
             if (reverseFlee)
             {
                 if (aiPath.reachedDestination && timeStuck < 0)
@@ -642,24 +643,12 @@ public class HumanAI : MonoBehaviour
 
                 Vector3 runTo = transform.position + ((transform.position - player.transform.position) * fleeMultiplier);
                 distance = (transform.position - player.transform.position).sqrMagnitude;
-                //Find the closest NavMesh edge
-
-                /*
-                NavMeshHit hit;
-                if (NavMesh.FindClosestEdge(transform.position, out hit, NavMesh.AllAreas))
-                {
-                    closestEdge = hit.position;
-                    distanceToEdge = hit.distance;
-                    //Debug.DrawLine(transform.position, closestEdge, Color.red);
-                }
-                */
-
                 GraphNode nearestNode = AstarPath.active.GetNearest(transform.position, NNConstraint.Default).node;
+
                 if (nearestNode != null)
                 {
                     Vector3 closestEdge = nearestNode.ClosestPointOnNode(transform.position);
                     distanceToEdge = Vector3.Distance(transform.position, closestEdge);
-                    // Debug.DrawLine(transform.position, closestEdge, Color.red);
                 }
 
                 if (distanceToEdge < 1f)
@@ -668,7 +657,7 @@ public class HumanAI : MonoBehaviour
                     {
                         if (previousIdlePoints.Count > 0)
                         {
-                            runTo = previousIdlePoints[Random.Range(0, previousIdlePoints.Count - 1)];
+                            runTo = previousIdlePoints[UnityEngine.Random.Range(0, previousIdlePoints.Count - 1)];
                             reverseFlee = true;
                         }
                     }
@@ -676,11 +665,6 @@ public class HumanAI : MonoBehaviour
                     {
                         timeStuck += Time.deltaTime;
                     }
-                }
-                if (distance < rangeThreshold * rangeThreshold)
-                {
-                    //agent.SetDestination(runTo);
-                    aiPath.destination = runTo;
                 }
             }
                 
@@ -702,32 +686,34 @@ public class HumanAI : MonoBehaviour
         }
     }
 
-    private IEnumerator Follow()
+
+    private IEnumerator Follow(Transform target)
     {
         behaviourActive = true;
-
-        //agent.speed = walkingSpeed;
         aiPath.canMove = true;
-        aiPath.maxSpeed = walkingSpeed;
-
-        aiPath.destination = player.transform.position;
 
         while (behaviourActive)
         {
-            if (!inRange)
-            {
-                ChangeAnimationState(RUN);
-                aiPath.maxSpeed = runningSpeed;
+            UpdateRange(target);
+
+            aiPath.destination = player.transform.position;
+
+            if (!inRange) {
+                if (inRunningRange)
+                {
+                    ChangeAnimationState(RUN);
+                    aiPath.maxSpeed = runningSpeed;
+                }
+                else if (inWalkingRange)
+                {
+                    ChangeAnimationState(WALK);
+                    aiPath.maxSpeed = walkingSpeed;
+                }
             }
-            else
-            {
-                ChangeAnimationState(WALK);
-                aiPath.maxSpeed = walkingSpeed;
-            }
-            //agent.SetDestination(player.transform.position);
 
             if (aiPath.reachedDestination || inRange)
             {
+                ChangeAnimationState(IDLE);
                 ChangeState(AIState.Idle);
             }
 
@@ -737,42 +723,43 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-    bool DoneReachingDestination()
+    
+    public float walkingRange = 50f; // Set to desired constant value
+    public float minimumRange = 20f;
+    public bool inWalkingRange;
+    public bool inRunningRange;
+    public Transform target;
+
+    private void UpdateRange(Transform target)
     {
-        /*
-        if (!agent.pathPending)
-        {
-            if (agent.remainingDistance <= agent.stoppingDistance)
-            {
-                if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-                {
-                    //Done reaching the Destination
-                    return true;
-                }
-            }
-        }
-        */
+        // Calculate distance to the player
+        distanceToTarget = Vector3.Distance(transform.position, target.transform.position);
 
-        if (!aiPath.pathPending)
+        if (distanceToTarget <= minimumRange)
         {
-            if (aiPath.remainingDistance <= aiPath.endReachedDistance)
-            {
-                if (!aiPath.hasPath || aiPath.velocity.sqrMagnitude == 0f)
-                {
-                    // Done reaching the destination
-                    return true;
-                }
-            }
+            inWalkingRange = false;
+            inRunningRange = false;
+            inRange = true;
         }
-
-        return false;
+        // If distance is less than or equal to walking range, AI is in walking range
+        else if (distanceToTarget <= walkingRange)
+        {
+            inWalkingRange = true;
+            inRunningRange = false;
+            inRange = false;
+        }
+        // If distance is more than walking range, AI is in running range
+        else
+        {
+            inWalkingRange = false;
+            inRunningRange = true;
+            inRange = false;
+        }
     }
 
     public IEnumerator StopAllBehaviours()
     {
-        //agent.enabled = false;
         aiPath.enabled = false;
-
         animator.enabled = false;
         lookAnimator.enabled = false;
         StopAllCoroutines();
@@ -780,46 +767,15 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-    public float rangeThreshold = 50;
-    public bool inRange = false;
-
-    private void UpdateRange()
-    {
-        if (distanceToPlayer < rangeThreshold)
-        {
-            inRange = true;
-        }
-        else if (distanceToPlayer >= rangeThreshold)
-        {
-            inRange = false;
-        }
-    }
-
-    /*
-
     Vector3 RandomNavSphere(Vector3 origin, float distance)
     {
-        Vector3 randomDirection = Random.insideUnitSphere * distance;
-
-        randomDirection += origin;
-
-        NavMeshHit navHit;
-
-        NavMesh.SamplePosition(randomDirection, out navHit, distance, NavMesh.AllAreas);
-
-        return navHit.position;
-    }
-    */
-
-    Vector3 RandomNavSphere(Vector3 origin, float distance)
-    {
-        Vector3 randomDirection = Random.insideUnitSphere * distance;
+        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * distance;
         randomDirection += origin;
 
         NNInfo nearestNode = AstarPath.active.GetNearest(randomDirection);
         if (nearestNode.node != null && nearestNode.node.Walkable)
         {
-            return (Vector3)nearestNode.position;
+            return nearestNode.position;
         }
         else
         {
@@ -827,19 +783,15 @@ public class HumanAI : MonoBehaviour
         }
     }
 
-
     public virtual void ChangeAnimationState(string newState)
     {
-
         float crossFadeLength = animationCrossFade;
-
         if (currentState == newState)
         {
             return;
         }
 
         animator.CrossFadeInFixedTime(newState, crossFadeLength);
-
         currentState = newState;
     }
 
@@ -862,10 +814,8 @@ public class HumanAI : MonoBehaviour
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
         int startStateNameHash = stateInfo.fullPathHash;
 
-        // Wait for one frame to ensure the animation has started
         yield return null;
 
-        // Wait until the animation has looped back or the animator has transitioned to a new state
         while (true)
         {
             stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);

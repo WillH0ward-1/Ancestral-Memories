@@ -332,11 +332,9 @@ public class MapObjGen : MonoBehaviour
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
-        HumanPoissonDisc(humanSampler);
         SpawnPointsPoissonDisc(spawnPointsSampler);
-
+        HumanPoissonDisc(humanSampler);
         ProceduralTreePoissonDisc(treeSampler);
-
 
         SetOffset();
 
@@ -530,18 +528,16 @@ public class MapObjGen : MonoBehaviour
             float randomZScale = humanAverageScale.z;
 
             humanInstance.transform.localScale = new Vector3(randomXScale, randomYScale, randomZScale);
-
-
             humanInstance.transform.SetParent(hierarchyRoot.transform);
 
             LerpDeformation deform = humanInstance.transform.GetComponentInChildren<LerpDeformation>();
             deform.player = player;
             deform.enabled = false;
 
-            //NavMeshAgent agent = animalInstance.GetComponentInChildren<NavMeshAgent>();
             HumanAI humanAI = humanInstance.GetComponentInChildren<HumanAI>();
             humanAI.player = player;
             humanAI.playerBehaviours = behaviours;
+            humanAI.mapObjGen = this;
 
             FLookAnimator lookAnimator = humanInstance.GetComponentInChildren<FLookAnimator>();
             lookAnimator.enabled = true;
@@ -697,6 +693,8 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    public List<GameObject> foodSourcesList;
+
     void ProceduralTreePoissonDisc(PoissonDiscSampler treeSampler)
     {
 
@@ -719,13 +717,17 @@ public class MapObjGen : MonoBehaviour
 
             PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
             ptGrow.mapObjGen = this;
+
             ptGrow.weatherControl = rainControl;
 
             TreeAudioManager treeAudioManager = treeInstance.transform.GetComponentInChildren<TreeAudioManager>();
             treeAudioManager.timeManager = timeCycleManager;
             treeAudioManager.weatherManager = weather;
 
-            
+            TreeFruitManager treeFruitManager = treeInstance.transform.GetComponentInChildren<TreeFruitManager>();
+            treeFruitManager.player = player;
+            treeFruitManager.mapObjGen = this;
+
             //ptGrow.GrowTree();
 
             int treeLayer = LayerMask.NameToLayer("Trees");

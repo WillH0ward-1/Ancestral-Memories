@@ -105,6 +105,12 @@ public class RPCamera : MonoBehaviour {
 		return m;
 	}
 
+	[Tooltip("Base of the exponential function used for the scale factor.")]
+	public float scaleFactorBase = 2.0f;
+
+	[Tooltip("Multiplier for the direction of the ray.")]
+	public float directionMultiplier = 1.0f;
+
 	public Ray CustomScreenPointToRay(Vector3 screenPosition)
 	{
 		Vector3 normalizedViewportPosition = new Vector3(
@@ -121,14 +127,14 @@ public class RPCamera : MonoBehaviour {
 		Vector3 nearWorldPos = cameraToWorldMatrix.MultiplyPoint3x4(projectionMatrixInverse.MultiplyPoint3x4(nearClipPos));
 		Vector3 farWorldPos = cameraToWorldMatrix.MultiplyPoint3x4(projectionMatrixInverse.MultiplyPoint3x4(farClipPos));
 
-		// Adjust the positions using the perspective
-		float adjustedPerspective = 1 + perspective * 0.01f;
-		nearWorldPos.y /= adjustedPerspective;
-		farWorldPos.y /= adjustedPerspective;
+		// Compute an exponential scale factor based on the distance from the center of the screen
+		float scaleFactor = Mathf.Pow(scaleFactorBase, Mathf.Abs(normalizedViewportPosition.x) + Mathf.Abs(normalizedViewportPosition.y));
 
-		return new Ray(nearWorldPos, farWorldPos - nearWorldPos);
+		// Scale the ray's direction by the scale factor and direction multiplier
+		Vector3 direction = directionMultiplier * scaleFactor * (farWorldPos - nearWorldPos);
+
+		return new Ray(nearWorldPos, direction);
 	}
-
 
 
 

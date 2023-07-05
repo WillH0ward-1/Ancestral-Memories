@@ -207,25 +207,32 @@ public class MusicManager : MonoBehaviour
     // or one semitone lower than the input note index (noteName), based on a
     // 50/50 random chance. 
 
-    public string GetClosestValidNote(string noteName)
+    public string GetClosestValidNote(string noteName, string[] mode)
     {
         string[] chromaticScale = ModeInfo[Modes.Chromatic];
-
         int noteIndex = Array.IndexOf(chromaticScale, noteName); // Get the index of this note in the chromatic scale
 
         int newNoteIndex;
+        string newNote;
 
-        if (UnityEngine.Random.value >= 0.5f) 
+        do
         {
-            newNoteIndex = noteIndex + 1;
-        }
-        else
-        {
-            newNoteIndex = noteIndex - 1;
-        }
+            if (UnityEngine.Random.value >= 0.5f)
+            {
+                newNoteIndex = (noteIndex + 1) % chromaticScale.Length;
+            }
+            else
+            {
+                newNoteIndex = (noteIndex - 1 + chromaticScale.Length) % chromaticScale.Length; // prevent negative index
+            }
 
-        return chromaticScale[newNoteIndex % chromaticScale.Length]; // Safeguard to prevent exceeding array bounds
-    }                                                                
+            newNote = chromaticScale[newNoteIndex];
+            noteIndex = newNoteIndex;
+
+        } while (!mode.Contains(newNote)); // repeat until we find a valid note
+
+        return newNote;
+    }
 
     public EventReference GetInstrumentEvent(string instrumentName)
     {
@@ -270,7 +277,7 @@ public class MusicManager : MonoBehaviour
                     activeVoices.Remove(instrumentInstance);
                     activeNotes.Remove(noteName);
 
-                    string newNote = GetClosestValidNote(noteName);
+                    string newNote = GetClosestValidNote(noteName, notesToUse);
                     StartCoroutine(PlayNote(InstrumentInfo[Instruments.Strings].ToString(), 1, newNote, true));
 
                     instrumentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);

@@ -22,31 +22,44 @@ namespace ProceduralModeling
 			}
 		}
 
+		public MeshCollider MeshCollider
+        {
+            get
+            {
+				if(meshCollider == null)
+                {
+					meshCollider = GetComponent<MeshCollider>();
+                }
+				return meshCollider;
+            }
+        }
 		MeshFilter filter;
+		MeshCollider meshCollider;
 
 		protected virtual void Start()
 		{
 			Rebuild();
 		}
 
-		public void Rebuild()
-		{
-			if (Filter.sharedMesh != null)
-			{
-				if (Application.isPlaying)
-				{
-					Destroy(Filter.sharedMesh);
-				}
-				else
-				{
-					DestroyImmediate(Filter.sharedMesh);
-				}
-			}
+        public void Rebuild()
+        {
+            if (Filter.sharedMesh != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(Filter.sharedMesh);
+                }
+                else
+                {
+                    DestroyImmediate(Filter.sharedMesh);
+                }
+            }
 
-			Filter.sharedMesh = Build();
-		}
+            Filter.sharedMesh = Build();
+        }
 
-		protected abstract Mesh Build();
+
+        protected abstract Mesh Build();
 		public abstract void ClearLeaves();
 	}
 

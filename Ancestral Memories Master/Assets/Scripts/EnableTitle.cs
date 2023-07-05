@@ -1,21 +1,43 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
-public class EnableTitle : MonoBehaviour
+public class MouseClickWaiter : MonoBehaviour
 {
-    void Awake()
-    {
-        foreach(Transform text in transform.GetComponentInChildren<Transform>())
-        {
-            TextMeshProUGUI txtGUI = text.GetComponent<TextMeshProUGUI>();
+    [SerializeField] private CamControl camControl;
+    [SerializeField] private TitleUIControl titleControlUI;
 
-            if (!txtGUI.enabled)
-            {
-                txtGUI.enabled = true;
-            }
-        }
+    [SerializeField] private bool waitForClick = true;
+
+    private void Awake()
+    {
+        camControl = FindObjectOfType<CamControl>();
+        titleControlUI = GetComponentInChildren<TitleUIControl>();
     }
 
+    private void Start()
+    {
+        StartCoroutine(WaitForMouseClick());
+    }
+
+    private IEnumerator WaitForMouseClick()
+    {
+        // Start any necessary coroutines or logic before waiting for the mouse click
+        titleControlUI.StartCoroutine(titleControlUI.FadeTextToFullAlpha(2f));
+
+        waitForClick = true;
+
+        while (waitForClick)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                camControl.ToSpawnZoom();
+                titleControlUI.StartCoroutine(titleControlUI.FadeTextToZeroAlpha(2f));
+                waitForClick = false;
+            }
+
+            yield return null;
+        }
+
+        yield break;
+    }
 }
