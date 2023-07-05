@@ -46,6 +46,15 @@ public class HumanSFX : MonoBehaviour
         footStepInstance.release();
     }
 
+    void HitTree()
+    {
+        EventInstance hitTreeInstance = RuntimeManager.CreateInstance(HitTreeEventPath);
+        RuntimeManager.AttachInstanceToGameObject(hitTreeInstance, transform, rigidBody);
+
+        hitTreeInstance.start();
+        hitTreeInstance.release();
+    }
+
     public void PlayPrayerAudioLoop()
     {
         EventInstance prayerInstance = RuntimeManager.CreateInstance(PrayerEventPath);

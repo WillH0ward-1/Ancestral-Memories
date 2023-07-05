@@ -477,19 +477,18 @@ public class HumanAI : MonoBehaviour
 
             if (aiPath.reachedDestination)
             {
-                ChangeAnimationState(IDLE);
-                action(target); 
+                behaviourActive = false;
             }
 
             yield return null;
         }
 
+        action(target);
+
         if (formationController != null)
         {
             formationController.UnregisterAgent(this);
         }
-
-        ChangeAnimationState(IDLE);
 
         yield break;
     }
@@ -527,10 +526,7 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Harvest(GameObject target)
     {
-        // Use target here as needed
-
-        //agent.speed = 0f;
-        //agent.ResetPath();
+        PTGrowing ptGrow = target.GetComponentInChildren<PTGrowing>();
 
         aiPath.maxSpeed = 0f;
         aiPath.destination = transform.position;
@@ -539,6 +535,17 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HARVEST);
 
         behaviourActive = true;
+
+        while (behaviourActive)
+        {
+            if (ptGrow.isDead || !ptGrow.isFullyGrown)
+            {
+                ChangeState(AIState.Harvest);
+                yield break;
+            }
+
+            yield return null;
+        }
 
         yield break;
     }
@@ -792,8 +799,13 @@ public class HumanAI : MonoBehaviour
         }
 
         animator.CrossFadeInFixedTime(newState, crossFadeLength);
+
+        animator.SetBool("Mirror", UnityEngine.Random.value > 0.5f);
+
+
         currentState = newState;
     }
+
 
     public virtual void AdjustAnimationSpeed(float newSpeed)
     {

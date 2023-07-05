@@ -62,7 +62,17 @@
 			<destination>{b09f4bbc-4289-4b74-ba7d-71242fe77377}</destination>
 		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{f73493e1-f967-4718-b725-66f450146a6b}" />
+	<object class="EventAutomatableProperties" id="{f73493e1-f967-4718-b725-66f450146a6b}">
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
+		<property name="maximumDistance">
+			<value>200</value>
+		</property>
+	</object>
 	<object class="MarkerTrack" id="{97d0d65d-a8d3-43e0-acdd-a89c1a08d372}" />
 	<object class="GroupTrack" id="{4995d382-b4db-4322-aa4f-0e6bf590afba}">
 		<relationship name="mixerGroup">
@@ -157,7 +167,11 @@
 			<value>0.899999976</value>
 		</property>
 	</object>
-	<object class="SpatialiserEffect" id="{66dc870c-2c40-4266-9858-4b942c6d5a54}" />
+	<object class="SpatialiserEffect" id="{66dc870c-2c40-4266-9858-4b942c6d5a54}">
+		<property name="maximumDistance">
+			<value>200</value>
+		</property>
+	</object>
 	<object class="ThreeEQEffect" id="{4289be09-8cb9-4fcd-9abf-206251baeb11}">
 		<property name="lowGain">
 			<value>0.5</value>
