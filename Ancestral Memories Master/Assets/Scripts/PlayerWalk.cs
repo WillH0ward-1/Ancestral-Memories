@@ -486,6 +486,10 @@ public class PlayerWalk : MonoBehaviour
                 destinationGizmo.transform.localScale = defaultBoundsSize * 2;
                 inRangeThreshold = talkStopDistance;
                 break;
+            case "InstructHunt":
+                destinationGizmo.transform.localScale = defaultBoundsSize * 2;
+                inRangeThreshold = talkStopDistance;
+                break;
             default:
                 boundsSize = hitObject.GetComponentInChildren<Renderer>().bounds.size;
                 destinationGizmo.transform.localScale = boundsSize;

@@ -27,7 +27,7 @@ public class HumanAI : MonoBehaviour
     public const string GETUPFRONT = "Citizen_StandUpFromFront";
     public const string GETUPBACK = "Citizen_StandUpFromBack";
 
-    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat }
+    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -107,7 +107,7 @@ public class HumanAI : MonoBehaviour
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(Harvest(target));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
-
+        stateActions[AIState.Attack] = (target) => StartCoroutine(Attack(target));
 
         ChangeState(AIState.Idle);
 
@@ -355,7 +355,7 @@ public class HumanAI : MonoBehaviour
                     if (tree != null)
                     {
                         // For example, make the agent walk towards a tree in a circle formation of size 5
-                        StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest]));
+                        StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
                     }
                     else
                     {
@@ -377,7 +377,11 @@ public class HumanAI : MonoBehaviour
                     break;
                 case AIState.HuntFood:
                     GameObject fruit = GetClosest(mapObjGen.foodSourcesList, aiBehaviours.ValidateFruit);
-                    StartCoroutine(WalkTowards(fruit, formationController, FormationManager.FormationType.None, 0f, stateActions[AIState.Eat]));
+                    StartCoroutine(WalkTowards(fruit, formationController, FormationManager.FormationType.None, 0f, stateActions[AIState.Eat], treeHarvestDistance));
+                    break;
+                case AIState.HuntMeat:
+                    GameObject animal = GetClosest(mapObjGen.huntableAnimalsList, aiBehaviours.ValidateAnimal);
+                    StartCoroutine(WalkTowards(animal, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Attack], attackStoppingDistance));
                     break;
                 default:
                     break;
@@ -422,6 +426,7 @@ public class HumanAI : MonoBehaviour
     public float inRangeThreshold = 5f;
     public float sphereCastRadius = 10f;
     public float treeHarvestDistance = 15f;
+    public float attackStoppingDistance = 5f;
 
     [SerializeField] private List<Transform> hitObjects;
 
@@ -429,11 +434,13 @@ public class HumanAI : MonoBehaviour
 
     private AIBehaviours aiBehaviours;
 
-    private IEnumerator WalkTowards(GameObject target, FormationController formationController, FormationManager.FormationType formationType, float formationSize, Action<GameObject> action)
+    private IEnumerator WalkTowards(GameObject target, FormationController formationController, FormationManager.FormationType formationType, float formationSize, Action<GameObject> action, float stoppingDistance)
     {
         Debug.Log("Walking towards: " + target + "!");
 
-        aiPath.endReachedDistance = treeHarvestDistance;
+        aiPath.endReachedDistance = stoppingDistance;
+
+
         aiPath.canMove = true;
 
         Vector3 destination = target.transform.position;
@@ -524,6 +531,9 @@ public class HumanAI : MonoBehaviour
         Destroy(sphere);
     }
 
+    [SerializeField] float minAnimationSpeed = 1;
+    [SerializeField] float maxAnimationSpeed = 4;
+
     private IEnumerator Harvest(GameObject target)
     {
         PTGrowing ptGrow = target.GetComponentInChildren<PTGrowing>();
@@ -532,9 +542,8 @@ public class HumanAI : MonoBehaviour
         aiPath.destination = transform.position;
         aiPath.canMove = false;
 
-        ChangeAnimationState(HARVEST);
-
         behaviourActive = true;
+        StartCoroutine(HarvestAnimation(target.transform));
 
         while (behaviourActive)
         {
@@ -548,6 +557,108 @@ public class HumanAI : MonoBehaviour
         }
 
         yield break;
+    }
+
+    public float minInterval = 0.5f; // Minimum interval in seconds
+    public float maxInterval = 2.0f; // Maximum interval in seconds
+
+    private float GetRandomAnimationSpeed()
+    {
+        return UnityEngine.Random.Range(minAnimationSpeed, maxAnimationSpeed);
+    }
+
+    private float GetRandomInterval()
+    {
+        return UnityEngine.Random.Range(minInterval, maxInterval);
+    }
+
+    private IEnumerator ChangeSpeedOverTime(Transform target)
+    {
+        float randomAnimationSpeed = GetRandomAnimationSpeed();
+        float randomInterval = GetRandomInterval();
+        StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
+
+        yield return new WaitForSeconds(randomInterval);
+
+        animator.speed = 1.0f; // Reset animation speed to normal when finished
+    }
+
+    private IEnumerator HarvestAnimation(Transform target)
+    {
+        behaviourActive = true;
+
+        while (behaviourActive)
+        {
+            transform.LookAt(target);
+
+            StartCoroutine(ChangeSpeedOverTime(target));
+            ChangeAnimationState(HARVEST);
+
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    // Animation states
+    private const string ATTACK1 = "Citizen_Attack1";
+    private const string ATTACK2 = "Citizen_Attack2";
+    private const string ATTACK3 = "Citizen_Attack3";
+    private const string ATTACK4 = "Citizen_Attack4";
+    private const string ATTACK5 = "Citizen_Attack5";
+
+    List<string> attackAnimations = new List<string> { ATTACK1, ATTACK2, ATTACK3, ATTACK4, ATTACK5 };
+
+    private IEnumerator PerformRandomActionOverTime(Transform target, List<string> animations)
+    {
+        float randomAnimationSpeed = GetRandomAnimationSpeed();
+        float randomInterval = GetRandomInterval();
+
+        string randomAnimationState = animations[UnityEngine.Random.Range(0, animations.Count)];
+
+        ChangeAnimationState(randomAnimationState);
+        StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
+
+        yield return new WaitForSeconds(randomInterval);
+
+        animator.speed = 1.0f; // Reset animation speed to normal when finished
+    }
+
+    private IEnumerator Attack(GameObject target)
+    {
+        behaviourActive = true;
+        AnimalAI animalAI = target.GetComponentInChildren<AnimalAI>();
+
+        while (behaviourActive)
+        {
+            transform.LookAt(target.transform);
+            StartCoroutine(PerformRandomActionOverTime(target.transform, attackAnimations));
+
+            if (animalAI.isDead)
+            {
+                ChangeState(AIState.HuntMeat);
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    private IEnumerator SmoothlyChangeAnimationSpeed(float targetSpeed, float duration)
+    {
+        float startSpeed = animator.speed;
+        float timeElapsed = 0;
+
+        while (timeElapsed < duration)
+        {
+            animator.speed = Mathf.Lerp(startSpeed, targetSpeed, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        animator.speed = targetSpeed;
     }
 
     private IEnumerator PickUpEat(GameObject target)
@@ -799,8 +910,8 @@ public class HumanAI : MonoBehaviour
         }
 
         animator.CrossFadeInFixedTime(newState, crossFadeLength);
-
         animator.SetBool("Mirror", UnityEngine.Random.value > 0.5f);
+
 
 
         currentState = newState;

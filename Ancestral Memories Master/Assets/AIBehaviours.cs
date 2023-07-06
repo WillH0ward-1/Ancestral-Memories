@@ -34,6 +34,12 @@ public class AIBehaviours : MonoBehaviour
         return foodAttributes != null && !foodAttributes.isDead;
     }
 
+    public bool ValidateAnimal(GameObject animal)
+    {
+        AnimalAI animalAI = animal.GetComponentInChildren<AnimalAI>();
+        return animalAI != null && !animalAI.isDead;
+    }
+
 
 
     // Define other AI behaviour methods here

@@ -358,6 +358,7 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(npcList);
         ListCleanup(grassList);
         ListCleanup(humanPopulationList);
+        ListCleanup(huntableAnimalsList);
 
         mapObjectsGenerated = true;
 
@@ -461,6 +462,7 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    public List<GameObject> huntableAnimalsList;
 
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
     {
@@ -500,7 +502,7 @@ public class MapObjGen : MonoBehaviour
 
             mapObjectList.Add(animalInstance);
             npcList.Add(animalInstance);
-
+            huntableAnimalsList.Add(animalInstance);
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }

@@ -66,6 +66,8 @@ public class AnimalAI : MonoBehaviour
 
     private RichAI aiPath;
 
+    public bool isDead = false;
+
     void Start()
     {
         //agent = GetComponent<NavMeshAgent>();
@@ -223,6 +225,7 @@ public class AnimalAI : MonoBehaviour
 
     private void ChangeState(AIState newState)
     {
+        isDead = false;
         StopAllCoroutines();
         behaviourActive = false;
         currentAIState = newState;

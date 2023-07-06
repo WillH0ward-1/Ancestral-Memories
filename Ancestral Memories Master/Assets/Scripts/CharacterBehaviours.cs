@@ -118,10 +118,17 @@ public class CharacterBehaviours : MonoBehaviour
         //animSpeed = player.activeAnimator.speed;
     }
 
+    HumanAI humanAI;
+
     public void ChooseBehaviour(string selected, GameObject hitObject)
     {
         animSpeed = defaultAnimSpeed;
         player.AdjustAnimationSpeed(animSpeed);
+
+        if (hitObject.CompareTag("Human"))
+        {
+             humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
+        }
 
         switch (selected)
         {
@@ -174,10 +181,19 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(Sleep(hitObject));
                 break;
             case "InstructHarvest":
-                HumanAI humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
                 if (humanAI != null)
                 {
                     humanAI.ChangeState(HumanAI.AIState.Harvest);
+                }
+                else
+                {
+                    Debug.Log("No HumanAI component found on " + hitObject + "!");
+                }
+                break;
+            case "InstructHunt":
+                if (humanAI != null)
+                {
+                    humanAI.ChangeState(HumanAI.AIState.HuntMeat);
                 }
                 else
                 {
