@@ -8,9 +8,9 @@ public interface IStats
     void SetHealth(int value);
     void TakeDamage(float damageTaken);
     void FaithModify(float faithModifer);
-    void Evolve(float evolution);
     void ContractDisease();
     void PsychModifier(float psychFactor);
     void Hunger(float hungerFactor);
     void HealHunger(float hungerFactor);
+    void DiseaseDamage();
 }

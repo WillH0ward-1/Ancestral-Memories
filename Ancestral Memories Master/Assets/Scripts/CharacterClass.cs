@@ -85,9 +85,9 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public Shake earthQuake;
 
-    public float depleteHealthFactor = 0.1f;
-    public float depleteFaithFactor = -0.01f;
-    public float depleteHungerFactor = 0.1f;
+    public float healthFactor = 0.1f;
+    public float faithFactor = -0.01f;
+    public float hungerFactor = 0.1f;
 
     public GameObject spawnDestination;
 
@@ -209,11 +209,10 @@ public class CharacterClass : MonoBehaviour, IStats
     {
         if (!isBlessed)
         {
-            FaithModify(depleteFaithFactor);
-            Hunger(depleteHungerFactor);
+            FaithModify(faithFactor);
+            Hunger(hungerFactor);
         }
     }
-
 
     public virtual void SetHealth(int value)
     {
@@ -293,6 +292,7 @@ public class CharacterClass : MonoBehaviour, IStats
     public virtual event Action<float, float, float> OnFaithChanged;
     public virtual event Action<float, float, float> OnHungerChanged;
     public virtual event Action<float, float, float> OnPsychChanged;
+    public event Action<float> OnDiseaseDamageApplied;
 
     public bool isBlessed = false;
 
@@ -414,7 +414,7 @@ public class CharacterClass : MonoBehaviour, IStats
         if (hunger <= minStat)
         {
             hunger = minStat;
-            TakeDamage(depleteHealthFactor);
+            TakeDamage(healthFactor);
         }
     }
 
@@ -448,62 +448,26 @@ public class CharacterClass : MonoBehaviour, IStats
         }
     }
 
-    int diseaseIndex;
+    private protected Disease Disease { get; private set; }
 
-    public virtual void ContractDisease()
+    public void ContractDisease()
     {
-        if (!isDiseased) { 
-        diseaseIndex = Random.Range(0, diseaseSeverities.Length - 1);
-        NotifyOfDisease(diseaseIndex); // Factor in current health, faith, age etc...
-        }
-    }
-
-    private void NotifyOfDisease(int diseaseIndex)
-    {
-
-        for (int i = 0; i < diseaseSeverities.Length; i++)
+        if (!Disease.IsContracted)
         {
-            diseaseSeverity = diseaseSeverities[diseaseIndex];
-            Debug.Log("Player has been infected with a " + diseaseSeverity + " disease!"); // Make so that there are stages. Mild, Severe, Fatal, Terminal
-
-            isDiseased = true;
+            int diseaseIndex = UnityEngine.Random.Range(0, Disease.Severity.Length);
+            Disease.Contract();
         }
     }
 
-    string[] diseaseSeverities = { "mild", "severe", "fatal", "terminal" };
-    string diseaseSeverity = "";
-
-    int diseaseMultiplier;
-
-    private void DiseaseDamage()
+    public void DiseaseDamage()
     {
-        switch (diseaseSeverity)
+        if (Disease.IsContracted)
         {
-            case "mild":
-                diseaseMultiplier = 2;
-                TakeDamage(0.00005f * diseaseMultiplier);
-                break;
-
-            case "severe":
-                diseaseMultiplier = 2;
-                TakeDamage(0.00005f * diseaseMultiplier);
-                break;
-
-            case "fatal":
-                diseaseMultiplier = 2;
-                TakeDamage(0.00005f * diseaseMultiplier);
-                break;
-
-            case "terminal":
-                diseaseMultiplier = 2;
-                TakeDamage(0.00005f * diseaseMultiplier);
-                break;
+            float damage = 0.00005f * Disease.GetDamageMultiplier();
+            TakeDamage(damage);
+            OnDiseaseDamageApplied?.Invoke(damage);
         }
     }
 
-    public void HealDisease()
-    {
-        Debug.Log("Player has miraculously recovered from" + diseaseSeverity + "disease!");
-        isDiseased = false;
-    }
+
 }

@@ -531,8 +531,8 @@ public class HumanAI : MonoBehaviour
         Destroy(sphere);
     }
 
-    [SerializeField] float minAnimationSpeed = 1;
-    [SerializeField] float maxAnimationSpeed = 4;
+    [SerializeField] float minAnimationSpeed = 0.9f;
+    [SerializeField] float maxAnimationSpeed = 2.2f;
 
     private IEnumerator Harvest(GameObject target)
     {
@@ -619,13 +619,25 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(randomAnimationState);
         StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
 
-        yield return new WaitForSeconds(randomInterval);
+        float duration = GetAnimLength();
+
+        float time = 0;
+        while (time <= duration)
+        {
+            time += Time.deltaTime / randomAnimationSpeed;
+            yield return null;
+        }
 
         animator.speed = 1.0f; // Reset animation speed to normal when finished
     }
 
+
     private IEnumerator Attack(GameObject target)
     {
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
         behaviourActive = true;
         AnimalAI animalAI = target.GetComponentInChildren<AnimalAI>();
 

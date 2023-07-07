@@ -40,6 +40,8 @@ public class FluteControl : MonoBehaviour
 
     [SerializeField] private float faithFactor = 0.25f;
 
+    public MapObjGen mapObjGen;
+
     /*
     private void Awake()
     {
@@ -47,20 +49,24 @@ public class FluteControl : MonoBehaviour
     }
     */
 
+
     private Vector2 screenCenter;
 
     public bool fluteModeActive = false;
 
     private void Awake()
     {
+        mapObjGen = FindObjectOfType<MapObjGen>();
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
     }
 
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
+    private StatsManager statsManager;
 
     private void Start()
     {
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+        statsManager = FindObjectOfType<StatsManager>();
     }
 
     public void EnableFluteControl()
@@ -122,6 +128,11 @@ public class FluteControl : MonoBehaviour
             }
 
             player.FaithModify(faithFactor);
+
+            foreach (AICharacterStats stats in mapObjGen.allHumanStats)
+            {
+                stats.FaithModify(faithFactor / 100);
+            }
 
             yield return null;
         }

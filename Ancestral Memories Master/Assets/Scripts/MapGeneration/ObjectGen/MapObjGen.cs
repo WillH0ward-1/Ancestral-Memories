@@ -509,6 +509,7 @@ public class MapObjGen : MonoBehaviour
     }
 
     public List<GameObject> humanPopulationList;
+    public List<AICharacterStats> allHumanStats;
 
     void HumanPoissonDisc(PoissonDiscSampler humanSampler)
     {
@@ -540,6 +541,9 @@ public class MapObjGen : MonoBehaviour
             humanAI.player = player;
             humanAI.playerBehaviours = behaviours;
             humanAI.mapObjGen = this;
+
+            AICharacterStats humanStats = humanInstance.GetComponentInChildren<AICharacterStats>();
+            allHumanStats.Add(humanStats);
 
             FLookAnimator lookAnimator = humanInstance.GetComponentInChildren<FLookAnimator>();
             lookAnimator.enabled = true;

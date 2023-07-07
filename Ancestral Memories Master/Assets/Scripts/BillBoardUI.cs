@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BillBoardUI : MonoBehaviour
 {
-    public Camera camera;
+    public new Camera camera;
 
     void Update()
     {
