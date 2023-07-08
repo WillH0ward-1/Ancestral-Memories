@@ -5,7 +5,7 @@ using System.Linq;
 
 public class LerpTerrain : MonoBehaviour
 {
-    public CharacterClass player;
+    public Player player;
 
     public float Desert = 0f;
 

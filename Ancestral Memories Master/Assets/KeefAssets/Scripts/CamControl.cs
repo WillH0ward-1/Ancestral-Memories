@@ -18,7 +18,7 @@ public class CamControl : MonoBehaviour
     [Header("========================================================================================================================")]
     [Header("Camera Target Attributes")]
 
-    public CharacterClass player;
+    public Player player;
     private Transform camTarget;
     private bool camFollowTarget = true;
     private CharacterBehaviours behaviours;
@@ -125,6 +125,7 @@ public class CamControl : MonoBehaviour
 
     void Awake()
     {
+        player = FindObjectOfType<Player>();
         cam = GetComponent<Camera>();
         behaviours = player.GetComponent<CharacterBehaviours>();
         offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);

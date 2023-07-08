@@ -180,6 +180,7 @@ public class ParticleCollision : MonoBehaviour
         player.OnFaithChanged -= HarmonicStability;
     }
 
+
     private void HarmonicStability(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);

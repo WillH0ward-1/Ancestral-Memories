@@ -20,7 +20,11 @@ public class BirdDensity : MonoBehaviour
 
     [SerializeField] private TimeCycleManager todManager;
 
-    // Start is called before the first frame update
+    private void Awake()
+    {
+        player = FindObjectOfType<Player>();
+    }
+
     void Start()
     {
         birds.cam = cam;
@@ -65,7 +69,7 @@ public class BirdDensity : MonoBehaviour
     [SerializeField] float maxBirdDensity = 250;
 
     [SerializeField]
-    private CharacterClass player;
+    private Player player;
 
     private void OnEnable() => player.OnFaithChanged += BirdDensityFactor;
     private void OnDisable() => player.OnFaithChanged -= BirdDensityFactor;

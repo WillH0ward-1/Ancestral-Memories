@@ -8,7 +8,7 @@ public class GodRayControl : MonoBehaviour
 {
 
     [SerializeField]
-    private CharacterClass player;
+    private Player player;
 
 
     public bool godRay = false;

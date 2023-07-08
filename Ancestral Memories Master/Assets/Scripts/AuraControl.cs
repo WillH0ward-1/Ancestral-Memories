@@ -8,8 +8,7 @@ public class AuraControl : MonoBehaviour
 
     public Material auraMaterial;
 
-    [SerializeField]
-    private CharacterClass player;
+    private Player player;
 
     public int maxAura = 1;
     public int minAura = 0;
@@ -28,7 +27,7 @@ public class AuraControl : MonoBehaviour
     void Start()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-
+        player = FindObjectOfType<Player>();
         auraIntensity = auraMaterial.GetFloat("_AuraIntensity");
         auraIntensity = maxAura;
 

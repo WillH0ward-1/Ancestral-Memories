@@ -108,12 +108,12 @@ public class CharacterBehaviours : MonoBehaviour
     void Start()
     {
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
-
-        tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
+        player = FindObjectOfType<Player>();
         waterCheck = player.GetComponent<CheckIfUnderwater>();
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();
         playerAudioSFX = player.GetComponentInChildren<AudioSFXManager>();
         vomit.Stop();
+        tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
 
         //animSpeed = player.activeAnimator.speed;
     }
@@ -298,7 +298,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     public void StartDeathSequence()
     {
-        player.StartCoroutine(player.CheckForRevive());
+       // player.StartCoroutine(player.CheckForRevive());
     }
 
     public IEnumerator Drown()
@@ -306,7 +306,7 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_DROWN);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         behaviourIsActive = false;
 
@@ -388,7 +388,7 @@ public class CharacterBehaviours : MonoBehaviour
         //pulseActive = true;
 
         player.ChangeAnimationState(PLAYER_PRAYER_START);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
 
@@ -455,13 +455,13 @@ public class CharacterBehaviours : MonoBehaviour
         if (player.hunger <= 25)
         {
             player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
-            yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+            yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         }
         else
         {
             player.ChangeAnimationState(PLAYER_TOCROUCH);
-            yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+            yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         }
 
@@ -510,7 +510,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         while (behaviourIsActive)
         {
-            if (player.isBlessed)
+            if (player.IsBlessed)
             {
                 player.isBlessed = false;
             }
@@ -572,7 +572,7 @@ public class CharacterBehaviours : MonoBehaviour
         pickUpManager.pickedUpObject = hitObject;
 
         player.ChangeAnimationState(PLAYER_PICKUP);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         cinematicCam.ToActionZoom();
         cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
@@ -581,7 +581,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         int minChance = 0;
         int maxChance = 1;
@@ -659,13 +659,13 @@ public class CharacterBehaviours : MonoBehaviour
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_PICKUP);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         behaviourIsActive = false;
 
@@ -685,7 +685,7 @@ public class CharacterBehaviours : MonoBehaviour
         vomit.Play();
 
         player.ChangeAnimationState(PLAYER_VOMIT);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         vomit.Stop();
 
@@ -702,13 +702,13 @@ public class CharacterBehaviours : MonoBehaviour
         StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         player.ChangeAnimationState(PLAYER_CROUCHDRINK);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.activeAnimator));
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         if (player.faith < player.maxStat / 2)
         {
@@ -823,17 +823,17 @@ public class CharacterBehaviours : MonoBehaviour
         {
             interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 
-            minAnimationSpeed = player.activeAnimator.speed;
+            minAnimationSpeed = player.animator.speed;
 
             player.ChangeAnimationState(PLAYER_HARVEST_TREE);
-            player.activeAnimator.speed = Mathf.Lerp(minAnimationSpeed, interval, time);
+            player.animator.speed = Mathf.Lerp(minAnimationSpeed, interval, time);
 
             time += Time.deltaTime / interval;
 
             yield return null;
         }
 
-        player.activeAnimator.speed = 1f;
+        player.animator.speed = 1f;
 
         player.ChangeAnimationState(PLAYER_IDLE);
 
@@ -854,13 +854,13 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+        yield return new WaitUntil(() => player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
         cinematicCam.ToActionZoom();
         ToFrontCam();
 
         player.ChangeAnimationState(PLAYER_KINDLEFIRE);
-        yield return new WaitUntil(() => player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.activeAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
+        yield return new WaitUntil(() => player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
         player.ChangeAnimationState(PLAYER_IDLE);
 
@@ -919,7 +919,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     private float GetAnimLength()
     {
-        animLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+        animLength = player.animator.GetCurrentAnimatorStateInfo(0).length;
         return animLength;
     }
 

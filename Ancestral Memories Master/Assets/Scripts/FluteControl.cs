@@ -92,7 +92,7 @@ public class FluteControl : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
         maxInterval = initInterval; // Play note immediately on first press
-
+        StartCoroutine(ModifyFaithOverTime());
         while (Input.GetMouseButton(0))
         {
             noteBank = musicManager.notesToUse;
@@ -127,12 +127,6 @@ public class FluteControl : MonoBehaviour
                 PlayFluteSound(note);
             }
 
-            player.FaithModify(faithFactor);
-
-            foreach (AICharacterStats stats in mapObjGen.allHumanStats)
-            {
-                stats.FaithModify(faithFactor / 100);
-            }
 
             yield return null;
         }
@@ -141,6 +135,22 @@ public class FluteControl : MonoBehaviour
         yield break;
 
     }
+
+    public IEnumerator ModifyFaithOverTime()
+    {
+        while (Input.GetMouseButton(0))
+        {
+            player.FaithModify(faithFactor / 100);
+
+            foreach (AICharacterStats stats in mapObjGen.allHumanStats)
+            {
+                stats.FaithModify(faithFactor / 100);
+            }
+
+            yield return null;
+        }
+    }
+
 
     public MusicManager musicManager;
     public EventReference eventPath;
@@ -169,11 +179,14 @@ public class FluteControl : MonoBehaviour
         GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
         instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
         instrumentInstance.setCallback(callbackDelegate);
-       
+
         instrumentInstance.start();
         instrumentInstance.release();
 
+        // Start the new coroutine
+        StartCoroutine(ModifyFaithOverTime());
     }
+
 
     EventInstance instanceRef;
 
@@ -181,6 +194,10 @@ public class FluteControl : MonoBehaviour
     {
         fluteActive = false;
         instanceRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+
+        // Stop the coroutine
+        StopCoroutine(ModifyFaithOverTime());
+
         StartCoroutine(CastRayToScreen());
     }
 

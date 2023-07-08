@@ -483,8 +483,6 @@ public class MapObjGen : MonoBehaviour
 
             LerpDeformation deform = animalInstance.transform.GetComponentInChildren<LerpDeformation>();
 
-            deform.player = player;
-
             deform.enabled = false;
 
             //NavMeshAgent agent = animalInstance.GetComponentInChildren<NavMeshAgent>();
@@ -534,7 +532,6 @@ public class MapObjGen : MonoBehaviour
             humanInstance.transform.SetParent(hierarchyRoot.transform);
 
             LerpDeformation deform = humanInstance.transform.GetComponentInChildren<LerpDeformation>();
-            deform.player = player;
             deform.enabled = false;
 
             HumanAI humanAI = humanInstance.GetComponentInChildren<HumanAI>();

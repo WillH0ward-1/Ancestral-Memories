@@ -2,15 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : CharacterClass
+public class Player : AICharacterStats
 {
-    // Start is called before the first frame update
-    public Camera interactableCam;
-    public Player player;
-
     void Start()
     {
-        base.Awake();
+        Awake();
     }
 
     public override void Update()

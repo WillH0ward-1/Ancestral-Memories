@@ -8,6 +8,7 @@ public class RagdollController : MonoBehaviour
     [SerializeField] private HumanAI humanAI;
     private Animator animator;
 
+    [SerializeField] private float massMultiplier = 25f;
     [SerializeField] private float staticFriction = 1000f;
     [SerializeField] private float dynamicFriction = 1000f;
     [SerializeField] private float bounciness = 0f;
@@ -71,7 +72,7 @@ public class RagdollController : MonoBehaviour
             var rigidbody = bone.GetComponent<Rigidbody>();
             if (rigidbody != null)
             {
-                rigidbody.mass *= 25;
+                rigidbody.mass *= massMultiplier;
                 rigidbody.isKinematic = true;
                 rigidbody.drag = drag;
                 rigidbody.angularDrag = angularDrag;
@@ -142,9 +143,9 @@ public class RagdollController : MonoBehaviour
         //StartCoroutine(TriggerRagdollTest());
     }
 
-    public IEnumerator TriggerRagdollTest()
+    public IEnumerator TriggerRagdoll()
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(1f);
 
         EnableRagdoll();
     }

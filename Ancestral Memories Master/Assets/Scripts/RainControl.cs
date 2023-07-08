@@ -39,6 +39,8 @@ public class RainControl : MonoBehaviour
     public CharacterBehaviours behaviours;
 
     public float maxEmissionOverTime;
+    private float droughtThreshold = 0;
+    [SerializeField] private float droughtThresholdDivisor = 2;
 
     private void Awake()
     {
@@ -48,7 +50,7 @@ public class RainControl : MonoBehaviour
         behaviours = player.transform.GetComponentInChildren<CharacterBehaviours>();
         mapObjGen = FindObjectOfType<MapObjGen>();
         //weather = transform.GetComponent<WeatherControl>();
-
+        droughtThreshold = player.maxStat / droughtThresholdDivisor;
     }
 
     public IEnumerator ChanceOfRain()
@@ -84,11 +86,11 @@ public class RainControl : MonoBehaviour
                     StartCoroutine(ChanceOfRain());
                     yield break;
                 }
-                else if (!isRaining && player.faith >= 50)
+                else if (!isRaining && player.faith >= droughtThreshold)
                 {
                     StartCoroutine(StartRaining());
                 }
-                else if (player.faith <= 50 && triggerDrought)
+                else if (player.faith <= droughtThreshold && triggerDrought)
                 {
                     StartCoroutine(Drought());
                     yield break;

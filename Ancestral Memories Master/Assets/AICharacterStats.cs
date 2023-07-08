@@ -1,33 +1,55 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AICharacterStats : MonoBehaviour
 {
     // Define the base stats
-    public float minStat = 0;
-    public float maxStat = 1;
+    public float minStat = 0f;
+    public float maxStat = 1f;
 
-    [SerializeField] private float health = 1f;
-    [SerializeField] private float hunger = 1f;
-    [SerializeField] private float faith = 1f;
-    [SerializeField] private float psych = 1f;
-    [SerializeField] private bool isDiseased;
+    public float health = 1f;
+    public float hunger = 1f;
+    public float faith = 1f;
+    public float psych = 1f;
+
+    public bool isDiseased = false;
+    public bool isBlessed = false;
+    public bool isStarving = false;
+
+    public bool hasDied = false;
 
     public float healthFactor = 0.1f;
-    public float faithFactor = -0.01f;
+    public float faithFactor = 0.01f;
     public float hungerFactor = 0.1f;
 
-    public event Action<float> OnHealthChanged;
-    public event Action<float> OnHungerChanged;
-    public event Action<float> OnFaithChanged;
-    public event Action<float> OnDiseaseDamageApplied;
+    public event Action<float, float, float> OnHealthChanged;
+    public event Action<float, float, float> OnHungerChanged;
+    public event Action<float, float, float> OnFaithChanged;
+    public event Action<float, float, float> OnPsychChanged;
+    public event Action<float, float, float> OnDiseaseDamageApplied;
+
+    public bool IsBlessed => isBlessed;
+    public bool IsFaithless => IsFaithless;
+    public bool isFaithless;
+
+    public float minBlessedDuration = 30f;
+    public float maxBlessedDuration = 60f;
 
     public float HealthFraction => (health - minStat) / (maxStat - minStat);
     public float HungerFraction => (hunger - minStat) / (maxStat - minStat);
     public float FaithFraction => (faith - minStat) / (maxStat - minStat);
+    public float PsychFraction => (faith - minStat) / (maxStat - minStat);
 
-    private void Awake()
+    public bool useFaith = true;
+
+    public Animator animator;
+    public float animationCrossFade = 0.2f;
+
+    private string currentState;
+
+    public void Awake()
     {
         health = maxStat;
         hunger = maxStat;
@@ -36,58 +58,125 @@ public class AICharacterStats : MonoBehaviour
         isDiseased = false;
 
         // Invoke the initial values of the stats
-        OnHealthChanged?.Invoke(HealthFraction);
-        OnHungerChanged?.Invoke(HungerFraction);
-        OnFaithChanged?.Invoke(FaithFraction);
+        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
+        OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
+        OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
+        OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
+
+        animator = transform.GetComponentInChildren<Animator>();
     }
 
 
-    private void Update()
+    public virtual void Update()
     {
         // Deplete hunger over time
+        float faithInfluence = 1.0f - FaithFraction; // a value between 0.0 and 1.0, higher when faith is lower
+        faithInfluence *= faithInfluence; // square it to make it exponential
+
         if (hunger > minStat)
         {
-            hunger -= Time.deltaTime * hungerFactor;
+            isStarving = false;
+            hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
             hunger = Mathf.Clamp(hunger, minStat, maxStat);
         }
         else
         {
-            // If hunger is fully depleted, deplete health
-            health -= Time.deltaTime * healthFactor;
+            isStarving = true;
+            health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
             health = Mathf.Clamp(health, minStat, maxStat);
         }
 
-        OnHungerChanged?.Invoke(HungerFraction);
-        OnHealthChanged?.Invoke(HealthFraction);
-        OnFaithChanged?.Invoke(FaithFraction);
+        if (useFaith && faith > minStat)
+        {
+            faith -= Time.deltaTime * faithFactor;
+            faith = Mathf.Clamp(faith, minStat, maxStat);
+        }
+
+        OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
+        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
+        OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
+        OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
     }
+
+
+
 
     public void Heal(float healFactor)
     {
         health += healFactor;
-        health = Mathf.Clamp(health, 0f, 1f);
-        OnHealthChanged?.Invoke(HealthFraction);
+        health = Mathf.Clamp(health, minStat, maxStat);
+        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
     }
 
     public void SetHealth(int value)
     {
         health = value;
-        health = Mathf.Clamp(health, 0f, 1f);
-        OnHealthChanged?.Invoke(HealthFraction);
+        health = Mathf.Clamp(health, minStat, maxStat);
+        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
     }
 
     public void TakeDamage(float damageTaken)
     {
         health -= damageTaken;
-        health = Mathf.Clamp(health, 0f, 1f);
-        OnHealthChanged?.Invoke(HealthFraction);
+        health = Mathf.Clamp(health, minStat, maxStat);
+        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
     }
 
     public void FaithModify(float faithModifer)
     {
-        faith += faithModifer;
-        faith = Mathf.Clamp(faith, 0f, 1f);
-        OnFaithChanged?.Invoke(FaithFraction);
+        if (useFaith)
+        {
+            faith += faithModifer;
+            faith = Mathf.Clamp(faith, minStat, maxStat);
+            OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
+
+            if (faith >= maxStat)
+            {
+                faith = maxStat;
+                Debug.Log("Player has max faith!");
+
+                if (!isBlessed)
+                {
+                    StartCoroutine(TransendenceTimer());
+                }
+            }
+            else if (faith <= minStat)
+            {
+                faith = minStat;
+                isFaithless = true;
+                Debug.Log("Player is faithless!");
+            }
+            else
+            {
+                isFaithless = false;
+            }
+
+            if (faith <= maxStat / 2 && isBlessed)
+            {
+                isBlessed = false;
+                Debug.Log("Player is no longer blessed.");
+            }
+        }
+    }
+
+    public IEnumerator TransendenceTimer()
+    {
+        float remainingTime = UnityEngine.Random.Range(minBlessedDuration, maxBlessedDuration);
+        isBlessed = true;
+        Debug.Log("Player is blessed.");
+
+        while (remainingTime > 0 && isBlessed)
+        {
+            remainingTime -= Time.deltaTime;
+            yield return null;
+        }
+
+        if (isBlessed)
+        {
+            isBlessed = false;
+        }
+
+        yield break;
     }
 
     private Disease Disease { get; set; }
@@ -105,28 +194,54 @@ public class AICharacterStats : MonoBehaviour
     {
         if (Disease.IsContracted)
         {
-            float damage = 0.00005f * Disease.GetDamageMultiplier();
+            // Add multiplier based on faith. The lower the faith, the more damage.
+            float faithMultiplier = 1 - FaithFraction;
+
+            float damage = (0.00005f * Disease.GetDamageMultiplier()) * faithMultiplier;
             TakeDamage(damage);
-            OnDiseaseDamageApplied?.Invoke(damage);
+            OnDiseaseDamageApplied?.Invoke(damage, minStat, maxStat);
         }
     }
 
+
     public void PsychModifier(float psychFactor)
     {
-        // Implement PsychModifier method as needed
+        psych = psychFactor;
+        psych = Mathf.Clamp(psych, 0f, 1f);
+        OnPsychChanged?.Invoke(psych, minStat, maxStat);
     }
 
     public void Hunger(float hungerFactor)
     {
         hunger -= hungerFactor;
         hunger = Mathf.Clamp(hunger, 0f, 1f);
-        OnHungerChanged?.Invoke(HungerFraction);
+        OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
     }
 
     public void HealHunger(float hungerFactor)
     {
         hunger += hungerFactor;
         hunger = Mathf.Clamp(hunger, 0f, 1f);
-        OnHungerChanged?.Invoke(HungerFraction);
+        OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
     }
+
+    public void ChangeAnimationState(string newState)
+    {
+        float crossFadeLength = animationCrossFade;
+
+        if (currentState == newState)
+        {
+            return;
+        }
+
+        animator.CrossFadeInFixedTime(newState, crossFadeLength);
+
+        currentState = newState;
+    }
+
+    public void AdjustAnimationSpeed(float newSpeed)
+    {
+        animator.speed = newSpeed;
+    }
+
 }

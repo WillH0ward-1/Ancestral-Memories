@@ -16,6 +16,8 @@ public class LerpDeformation : MonoBehaviour
 
     [SerializeField] private Deform.InflateDeformer inflate;
     [SerializeField] private Deform.InflateDeformer[] inflateDeformers;
+
+    /*
     private void OnEnable()
     {
         player.OnHungerChanged += HungerChanged;
@@ -25,6 +27,7 @@ public class LerpDeformation : MonoBehaviour
     {
         player.OnHungerChanged -= HungerChanged;
     }
+    */
 
     // Start is called before the first frame update
     void Awake()

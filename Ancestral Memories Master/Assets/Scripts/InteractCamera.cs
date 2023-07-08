@@ -32,7 +32,7 @@ public class InteractCamera : MonoBehaviour
     }
     private void Start()
     {
-        cam = player.GetComponent<Player>().interactableCam; 
+        //cam = player.GetComponent<Player>().interactableCam; 
 
         radialMenu.player = player;
         radialMenu.playerWalk = playerWalk;

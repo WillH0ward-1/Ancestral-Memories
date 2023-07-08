@@ -18,7 +18,7 @@ public class PlayerWalk : MonoBehaviour
 
     //public NavMeshAgent agent;
 
-    public CharacterClass player;
+    public Player player;
     public GameObject playerObject;
 
     [SerializeField] private AudioSFXManager playerSFX;
@@ -90,6 +90,7 @@ public class PlayerWalk : MonoBehaviour
 
 
         //StopAgent();
+        player = GetComponentInChildren<Player>();
 
         head.Add(playerHead);
         feet.Add(leftFoot);

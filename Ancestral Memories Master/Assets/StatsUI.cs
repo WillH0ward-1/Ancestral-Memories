@@ -22,26 +22,33 @@ public class StatsUI : MonoBehaviour
 
     private void Awake()
     {
+        stats = GetComponent<AICharacterStats>(); // Get the AICharacterStats component
+
         uiParent = new GameObject("UIParent");
         uiParent.transform.SetParent(transform, false);
 
         // Instantiate the UI elements in world space.
         healthFill = CreateUIElement("HealthFill", healthColor);
-        faithFill = CreateUIElement("FaithFill", faithColor);
-        hungerFill = CreateUIElement("HungerFill", hungerColor);
-
         healthFill.SetActive(false);
-        faithFill.SetActive(false);
+
+        if (stats.useFaith)
+        {
+            faithFill = CreateUIElement("FaithFill", faithColor);
+            faithFill.SetActive(false);
+        }
+
+        hungerFill = CreateUIElement("HungerFill", hungerColor);
         hungerFill.SetActive(false);
 
         SetUIElementScale(healthFill, initialScale);
-        SetUIElementScale(faithFill, initialScale);
+        if (stats.useFaith)
+        {
+            SetUIElementScale(faithFill, initialScale);
+        }
         SetUIElementScale(hungerFill, initialScale);
 
         BillBoardUI billboard = uiParent.AddComponent<BillBoardUI>();
         billboard.camera = Camera.main;
-
-        stats = GetComponent<AICharacterStats>(); // Get the AICharacterStats component
     }
 
     private void Start()
@@ -58,27 +65,36 @@ public class StatsUI : MonoBehaviour
     private void Update()
     {
         // Calculate the total height of the UI elements
-        float totalHeight = healthFill.GetComponent<RectTransform>().rect.height + faithFill.GetComponent<RectTransform>().rect.height + hungerFill.GetComponent<RectTransform>().rect.height;
+        float totalHeight = healthFill.GetComponent<RectTransform>().rect.height;
+        if (stats.useFaith)
+        {
+            totalHeight += faithFill.GetComponent<RectTransform>().rect.height;
+        }
+        totalHeight += hungerFill.GetComponent<RectTransform>().rect.height;
 
         // Calculate the offset based on the total height and tightness
         float offset = totalHeight / (2 * tightness);
 
         // Calculate the individual offsets for each UI element
         float healthOffset = offset - healthFill.GetComponent<RectTransform>().rect.height / 2;
-        float faithOffset = 0f;
         float hungerOffset = offset - hungerFill.GetComponent<RectTransform>().rect.height / 2;
 
         // Position the UI elements above the character with the adjusted offsets
         Vector3 basePosition = transform.position + new Vector3(0, verticalOffset, 0);
         healthFill.transform.position = basePosition + new Vector3(0, healthOffset, 0);
-        faithFill.transform.position = basePosition + new Vector3(0, faithOffset, 0);
+        if (stats.useFaith)
+        {
+            float faithOffset = 0f;
+            faithFill.transform.position = basePosition + new Vector3(0, faithOffset, 0);
+            UpdateFaith(stats.FaithFraction);
+        }
         hungerFill.transform.position = basePosition + new Vector3(0, -hungerOffset, 0);
 
         // Update the fill amount based on the stats
         UpdateHealth(stats.HealthFraction);
-        UpdateFaith(stats.FaithFraction);
         UpdateHunger(stats.HungerFraction);
     }
+
 
     public void SetUIElementScale(GameObject uiElement, float scale)
     {
@@ -125,7 +141,20 @@ public class StatsUI : MonoBehaviour
         return uiObject;
     }
 
+    private void HealthStat(float healthFraction, float min, float max)
+    {
+        UpdateHealth(healthFraction);
+    }
 
+    private void FaithStat(float faithFraction, float min, float max)
+    {
+        UpdateFaith(faithFraction);
+    }
+
+    private void HungerStat(float hungerFraction, float min, float max)
+    {
+        UpdateHunger(hungerFraction);
+    }
 
     private void InitializeStats()
     {
@@ -134,9 +163,12 @@ public class StatsUI : MonoBehaviour
             statsInitialized = true;
 
             // Attach the update functions to the stat change events.
-            stats.OnHealthChanged += UpdateHealth;
-            stats.OnFaithChanged += UpdateFaith;
-            stats.OnHungerChanged += UpdateHunger;
+            stats.OnHealthChanged += HealthStat;
+            if (stats.useFaith)
+            {
+                stats.OnFaithChanged += FaithStat;
+            }
+            stats.OnHungerChanged += HungerStat;
         }
     }
 
@@ -176,14 +208,16 @@ public class StatsUI : MonoBehaviour
         rectMask.padding = new Vector4(0f, 0f, paddingValue, 0f);
     }
 
-
     private void OnDestroy()
     {
         if (stats != null)
         {
-            stats.OnHealthChanged -= UpdateHealth;
-            stats.OnFaithChanged -= UpdateFaith;
-            stats.OnHungerChanged -= UpdateHunger;
+            stats.OnHealthChanged -= HealthStat;
+            if (stats.useFaith)
+            {
+                stats.OnFaithChanged -= FaithStat;
+            }
+            stats.OnHungerChanged -= HungerStat;
         }
 
         Destroy(uiParent);

@@ -82,6 +82,8 @@ public class HumanAI : MonoBehaviour
 
     public bool inRange = false;
 
+    private AICharacterStats stats;
+
     private void Awake()
     {
         formationController = FindObjectOfType<FormationController>();
@@ -104,6 +106,7 @@ public class HumanAI : MonoBehaviour
         followManager = player.GetComponentInChildren<FollowersManager>();
         ragdollController = transform.GetComponentInChildren<RagdollController>();
         playerWalk = player.GetComponentInChildren<PlayerWalk>();
+        stats = transform.GetComponentInChildren<AICharacterStats>();
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(Harvest(target));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
@@ -170,9 +173,27 @@ public class HumanAI : MonoBehaviour
         }
 
         ChangeState(AIState.Idle);
-        StartCoroutine(ragdollController.TriggerRagdollTest());
         yield break;
 
+    }
+
+    private void Update()
+    {
+        if (stats.health <= 0 && !stats.hasDied)
+        {
+            Die();
+        }
+    }
+
+    public bool isDead = false;
+
+    private void Die()
+    {
+        if (!stats.hasDied)
+        {
+            stats.hasDied = true;
+            StartCoroutine(ragdollController.TriggerRagdoll());
+        }
     }
 
     private IEnumerator Idle()
@@ -572,17 +593,6 @@ public class HumanAI : MonoBehaviour
         return UnityEngine.Random.Range(minInterval, maxInterval);
     }
 
-    private IEnumerator ChangeSpeedOverTime(Transform target)
-    {
-        float randomAnimationSpeed = GetRandomAnimationSpeed();
-        float randomInterval = GetRandomInterval();
-        StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
-
-        yield return new WaitForSeconds(randomInterval);
-
-        animator.speed = 1.0f; // Reset animation speed to normal when finished
-    }
-
     private IEnumerator HarvestAnimation(Transform target)
     {
         behaviourActive = true;
@@ -627,6 +637,17 @@ public class HumanAI : MonoBehaviour
             time += Time.deltaTime / randomAnimationSpeed;
             yield return null;
         }
+
+        animator.speed = 1.0f; // Reset animation speed to normal when finished
+    }
+
+    private IEnumerator ChangeSpeedOverTime(Transform target)
+    {
+        float randomAnimationSpeed = GetRandomAnimationSpeed();
+        float randomInterval = GetRandomInterval();
+        StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
+
+        yield return new WaitForSeconds(randomInterval);
 
         animator.speed = 1.0f; // Reset animation speed to normal when finished
     }
@@ -939,7 +960,7 @@ public class HumanAI : MonoBehaviour
 
     private float GetAnimLength()
     {
-        animLength = player.activeAnimator.GetCurrentAnimatorStateInfo(0).length;
+        animLength = player.animator.GetCurrentAnimatorStateInfo(0).length / animator.speed;
         return animLength;
     }
 
