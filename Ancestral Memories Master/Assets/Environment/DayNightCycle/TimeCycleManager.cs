@@ -6,7 +6,6 @@ using UnityEngine;
 [ExecuteAlways]
 public class TimeCycleManager : MonoBehaviour
 {
-    // TimeColor definition
     [System.Serializable]
     public class TimeColor
     {
@@ -14,34 +13,48 @@ public class TimeCycleManager : MonoBehaviour
         public Color lightColor;
     }
 
-    // Scene References
     [SerializeField] private Light DirectionalLight;
     public TimeColor[] timeColors;
-
-    // Variables
-    [SerializeField, Range(0, 24)] public float timeOfDay;
+    [SerializeField, Range(0, 24)] private float _timeOfDay;
     public float timeMultiplier = 0.25f;
     public float defaultTimeMultiplier = 0.25f;
-    public bool isNightTime; // Night time flag
-    public bool updateInEditor = true; // Update in editor flag
+    public bool isNightTime;
+    public bool updateInEditor = true;
     public GameObject skyBox;
-
-    private Material material; // This will now be automatically assigned
-    private float lastRealTime;
-
     public MapObjGen mapObjGen;
 
-    private List<GameObject> GetTreeList()
+    [SerializeField, Range(0, 365)] private int _dayOfYear; // Current day of the year
+    public int daysPerSeason = 90;
+
+    public int dayOfYear
     {
-        if (mapObjGen != null)
+        get { return _dayOfYear; }
+        set
         {
-            return mapObjGen.treeList;
+            _dayOfYear = value % (daysPerSeason * GetNumberOfSeasons());
+            // We only change the dayOfYear and let the TimeCycleManager continue from the start of the new day
         }
-        else
+    }
+
+    public float timeOfDay
+    {
+        get { return _timeOfDay; }
+        set
         {
-            Debug.LogError("MapObjGen has not been assigned.");
-            return null;
+            _timeOfDay = value % 24;
+            if (_timeOfDay < 0)
+            {
+                _timeOfDay += 24;
+            }
         }
+    }
+
+    private Material material;
+    private float lastRealTime;
+
+    private int GetNumberOfSeasons()
+    {
+        return System.Enum.GetValues(typeof(SeasonManager.Season)).Length;
     }
 
     private void Awake()
@@ -59,13 +72,19 @@ public class TimeCycleManager : MonoBehaviour
         }
 
         lastRealTime = Time.realtimeSinceStartup;
+        _dayOfYear = Mathf.RoundToInt(timeOfDay / 24f * (daysPerSeason * GetNumberOfSeasons()));
     }
 
     private void Update()
     {
         if (Application.isPlaying || updateInEditor)
         {
+            float previousTime = timeOfDay;
             UpdateTimeAndLight();
+            if (timeOfDay < previousTime)
+            {
+                dayOfYear = (dayOfYear + 1) % (daysPerSeason * GetNumberOfSeasons());
+            }
         }
     }
 
@@ -89,12 +108,11 @@ public class TimeCycleManager : MonoBehaviour
         lastRealTime = Time.realtimeSinceStartup;
 
         timeOfDay += timeDelta * timeMultiplier;
-        timeOfDay %= 24; //Modulus to ensure always between 0-24
+        timeOfDay %= 24;
 
-        isNightTime = timeOfDay < 6 || timeOfDay >= 18; // Define night time hours here
+        isNightTime = timeOfDay < 6 || timeOfDay >= 18;
 
         UpdateLight(timeOfDay / 24f);
-
         if (Application.isPlaying)
         {
             RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
@@ -149,7 +167,6 @@ public class TimeCycleManager : MonoBehaviour
         }
     }
 
-
     // Try to find a directional light to use if we haven't set one
     private void OnEnable()
     {
@@ -176,4 +193,3 @@ public class TimeCycleManager : MonoBehaviour
         }
     }
 }
-                

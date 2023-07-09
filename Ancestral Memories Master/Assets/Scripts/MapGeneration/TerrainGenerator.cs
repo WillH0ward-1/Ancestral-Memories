@@ -169,7 +169,6 @@ public class TerrainGenerator : MonoBehaviour {
 			corruptionControl.CorruptionModifierActive = true;
 
 			lerpTerrain = tmp.AddComponent<LerpTerrain>();
-			lerpTerrain.player = player;
 			rainControl.lerpTerrain = lerpTerrain;
 
 			StartCoroutine(EnableContacts(tmp));

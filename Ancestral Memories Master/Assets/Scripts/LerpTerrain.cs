@@ -3,53 +3,114 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+[ExecuteAlways]
 public class LerpTerrain : MonoBehaviour
 {
-    public Player player;
+    private Player player;
 
     public float Desert = 0f;
-
     public float Oasis = 12f;
-
     public float Wet = 22f;
 
     [SerializeField] List<Renderer> rendererList = new List<Renderer>();
 
-    private float targetState = 0f;
-    private float terrainState = 0f;
-
     [SerializeField] private float duration = 15f;
-
-    private Material material;
-
-    private RainControl weather;
+    [SerializeField] private float killDuration = 3f;
+    [SerializeField] private float reviveDuration = 12f;
 
     [SerializeField] private float currentState;
 
-    // Start is called before the first frame update
+    private SeasonManager seasonManager; // Reference to the SeasonManager script
+
+    [SerializeField] private string VertexTileParam = "_VertexTile";
+    [SerializeField] private string SnowDensityParam = "_SnowDensity";
+    [SerializeField] private string AutumnColourParam = "_AutumnColour";
+
+    private RainControl raincontrol;
+
+    private bool isLerpingAutumnColor;
+    private bool isLerpingSnowDensity;
+
+    private void Awake()
+    {
+        player = FindObjectOfType<Player>();
+        raincontrol = FindObjectOfType<RainControl>();
+        seasonManager = FindObjectOfType<SeasonManager>();
+        seasonManager.OnSeasonChanged.AddListener(HandleSeasonChange);
+        seasonManager = FindObjectOfType<SeasonManager>();
+    }
+
 
     void Start()
     {
-        //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        //Vector4 initState = new Vector4(0, Oasis, 0, 0);
-
         GetRenderers();
         ToState(Oasis, 0.1f);
-        //StartCoroutine(SetTerrainState(Desert));
     }
 
- 
+    private void Update()
+    {
+        if (seasonManager._currentSeason == SeasonManager.Season.Autumn)
+        {
+            LerpAutumnColor(player.faith < player.maxStat / 2 ? 0f : 1f);
+        }
+        else if (seasonManager._currentSeason == SeasonManager.Season.Winter)
+        {
+            LerpSnowDensity(1f);
+        }
+        else
+        {
+            LerpAutumnColor(0f);
+            LerpSnowDensity(0f);
+        }
+    }
+
+    private void LerpAutumnColor(float targetValue)
+    {
+        float duration = targetValue == 0f ? killDuration : reviveDuration;
+
+        foreach (Renderer r in rendererList)
+        {
+            float currentAutumnColour = r.sharedMaterial.GetFloat(AutumnColourParam);
+            float newAutumnColour = Mathf.Lerp(currentAutumnColour, targetValue, Time.deltaTime / duration);
+            r.sharedMaterial.SetFloat(AutumnColourParam, newAutumnColour);
+        }
+    }
+
+    private void LerpSnowDensity(float targetValue)
+    {
+        float duration = targetValue == 0f ? killDuration : reviveDuration;
+
+        foreach (Renderer r in rendererList)
+        {
+            float currentSnowDensity = r.sharedMaterial.GetFloat(SnowDensityParam);
+            float newSnowDensity = Mathf.Lerp(currentSnowDensity, targetValue, Time.deltaTime / duration);
+            r.sharedMaterial.SetFloat(SnowDensityParam, newSnowDensity);
+        }
+    }
+
+
+
+    void HandleSeasonChange(SeasonManager.Season newSeason)
+    {
+        if (isSeasonOverride)
+        {
+            isSeasonOverride = false;
+        }
+    }
+
+    void OnDestroy()
+    {
+        seasonManager.OnSeasonChanged.RemoveListener(HandleSeasonChange);
+    }
+
     IEnumerator SetTerrainState(float newState)
     {
         foreach (Renderer r in rendererList)
         {
-            newState = r.sharedMaterial.GetVector("_VertexTile").y;
-
-            r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, newState, 0, 0));
+            newState = r.sharedMaterial.GetVector(VertexTileParam).y;
+            r.sharedMaterial.SetVector(VertexTileParam, new Vector4(0, newState, 0, 0));
             yield return null;
         }
-
-        yield break;
     }
 
     void GetRenderers()
@@ -62,7 +123,6 @@ public class LerpTerrain : MonoBehaviour
     {
         ToState(Oasis, duration);
         yield break;
-
     }
 
     public IEnumerator ToWetOasis(float duration)
@@ -71,14 +131,13 @@ public class LerpTerrain : MonoBehaviour
         yield break;
     }
 
-    float minDroughtWaitTime = 10;
-    float maxDroughtWaitTime = 15;
-
     public IEnumerator ToDesert(float duration)
     {
-        ToState(Desert, duration);
-        yield break;
-
+        if (seasonManager._currentSeason == SeasonManager.Season.Summer)
+        {
+            ToState(Desert, duration);
+            yield break;
+        }
     }
 
     void ToState(float newState, float duration)
@@ -88,59 +147,46 @@ public class LerpTerrain : MonoBehaviour
         if (newState != currentState)
         {
             currentState = newState;
-            StartCoroutine(LerpTerrainTexture(newState, duration));
+            StartCoroutine(LerpVertexTile(newState, duration));
             return;
         }
-
-        return;
-        
     }
 
-    // Update is called once per frame
-
-    float time;
-    private bool isLerping;
+    private bool isVertexLerping;
+    private bool isSeasonOverride;
 
     float state;
 
-    private IEnumerator LerpTerrainTexture(float targetState, float duration)
+    private IEnumerator LerpVertexTile(float targetState, float duration)
     {
-
-        float time = 0;
+        float time = 0f;
 
         while (time <= 1f)
         {
+            isVertexLerping = true;
 
-            isLerping = true;
-
-            if (isLerping == false)
+            if (isVertexLerping == false)
             {
                 yield break;
             }
 
             foreach (Renderer r in rendererList)
             {
-                state = r.sharedMaterial.GetVector("_VertexTile").y;
+                state = r.sharedMaterial.GetVector(VertexTileParam).y;
                 float stateval = state;
                 state = Mathf.Lerp(stateval, targetState, time);
-                r.sharedMaterial.SetVector("_VertexTile", new Vector4(0, state, 0, 0));
+                r.sharedMaterial.SetVector(VertexTileParam, new Vector4(0, state, 0, 0));
                 time += Time.deltaTime / duration;
-
                 yield return null;
             }
 
             yield return null;
-
         }
-
 
         if (time >= 1f)
         {
-            isLerping = false;
+            isVertexLerping = false;
             yield break;
         }
-
-        yield break;
-
     }
 }
