@@ -138,7 +138,7 @@ public class ParticleCollision : MonoBehaviour
 
         GenerateFlower(particlePos);
 
-        Debug.Log(hitLocation);
+//        Debug.Log(hitLocation);
 
         musicManager.PlayOneShot(MusicManager.Instruments.PianoTail.ToString(), particleGameObject, true);
         

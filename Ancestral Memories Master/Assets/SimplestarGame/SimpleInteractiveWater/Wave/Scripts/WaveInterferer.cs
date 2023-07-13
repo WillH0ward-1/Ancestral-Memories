@@ -10,7 +10,7 @@ namespace SimplestarGame.Wave
     public class WaveInterferer : MonoBehaviour
     {
         [SerializeField] WaveType waveType = WaveType.Point;
-        [SerializeField, Range(0.01f, 10f)] float radius = 0.2f;
+        [SerializeField, Range(0.01f, 1f)] float radius = 0.2f;
         [SerializeField, Range(0.01f, 20f)] float length = 0.5f;
         [SerializeField] PeriodicEffector waterDrop;
         [SerializeField] PeriodicEffector waterSplash;

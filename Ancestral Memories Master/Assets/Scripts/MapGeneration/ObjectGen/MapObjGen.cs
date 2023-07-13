@@ -266,7 +266,7 @@ public class MapObjGen : MonoBehaviour
 
             static void DestroyObject(GameObject emitter)
             {
-                Debug.Log("Object destroyed in game.");
+//                Debug.Log("Object destroyed in game.");
                 Destroy(emitter);
 
             }

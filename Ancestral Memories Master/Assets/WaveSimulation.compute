@@ -1,0 +1,48 @@
+SamplerState linearClampSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+#pragma kernel CSMain
+#pragma kernel CSInit
+
+RWTexture2D<float> Result;
+Texture2D<float> Previous;
+
+float rand(float2 co)
+{
+    return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+[numthreads(8,8,1)]
+void CSInit (uint3 id : SV_DispatchThreadID)
+{
+    uint width, height;
+    Result.GetDimensions(width, height);
+    float2 size = float2(width, height);
+    float2 uv = id.xy / size;
+    
+    float noise = (sin(uv.x * uv.y * 1000.0f) + 1.0f) / 2.0f; // adjust here
+
+    Result[id.xy] = noise;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint width, height;
+    Result.GetDimensions(width, height);
+    float2 size = float2(width, height);
+    float2 uv = id.xy / size;
+
+    float2 offset = float2(0.01, 0);
+
+    float wave = (Previous.SampleLevel(linearClampSampler, uv + offset, 0).r + 
+                  Previous.SampleLevel(linearClampSampler, uv - offset, 0).r +
+                  Previous.SampleLevel(linearClampSampler, uv + float2(-offset.y, offset.x), 0).r +
+                  Previous.SampleLevel(linearClampSampler, uv + float2(offset.y, -offset.x), 0).r) * 0.5f;
+
+    Result[id.xy] = wave;
+}

@@ -408,7 +408,7 @@ public class HumanAI : MonoBehaviour
                     break;
             }
 
-            Debug.Log(currentAIState);
+//            Debug.Log(currentAIState);
         }
     }
 

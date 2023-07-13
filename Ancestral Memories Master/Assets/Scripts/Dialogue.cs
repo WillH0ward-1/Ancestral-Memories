@@ -53,7 +53,7 @@ public class Dialogue : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
+//        Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
         if (transform.CompareTag("Campfire"))
         {
             godAudioManager = transform.GetComponent<GodAudioSFX>();
