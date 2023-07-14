@@ -8,6 +8,7 @@ public class WaveSimulation : MonoBehaviour
     public float waveScale = 1.0f;
     public float timeMultiplier = 1.0f;
     public int subdivisionLevel = 1;
+    public float noiseScale = 0.1f;
 
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
@@ -37,12 +38,20 @@ public class WaveSimulation : MonoBehaviour
         for (int i = 0; i < baseVertices.Length; i++)
         {
             Vector3 vertex = baseVertices[i];
-            float wave = Mathf.Sin(vertex.x * waveScale + time) * amplitude;
-            vertices[i] = vertex + Vector3.up * wave;
+            float noise = PerlinNoise(vertex.x, vertex.z, time);
+            float wave = noise * amplitude;
+            vertices[i] = vertex + Vector3.up * (wave + vertex.y);
         }
 
         mesh.vertices = vertices;
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
+    }
+
+    private float PerlinNoise(float x, float z, float time)
+    {
+        float perlinX = (x + time) * waveScale * noiseScale;
+        float perlinZ = (z + time) * waveScale * noiseScale;
+        return Mathf.PerlinNoise(perlinX, perlinZ);
     }
 }

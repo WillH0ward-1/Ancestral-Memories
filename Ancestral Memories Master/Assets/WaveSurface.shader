@@ -52,7 +52,7 @@ Shader "Custom/SeamlessWaveSurface" {
                 return o;
             }
 
-            float Random(float2 p) {
+            float2 Random(float2 p) {
                 float2 uv = (frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453) * 2.0) - 1.0;
                 return clamp(uv.x + uv.y, 0.0, 1.0);
             }
@@ -64,9 +64,12 @@ Shader "Custom/SeamlessWaveSurface" {
                 float2 f = frac(float2(x, y));
 
                 f = f * f * (3.0 - 2.0 * f);
-                float n = p.x + p.y * 57.0;
-                return lerp(lerp(Random(n), Random(n + 1.0), f.x),
-                            lerp(Random(n + 57.0), Random(n + 58.0), f.x), f.y);
+                float2 n = p + float2(0.0, 57.0);
+                return lerp(
+                    lerp(Random(n), Random(n + float2(1.0, 0.0)), f.x),
+                    lerp(Random(n + float2(0.0, 57.0)), Random(n + float2(1.0, 57.0)), f.x),
+                    f.y
+                );
             }
 
             fixed4 frag (v2f i) : SV_Target {
