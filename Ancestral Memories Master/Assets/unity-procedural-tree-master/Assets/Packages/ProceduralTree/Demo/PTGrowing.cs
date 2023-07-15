@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Deform;
 using Pathfinding;
 using Pathfinding.RVO;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace ProceduralModeling
         private ProceduralTree proceduralTree;
         private TreeData treeData;
         private LeafScaler leafScaler;
+        private LerpTerrain lerpTerrain;
 
         public bool isGrowing = false;
         public bool isFullyGrown = false;
@@ -39,14 +41,17 @@ namespace ProceduralModeling
         private TreeFruitManager treeFruitManager;
 
         private RVOSquareObstacle obstacle;
-        private BoxCollider growthInhibitionZone;  
+        private BoxCollider growthInhibitionZone;
 
-        [SerializeField] private LayerMask entityLayers;  
+        [SerializeField] private LayerMask entityLayers;
 
         private bool isNavMeshCutEnabled = false;
         private Coroutine navMeshCutCoroutine;
 
         public RainControl weatherControl;
+        private PerlinNoiseDeformer perlinDeformer;
+
+        private float leafColourLerpTime;
 
         public enum State
         {
@@ -65,6 +70,7 @@ namespace ProceduralModeling
         private TreeAudioManager treeAudioSFX;
 
         private PTGrowingManager pTGrowingManager;
+        private SeasonManager seasonManager;
 
         [SerializeField] private float growthInhibitionScaleFactor = 1.0f;
 
@@ -74,11 +80,19 @@ namespace ProceduralModeling
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, 0);
+            deform = GetComponentInChildren<DeformableManager>();
+            perlinDeformer = GetComponentInChildren<PerlinNoiseDeformer>();
+            deform.update = false;
+            leafMaterial = proceduralTree.leafMat;
+            lerpTerrain = FindObjectOfType<LerpTerrain>();
+            leafColourLerpTime = lerpTerrain.terrainLerpTime;
 
             leafScaler = gameObject.GetComponent<LeafScaler>();
             treeAudioSFX = GetComponent<TreeAudioManager>();
             treeFruitManager = GetComponent<TreeFruitManager>();
             obstacle = GetComponent<RVOSquareObstacle>();
+
+            seasonManager = FindObjectOfType<SeasonManager>();
 
             currentState = State.Buffering;
             time = 0f;
@@ -97,6 +111,8 @@ namespace ProceduralModeling
 
             DisableNavMeshCut();
         }
+
+        private DeformableManager deform;
 
         private void OnDestroy()
         {
@@ -141,6 +157,11 @@ namespace ProceduralModeling
             time = 0f;
             growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
 
+            if (deform.update)
+            {
+                deform.update = false;
+            }
+
             while (time < growBuffer)
             {
                 time += Time.deltaTime;
@@ -157,6 +178,8 @@ namespace ProceduralModeling
             StartCoroutine(Growing());
         }
 
+        float growTime;
+
         private IEnumerator Growing()
         {
             isFullyGrown = false;
@@ -164,6 +187,8 @@ namespace ProceduralModeling
             time = 0f;
             isDead = false;
             growDuration = Random.Range(minGrowDuration, maxGrowDuration);
+
+            deform.update = true;
 
             treeAudioSFX.StartTreeGrowthSFX(State.Growing);
 
@@ -176,8 +201,9 @@ namespace ProceduralModeling
                 {
                     isGrowing = true;
                     float t = time / growDuration;
-                    float newGrowing = Mathf.Lerp(0, 1, t);
-                    material.SetFloat(kGrowingKey, newGrowing);
+                    growTime = Mathf.Lerp(0, 1, t);
+                    perlinDeformer.OffsetSpeedScalar = 1 - growTime; // Changes here
+                    material.SetFloat(kGrowingKey, growTime);
                     time += Time.deltaTime;
                 }
 
@@ -190,15 +216,19 @@ namespace ProceduralModeling
             StartCoroutine(Lifetime());
         }
 
+
         private IEnumerator Lifetime()
         {
             currentState = State.Alive;
             isFullyGrown = true;
             isDead = false;
 
+
+            deform.update = false;
+
             lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
 
-            if (!weatherControl.drought)
+            if (!weatherControl.drought && seasonManager._currentSeason != SeasonManager.Season.Winter)
             {
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
                 treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
@@ -226,8 +256,10 @@ namespace ProceduralModeling
             deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
             isDead = true;
 
+            deform.update = true;
+
             leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
-            
+
             foreach (GameObject fruit in treeFruitManager.fruits)
             {
                 StartCoroutine(treeFruitManager.Fall(fruit, fruit.transform));
@@ -246,8 +278,9 @@ namespace ProceduralModeling
             while (time < deathDuration)
             {
                 float t = time / deathDuration;
-                float newGrowing = Mathf.Lerp(1, 0, t);
-                material.SetFloat(kGrowingKey, newGrowing);
+                growTime = Mathf.Lerp(1, 0, t);
+                material.SetFloat(kGrowingKey, growTime);
+                perlinDeformer.OffsetSpeedScalar = growTime; // Changes here
                 time += Time.deltaTime;
                 yield return null;
             }
@@ -283,12 +316,58 @@ namespace ProceduralModeling
             }
         }
 
+        public List<GameObject> fallingLeaves;
+
+        private void DetachLeaves()
+        {
+            foreach (GameObject leaf in proceduralTree.leafList)
+            {
+                // Store original position and rotation
+                Vector3 origPos = leaf.transform.position;
+                Quaternion origRot = leaf.transform.rotation;
+
+                // Create new leaf under container
+                GameObject newLeaf = Instantiate(leaf, origPos, origRot);
+
+                Rigidbody rb = newLeaf.AddComponent<Rigidbody>();
+
+                // Random force with downward bias
+                Vector3 force = new Vector3(Random.Range(-2, 2), Random.Range(-1, -3), Random.Range(-2, 2));
+
+                rb.AddForce(force, ForceMode.Impulse);
+
+                // Add to leaves list
+                fallingLeaves.Add(newLeaf);
+            }
+        }
+
+        public Color[] leafColorsPerSeason;
+        private string leafColourParam = "_LeafColour";
+        private Material leafMaterial;
+
+        public IEnumerator LerpLeafColour(Color targetColor)
+        {
+            float lerpTime = 0;
+            float lerpDuration = 5.0f; // adjust this to control the speed of the color transition
+            Color currentColor = leafMaterial.GetColor(leafColourParam);
+
+            while (lerpTime < lerpDuration)
+            {
+                float t = lerpTime / lerpDuration;
+                leafMaterial.SetColor(leafColourParam, Color.Lerp(currentColor, targetColor, t));
+                lerpTime += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+
 
         public void KillLeaves()
         {
             if (isFullyGrown)
             {
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+                DetachLeaves();
             }
         }
 

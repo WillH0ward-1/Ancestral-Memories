@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -25,6 +26,8 @@ public class SeasonManager : MonoBehaviour
     public class SeasonEvent : UnityEvent<Season> { }
 
     public Season _currentSeason; // Serialized field to display the current season in the Inspector
+
+    private MapObjGen mapObjGen;
 
     public Season CurrentSeason
     {
@@ -64,6 +67,8 @@ public class SeasonManager : MonoBehaviour
         }
     }
 
+
+
     private TimeCycleManager timeCycle;
 
     private int GetNumberOfSeasons()
@@ -80,12 +85,46 @@ public class SeasonManager : MonoBehaviour
         set { _totalDaysInYear = value; }
     }
 
+    public Color[] leafColors; // Define in the inspector, one color for each season
+    private Dictionary<string, Color> seasonToColor;
+
     private void OnEnable()
     {
         timeCycle = GetComponent<TimeCycleManager>();
+        mapObjGen = FindObjectOfType<MapObjGen>();
+
         SetInitialSeason();
         UpdateTotalDaysInYear();
+
+        // Initialize the dictionary with the colors for each season
+        seasonToColor = new Dictionary<string, Color>();
+        var seasons = System.Enum.GetNames(typeof(Season));
+
+        // Resize the leafColors array to match the number of seasons
+        System.Array.Resize(ref leafColors, seasons.Length);
+        for (int i = 0; i < seasons.Length; i++)
+        {
+            // Use a default color if one wasn't set in the inspector
+            if (leafColors[i] == null)
+                leafColors[i] = Color.white; // Default color
+
+            seasonToColor[seasons[i]] = leafColors[i];
+        }
+
+        // Subscribe to the OnSeasonChanged event
+        OnSeasonChanged.AddListener(ChangeLeafColorBasedOnSeason);
     }
+
+    private void ChangeLeafColorBasedOnSeason(Season season)
+    {
+        string seasonName = season.ToString();
+        if (seasonToColor.ContainsKey(seasonName))
+        {
+            Color newLeafColor = seasonToColor[seasonName];
+            mapObjGen.LerpLeafColour(newLeafColor);
+        }
+    }
+
 
     private void Awake()
     {

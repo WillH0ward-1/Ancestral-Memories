@@ -266,7 +266,7 @@ public class MapObjGen : MonoBehaviour
 
             static void DestroyObject(GameObject emitter)
             {
-//                Debug.Log("Object destroyed in game.");
+                //                Debug.Log("Object destroyed in game.");
                 Destroy(emitter);
 
             }
@@ -292,11 +292,11 @@ public class MapObjGen : MonoBehaviour
     {
         mapObjectsGenerated = false;
 
-       // ResetPosOffset(mapObject.transform);
+        // ResetPosOffset(mapObject.transform);
         ResetPosOffset();
 
-        sampleWidth = meshSettings.meshWorldSize; 
-        sampleHeight = meshSettings.meshWorldSize; 
+        sampleWidth = meshSettings.meshWorldSize;
+        sampleHeight = meshSettings.meshWorldSize;
 
         xOffset = -sampleWidth / 2;
         zOffset = -sampleHeight / 2;
@@ -414,7 +414,7 @@ public class MapObjGen : MonoBehaviour
             }
         }
     }
-        void ListCleanup(List<GameObject> list)
+    void ListCleanup(List<GameObject> list)
     {
         for (var i = list.Count - 1; i > -1; i--)
         {
@@ -471,7 +471,7 @@ public class MapObjGen : MonoBehaviour
             GameObject randomAnimal = GetRandomMapObject(animals);
 
             GameObject animalInstance = Instantiate(randomAnimal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
-        
+
             animalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
             animalInstance.tag = animalTag;
@@ -567,7 +567,7 @@ public class MapObjGen : MonoBehaviour
             NavMeshAgent navMeshAgent = instance.GetComponentInChildren<NavMeshAgent>();
             navMeshAgent.enabled = true;
         }
-        
+
     }
 
     void PedestalPoissonDisc(PoissonDiscSampler pedestalSampler)
@@ -600,7 +600,7 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
 
-           // GrowTrees(treeInstance);
+            // GrowTrees(treeInstance);
 
         }
     }
@@ -662,7 +662,7 @@ public class MapObjGen : MonoBehaviour
     [Header("Generated Objects")]
     [Space(10)]
 
-    public List<GameObject> mapObjectList; 
+    public List<GameObject> mapObjectList;
     public List<GameObject> treeList;
     public List<GameObject> npcList;
     public List<GameObject> grassList;
@@ -771,6 +771,14 @@ public class MapObjGen : MonoBehaviour
         {
             ptGrow.KillLeaves();
             ptGrow.KillFruits();
+        }
+    }
+
+    public void LerpLeafColour(Color leafColour)
+    {
+        foreach (PTGrowing ptGrow in ptGrowComponents)
+        {
+            StartCoroutine(ptGrow.LerpLeafColour(leafColour));
         }
     }
 

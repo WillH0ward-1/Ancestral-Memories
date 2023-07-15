@@ -112,7 +112,7 @@ public class RainControl : MonoBehaviour
         float time = 0;
         float droughtDuration = Random.Range(minDroughtDuration, maxDroughtDuration);
 
-        StartCoroutine(lerpTerrain.ToDesert(15f));
+        StartCoroutine(lerpTerrain.ToDesert());
         mapObjGen.KillAllTreeProduce();
 
         while (time < droughtDuration)
@@ -170,7 +170,7 @@ public class RainControl : MonoBehaviour
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 
         //rainStrength = Random.Range(minRainStrength, maxRainStrength);
-        StartCoroutine(lerpTerrain.ToWetOasis(15f));
+        StartCoroutine(lerpTerrain.ToWetOasis());
 
         float time = 0;
 
@@ -207,7 +207,7 @@ public class RainControl : MonoBehaviour
         emission.enabled = false;
         isRaining = false;
         rainParticles.Stop();
-        StartCoroutine(lerpTerrain.ToOasis(15f));
+        StartCoroutine(lerpTerrain.ToOasis());
 
         if (retrigger)
         {

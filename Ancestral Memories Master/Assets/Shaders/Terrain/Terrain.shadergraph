@@ -98,6 +98,9 @@
         },
         {
             "m_Id": "28c79d3c41534ba78bfe2d5f8f32657e"
+        },
+        {
+            "m_Id": "99e8fb38e26c40898a081cc15a3fbb8a"
         }
     ],
     "m_Keywords": [],
@@ -335,6 +338,12 @@
         },
         {
             "m_Id": "f4705ddf40e64fdb9fd729da9eaa9635"
+        },
+        {
+            "m_Id": "0581d851e37f41c08dab81189c0bfc29"
+        },
+        {
+            "m_Id": "b123ce419f8a4d2084ae710256a14709"
         }
     ],
     "m_GroupDatas": [
@@ -1081,6 +1090,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "b123ce419f8a4d2084ae710256a14709"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "0581d851e37f41c08dab81189c0bfc29"
+                },
+                "m_SlotId": -626177783
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "b13b07c25f2e44ce86aa03bbfafd773b"
                 },
                 "m_SlotId": 0
@@ -1375,8 +1398,8 @@
     ],
     "m_VertexContext": {
         "m_Position": {
-            "x": 1818.0,
-            "y": -622.0001220703125
+            "x": 3441.0,
+            "y": -743.0
         },
         "m_Blocks": [
             {
@@ -1593,6 +1616,51 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.SubGraphNode",
+    "m_ObjectId": "0581d851e37f41c08dab81189c0bfc29",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "WarpToCamera",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 3001.999755859375,
+            "y": -708.0,
+            "width": 221.0,
+            "height": 277.9999694824219
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "a50f763b258945f58c83b33e932ab960"
+        },
+        {
+            "m_Id": "85975be06e6f4c71b1f707d7ca59e678"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"56d767c72a38c4279a7d59e1e3448df8\",\n        \"type\": 3\n    }\n}",
+    "m_PropertyGuids": [
+        "da026ac5-9c38-4267-afc9-8be95b7643ab"
+    ],
+    "m_PropertyIds": [
+        -626177783
+    ],
+    "m_Dropdowns": [],
+    "m_DropdownSelectedEntries": []
 }
 
 {
@@ -2106,6 +2174,21 @@
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "14162851c33b4e74871955c4c9669638",
+    "m_Id": 0,
+    "m_DisplayName": "Curvature",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -2785,6 +2868,9 @@
         },
         {
             "m_Id": "28c79d3c41534ba78bfe2d5f8f32657e"
+        },
+        {
+            "m_Id": "99e8fb38e26c40898a081cc15a3fbb8a"
         }
     ]
 }
@@ -5645,6 +5731,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "85975be06e6f4c71b1f707d7ca59e678",
+    "m_Id": 1,
+    "m_DisplayName": "Out_Vector3",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "OutVector3",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "8641d1a023f7433a84346199aa9c8686",
     "m_Group": {
@@ -6263,6 +6372,34 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "99e8fb38e26c40898a081cc15a3fbb8a",
+    "m_Guid": {
+        "m_GuidSerialized": "0f471af1-63db-47a7-9125-252e4712e89a"
+    },
+    "m_Name": "Curvature",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Curvature",
+    "m_DefaultReferenceName": "_Curvature",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": 0.0,
+    "m_FloatType": 0,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
+    }
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.SubGraphNode",
     "m_ObjectId": "9b4c1e3b0a3d44a4847865e7be389f2b",
@@ -6542,6 +6679,21 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "a50f763b258945f58c83b33e932ab960",
+    "m_Id": -626177783,
+    "m_DisplayName": "Curvature",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Curvature",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -6832,6 +6984,42 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "b123ce419f8a4d2084ae710256a14709",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 2733.0,
+            "y": -708.0000610351563,
+            "width": 128.0,
+            "height": 77.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "14162851c33b4e74871955c4c9669638"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "99e8fb38e26c40898a081cc15a3fbb8a"
     }
 }
 

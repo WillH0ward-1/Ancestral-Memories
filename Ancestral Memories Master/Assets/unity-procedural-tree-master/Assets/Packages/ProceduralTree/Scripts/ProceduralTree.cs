@@ -19,7 +19,7 @@ namespace ProceduralModeling
 		[SerializeField, Range(0.1f, 2f)] protected float radius = 0.15f;
 		[SerializeField, Range(0f, 10f)] protected float leafSize = 0f;
 
-		[SerializeField] private Material leafMat;
+		public Material leafMat;
 		const float PI2 = Mathf.PI * 2f;
 
 		private bool isLeafListInitialized;

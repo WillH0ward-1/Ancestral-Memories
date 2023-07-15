@@ -31,6 +31,8 @@ public class LerpTerrain : MonoBehaviour
     private bool isLerpingAutumnColor;
     private bool isLerpingSnowDensity;
 
+    public float terrainLerpTime = 10f;
+
     private void Awake()
     {
         player = FindObjectOfType<Player>();
@@ -38,13 +40,14 @@ public class LerpTerrain : MonoBehaviour
         seasonManager = FindObjectOfType<SeasonManager>();
         seasonManager.OnSeasonChanged.AddListener(HandleSeasonChange);
         seasonManager = FindObjectOfType<SeasonManager>();
+        duration = terrainLerpTime;
     }
 
 
     void Start()
     {
         GetRenderers();
-        ToState(Oasis, 0.1f);
+        ToState(Oasis);
     }
 
     private void Update()
@@ -119,28 +122,28 @@ public class LerpTerrain : MonoBehaviour
         rendererList = objectRenderers.ToList();
     }
 
-    public IEnumerator ToOasis(float duration)
+    public IEnumerator ToOasis()
     {
-        ToState(Oasis, duration);
+        ToState(Oasis);
         yield break;
     }
 
-    public IEnumerator ToWetOasis(float duration)
+    public IEnumerator ToWetOasis()
     {
-        ToState(Wet, duration);
+        ToState(Wet);
         yield break;
     }
 
-    public IEnumerator ToDesert(float duration)
+    public IEnumerator ToDesert()
     {
         if (seasonManager._currentSeason == SeasonManager.Season.Summer)
         {
-            ToState(Desert, duration);
+            ToState(Desert);
             yield break;
         }
     }
 
-    void ToState(float newState, float duration)
+    void ToState(float newState)
     {
         StopAllCoroutines();
 
