@@ -245,7 +245,7 @@ namespace SimplestarGame.Wave
             }
             if (this.TryGetComponent(out Mesh.QuadPlaneMesh quadMesh))
             {
-                quadMesh.SubDivide(this.width, quadMesh.EdgeLength);
+                quadMesh.SubDivide(this.width);
             }
         }
 
