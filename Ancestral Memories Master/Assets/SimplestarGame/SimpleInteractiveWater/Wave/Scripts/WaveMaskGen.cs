@@ -10,6 +10,11 @@ namespace SimplestarGame.Wave
         [SerializeField] [Range(6, 11)] int resolution = 7;
         [SerializeField] string outputPath = "SimplestarGame/SimpleInteractiveWater/Example/Textures";
 
+        private void Start()
+        {
+            Generate();
+        }
+
         public void Generate()
         {
             if (this.gameObject.TryGetComponent(out MeshFilter meshFilter))

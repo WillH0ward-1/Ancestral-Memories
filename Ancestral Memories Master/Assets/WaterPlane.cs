@@ -16,6 +16,7 @@ public class WaterPlane : MonoBehaviour
     private MeshRenderer meshRenderer;
     private Material material;
     private Vector3[] baseVertices;
+    [SerializeField] private float yPos = 0;
 
     private void OnEnable()
     {
@@ -23,7 +24,7 @@ public class WaterPlane : MonoBehaviour
         meshRenderer = GetComponent<MeshRenderer>();
         material = meshRenderer.sharedMaterial;
         baseVertices = meshFilter.sharedMesh.vertices;
-
+        //yPos = transform.localPosition.y;
         GenerateSidePlanes();
     }
 
@@ -34,33 +35,44 @@ public class WaterPlane : MonoBehaviour
         float offsetX = rootPlaneScale.x * planeScaleMultiplier;
         float offsetZ = rootPlaneScale.z * planeScaleMultiplier;
 
+        // Create a parent object for the side planes
+        GameObject sidePlaneParent = new GameObject("SidePlaneParent");
+        sidePlaneParent.transform.SetParent(transform);
+
         // Generate planes at X positions
-        CreateSidePlane(rootPlanePosition + Vector3.left * offsetX);
-        CreateSidePlane(rootPlanePosition + Vector3.right * offsetX);
+        CreateSidePlane(rootPlanePosition + Vector3.left * offsetX, yPos, sidePlaneParent);
+        CreateSidePlane(rootPlanePosition + Vector3.right * offsetX, yPos, sidePlaneParent);
 
         // Generate planes at Z positions
-        CreateSidePlane(rootPlanePosition + Vector3.forward * offsetZ);
-        CreateSidePlane(rootPlanePosition + Vector3.back * offsetZ);
+        CreateSidePlane(rootPlanePosition + Vector3.forward * offsetZ, yPos, sidePlaneParent);
+        CreateSidePlane(rootPlanePosition + Vector3.back * offsetZ, yPos, sidePlaneParent);
 
         // Generate planes at X+Z positions
-        CreateSidePlane(rootPlanePosition + Vector3.right * offsetX + Vector3.back * offsetZ);
-        CreateSidePlane(rootPlanePosition + Vector3.left * offsetX + Vector3.forward * offsetZ);
-        CreateSidePlane(rootPlanePosition + Vector3.left * offsetX + Vector3.back * offsetZ);
-        CreateSidePlane(rootPlanePosition + Vector3.right * offsetX + Vector3.forward * offsetZ);
+        CreateSidePlane(rootPlanePosition + Vector3.right * offsetX + Vector3.back * offsetZ, yPos, sidePlaneParent);
+        CreateSidePlane(rootPlanePosition + Vector3.left * offsetX + Vector3.forward * offsetZ, yPos, sidePlaneParent);
+        CreateSidePlane(rootPlanePosition + Vector3.left * offsetX + Vector3.back * offsetZ, yPos, sidePlaneParent);
+        CreateSidePlane(rootPlanePosition + Vector3.right * offsetX + Vector3.forward * offsetZ, yPos, sidePlaneParent);
     }
 
-    private void CreateSidePlane(Vector3 position)
+    private void CreateSidePlane(Vector3 position, float yPosition, GameObject parent)
     {
         GameObject sidePlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         sidePlane.name = "SidePlane";
-        sidePlane.transform.position = position;
-        sidePlane.transform.localScale = new Vector3(1f, 1f, 1f);
-        sidePlane.transform.SetParent(transform);
+        sidePlane.transform.localScale = transform.localScale; // Use the original scale of the root plane
+
+        Vector3 sidePlanePosition = new Vector3(position.x, yPosition, position.z);
+        sidePlane.transform.position = sidePlanePosition;
+
+        sidePlane.transform.SetParent(parent.transform);
 
         MeshRenderer sidePlaneRenderer = sidePlane.GetComponent<MeshRenderer>();
-        sidePlaneRenderer.sharedMaterial = sidePlaneMaterial;
+        sidePlaneRenderer.sharedMaterial = new Material(sidePlaneMaterial); // Create a new material instance
 
-        // Assign the color from the main water plane's material
+        // Copy the albedo color from the main water plane's material
         sidePlaneRenderer.sharedMaterial.color = meshRenderer.sharedMaterial.color;
+
+        // Copy the texture if needed
+        sidePlaneRenderer.sharedMaterial.mainTexture = meshRenderer.sharedMaterial.mainTexture;
     }
+
 }

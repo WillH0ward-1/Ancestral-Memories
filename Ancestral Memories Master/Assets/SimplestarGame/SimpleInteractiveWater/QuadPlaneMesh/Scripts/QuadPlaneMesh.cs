@@ -5,12 +5,19 @@ namespace SimplestarGame.Mesh
     [RequireComponent(typeof(MeshFilter))]
     public class QuadPlaneMesh : MonoBehaviour
     {
-        internal void SubDivide(int width)
+        public int Width = 1;  // public properties can be set from the Unity inspector
+        public float EdgeLength = 2.0f; // You can set this in the inspector too
+
+        private void Start()
+        {
+            SubDivide(Width, EdgeLength);
+        }
+
+        internal void SubDivide(int width, float originalEdgeLength)
         {
             var subDivIndices = new int[6 * width * width];
             var subDivVerts = new Vector3[4 * width * width];
             var subDivUvs = new Vector2[4 * width * width];
-            float originalEdgeLength = 2.0f;
             var offsetDelta = 1f / width;
             for (int xIndex = 0; xIndex < width; xIndex++)
             {
