@@ -39,6 +39,9 @@ namespace ProceduralModeling
         private TreeFruitManager treeFruitManager;
 
         private RVOSquareObstacle obstacle;
+        private BoxCollider growthInhibitionZone;  
+
+        [SerializeField] private LayerMask entityLayers;  
 
         private bool isNavMeshCutEnabled = false;
         private Coroutine navMeshCutCoroutine;
@@ -63,6 +66,8 @@ namespace ProceduralModeling
 
         private PTGrowingManager pTGrowingManager;
 
+        [SerializeField] private float growthInhibitionScaleFactor = 1.0f;
+
         private void Awake()
         {
             proceduralTree = GetComponentInChildren<ProceduralTree>();
@@ -71,14 +76,13 @@ namespace ProceduralModeling
             material.SetFloat(kGrowingKey, 0);
 
             leafScaler = gameObject.GetComponent<LeafScaler>();
-            treeAudioSFX = GetComponent<TreeAudioManager>();  // Fetch the TreeAudioSFX component
-            treeFruitManager = GetComponent<TreeFruitManager>(); // Fetch the TreeFruitManager component
+            treeAudioSFX = GetComponent<TreeAudioManager>();
+            treeFruitManager = GetComponent<TreeFruitManager>();
             obstacle = GetComponent<RVOSquareObstacle>();
 
             currentState = State.Buffering;
             time = 0f;
 
-            // Get a reference to the PTGrowingManager in the scene
             pTGrowingManager = FindObjectOfType<PTGrowingManager>();
 
             if (pTGrowingManager != null)
@@ -86,14 +90,39 @@ namespace ProceduralModeling
                 pTGrowingManager.RegisterPTGrowing(this);
             }
 
+            growthInhibitionZone = gameObject.AddComponent<BoxCollider>();
+            growthInhibitionZone.isTrigger = true;
+            growthInhibitionZone.size = new Vector3(obstacle.size.x * growthInhibitionScaleFactor, obstacle.height * growthInhibitionScaleFactor, obstacle.size.y * growthInhibitionScaleFactor);
+            growthInhibitionZone.center = obstacle.center;
+
             DisableNavMeshCut();
         }
 
         private void OnDestroy()
         {
-            // Unregister this PTGrowing instance from the manager
             pTGrowingManager?.UnregisterPTGrowing(this);
+        }
 
+        public float overlapBoxScaleFactor = 1.2f;  // exposed factor for scaling overlap box size
+
+        private bool IsAnyEntityInGrowthZone()
+        {
+            Vector3 overlapBoxSize = growthInhibitionZone.size;
+            overlapBoxSize.Scale(transform.lossyScale);  // Adjust the size of the OverlapBox based on the GameObject's world scale
+
+            Collider[] hitColliders = Physics.OverlapBox(transform.position + growthInhibitionZone.center, overlapBoxSize, Quaternion.identity, entityLayers);
+            return hitColliders.Length > 0;
+        }
+
+
+
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Vector3 center = transform.position + growthInhibitionZone.center;
+            Vector3 halfSize = growthInhibitionZone.size / 2;
+            Gizmos.DrawWireCube(center, halfSize);
         }
 
 
@@ -118,8 +147,13 @@ namespace ProceduralModeling
                 yield return null;
             }
 
-            time = 0f;
+            // Wait for entities to clear growth zone
+            while (IsAnyEntityInGrowthZone())
+            {
+                yield return null;
+            }
 
+            time = 0f;
             StartCoroutine(Growing());
         }
 
