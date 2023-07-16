@@ -20,8 +20,20 @@ public class AuraControl : MonoBehaviour
 
     public float auraIntensity;
 
-    private void OnEnable() => player.OnFaithChanged += FaithChanged;
-    private void OnDisable() => player.OnFaithChanged -= FaithChanged;
+    private void OnEnable()
+    {
+        if (player == null)
+        {
+            player = FindObjectOfType<Player>();
+        }
+
+        player.OnFaithChanged += FaithChanged;
+    }
+
+    private void OnDisable()
+    {
+        player.OnFaithChanged -= FaithChanged;
+    }
 
     // Start is called before the first frame update
     void Start()

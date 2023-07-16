@@ -103,7 +103,7 @@ public class MusicManager : MonoBehaviour
                                       // as one object, along with it's instrument name
     {
         InstrumentInfo[Instruments.Strings] = strings_EventPath;
-        InstrumentInfo[Instruments.PianoTail] = plateScrapeSynth_EventPath;
+        InstrumentInfo[Instruments.PianoTail] = pianoTail_EventPath;
         InstrumentInfo[Instruments.PlateScrapeSynth] = plateScrapeSynth_EventPath;
         InstrumentInfo[Instruments.HangDrum] = hangDrum_EventPath;
         InstrumentInfo[Instruments.JawHarp] = jawHarp_EventPath;
@@ -393,6 +393,7 @@ public class MusicManager : MonoBehaviour
     public void PlayOneShot(string instrumentName, GameObject emitter, bool isProgrammerEvent) // Use 'Find References', it's called
     {                                                                 // by other scripts
         EventReference eventPath = GetInstrumentEvent(instrumentName);
+        Rigidbody rigidbody = emitter.GetComponentInChildren<Rigidbody>();
 
         int randomIndex = UnityEngine.Random.Range(0, notesToUse.Length - 1);
         string note = notesToUse[randomIndex];
@@ -408,18 +409,19 @@ public class MusicManager : MonoBehaviour
 
             string key = instrumentFileRootName + "/" + instrumentName + "/" + note;
             //Debug.Log(key);
+            RuntimeManager.AttachInstanceToGameObject(instrumentInstance, emitter.transform, rigidbody);
             GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
             instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
             instrumentInstance.setCallback(callbackDelegate);
+
         }
         else
         {
-
-            RuntimeManager.AttachInstanceToGameObject(instrumentInstance, emitter.transform);
-
-            instrumentInstance.start();
-            instrumentInstance.release();
+            RuntimeManager.AttachInstanceToGameObject(instrumentInstance, emitter.transform, rigidbody);
         }
+
+        instrumentInstance.start();
+        instrumentInstance.release();
     }
 
     /*

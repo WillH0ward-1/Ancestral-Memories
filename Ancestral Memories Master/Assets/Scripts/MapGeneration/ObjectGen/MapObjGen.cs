@@ -358,6 +358,7 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(npcList);
         ListCleanup(grassList);
         ListCleanup(humanPopulationList);
+        ListCleanupAIStats(allHumanStats);
         ListCleanup(huntableAnimalsList);
 
         mapObjectsGenerated = true;
@@ -415,6 +416,15 @@ public class MapObjGen : MonoBehaviour
         }
     }
     void ListCleanup(List<GameObject> list)
+    {
+        for (var i = list.Count - 1; i > -1; i--)
+        {
+            if (list[i] == null)
+                list.RemoveAt(i);
+        }
+    }
+
+    void ListCleanupAIStats(List<AICharacterStats> list)
     {
         for (var i = list.Count - 1; i > -1; i--)
         {

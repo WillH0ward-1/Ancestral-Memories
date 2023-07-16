@@ -28,6 +28,7 @@ public class InteractCamera : MonoBehaviour
 
     private void Awake()
     {
+        cam = Camera.main;
         rpCamera = FindObjectOfType<RPCamera>();
     }
     private void Start()

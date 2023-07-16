@@ -31,8 +31,13 @@ public class ParticleCollision : MonoBehaviour
     //private ScaleControl scaleControl;
     [SerializeField] private FlowerGrow flowerGrow;
     [SerializeField] private ScaleControl scaleControl;
+
+    private SoundObjectManager soundObjectManager;
+
     private void Awake()
     {
+        soundObjectManager = FindObjectOfType<SoundObjectManager>();
+
         for (int i = 0; i < maxPoolSize; i++)
         {
             GameObject flower = Instantiate(flowerPrefabs[Random.Range(0, flowerPrefabs.Length)]);
@@ -53,8 +58,12 @@ public class ParticleCollision : MonoBehaviour
 
     private void GenerateFlower(Vector3 position)
     {
-        if (player.faith >= 50)
+        Debug.Log("Faith not high enough to grow flowers!");
+
+        if (player.faith >= player.maxStat / 2)
         {
+            Debug.Log("Faith high enough to grow flowers!");
+
             GameObject flower = GetPooledObject();
             FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
             ScaleControl scaleControl = flower.transform.GetComponent<ScaleControl>();
@@ -136,13 +145,24 @@ public class ParticleCollision : MonoBehaviour
             screenCoords.y > 0 &&
             screenCoords.y < 1;
 
-        GenerateFlower(particlePos);
+        // If the particle is on screen, we play the sound
+        if (onScreen)
+        {
+            GenerateFlower(particlePos);
 
-//        Debug.Log(hitLocation);
-
-        musicManager.PlayOneShot(MusicManager.Instruments.PianoTail.ToString(), particleGameObject, true);
-        
+            GameObject soundGameObject = soundObjectManager.RequestSoundObject();
+            if (soundGameObject != null)
+            {
+                soundGameObject.transform.position = particlePos;
+                musicManager.PlayOneShot(MusicManager.Instruments.PianoTail.ToString(), soundGameObject, true);
+            }
+            else
+            {
+                Debug.LogWarning("Unable to retrieve sound object from the pool. All sound objects are currently in use.");
+            }
+        }
     }
+
 
     private bool rainIsActive = false;
     private bool harmonicStabilityActive;
