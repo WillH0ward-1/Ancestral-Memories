@@ -3,6 +3,9 @@ using UnityEngine;
 
 public static class EditorColors
 {
+
+#if UNITY_EDITOR
+
     // DARK THEME - Background
     private static Color32 darkBackground = new Color32(56, 56, 56, 255);
     private static Color32 darkObjectSelectedBackground = new Color32(77, 77, 77, 255);
@@ -71,4 +74,5 @@ public static class EditorColors
     {
         return selectionContainsObject ? windowIsFocused ? ObjectSelectedWindowFocusedText : ObjectSelectedText : Text;
     }
+#endif
 }

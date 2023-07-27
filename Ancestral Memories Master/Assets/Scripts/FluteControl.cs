@@ -127,14 +127,14 @@ public class FluteControl : MonoBehaviour
                 PlayFluteSound(note);
             }
 
-
             yield return null;
         }
 
         StopFluteSound();
+        StopCoroutine(ModifyFaithOverTime());
         yield break;
-
     }
+
 
     public IEnumerator ModifyFaithOverTime()
     {

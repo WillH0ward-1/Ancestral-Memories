@@ -113,7 +113,7 @@ public class Outline : MonoBehaviour {
     }
   }
 
-  void OnValidate() {
+  void Start() {
 
     // Update material properties
     needsUpdate = true;

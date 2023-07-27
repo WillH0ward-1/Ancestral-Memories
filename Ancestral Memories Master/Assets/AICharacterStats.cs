@@ -18,11 +18,11 @@ public class AICharacterStats : MonoBehaviour
     public bool isBlessed = false;
     public bool isStarving = false;
 
-    public bool hasDied = false;
+    public bool isDead = false;
 
-    public float healthFactor = 0.1f;
-    public float faithFactor = 0.01f;
-    public float hungerFactor = 0.1f;
+    public float healthFactor = 0.00000001f;
+    public float faithFactor = 0.00000001f;
+    public float hungerFactor = 0.00000001f;
 
     public event Action<float, float, float> OnHealthChanged;
     public event Action<float, float, float> OnHungerChanged;
@@ -49,8 +49,12 @@ public class AICharacterStats : MonoBehaviour
 
     private string currentState;
 
+    private DamageEffects damageEffects;
+
     public void Awake()
     {
+        damageEffects = transform.GetComponentInChildren<DamageEffects>();
+
         health = maxStat;
         hunger = maxStat;
         faith = minStat;
@@ -76,13 +80,29 @@ public class AICharacterStats : MonoBehaviour
         if (hunger > minStat)
         {
             isStarving = false;
-            hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
+
+            if (useFaith)
+            {
+                hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
+            } else
+            {
+                hunger -= Time.deltaTime * hungerFactor;
+            }
+
             hunger = Mathf.Clamp(hunger, minStat, maxStat);
         }
         else
         {
             isStarving = true;
-            health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
+
+            if (useFaith)
+            {
+                health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
+            } else
+            {
+                health -= Time.deltaTime * healthFactor;
+            }
+
             health = Mathf.Clamp(health, minStat, maxStat);
         }
 
@@ -92,14 +112,16 @@ public class AICharacterStats : MonoBehaviour
             faith = Mathf.Clamp(faith, minStat, maxStat);
         }
 
+        if (health <= minStat)
+        {
+            isDead = true;
+        }
+
         OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
         OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
     }
-
-
-
 
     public void Heal(float healFactor)
     {
@@ -120,6 +142,7 @@ public class AICharacterStats : MonoBehaviour
         health -= damageTaken;
         health = Mathf.Clamp(health, minStat, maxStat);
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
+        damageEffects.FlashRed();
     }
 
     public void FaithModify(float faithModifer)

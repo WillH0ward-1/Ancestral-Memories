@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Deform;
-using Pathfinding;
 using Pathfinding.RVO;
 using UnityEngine;
 
@@ -49,9 +48,6 @@ namespace ProceduralModeling
         private Coroutine navMeshCutCoroutine;
 
         public RainControl weatherControl;
-        private PerlinNoiseDeformer perlinDeformer;
-
-        public CullEffects culling;
 
         private float leafColourLerpTime;
 
@@ -82,12 +78,6 @@ namespace ProceduralModeling
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, 0);
-            deform = GetComponentInChildren<DeformableManager>();
-            perlinDeformer = GetComponentInChildren<PerlinNoiseDeformer>();
-
-            deform.update = false;
-            perlinDeformer.update = false;
-
             leafMaterial = proceduralTree.leafMat;
             lerpTerrain = FindObjectOfType<LerpTerrain>();
             leafColourLerpTime = lerpTerrain.terrainLerpTime;
@@ -96,7 +86,6 @@ namespace ProceduralModeling
             treeAudioSFX = GetComponent<TreeAudioManager>();
             treeFruitManager = GetComponent<TreeFruitManager>();
             obstacle = GetComponent<RVOSquareObstacle>();
-            culling = GetComponent<CullEffects>();
 
             seasonManager = FindObjectOfType<SeasonManager>();
 
@@ -136,6 +125,9 @@ namespace ProceduralModeling
             return hitColliders.Length > 0;
         }
 
+
+
+
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
@@ -160,15 +152,6 @@ namespace ProceduralModeling
             time = 0f;
             growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
 
-            if (deform.update)
-            {
-                deform.update = false;
-            }
-            if (perlinDeformer.update)
-            {
-                perlinDeformer.update = false;
-            }
-
             while (time < growBuffer)
             {
                 time += Time.deltaTime;
@@ -187,9 +170,6 @@ namespace ProceduralModeling
 
         float growTime;
 
-        public bool previousCulledState;
-        public bool currentCulledState;
-
         private IEnumerator Growing()
         {
             isFullyGrown = false;
@@ -198,11 +178,10 @@ namespace ProceduralModeling
             isDead = false;
             growDuration = Random.Range(minGrowDuration, maxGrowDuration);
 
-            deform.update = true;
-            perlinDeformer.update = true;
-            float previousDeformOffsetSpeedScalar = perlinDeformer.OffsetSpeedScalar; // Track previous deform offset speed scalar
-
             treeAudioSFX.StartTreeGrowthSFX(State.Growing);
+
+            yield return null;
+            EnableNavMeshCut();
 
             while (time < growDuration)
             {
@@ -211,33 +190,6 @@ namespace ProceduralModeling
                     isGrowing = true;
                     float t = time / growDuration;
                     growTime = Mathf.Lerp(0, 1, t);
-
-                    bool currentCulledState = culling.isCulled;
-
-                    if (currentCulledState != previousCulledState)
-                    {
-                        if (currentCulledState)
-                        {
-                            // Culling state changed to true, disable the mesh effects
-                            deform.update = false;
-                            perlinDeformer.update = false;
-                        }
-                        else
-                        {
-                            // Culling state changed to false, enable the mesh effects and lerp to deformed value
-                            deform.update = true;
-                            perlinDeformer.update = true;
-                            perlinDeformer.OffsetSpeedScalar = previousDeformOffsetSpeedScalar; // Restore previous deform offset speed scalar
-
-                            if (!previousCulledState)
-                            {
-                                StartCoroutine(LerpDeformOffsetSpeedScalar(1f, 0f, previousDeformOffsetSpeedScalar, perlinDeformer.OffsetSpeedScalar, 1f)); // Lerp out
-                            }
-                        }
-
-                        previousCulledState = currentCulledState;
-                    }
-
                     material.SetFloat(kGrowingKey, growTime);
                     time += Time.deltaTime;
                 }
@@ -251,31 +203,12 @@ namespace ProceduralModeling
             StartCoroutine(Lifetime());
         }
 
-        private IEnumerator LerpDeformOffsetSpeedScalar(float startValue, float endValue, float previousStartValue, float previousEndValue, float duration)
-        {
-            float time = 0f;
-
-            while (time < duration)
-            {
-                time += Time.deltaTime;
-                float t = time / duration;
-                perlinDeformer.OffsetSpeedScalar = Mathf.Lerp(previousStartValue, previousEndValue, t);
-                yield return null;
-            }
-
-            perlinDeformer.OffsetSpeedScalar = endValue;
-        }
-
-
 
         private IEnumerator Lifetime()
         {
             currentState = State.Alive;
             isFullyGrown = true;
             isDead = false;
-
-
-            deform.update = false;
 
             lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
 
@@ -284,6 +217,8 @@ namespace ProceduralModeling
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
                 treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
             }
+
+            StartCoroutine(treeAudioSFX.LeafRustleSFX());
 
             while (time < lifeTimeSecs)
             {
@@ -307,7 +242,7 @@ namespace ProceduralModeling
             deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
             isDead = true;
 
-            deform.update = true;
+
 
             leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
 
@@ -326,44 +261,11 @@ namespace ProceduralModeling
 
             time = 0f;
 
-            bool previousCulledState = culling.isCulled; // Track the previous culling state
-            float previousDeformOffsetSpeedScalar = perlinDeformer.OffsetSpeedScalar; // Track previous deform offset speed scalar
-
             while (time < deathDuration)
             {
                 float t = time / deathDuration;
                 growTime = Mathf.Lerp(1, 0, t);
                 material.SetFloat(kGrowingKey, growTime);
-
-                bool currentCulledState = culling.isCulled;
-
-                if (currentCulledState != previousCulledState)
-                {
-                    if (currentCulledState)
-                    {
-                        // Culling state changed to true, disable the mesh effects
-                        perlinDeformer.update = false;
-                    }
-                    else
-                    {
-                        // Culling state changed to false, enable the mesh effects and lerp to deformed value
-                        perlinDeformer.update = true;
-                        perlinDeformer.OffsetSpeedScalar = previousDeformOffsetSpeedScalar; // Restore previous deform offset speed scalar
-
-                        if (!previousCulledState)
-                        {
-                            StartCoroutine(LerpDeformOffsetSpeedScalar(1f, 0f, previousDeformOffsetSpeedScalar, perlinDeformer.OffsetSpeedScalar, 1f)); // Lerp out
-                        }
-                    }
-
-                    previousCulledState = currentCulledState;
-                }
-
-                if (!culling.isCulled)
-                {
-                    perlinDeformer.OffsetSpeedScalar = growTime;
-                }
-
                 time += Time.deltaTime;
                 yield return null;
             }
@@ -462,7 +364,7 @@ namespace ProceduralModeling
             }
         }
 
-    public void EnableNavMeshCut()
+        public void EnableNavMeshCut()
         {
             if (obstacle != null)
             {

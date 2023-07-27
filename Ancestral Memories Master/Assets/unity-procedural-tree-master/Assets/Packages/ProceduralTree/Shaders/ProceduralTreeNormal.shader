@@ -3,6 +3,11 @@
         _T ("Growing", Range(0.0, 1.0)) = 1.0
         _MainTex ("Albedo", 2D) = "white" {}
         _LightColor ("Light Color", Color) = (1,1,1,1)
+        _NoiseScaleX ("Noise Scale X", Range(0.01, 10)) = 1.0
+        _NoiseScaleY ("Noise Scale Y", Range(0.01, 10)) = 1.0
+        _NoiseScaleZ ("Noise Scale Z", Range(0.01, 10)) = 1.0
+        _NoiseAmount ("Noise Amount", Range(0.0, 1.0)) = 0.1
+        _TimeScale ("Time Scale", Range(0.0, 2.0)) = 1.0
     }
     SubShader {
         Tags { "RenderType"="Opaque" }
@@ -20,6 +25,7 @@
 
             sampler2D _MainTex;
             float4 _LightColor;
+            float _NoiseScaleX, _NoiseScaleY, _NoiseScaleZ, _NoiseAmount, _TimeScale;
 
             struct appdata {
                 float4 vertex : POSITION;
@@ -34,8 +40,19 @@
                 float3 worldPos : TEXCOORD2;
             };
 
+            // Procedural Perlin noise function
+            float perlinNoise(float3 pos) {
+                return frac(sin(dot(pos ,float3(12.9898,78.233,37.719))) * 43758.5453);
+            }
+
             v2f vert (appdata v) {
                 v2f o;
+                float3 noiseInput = v.vertex.xyz;
+                noiseInput.x *= _NoiseScaleX;
+                noiseInput.y *= _NoiseScaleY;
+                noiseInput.z *= _NoiseScaleZ;
+                float noise = _NoiseAmount * (2.0f * (0.5f - perlinNoise(noiseInput + _Time * _TimeScale)));
+                v.vertex.xyz += noise * v.normal;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 o.normal = UnityObjectToWorldNormal(v.normal);

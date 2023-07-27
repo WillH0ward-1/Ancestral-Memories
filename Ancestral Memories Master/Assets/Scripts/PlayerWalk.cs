@@ -312,14 +312,14 @@ public class PlayerWalk : MonoBehaviour
             {
                 if (!Input.GetMouseButton(1) && !behaviours.behaviourIsActive && !areaManager.traversing)
                 {
-                    if (Input.GetMouseButton(0) && !player.hasDied)
+                    if (Input.GetMouseButton(0) && !player.isDead)
                     {
                         CastRayToGround();
                     }
 
                     if (Input.GetMouseButtonUp(0))
                     {
-                        if (!aiPath.reachedEndOfPath && !player.hasDied)
+                        if (!aiPath.reachedEndOfPath && !player.isDead)
                         {
                             StopAgent();
                         }

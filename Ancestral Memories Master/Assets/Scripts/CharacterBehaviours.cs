@@ -430,7 +430,7 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(PLAYER_PLAYFLUTE);
 
         cinematicCam.ToPlayMusicZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         fluteControl.EnableFluteControl();
 
@@ -575,7 +575,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         cinematicCam.ToActionZoom();
-        cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -656,13 +656,15 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         cinematicCam.ToActionZoom();
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+       // StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_PICKUP);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+
+        cinematicCam.ToGameZoom();
 
         player.ChangeAnimationState(PLAYER_STANDINGEAT);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
@@ -680,7 +682,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         vomit.Play();
 
@@ -699,7 +701,7 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         player.ChangeAnimationState(PLAYER_TOCROUCH);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));

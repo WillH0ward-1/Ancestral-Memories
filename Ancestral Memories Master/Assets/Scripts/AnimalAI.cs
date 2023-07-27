@@ -19,7 +19,7 @@ public class AnimalAI : MonoBehaviour
     const string EAT = "eat";
     const string DIE = "die";
 
-    public enum AIState { Idle, Walking, Eating, Running, Following, Dialogue }
+    public enum AIState { Idle, Walking, Eating, Running, Following, Dialogue, Die }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -66,7 +66,7 @@ public class AnimalAI : MonoBehaviour
 
     private RichAI aiPath;
 
-    public bool isDead = false;
+    private AICharacterStats stats;
 
     void Start()
     {
@@ -79,6 +79,7 @@ public class AnimalAI : MonoBehaviour
         aiPath = transform.GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
         aiPath.acceleration = 10000;
+        stats = transform.GetComponentInChildren<AICharacterStats>();
 
         animator = transform.GetComponentInChildren<Animator>();
 
@@ -114,6 +115,14 @@ public class AnimalAI : MonoBehaviour
             if (inRange || fluteControl.fluteActive)
             {
                 lookAnimator.enabled = true;
+            }
+        }
+
+        if (stats != null)
+        {
+            if (stats.isDead)
+            {
+                ChangeState(AIState.Die);
             }
         }
 
@@ -201,7 +210,6 @@ public class AnimalAI : MonoBehaviour
 
         while (behaviourActive)
         {
-
             if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
                 ChangeState(AIState.Following);
@@ -225,55 +233,80 @@ public class AnimalAI : MonoBehaviour
 
     private void ChangeState(AIState newState)
     {
-        isDead = false;
-        StopAllCoroutines();
-        behaviourActive = false;
-        currentAIState = newState;
-        state = currentAIState;
-
-        if (state == AIState.Following)
+        if (!hasDied)
         {
-            followManager.AddFollower(transform.gameObject);
-            //agent.stoppingDistance = 15f;
-            aiPath.endReachedDistance = followDistance;
-        } else
-        {
-            //agent.stoppingDistance = 0f;
-            aiPath.endReachedDistance = defaultStoppingDistance;
-        }
+            StopAllCoroutines();
+            behaviourActive = false;
+            currentAIState = newState;
+            state = currentAIState;
 
-        if (state != AIState.Following && followManager.followers.Contains(transform.gameObject))
-        {
-            followManager.RemoveFollower(transform.gameObject);
-        }
+            if (state == AIState.Following)
+            {
+                followManager.AddFollower(transform.gameObject);
+                //agent.stoppingDistance = 15f;
+                aiPath.endReachedDistance = followDistance;
+            }
+            else
+            {
+                //agent.stoppingDistance = 0f;
+                aiPath.endReachedDistance = defaultStoppingDistance;
+            }
 
-        randWalkDistance = Random.Range(minRandWalkDistance, maxRandWalkDistance);
+            if (state != AIState.Following && followManager.followers.Contains(transform.gameObject))
+            {
+                followManager.RemoveFollower(transform.gameObject);
+            }
 
-        switch (state)
-        {
-            case AIState.Idle:
-                StartCoroutine(Idle());
-                break;
-            case AIState.Eating:
-                StartCoroutine(Eat());
-                break;
-            case AIState.Walking:
-                StartCoroutine(Walk(RandomNavSphere(transform.position, randWalkDistance)));
-                break;
-            case AIState.Running:
-                StartCoroutine(Run());
-                break;
-            case AIState.Following:
-                StartCoroutine(Follow());
-                break;
-            case AIState.Dialogue:
-                StartCoroutine(DialogueActive());
-                break;
-            default:
-                break;
+            randWalkDistance = Random.Range(minRandWalkDistance, maxRandWalkDistance);
+
+            switch (state)
+            {
+                case AIState.Idle:
+                    StartCoroutine(Idle());
+                    break;
+                case AIState.Eating:
+                    StartCoroutine(Eat());
+                    break;
+                case AIState.Walking:
+                    StartCoroutine(Walk(RandomNavSphere(transform.position, randWalkDistance)));
+                    break;
+                case AIState.Running:
+                    StartCoroutine(Run());
+                    break;
+                case AIState.Following:
+                    StartCoroutine(Follow());
+                    break;
+                case AIState.Dialogue:
+                    StartCoroutine(DialogueActive());
+                    break;
+                case AIState.Die:
+                    StartCoroutine(Die());
+                    break;
+                default:
+                    break;
+            }
         }
        
         Debug.Log(currentAIState);
+    }
+
+    private bool hasDied = false;
+
+    private IEnumerator Die()
+    {
+        hasDied = true; // Set flag at start
+
+        StopAllCoroutines();
+        behaviourActive = false;
+        aiPath.canMove = false;
+        GetComponent<NavMeshAgent>().enabled = false;
+        ChangeAnimationState(DIE);
+        yield break;
+    }
+
+    private IEnumerator Decompose()
+    {
+        yield break;
     }
 
     private IEnumerator DialogueActive()

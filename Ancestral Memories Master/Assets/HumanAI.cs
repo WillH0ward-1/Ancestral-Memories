@@ -179,7 +179,7 @@ public class HumanAI : MonoBehaviour
 
     private void Update()
     {
-        if (stats.health <= 0 && !stats.hasDied)
+        if (stats.health <= 0 && !stats.isDead)
         {
             Die();
         }
@@ -189,9 +189,9 @@ public class HumanAI : MonoBehaviour
 
     private void Die()
     {
-        if (!stats.hasDied)
+        if (!stats.isDead)
         {
-            stats.hasDied = true;
+            stats.isDead = true;
             StartCoroutine(ragdollController.TriggerRagdoll());
         }
     }
@@ -619,7 +619,7 @@ public class HumanAI : MonoBehaviour
 
     List<string> attackAnimations = new List<string> { ATTACK1, ATTACK2, ATTACK3, ATTACK4, ATTACK5 };
 
-    private IEnumerator PerformRandomActionOverTime(Transform target, List<string> animations)
+    private IEnumerator PerformRandomActionOverTime(Transform target, List<string> animations, AICharacterStats stats)
     {
         float randomAnimationSpeed = GetRandomAnimationSpeed();
         float randomInterval = GetRandomInterval();
@@ -629,16 +629,24 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(randomAnimationState);
         StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
 
-        float duration = GetAnimLength();
+        // Adjust the duration of the animation based on the speed it's being played at
+        float duration = GetAnimLength() / randomAnimationSpeed;
 
         float time = 0;
         while (time <= duration)
         {
-            time += Time.deltaTime / randomAnimationSpeed;
+            time += Time.deltaTime;
             yield return null;
         }
 
         animator.speed = 1.0f; // Reset animation speed to normal when finished
+    }
+
+    private AICharacterStats attackTargetStats;
+
+    public void DealDamage()
+    {
+        attackTargetStats.TakeDamage(attackMultiplier);
     }
 
     private IEnumerator ChangeSpeedOverTime(Transform target)
@@ -652,6 +660,7 @@ public class HumanAI : MonoBehaviour
         animator.speed = 1.0f; // Reset animation speed to normal when finished
     }
 
+    [SerializeField] private float attackMultiplier = 0.1f;
 
     private IEnumerator Attack(GameObject target)
     {
@@ -660,14 +669,16 @@ public class HumanAI : MonoBehaviour
         aiPath.canMove = false;
 
         behaviourActive = true;
-        AnimalAI animalAI = target.GetComponentInChildren<AnimalAI>();
+        AICharacterStats animalStats = target.GetComponentInChildren<AICharacterStats>();
+        attackTargetStats = animalStats;
 
         while (behaviourActive)
         {
             transform.LookAt(target.transform);
-            StartCoroutine(PerformRandomActionOverTime(target.transform, attackAnimations));
 
-            if (animalAI.isDead)
+            yield return StartCoroutine(PerformRandomActionOverTime(target.transform, attackAnimations, animalStats));
+
+            if (animalStats.isDead)
             {
                 ChangeState(AIState.HuntMeat);
                 yield break;
@@ -678,6 +689,7 @@ public class HumanAI : MonoBehaviour
 
         yield break;
     }
+
 
     private IEnumerator SmoothlyChangeAnimationSpeed(float targetSpeed, float duration)
     {

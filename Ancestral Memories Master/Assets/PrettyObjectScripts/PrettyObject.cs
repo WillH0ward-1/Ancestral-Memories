@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
+
 [DisallowMultipleComponent]
 [AddComponentMenu("Pretty Objects/Pretty Object")]
 public class PrettyObject : MonoBehaviour
 {
+
+#if UNITY_EDITOR
+
     /*
          TextAnchor alignment
          bool textDropShadow
@@ -57,4 +61,7 @@ public class PrettyObject : MonoBehaviour
             }
         }
     }
+
+#endif
+
 }

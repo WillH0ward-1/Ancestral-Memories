@@ -44,18 +44,8 @@ public class OptimizeMesh : MonoBehaviour
         }
         _mesh = _renderer.sharedMesh;
     }
-        /*
-#if UNITY_EDITOR
-    // Update is called once per frame
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            DecimateMesh();
-        }
-    }
-    */
+#if UNITY_EDITOR
 
     public void DecimateMesh()
     {
@@ -76,5 +66,5 @@ public class OptimizeMesh : MonoBehaviour
             MeshSaverEditor.SaveMesh(_renderer.sharedMesh, "Optimized__" + gameObject.name, false, true);
         }
     }
-//#endif
+#endif
 }

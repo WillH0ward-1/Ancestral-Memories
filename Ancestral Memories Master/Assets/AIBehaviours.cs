@@ -36,7 +36,7 @@ public class AIBehaviours : MonoBehaviour
 
     public bool ValidateAnimal(GameObject animal)
     {
-        AnimalAI animalAI = animal.GetComponentInChildren<AnimalAI>();
+        AICharacterStats animalAI = animal.GetComponentInChildren<AICharacterStats>();
         return animalAI != null && !animalAI.isDead;
     }
 

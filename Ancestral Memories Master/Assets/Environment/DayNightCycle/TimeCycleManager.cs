@@ -75,7 +75,7 @@ public class TimeCycleManager : MonoBehaviour
         _dayOfYear = Mathf.RoundToInt(timeOfDay / 24f * (daysPerSeason * GetNumberOfSeasons()));
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         if (Application.isPlaying || updateInEditor)
         {
@@ -87,6 +87,7 @@ public class TimeCycleManager : MonoBehaviour
             }
         }
     }
+
 
     private void OnValidate()
     {

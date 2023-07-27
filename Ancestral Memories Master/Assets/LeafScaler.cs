@@ -34,6 +34,18 @@ public class LeafScaler : MonoBehaviour
         lerpTimeElapsed = 0;
     }
 
+    public float NormalizeScale(float currentScale)
+    {
+        // If min and max are equal, return 1 to avoid division by zero
+        if (Mathf.Approximately(minGrowthScale, maxGrowthScale))
+        {
+            return 1f;
+        }
+
+        return (CurrentScale - minGrowthScale) / (maxGrowthScale - minGrowthScale);
+    }
+
+
     public float CurrentScale
     {
         get { return currentScale; }

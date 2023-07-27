@@ -32,7 +32,7 @@ public class CheckIfUnderwater : MonoBehaviour
                     {
                         isUnderwater = true;
 
-                        if (!playerDrowning && !player.hasDied)
+                        if (!playerDrowning && !player.isDead)
                         {
                             StartCoroutine(DrownBuffer());
                         }

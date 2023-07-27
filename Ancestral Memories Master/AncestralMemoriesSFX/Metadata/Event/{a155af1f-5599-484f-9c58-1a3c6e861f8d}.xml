@@ -61,7 +61,7 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{5f524646-5653-4730-9dab-d2d7b371b875}">
 		<property name="maxVoices">
-			<value>25</value>
+			<value>64</value>
 		</property>
 		<property name="voiceStealing">
 			<value>2</value>
@@ -94,9 +94,6 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{85ed72d3-e05d-4256-a3fc-9ac68c42faa9}">
-		<property name="volume">
-			<value>-14</value>
-		</property>
 		<relationship name="effectChain">
 			<destination>{0f45c78f-d37a-4423-aecb-527e980162dd}</destination>
 		</relationship>

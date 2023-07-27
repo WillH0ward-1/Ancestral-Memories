@@ -11,6 +11,7 @@ public class TreeAudioManager : MonoBehaviour
     private PTGrowing ptGrowing;
 
     private Rigidbody rigidBody;
+    private LeafScaler leafScaler;
 
     [SerializeField] private EventReference TreeGrowEventPath;
     [SerializeField] private EventReference TreeLeavesEventPath;
@@ -27,6 +28,7 @@ public class TreeAudioManager : MonoBehaviour
         ptGrowing = transform.GetComponent<PTGrowing>();
         rigidBody = transform.GetComponent<Rigidbody>();
         interactable = transform.GetComponent<Interactable>();
+        leafScaler = transform.GetComponent<LeafScaler>();
     }
 
     // Add this to your class members
@@ -42,7 +44,8 @@ public class TreeAudioManager : MonoBehaviour
 
         while (!ptGrowing.isDead)
         {
-            treeLeavesSFXInstance.setParameterByName("WindStrength", weatherManager.windStrength);
+            float leafDensity = leafScaler.NormalizeScale(leafScaler.CurrentScale);
+            treeLeavesSFXInstance.setParameterByName("LeafDensity", leafDensity);
             yield return null;
         }
 
