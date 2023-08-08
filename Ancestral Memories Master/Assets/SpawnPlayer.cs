@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnPoints : MonoBehaviour
+public class SpawnPlayer : MonoBehaviour
 {
 
     public void SetSpawnPosition(List<GameObject> spawnPointsList)

@@ -58,6 +58,7 @@ public class FluteControl : MonoBehaviour
     {
         mapObjGen = FindObjectOfType<MapObjGen>();
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
+        playerSFX = GetComponentInChildren<AudioSFXManager>();
     }
 
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;

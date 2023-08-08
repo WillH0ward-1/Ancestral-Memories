@@ -20,6 +20,11 @@ public class AuraControl : MonoBehaviour
 
     public float auraIntensity;
 
+    private void Awake()
+    {
+        auraRenderers = GetComponentsInChildren<Renderer>();
+    }
+
     private void OnEnable()
     {
         if (player == null)

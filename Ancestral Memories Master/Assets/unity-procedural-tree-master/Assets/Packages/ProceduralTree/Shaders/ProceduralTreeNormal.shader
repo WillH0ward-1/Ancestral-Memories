@@ -1,5 +1,6 @@
 ﻿Shader "ProceduralModeling/ProceduralTreeAlbedo" {
     Properties {
+        _EnableNoise ("Enable Noise", Range(0, 1)) = 1.0
         _T ("Growing", Range(0.0, 1.0)) = 1.0
         _MainTex ("Albedo", 2D) = "white" {}
         _LightColor ("Light Color", Color) = (1,1,1,1)
@@ -13,7 +14,7 @@
         Tags { "RenderType"="Opaque" }
         LOD 100
 
-        Cull Off // Disable backface culling
+        Cull Off 
 
         Pass {
             CGPROGRAM
@@ -23,6 +24,7 @@
             #include "UnityCG.cginc"
             #include "./ProceduralTree.cginc"
 
+            uniform float _EnableNoise;
             sampler2D _MainTex;
             float4 _LightColor;
             float _NoiseScaleX, _NoiseScaleY, _NoiseScaleZ, _NoiseAmount, _TimeScale;
@@ -40,19 +42,20 @@
                 float3 worldPos : TEXCOORD2;
             };
 
-            // Procedural Perlin noise function
             float perlinNoise(float3 pos) {
                 return frac(sin(dot(pos ,float3(12.9898,78.233,37.719))) * 43758.5453);
             }
 
             v2f vert (appdata v) {
                 v2f o;
-                float3 noiseInput = v.vertex.xyz;
-                noiseInput.x *= _NoiseScaleX;
-                noiseInput.y *= _NoiseScaleY;
-                noiseInput.z *= _NoiseScaleZ;
-                float noise = _NoiseAmount * (2.0f * (0.5f - perlinNoise(noiseInput + _Time * _TimeScale)));
-                v.vertex.xyz += noise * v.normal;
+                if (_EnableNoise > 0.5) { // If _EnableNoise is true
+                    float3 noiseInput = v.vertex.xyz;
+                    noiseInput.x *= _NoiseScaleX;
+                    noiseInput.y *= _NoiseScaleY;
+                    noiseInput.z *= _NoiseScaleZ;
+                    float noise = _NoiseAmount * (2.0f * (0.5f - perlinNoise(noiseInput + _Time * _TimeScale)));
+                    v.vertex.xyz += noise * v.normal;
+                }
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 o.normal = UnityObjectToWorldNormal(v.normal);

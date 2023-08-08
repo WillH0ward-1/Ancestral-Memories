@@ -16,79 +16,83 @@ public class MushroomGrowth : MonoBehaviour
 
     [SerializeField] private EventReference growthEvent;
     private EventInstance growthInstance;
-
+    private MapObjGen mapObjGen;
     private ScaleControl scaleControl;
+    private SeasonManager seasonManager;
 
     public bool growMushrooms = true;
 
     public Player player;
+    private GameObject mushroom;
+
+    private void Awake()
+    {
+        player = FindObjectOfType<Player>();
+        seasonManager = FindObjectOfType<SeasonManager>();
+        mapObjGen = FindObjectOfType<MapObjGen>();
+        mushroom = transform.gameObject;
+    }
 
     private void Start()
     {
         scaleControl = transform.GetComponent<ScaleControl>();
-
-        StartCoroutine(WaitForPlayerAssignmentAndGrowShrink());
-    }
-
-    private IEnumerator WaitForPlayerAssignmentAndGrowShrink()
-    {
-        while (player == null) 
-        {
-            yield return null;
-        }
-
         StartCoroutine(GrowAndShrink());
     }
 
+    private IEnumerator GrowMushroom()
+    {
+        yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
+
+        if (player.faith > player.maxStat / 2 && seasonManager._currentSeason != SeasonManager.Season.Winter)
+        {
+            growMushrooms = true;
+            growthInstance = RuntimeManager.CreateInstance(growthEvent);
+            RuntimeManager.AttachInstanceToGameObject(growthInstance, transform);
+
+            growthInstance.start();
+            mapObjGen.foodSourcesList.Add(mushroom);
+            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkScale, growScale, Random.Range(minGrowDuration, maxGrowDuration), 0));
+            growthInstance.release();
+        }
+    }
+
+    private IEnumerator ShrinkMushroom()
+    {
+        float lifetime = Random.Range(minGrowDelay, maxGrowDelay);
+        float elapsedTime = 0f;
+
+        while (elapsedTime < lifetime && player.faith > player.maxStat / 2 && seasonManager._currentSeason != SeasonManager.Season.Winter)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        if (growMushrooms || seasonManager._currentSeason == SeasonManager.Season.Winter)
+        {
+            growMushrooms = false;
+            mapObjGen.foodSourcesList.Remove(mushroom);
+            yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+        }
+    }
 
     private IEnumerator GrowAndShrink()
     {
         while (true)
         {
-            if (player.faith > 50)
+            if (player.faith > player.maxStat / 2 && seasonManager._currentSeason != SeasonManager.Season.Winter)
             {
-                // Start grow buffer
-                yield return new WaitForSeconds(Random.Range(minGrowDelay, maxGrowDelay));
-
-                // Grow the mushroom if player faith is still above 50
-                if (player.faith > 50)
-                {
-                    growMushrooms = true;
-                    growthInstance = RuntimeManager.CreateInstance(growthEvent);
-                    RuntimeManager.AttachInstanceToGameObject(growthInstance, transform);
-
-                    growthInstance.start();
-                    yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkScale, growScale, Random.Range(minGrowDuration, maxGrowDuration), 0));
-                    growthInstance.release();
-
-                    // Wait for the mushroom's Lifetime
-                    float lifetime = Random.Range(minGrowDelay, maxGrowDelay);
-                    float elapsedTime = 0f;
-
-                    while (elapsedTime < lifetime && player.faith > 50)
-                    {
-                        elapsedTime += Time.deltaTime;
-                        yield return null;
-                    }
-
-                    // Shrink the mushroom
-                    if (growMushrooms)
-                    {
-                        growMushrooms = false;
-                        yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
-                    }
-                }
+                yield return StartCoroutine(GrowMushroom());
             }
-            else
+
+            if (seasonManager._currentSeason == SeasonManager.Season.Winter || player.faith <= player.maxStat / 2)
             {
                 if (growMushrooms)
                 {
-                    growMushrooms = false;
-                    yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, growScale, shrinkScale, Random.Range(minShrinkDuration, maxShrinkDuration), 0));
+                    StopCoroutine(GrowMushroom());
+                    StartCoroutine(ShrinkMushroom());
                 }
-
-                yield return null;
             }
+            yield return null;
         }
     }
 }

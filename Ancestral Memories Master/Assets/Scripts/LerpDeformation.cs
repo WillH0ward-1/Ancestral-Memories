@@ -7,7 +7,7 @@ using Unity.Mathematics;
 public class LerpDeformation : MonoBehaviour
 {
 
-    public CharacterClass player;
+    public Player player;
 
     public float maxVal = 0f;
     public float minVal = -0.2f;
@@ -30,9 +30,11 @@ public class LerpDeformation : MonoBehaviour
     */
 
     // Start is called before the first frame update
+
     void Awake()
     {
         //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
+        player = transform.root.GetComponent<Player>();
 
         inflateDeformers = transform.GetComponentsInChildren<Deform.InflateDeformer>();
 

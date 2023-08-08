@@ -1,130 +1,85 @@
-using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 using TMPro;
+using UnityEngine;
 
-[ExecuteAlways]
 public class TimeSeasonDisplay : MonoBehaviour
 {
-    [SerializeField] private Canvas uiCanvas;
-    [SerializeField] private TMP_FontAsset fontAsset;
-    [SerializeField] private Sprite timeSprite;
-    [SerializeField] private Sprite seasonSprite;
-    [SerializeField] private Color timeColor = Color.white;
-    [SerializeField] private Color seasonColor = Color.white;
-    [SerializeField] private float spriteSize = 50f;
-    [SerializeField] private int pathResolution = 100;
+    [SerializeField] private SeasonManager seasonManager;
+    [SerializeField] private TextMeshProUGUI seasonText;
+    [SerializeField] private float lerpDuration = 1f;
+    [SerializeField] private float holdDuration = 2f;
+    [SerializeField] private Vector2 dilationRange = new Vector2(0f, 0.1f);
+    [SerializeField] private Vector2 alphaRange = new Vector2(0f, 1f);
 
-    private GameObject timeMarker;
-    private GameObject seasonMarker;
-    private GameObject pathDrawer;
-
-    private TimeCycleManager timeCycleManager;
-    private SeasonManager seasonManager;
-
-    private Image timeImage;
-    private Image seasonImage;
-
-    private void OnEnable()
+    private void Awake()
     {
-        uiCanvas = CreateCanvas();
-        timeCycleManager = GetComponent<TimeCycleManager>();
-        seasonManager = GetComponent<SeasonManager>();
+        seasonManager = transform.GetComponent<SeasonManager>();
+        seasonText = transform.GetComponentInChildren<TextMeshProUGUI>();
+    }
 
-        if (timeMarker == null)
+    private void Start()
+    {
+        if (seasonManager != null && seasonText != null)
         {
-            timeMarker = CreateUIElement("TimeMarker");
-            timeImage = timeMarker.AddComponent<Image>();
-            timeImage.sprite = timeSprite;
-            timeImage.color = timeColor;
-            timeMarker.GetComponent<RectTransform>().anchoredPosition = Vector2.zero; // Centered position
-        }
+            // Update the display with the current season when the game starts
+            UpdateSeasonDisplay(seasonManager.CurrentSeason);
 
-        if (seasonMarker == null)
-        {
-            seasonMarker = CreateUIElement("SeasonMarker");
-            seasonImage = seasonMarker.AddComponent<Image>();
-            seasonImage.sprite = seasonSprite;
-            seasonImage.color = seasonColor;
-            seasonMarker.GetComponent<RectTransform>().anchoredPosition = Vector2.zero; // Centered position
-        }
-
-        if (pathDrawer == null)
-        {
-            pathDrawer = CreateUIElement("PathDrawer");
-            LineRenderer lineRenderer = pathDrawer.AddComponent<LineRenderer>();
-            lineRenderer.enabled = false; // Disable rendering of the line
-
-            RectTransform rectTransform = pathDrawer.GetComponent<RectTransform>();
-            rectTransform.pivot = new Vector2(0.5f, 0f); // Bottom center
-            rectTransform.anchorMin = new Vector2(0.5f, 0f); // Bottom center
-            rectTransform.anchorMax = new Vector2(0.5f, 0f); // Bottom center
+            // Subscribe to season change event.
+            seasonManager.OnSeasonChanged.AddListener(UpdateSeasonDisplay);
         }
     }
 
-    private void Update()
+    public void UpdateSeasonDisplay(SeasonManager.Season season)
     {
-        if (timeCycleManager != null)
+        seasonText.text = season.ToString();
+        StartCoroutine(DisplaySeasonChange());
+    }
+
+    private IEnumerator DisplaySeasonChange()
+    {
+        // Enable text
+        seasonText.enabled = true;
+
+        // Lerp dilate and alpha from min to max concurrently
+        float timer = 0;
+        while (timer <= lerpDuration)
         {
-            // Set the desired value on the time marker sprite
-            // Example: timeImage.fillAmount = timeCycleManager.timeOfDay;
+            float t = timer / lerpDuration;
+
+            // Modify dilation
+            float dilation = Mathf.Lerp(dilationRange.x, dilationRange.y, t);
+            seasonText.fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, dilation);
+
+            // Modify alpha
+            float alpha = Mathf.Lerp(alphaRange.x, alphaRange.y, t);
+            seasonText.color = new Color(seasonText.color.r, seasonText.color.g, seasonText.color.b, alpha);
+
+            timer += Time.deltaTime;
+            yield return null;
         }
 
-        if (seasonManager != null)
+        // Hold dilation and alpha at max for holdDuration
+        yield return new WaitForSeconds(holdDuration);
+
+        // Lerp dilate and alpha from max to min concurrently
+        timer = 0;
+        while (timer <= lerpDuration)
         {
-            // Set the desired value on the season marker sprite
-            // Example: seasonImage.fillAmount = seasonManager.currentSeason;
+            float t = timer / lerpDuration;
+
+            // Modify dilation
+            float dilation = Mathf.Lerp(dilationRange.y, dilationRange.x, t);
+            seasonText.fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, dilation);
+
+            // Modify alpha
+            float alpha = Mathf.Lerp(alphaRange.y, alphaRange.x, t);
+            seasonText.color = new Color(seasonText.color.r, seasonText.color.g, seasonText.color.b, alpha);
+
+            timer += Time.deltaTime;
+            yield return null;
         }
 
-        // Animate the GUI elements along the curved path
-        float timeAnimationDuration = 10f; // Duration of the animation in seconds for time
-        float seasonAnimationDuration = 20f; // Duration of the animation in seconds for season
-
-        float timeElapsedTime = Time.time % timeAnimationDuration; // Elapsed time since the time animation started
-        float seasonElapsedTime = Time.time % seasonAnimationDuration; // Elapsed time since the season animation started
-
-        // Calculate the normalized time from 0 to 1 for time and season
-        float timeT = timeElapsedTime / timeAnimationDuration;
-        float seasonT = seasonElapsedTime / seasonAnimationDuration;
-
-        // Set the new anchored positions along the curved path with mapped speeds
-        timeMarker.GetComponent<RectTransform>().anchoredPosition = GetCurvedPosition(timeT, spriteSize / timeAnimationDuration);
-        seasonMarker.GetComponent<RectTransform>().anchoredPosition = GetCurvedPosition(1f - seasonT, spriteSize / seasonAnimationDuration); // Reverse the curve for the season marker
-    }
-
-    private Vector2 GetCurvedPosition(float t, float speed)
-    {
-        float x = Mathf.Lerp(-100f, 100f, t); // Adjust the x-axis values based on the desired width
-        float y = Mathf.Lerp(0f, spriteSize, Mathf.Sin(t * Mathf.PI)); // Adjust the y-axis values based on the desired height and curve shape
-
-        // Map the speed of movement along the curve
-        float mappedSpeed = speed * (1f - t);
-
-        return new Vector2(x, y + mappedSpeed);
-    }
-
-    private Canvas CreateCanvas()
-    {
-        GameObject canvasObject = new GameObject("UICanvas");
-        Canvas canvas = canvasObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.worldCamera = Camera.main;
-        canvasObject.AddComponent<CanvasScaler>();
-        canvasObject.AddComponent<GraphicRaycaster>();
-
-        return canvas;
-    }
-
-    private GameObject CreateUIElement(string name)
-    {
-        GameObject uiObject = new GameObject(name);
-        uiObject.transform.SetParent(uiCanvas.transform, false);
-
-        // Set the rect transform properties
-        RectTransform rectTransform = uiObject.AddComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0.5f, 0f); // Bottom center
-        rectTransform.anchorMax = new Vector2(0.5f, 0f); // Bottom center
-        rectTransform.pivot = new Vector2(0.5f, 0f); // Bottom center
-
-        return uiObject;
+        // Disable text
+        seasonText.enabled = false;
     }
 }

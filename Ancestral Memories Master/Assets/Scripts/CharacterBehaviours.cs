@@ -37,14 +37,17 @@ public class CharacterBehaviours : MonoBehaviour
     // PRAYER
 
     const string PLAYER_PRAYER_START = "Player_PrayerStart";
-    const string PLAYER_PRAYER_LOOP = "Player_PrayerLoop";
+    //const string PLAYER_PRAYER_LOOP = "Player_PrayerLoop";
+    const string PLAYER_PRAYER_LOOP = "Knees_PrayToGround";
     const string PLAYER_PRAYER_END = "Player_PrayerEnd";
 
     const string PLAYER_DANCE_01 = "Player_Dance_01";
     const string PLAYER_DANCE_02 = "Player_Dance_02";
     const string PLAYER_DANCE_03 = "Player_Dance_03";
 
-    const string PLAYER_PICKUP = "Player_PickUp";
+    //const string PLAYER_PICKUP = "Player_PickUp";
+    const string PLAYER_PICKUP = "Item_PickUp";
+
     const string PLAYER_STANDINGEAT = "Player_StandingEat";
 
     const string PLAYER_TOCROUCH = "Player_ToCrouch";
@@ -59,7 +62,9 @@ public class CharacterBehaviours : MonoBehaviour
     const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
 
     const string PLAYER_SITONFLOOR = "Player_SitOnFloor";
-    const string PLAYER_SITTINGFLOORIDLE = "Player_SittingFloorIdle";
+    //const string PLAYER_SITTINGFLOORIDLE = "Player_SittingFloorIdle";
+    const string PLAYER_SITTINGFLOORIDLE = "Idle_SitOnGround01";
+
     const string PLAYER_STANDUPFROMSIT = "Player_StandUpFromSit";
 
     const string PLAYER_THUNDERSTRUCK = "Player_thunderstruck";
@@ -325,10 +330,14 @@ public class CharacterBehaviours : MonoBehaviour
     {
 
         cinematicCam.gameObject.SetActive(true);
-        firstPersonController.SetActive(false);
 
-        thirdPersonCamActive = cinematicCam.gameObject.activeInHierarchy;
-        firstPersonCamActive = firstPersonController.activeInHierarchy;
+        if (firstPersonController != null)
+        {
+            firstPersonController.SetActive(false);
+            thirdPersonCamActive = cinematicCam.gameObject.activeInHierarchy;
+            firstPersonCamActive = firstPersonController.activeInHierarchy;
+        }
+
 
     }
 

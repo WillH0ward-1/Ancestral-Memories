@@ -53,11 +53,6 @@ public class TreeFruitManager : MonoBehaviour
 
             fruitAttributesDict[fruit] = foodAttributes; // Store the reference to the FoodAttributes component in the dictionary
         }
-
-        foreach (GameObject fruit in fruits)
-        {
-            mapObjGen.foodSourcesList.Add(fruit);
-        }
     }
 
 
@@ -179,6 +174,7 @@ public class TreeFruitManager : MonoBehaviour
             if (IsCollisionWithGround(collision))
             {
                 DisableFruitGravity(fruit);
+                mapObjGen.foodSourcesList.Add(fruit);
                 StartCoroutine(Decay(fruit));
 
                 if (collision.collider.CompareTag("Water"))
@@ -271,12 +267,16 @@ public class TreeFruitManager : MonoBehaviour
             yield return null;
         }
 
+        mapObjGen.foodSourcesList.Remove(fruit);
+
         fruit.transform.localScale = targetScale;
         fruit.SetActive(false);
+
         if (fruitAttributesDict.TryGetValue(fruit, out FoodAttributes foodAttributes))
         {
             foodAttributes.isDead = true;
         }
+
         fruitPool.Enqueue(fruit); // Add the fruit back to the pool for reuse
 
         yield break;

@@ -25,14 +25,21 @@ public class PlayerWalk : MonoBehaviour
 
     private string currentState;
 
-    const string PLAYER_IDLE = "Player_idle";
-    const string PLAYER_WALK = "Player_walk";
+    //const string PLAYER_IDLE = "Player_idle";
+    const string PLAYER_IDLE = "Idle_Sad";
+    //const string PLAYER_WALK = "Player_walk";
+    const string PLAYER_WALK = "Walk_MidSapien";
+
     const string PLAYER_JOG = "Player_jog";
-    const string PLAYER_RUN = "Player_run";
+    //const string PLAYER_RUN = "Player_run";
+    const string PLAYER_RUN = "Run_Neanderthalic01";
+
     const string PLAYER_CROUCH = "Player_crouch";
     const string PLAYER_SNEAK = "Player_sneak";
 
-    const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
+    //const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
+    const string PLAYER_STARVINGIDLE = "Idle_Sad";
+
     const string PLAYER_STARVINGWALK = "Player_starvingWalk";
     const string PLAYER_STARVINGCRITICAL = "Player_starvingCritical";
 

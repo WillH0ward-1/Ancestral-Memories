@@ -107,6 +107,9 @@ public class CharacterClass : MonoBehaviour, IStats
 
     public virtual void InitAnimators()
     {
+
+        activeAnimator = GetComponentInChildren<Animator>();
+
         var humanState = alphaControl.humanObject;
         var apeState = alphaControl.monkeyObject;
         var skeletonState = alphaControl.skeletonObject;

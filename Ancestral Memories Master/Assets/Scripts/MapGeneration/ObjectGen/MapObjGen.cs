@@ -376,7 +376,7 @@ public class MapObjGen : MonoBehaviour
 
         //EnableNavMeshAgents(npcList);
 
-        player.transform.GetComponentInChildren<SpawnPoints>().SetSpawnPosition(spawnPointsList);
+        player.transform.GetComponentInChildren<SpawnPlayer>().SetSpawnPosition(spawnPointsList);
         //RandomizeTreecolours();
 
     }
