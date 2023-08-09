@@ -25,33 +25,6 @@ public class PlayerWalk : MonoBehaviour
 
     private string currentState;
 
-    //const string PLAYER_IDLE = "Player_idle";
-    const string PLAYER_IDLE = "Idle_Sad";
-    //const string PLAYER_WALK = "Player_walk";
-    const string PLAYER_WALK = "Walk_MidSapien";
-
-    const string PLAYER_JOG = "Player_jog";
-    //const string PLAYER_RUN = "Player_run";
-    const string PLAYER_RUN = "Run_Neanderthalic01";
-
-    const string PLAYER_CROUCH = "Player_crouch";
-    const string PLAYER_SNEAK = "Player_sneak";
-
-    //const string PLAYER_STARVINGIDLE = "Player_starvingIdle";
-    const string PLAYER_STARVINGIDLE = "Idle_Sad";
-
-    const string PLAYER_STARVINGWALK = "Player_starvingWalk";
-    const string PLAYER_STARVINGCRITICAL = "Player_starvingCritical";
-
-    const string PLAYER_CURIOUSIDLE = "Player_curiousIdle";
-
-    const string PLAYER_DRUNKIDLE = "Player_drunkIdle";
-    const string PLAYER_DRUNKWALK = "Player_drunkWalk";
-    const string PLAYER_DRUNKRUN = "Player_drunkRun";
-
-    const string PLAYER_CURIOUS = "Player_curious";
-
-
     bool playerIsCrouched = false;
 
     [SerializeField] private float walkThreshold = 0;
@@ -118,7 +91,7 @@ public class PlayerWalk : MonoBehaviour
         aiPath = GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
 
-        ChangeState(PLAYER_IDLE);
+        ChangeState(HumanControllerAnimations.Walk_Neanderthalic01);
         //StartCoroutine(DetectWater());
     }
 
@@ -386,21 +359,21 @@ public class PlayerWalk : MonoBehaviour
         {
             if (!behaviours.isPsychdelicMode && !player.isStarving)
             {
-                ChangeState(PLAYER_WALK);
+                ChangeState(HumanControllerAnimations.Walk_Neanderthalic01);
             }
             else if (!behaviours.isPsychdelicMode && player.isStarving)
             {
-                ChangeState(PLAYER_WALK); // Change this if we want to make the player walk animation respond to starvation
+                ChangeState(HumanControllerAnimations.Walk_Starving); // Change this if we want to make the player walk animation respond to starvation
             }
             else if (behaviours.isPsychdelicMode)
             {
-                ChangeState(PLAYER_WALK);
+                ChangeState(HumanControllerAnimations.Walk_Intoxicated);
             }
         }
 
         if (speed >= runThreshold)
         {
-            ChangeState(PLAYER_RUN);
+            ChangeState(HumanControllerAnimations.Run_Neanderthalic01);
         }
     }
 
@@ -519,7 +492,9 @@ public class PlayerWalk : MonoBehaviour
         }
 
         reachedDestination = false;
-        ChangeState(PLAYER_RUN);
+
+        ChangeState(HumanControllerAnimations.Run_Neanderthalic01);
+
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);
 
@@ -613,16 +588,16 @@ public class PlayerWalk : MonoBehaviour
 
         if (!behaviours.isPsychdelicMode && !player.isStarving)
         {
-            ChangeState(PLAYER_IDLE);
+            ChangeState(HumanControllerAnimations.Idle_Neanderthalic);
         }
         if (!behaviours.isPsychdelicMode && player.isStarving)
         {
-            ChangeState(PLAYER_STARVINGIDLE);
+            ChangeState(HumanControllerAnimations.Idle_RunningFatigue);
 
         }
         else if (behaviours.isPsychdelicMode)
         {
-            ChangeState(PLAYER_CURIOUS);
+            ChangeState(HumanControllerAnimations.Idle_Elderly);
         }
 
         //agent.ResetPath();

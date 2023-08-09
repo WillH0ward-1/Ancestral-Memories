@@ -4,6 +4,8 @@ using System.Text;
 using System.IO;
 using UnityEditor;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public class GetAnimationNames : MonoBehaviour
 {
@@ -49,8 +51,6 @@ public class GetAnimationNames : MonoBehaviour
     {
         AnimatorController ac = targetAnimator.runtimeAnimatorController as AnimatorController;
         string scriptName = $"{ac.name}Animations";
-        string path = $"Assets/Scripts/{scriptName}.cs";
-
         StringBuilder content = new StringBuilder();
         content.AppendLine("using UnityEngine;");
         content.AppendLine("public class " + scriptName + " : MonoBehaviour");
@@ -64,8 +64,47 @@ public class GetAnimationNames : MonoBehaviour
 
         content.AppendLine("}");
 
-        File.WriteAllText(path, content.ToString());
+        WriteAndAttachScript(scriptName, content);
+    }
 
+    public void WriteAnimationGroupsClass(string[] animationNames)
+    {
+        AnimatorController ac = targetAnimator.runtimeAnimatorController as AnimatorController;
+        string scriptName = $"{ac.name}AnimGroups";
+
+        // Organize animations by their states
+        Dictionary<string, List<string>> animationGroups = new Dictionary<string, List<string>>();
+        foreach (string name in animationNames)
+        {
+            string state = name.Split('_')[0]; // Assuming state name is before the first underscore
+            if (!animationGroups.ContainsKey(state))
+            {
+                animationGroups[state] = new List<string>();
+            }
+            animationGroups[state].Add(name);
+        }
+
+        StringBuilder content = new StringBuilder();
+        content.AppendLine("using UnityEngine;");
+        content.AppendLine("using System.Collections.Generic;");
+        content.AppendLine("public class " + scriptName + " : MonoBehaviour");
+        content.AppendLine("{");
+
+        foreach (var group in animationGroups)
+        {
+            string groupName = group.Key.Replace(" ", "_");
+            content.AppendLine($"    public List<string> {groupName} = new List<string> {{ {string.Join(", ", group.Value.Select(n => $"\"{n}\""))} }};");
+        }
+
+        content.AppendLine("}");
+
+        WriteAndAttachScript(scriptName, content);
+    }
+
+    private void WriteAndAttachScript(string scriptName, StringBuilder content)
+    {
+        string path = $"Assets/Scripts/{scriptName}.cs";
+        File.WriteAllText(path, content.ToString());
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
         Type scriptType = Type.GetType(scriptName + ", Assembly-CSharp");

@@ -27,10 +27,10 @@ public class GetAnimationNamesEditor : Editor
         {
             if (myScript.GetAllAnimationNames(out var result))
             {
-                myScript.WriteAnimationConstantsClass(result.AnimationNames);
+                myScript.WriteAnimationConstantsClass(result.AnimationNames); // Create the constant class
+                myScript.WriteAnimationGroupsClass(result.AnimationNames); // Create the groups class
             }
         }
-
 
     }
 
