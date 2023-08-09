@@ -1,45 +1,43 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 using UnityEditor.Animations;
+using System.Collections.Generic;
 
 public class RenameAnimationClips : MonoBehaviour
 {
-    public Animator animator; // Reference to the Animator component
+    public RuntimeAnimatorController animatorController; // Reference to the Animator Controller asset
 
     private Dictionary<string, string> originalNames = new Dictionary<string, string>(); // Store original names
 
     [ContextMenu("Rename Animation Clips")]
     public void RenameAllAnimationClips()
     {
-        if (animator == null)
+        if (animatorController == null)
         {
-            Debug.LogError("(Clip Rename) Animator Reference is not set. Please select an Animator.");
+            Debug.LogError("(Clip Rename) Animator Controller Reference is not set. Please select an Animator Controller.");
+            return;
+        }
+
+        AnimatorController ac = animatorController as AnimatorController;
+        if (ac == null)
+        {
+            Debug.LogError("(Clip Rename) The provided asset is not an AnimatorController.");
             return;
         }
 
         originalNames.Clear(); // Clear previous original names
 
-        AnimatorController ac = animator.runtimeAnimatorController as AnimatorController;
-        if (ac == null)
+        foreach (AnimatorControllerLayer layer in ac.layers)
         {
-            Debug.LogError("(Clip Rename) The provided Animator does not use an AnimatorController.");
-            return;
-        }
-
-        AnimatorControllerLayer[] layers = ac.layers;
-        for (int i = 0; i < layers.Length; i++)
-        {
-            ChildAnimatorState[] states = layers[i].stateMachine.states;
-            for (int j = 0; j < states.Length; j++)
+            foreach (ChildAnimatorState state in layer.stateMachine.states)
             {
-                AnimationClip clip = states[j].state.motion as AnimationClip;
+                AnimationClip clip = state.state.motion as AnimationClip;
                 if (clip != null)
                 {
                     string clipPath = AssetDatabase.GetAssetPath(clip);
                     originalNames[clipPath] = clip.name; // Store the original name
 
-                    string newName = clip.name; // Use clip's name
+                    string newName = state.state.name; // Use state's name
                     AssetDatabase.RenameAsset(clipPath, newName);
                 }
             }
@@ -67,5 +65,4 @@ public class RenameAnimationClips : MonoBehaviour
         Debug.Log("(Undo Clip Rename) Animation Clip names reverted.");
         originalNames.Clear(); // Optionally clear the dictionary after undoing
     }
-
 }
