@@ -23,12 +23,9 @@ public class HumanControllerAnimations : MonoBehaviour
     public const string Action_StandToKnee_HealGround = "Action_StandToKnee_HealGround";
     public const string Action_Zombie_Bite_Forward = "Action_Zombie_Bite_Forward";
     public const string Action_Zombie_Eat_FromGround = "Action_Zombie_Eat_FromGround";
-    public const string Attack_AssassinateHuman = "Attack_AssassinateHuman";
     public const string Attack_Kick = "Attack_Kick";
     public const string Attack_Neanderthal_Punch01 = "Attack_Neanderthal_Punch01";
     public const string Attack_Neanderthal_Punch02 = "Attack_Neanderthal_Punch02";
-    public const string Attack_PunchHuman = "Attack_PunchHuman";
-    public const string Attack_RitualExecutionStab = "Attack_RitualExecutionStab";
     public const string Attack_Slash01 = "Attack_Slash01";
     public const string Attack_Slash02 = "Attack_Slash02";
     public const string Attack_Slash03 = "Attack_Slash03";
@@ -37,11 +34,12 @@ public class HumanControllerAnimations : MonoBehaviour
     public const string Attack_Stab02 = "Attack_Stab02";
     public const string Attack_Stab03 = "Attack_Stab03";
     public const string Attack_Stomp = "Attack_Stomp";
+    public const string AttackHuman_Punch = "AttackHuman_Punch";
     public const string AttackReact_Standing_SuckerPunched = "AttackReact_Standing_SuckerPunched";
+    public const string Climb_Climbing = "Climb_Climbing";
     public const string Climb_ClimbUp01 = "Climb_ClimbUp01";
     public const string Climb_ClimbUp02 = "Climb_ClimbUp02";
     public const string Climb_ClimbUp03 = "Climb_ClimbUp03";
-    public const string Climbing = "Climbing";
     public const string Dance_Egyptian = "Dance_Egyptian";
     public const string Dance_HandsInTheAir = "Dance_HandsInTheAir";
     public const string Dance_Rambunctious = "Dance_Rambunctious";
@@ -77,6 +75,8 @@ public class HumanControllerAnimations : MonoBehaviour
     public const string Emotion_Sapien_Happy_Clapping = "Emotion_Sapien_Happy_Clapping";
     public const string Emotion_Scared_Anxious = "Emotion_Scared_Anxious";
     public const string Emotion_Scared_LookAround = "Emotion_Scared_LookAround";
+    public const string Execution_AssassinateHuman = "Execution_AssassinateHuman";
+    public const string Execution_RitualExecutionStab = "Execution_RitualExecutionStab";
     public const string Falling_BadTrip_Flailing = "Falling_BadTrip_Flailing";
     public const string Falling_GoodTrip_Floating = "Falling_GoodTrip_Floating";
     public const string FallToGroundBack_BlownAway = "FallToGroundBack_BlownAway";

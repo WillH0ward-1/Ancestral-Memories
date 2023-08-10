@@ -72,23 +72,8 @@ public class GetAnimationNames : MonoBehaviour
         AnimatorController ac = targetAnimator.runtimeAnimatorController as AnimatorController;
         string scriptName = $"{ac.name}AnimGroups";
 
-        // Organize animations by their states
-        Dictionary<string, List<string>> animationGroups = new Dictionary<string, List<string>>();
-        foreach (string name in animationNames)
-        {
-            // Assuming state name is split by the underscore, and the specific category is in the second part
-            string[] parts = name.Split('_');
-            string state = parts[0];
-            string category = parts.Length > 1 ? parts[1] : "General";
-
-            // Combine the state and category to create a specific group
-            string groupKey = $"{state}_{category}";
-            if (!animationGroups.ContainsKey(groupKey))
-            {
-                animationGroups[groupKey] = new List<string>();
-            }
-            animationGroups[groupKey].Add(name);
-        }
+        // Call the new filter method
+        Dictionary<string, List<string>> animationGroups = AnimationGroupFilter.FilterAnimations(animationNames);
 
         StringBuilder content = new StringBuilder();
         content.AppendLine("using UnityEngine;");
@@ -106,6 +91,7 @@ public class GetAnimationNames : MonoBehaviour
 
         WriteAndAttachScript(scriptName, content);
     }
+
 
 
     private void WriteAndAttachScript(string scriptName, StringBuilder content)
