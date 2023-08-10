@@ -19,5 +19,10 @@ public class RenameAnimationClipsEditor : Editor
         {
             script.UndoRename();
         }
+
+        if (GUILayout.Button("Cancel Operation"))
+        {
+            script.CancelOperation = true;
+        }
     }
 }
