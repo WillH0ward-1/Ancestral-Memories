@@ -64,10 +64,11 @@ public class RenameAnimationClips : MonoBehaviour
                         // Rename the new clip
                         newClip.name = newName;
 
-                        // Save and refresh the new clip
-                        AssetDatabase.CreateAsset(newClip, AssetDatabase.GetAssetPath(oldClip));
-                        AssetDatabase.SaveAssets();
-                        AssetDatabase.Refresh();
+                        // Copy animation data from old clip to new clip
+                        EditorUtility.CopySerialized(oldClip, newClip);
+
+                        // Import the new clip as an asset
+                        AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(newClip));
 
                         // Store the original name
                         originalNames[newClip] = originalName;
@@ -77,7 +78,7 @@ public class RenameAnimationClips : MonoBehaviour
                         AssetDatabase.SaveAssets();
                         AssetDatabase.Refresh();
 
-                        // Get the root GameObject from the path of the child GameObject
+                        // Rename the root GameObject associated with the clip
                         GameObject rootObject = GetRootObjectFromChildPath(AssetDatabase.GetAssetPath(newClip));
 
                         if (rootObject != null)
@@ -85,7 +86,7 @@ public class RenameAnimationClips : MonoBehaviour
                             rootObject.name = newName;
                             EditorUtility.SetDirty(rootObject);
                             AssetDatabase.SaveAssets();
-                            AssetDatabase.Refresh();
+                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
                         }
                     }
                 }
@@ -94,6 +95,7 @@ public class RenameAnimationClips : MonoBehaviour
 
         Debug.Log("(Clip Rename) Animation Clips and GameObjects successfully renamed.");
     }
+
 
     [ContextMenu("Undo Rename")]
     public void UndoRename()
