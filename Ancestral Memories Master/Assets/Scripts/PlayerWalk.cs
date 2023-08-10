@@ -91,7 +91,7 @@ public class PlayerWalk : MonoBehaviour
         aiPath = GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
 
-        ChangeState(HumanControllerAnimations.Walk_Neanderthalic01);
+        ChangeState(HumanControllerAnimations.Walk_Neanderthal01);
         //StartCoroutine(DetectWater());
     }
 
@@ -359,11 +359,11 @@ public class PlayerWalk : MonoBehaviour
         {
             if (!behaviours.isPsychdelicMode && !player.isStarving)
             {
-                ChangeState(HumanControllerAnimations.Walk_Neanderthalic01);
+                ChangeState(HumanControllerAnimations.Walk_Neanderthal01);
             }
             else if (!behaviours.isPsychdelicMode && player.isStarving)
             {
-                ChangeState(HumanControllerAnimations.Walk_Starving); // Change this if we want to make the player walk animation respond to starvation
+                ChangeState(HumanControllerAnimations.Walk_MidSapien_Hungry); // Change this if we want to make the player walk animation respond to starvation
             }
             else if (behaviours.isPsychdelicMode)
             {
@@ -373,7 +373,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (speed >= runThreshold)
         {
-            ChangeState(HumanControllerAnimations.Run_Neanderthalic01);
+            ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog01);
         }
     }
 
@@ -493,7 +493,7 @@ public class PlayerWalk : MonoBehaviour
 
         reachedDestination = false;
 
-        ChangeState(HumanControllerAnimations.Run_Neanderthalic01);
+        ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog01);
 
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);
@@ -588,16 +588,16 @@ public class PlayerWalk : MonoBehaviour
 
         if (!behaviours.isPsychdelicMode && !player.isStarving)
         {
-            ChangeState(HumanControllerAnimations.Idle_Neanderthalic);
+            ChangeState(HumanControllerAnimations.Idle_Neanderthal);
         }
         if (!behaviours.isPsychdelicMode && player.isStarving)
         {
-            ChangeState(HumanControllerAnimations.Idle_RunningFatigue);
+            ChangeState(HumanControllerAnimations.Idle_MidSapien01);
 
         }
         else if (behaviours.isPsychdelicMode)
         {
-            ChangeState(HumanControllerAnimations.Idle_Elderly);
+            ChangeState(HumanControllerAnimations.Idle_Elder);
         }
 
         //agent.ResetPath();

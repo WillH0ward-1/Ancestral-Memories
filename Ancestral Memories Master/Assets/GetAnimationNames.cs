@@ -76,12 +76,18 @@ public class GetAnimationNames : MonoBehaviour
         Dictionary<string, List<string>> animationGroups = new Dictionary<string, List<string>>();
         foreach (string name in animationNames)
         {
-            string state = name.Split('_')[0]; // Assuming state name is before the first underscore
-            if (!animationGroups.ContainsKey(state))
+            // Assuming state name is split by the underscore, and the specific category is in the second part
+            string[] parts = name.Split('_');
+            string state = parts[0];
+            string category = parts.Length > 1 ? parts[1] : "General";
+
+            // Combine the state and category to create a specific group
+            string groupKey = $"{state}_{category}";
+            if (!animationGroups.ContainsKey(groupKey))
             {
-                animationGroups[state] = new List<string>();
+                animationGroups[groupKey] = new List<string>();
             }
-            animationGroups[state].Add(name);
+            animationGroups[groupKey].Add(name);
         }
 
         StringBuilder content = new StringBuilder();
@@ -100,6 +106,7 @@ public class GetAnimationNames : MonoBehaviour
 
         WriteAndAttachScript(scriptName, content);
     }
+
 
     private void WriteAndAttachScript(string scriptName, StringBuilder content)
     {
