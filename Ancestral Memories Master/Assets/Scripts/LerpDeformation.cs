@@ -10,14 +10,13 @@ public class LerpDeformation : MonoBehaviour
     public Player player;
 
     public float maxVal = 0f;
-    public float minVal = -0.2f;
+    public float minVal = -0.02f;
 
     private float currentDeform;
 
     [SerializeField] private Deform.InflateDeformer inflate;
     [SerializeField] private Deform.InflateDeformer[] inflateDeformers;
 
-    /*
     private void OnEnable()
     {
         player.OnHungerChanged += HungerChanged;
@@ -27,14 +26,12 @@ public class LerpDeformation : MonoBehaviour
     {
         player.OnHungerChanged -= HungerChanged;
     }
-    */
 
     // Start is called before the first frame update
 
     void Awake()
     {
-        //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        player = transform.root.GetComponent<Player>();
+        player = FindObjectOfType<Player>();
 
         inflateDeformers = transform.GetComponentsInChildren<Deform.InflateDeformer>();
 
@@ -49,11 +46,20 @@ public class LerpDeformation : MonoBehaviour
         currentDeform = targetDeform;
         foreach (Deform.InflateDeformer deformer in inflateDeformers)
         {
-            deformer.Factor = currentDeform;
+            if (deformer.gameObject.CompareTag("Aura"))
+            {
+                deformer.Factor = currentDeform += auraDeformationOffset;
+            }
+            else
+            {
+                deformer.Factor = currentDeform;
+            }
         }
     }
 
     private float targetDeform;
+
+    private float auraDeformationOffset = 0.00006f;
 
     private void HungerChanged(float hunger, float minHunger, float maxHunger)
     {
@@ -62,6 +68,7 @@ public class LerpDeformation : MonoBehaviour
 
         targetDeform = output;
     }
+
 
 
 }
