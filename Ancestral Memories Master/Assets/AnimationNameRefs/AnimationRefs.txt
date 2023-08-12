@@ -1,13 +1,14 @@
 Target Animator: Human
 Controller: HumanController
 Rig Avatar: MaleHumanBase@Breathing Idle (16)Avatar
-Last Updated: 06:26:12 pm 10 August 2023
+Last Updated: 09:52:20 am 11 August 2023
 
 Action_BentKnees_ForageGround
 Action_Fatigue_WipeSweat
 Action_Item_PickUp
 Action_Item_PullFromGround
 Action_KneesToStanding_FinishPray
+Action_OnKnee_Drink01
 Action_OnKnee_ForageGround
 Action_OnKnees_DigAndPlant
 Action_OnKnees_PlantSeeds
@@ -16,6 +17,9 @@ Action_OnKnees_PrayToSky
 Action_PetAnimal
 Action_Pose_PickedUpByBack
 Action_PrayTowardsSky_Floating
+Action_Standing_Eat01
+Action_Standing_Eat02
+Action_Standing_Eat03
 Action_Standing_Equip
 Action_Standing_HarvestTree
 Action_Standing_Prayer
@@ -25,12 +29,9 @@ Action_StandingToKnees_ToPrayer
 Action_StandToKnee_HealGround
 Action_Zombie_Bite_Forward
 Action_Zombie_Eat_FromGround
-Attack_AssassinateHuman
 Attack_Kick
 Attack_Neanderthal_Punch01
 Attack_Neanderthal_Punch02
-Attack_PunchHuman
-Attack_RitualExecutionStab
 Attack_Slash01
 Attack_Slash02
 Attack_Slash03
@@ -39,6 +40,7 @@ Attack_Stab01
 Attack_Stab02
 Attack_Stab03
 Attack_Stomp
+AttackHuman_Punch
 AttackReact_Standing_SuckerPunched
 Climb_Climbing
 Climb_ClimbUp01
@@ -79,6 +81,8 @@ Emotion_Neaderthal_Happy_Clapping
 Emotion_Sapien_Happy_Clapping
 Emotion_Scared_Anxious
 Emotion_Scared_LookAround
+Execution_AssassinateHuman
+Execution_RitualExecutionStab
 Falling_BadTrip_Flailing
 Falling_GoodTrip_Floating
 FallToGroundBack_BlownAway
@@ -103,6 +107,16 @@ Idle_Sapien01
 Idle_Sapien02
 Idle_Sapien03
 KneesToStand_StandUp
+Music_CupHands01
+Music_CupHands02
+Music_CupHands03
+Music_CupHands04
+Music_PlayFlute006
+Music_PlayFlute01
+Music_PlayFlute02
+Music_PlayFlute03
+Music_PlayFlute04
+Music_PlayFlute05
 OnBack_Death_Stabbed
 OnBack_FranticCrawlBackwards
 OnBack_GetUp01
@@ -111,7 +125,12 @@ OnBack_Scared_LookAround
 OnBack_Seizure
 OnBack_Sleeping
 OnBack_WakeUp
-OnFloor_Dazed
+OnFloor_Sat_Dazed
+OnFront_ToStand_Dazed01
+OnFront_ToStand_InjuredMax
+OnFront_ToStand_InjuredMid
+OnFront_ToStand_Quickly
+OnFront_ToStand_ShakeItOff
 OnKnees_Crawl_Critical
 OnKnees_Crawl_Medium
 Run_MidSapien_Jog

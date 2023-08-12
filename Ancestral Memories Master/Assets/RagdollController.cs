@@ -34,11 +34,11 @@ public class RagdollController : MonoBehaviour
 
         foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
         {
-            if (clip.name == HumanAI.GETUPFRONT)
+            if (clip.name == HumanControllerAnimations.OnFront_ToStand_Dazed01)
             {
                 StandUpFromFrontClip = clip;
             }
-            else if (clip.name == HumanAI.GETUPBACK)
+            else if (clip.name == HumanControllerAnimations.OnBack_GetUp01)
             {
                 StandUpFromBackClip = clip;
             }
@@ -123,7 +123,7 @@ public class RagdollController : MonoBehaviour
 
         foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
         {
-            if (clip.name == HumanAI.GETUPFRONT || clip.name == HumanAI.GETUPBACK)
+            if (clip.name == HumanControllerAnimations.OnFront_ToStand_Dazed01 || clip.name == HumanControllerAnimations.OnBack_GetUp01)
             {
                 clip.SampleAnimation(gameObject, 0);
                 PopulateBones(standUpBoneTransforms);

@@ -14,19 +14,6 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    const string IDLE = "Citizen_Idle";
-    const string IDLESAD = "Citizen_IdleSad";
-    const string RUN = "Citizen_Run";
-    const string WALK = "Citizen_Walk";
-    const string WALKSAD = "Citizen_WalkSad";
-    const string HARVEST = "Citizen_HarvestTree";
-    const string PLANT = "Citizen_PlantTree";
-    const string PICKUP = "Citizen_PickUp";
-    const string EATSTANDING = "Citizen_EatStanding";
-    const string FLEE = "Citizen_RunScared";
-    public const string GETUPFRONT = "Citizen_StandUpFromFront";
-    public const string GETUPBACK = "Citizen_StandUpFromBack";
-
     public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack }
 
     [SerializeField] private AIState state = AIState.Idle;
@@ -155,11 +142,11 @@ public class HumanAI : MonoBehaviour
 
         if (isFacingUp)
         {
-            ChangeAnimationState(GETUPFRONT);
+            ChangeAnimationState(HumanControllerAnimations.OnBack_GetUp01);
         }
         else
         {
-            ChangeAnimationState(GETUPBACK);
+            ChangeAnimationState(HumanControllerAnimations.OnFront_ToStand_Dazed01);
         }
 
         float time = 0;
@@ -198,7 +185,7 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Idle()
     {
-        ChangeAnimationState(IDLE);
+        ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         //agent.speed = 0f;
         //agent.ResetPath();
@@ -259,7 +246,7 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator EnterConversation()
     {
-        ChangeAnimationState(IDLE);
+        ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         //agent.speed = 0f;
         //agent.ResetPath();
@@ -303,7 +290,7 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Walk(Vector3 destination)
     {
-        ChangeAnimationState(WALK);
+        ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal02);
         aiPath.canMove = true;
         aiPath.maxSpeed = walkingSpeed;
 
@@ -493,12 +480,12 @@ public class HumanAI : MonoBehaviour
             {
                 if (inRunningRange)
                 {
-                    ChangeAnimationState(RUN);
+                    ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog01);
                     aiPath.maxSpeed = runningSpeed;
                 }
                 else if (inWalkingRange)
                 {
-                    ChangeAnimationState(WALK);
+                    ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal02);
                     aiPath.maxSpeed = walkingSpeed;
                 }
             }
@@ -602,7 +589,7 @@ public class HumanAI : MonoBehaviour
             transform.LookAt(target);
 
             StartCoroutine(ChangeSpeedOverTime(target));
-            ChangeAnimationState(HARVEST);
+            ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
 
             yield return null;
         }
@@ -610,14 +597,7 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-    // Animation states
-    private const string ATTACK1 = "Citizen_Attack1";
-    private const string ATTACK2 = "Citizen_Attack2";
-    private const string ATTACK3 = "Citizen_Attack3";
-    private const string ATTACK4 = "Citizen_Attack4";
-    private const string ATTACK5 = "Citizen_Attack5";
-
-    List<string> attackAnimations = new List<string> { ATTACK1, ATTACK2, ATTACK3, ATTACK4, ATTACK5 };
+    List<string> attackAnimations = new List<string> { HumanControllerAnimations.Attack_Slash01, HumanControllerAnimations.Attack_Slash02, HumanControllerAnimations.Attack_Stab01, HumanControllerAnimations.Attack_Stab02, HumanControllerAnimations.Attack_Stab03, };
 
     private IEnumerator PerformRandomActionOverTime(Transform target, List<string> animations, AICharacterStats stats)
     {
@@ -717,7 +697,7 @@ public class HumanAI : MonoBehaviour
         aiPath.destination = transform.position;
         aiPath.canMove = false;
 
-        ChangeAnimationState(PICKUP);
+        ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
 
         behaviourActive = true;
 
@@ -731,7 +711,7 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            ChangeAnimationState(IDLE);
+            ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
             //agent.transform.LookAt(player.transform);
 
@@ -750,7 +730,7 @@ public class HumanAI : MonoBehaviour
         float time = 0;
         float duration = 0;
 
-        ChangeAnimationState(PICKUP);
+        ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
 
         time = 0;
         duration = GetAnimLength();
@@ -762,7 +742,7 @@ public class HumanAI : MonoBehaviour
             yield return null;
         }
 
-        ChangeAnimationState(EATSTANDING);
+        ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog02);
 
         time = 0;
         duration = GetAnimLength();
@@ -782,7 +762,7 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Run()
     {
-        ChangeAnimationState(RUN);
+        ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog02);
         aiPath.canMove = true;
         aiPath.maxSpeed = runningSpeed;
 
@@ -864,19 +844,19 @@ public class HumanAI : MonoBehaviour
             if (!inRange) {
                 if (inRunningRange)
                 {
-                    ChangeAnimationState(RUN);
+                    ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog01);
                     aiPath.maxSpeed = runningSpeed;
                 }
                 else if (inWalkingRange)
                 {
-                    ChangeAnimationState(WALK);
+                    ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal02);
                     aiPath.maxSpeed = walkingSpeed;
                 }
             }
 
             if (aiPath.reachedDestination || inRange)
             {
-                ChangeAnimationState(IDLE);
+                ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
                 ChangeState(AIState.Idle);
             }
 
@@ -972,7 +952,7 @@ public class HumanAI : MonoBehaviour
 
     private float GetAnimLength()
     {
-        animLength = player.animator.GetCurrentAnimatorStateInfo(0).length / animator.speed;
+        animLength = animator.GetCurrentAnimatorStateInfo(0).length / animator.speed;
         return animLength;
     }
 

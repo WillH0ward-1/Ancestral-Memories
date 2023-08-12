@@ -359,7 +359,7 @@ public class PlayerWalk : MonoBehaviour
         {
             if (!behaviours.isPsychdelicMode && !player.isStarving)
             {
-                ChangeState(HumanControllerAnimations.Walk_Neanderthal01);
+                ChangeState(HumanControllerAnimations.Walk_Neanderthal02);
             }
             else if (!behaviours.isPsychdelicMode && player.isStarving)
             {
@@ -373,7 +373,7 @@ public class PlayerWalk : MonoBehaviour
 
         if (speed >= runThreshold)
         {
-            ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog01);
+            ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog02);
         }
     }
 
@@ -493,7 +493,7 @@ public class PlayerWalk : MonoBehaviour
 
         reachedDestination = false;
 
-        ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog01);
+        ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog02);
 
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);

@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 public class HumanControllerAnimGroups : MonoBehaviour
 {
-    public List<string> Action = new List<string> { "Action_BentKnees_ForageGround", "Action_Fatigue_WipeSweat", "Action_Item_PickUp", "Action_Item_PullFromGround", "Action_KneesToStanding_FinishPray", "Action_OnKnee_ForageGround", "Action_OnKnees_DigAndPlant", "Action_OnKnees_PlantSeeds", "Action_OnKnees_PrayToGround", "Action_OnKnees_PrayToSky", "Action_PetAnimal", "Action_Pose_PickedUpByBack", "Action_PrayTowardsSky_Floating", "Action_Standing_Equip", "Action_Standing_HarvestTree", "Action_Standing_Prayer", "Action_Standing_ScatterSeeds01", "Action_Standing_ScatterSeeds02", "Action_StandingToKnees_ToPrayer", "Action_StandToKnee_HealGround", "Action_Zombie_Bite_Forward", "Action_Zombie_Eat_FromGround" };
+    public List<string> Action = new List<string> { "Action_BentKnees_ForageGround", "Action_Fatigue_WipeSweat", "Action_Item_PickUp", "Action_Item_PullFromGround", "Action_KneesToStanding_FinishPray", "Action_OnKnee_Drink01", "Action_OnKnee_ForageGround", "Action_OnKnees_DigAndPlant", "Action_OnKnees_PlantSeeds", "Action_OnKnees_PrayToGround", "Action_OnKnees_PrayToSky", "Action_PetAnimal", "Action_Pose_PickedUpByBack", "Action_PrayTowardsSky_Floating", "Action_Standing_Eat01", "Action_Standing_Eat02", "Action_Standing_Eat03", "Action_Standing_Equip", "Action_Standing_HarvestTree", "Action_Standing_Prayer", "Action_Standing_ScatterSeeds01", "Action_Standing_ScatterSeeds02", "Action_StandingToKnees_ToPrayer", "Action_StandToKnee_HealGround", "Action_Zombie_Bite_Forward", "Action_Zombie_Eat_FromGround" };
     public List<string> Attack = new List<string> { "Attack_Kick", "Attack_Slash01", "Attack_Slash02", "Attack_Slash03", "Attack_Slash04", "Attack_Stab01", "Attack_Stab02", "Attack_Stab03", "Attack_Stomp" };
     public List<string> Attack_Neanderthal = new List<string> { "Attack_Neanderthal_Punch01", "Attack_Neanderthal_Punch02" };
     public List<string> AttackHuman = new List<string> { "AttackHuman_Punch" };
@@ -23,8 +23,10 @@ public class HumanControllerAnimGroups : MonoBehaviour
     public List<string> Idle_Neanderthal = new List<string> { "Idle_Neanderthal", "Idle_Neanderthal_ItchSelf01", "Idle_Neanderthal_ItchSelf02" };
     public List<string> Idle_Sapien = new List<string> { "Idle_Sapien_InspectSelf01", "Idle_Sapien_InspectSelf02", "Idle_Sapien01", "Idle_Sapien02", "Idle_Sapien03" };
     public List<string> KneesToStand = new List<string> { "KneesToStand_StandUp" };
+    public List<string> Music = new List<string> { "Music_CupHands01", "Music_CupHands02", "Music_CupHands03", "Music_CupHands04", "Music_PlayFlute006", "Music_PlayFlute01", "Music_PlayFlute02", "Music_PlayFlute03", "Music_PlayFlute04", "Music_PlayFlute05" };
     public List<string> OnBack = new List<string> { "OnBack_Death_Stabbed", "OnBack_FranticCrawlBackwards", "OnBack_GetUp01", "OnBack_GetUp02", "OnBack_Scared_LookAround", "OnBack_Seizure", "OnBack_Sleeping", "OnBack_WakeUp" };
-    public List<string> OnFloor = new List<string> { "OnFloor_Dazed" };
+    public List<string> OnFloor = new List<string> { "OnFloor_Sat_Dazed" };
+    public List<string> OnFront = new List<string> { "OnFront_ToStand_Dazed01", "OnFront_ToStand_InjuredMax", "OnFront_ToStand_InjuredMid", "OnFront_ToStand_Quickly", "OnFront_ToStand_ShakeItOff" };
     public List<string> OnKnees = new List<string> { "OnKnees_Crawl_Critical", "OnKnees_Crawl_Medium" };
     public List<string> Run_MidSapien = new List<string> { "Run_MidSapien_Jog" };
     public List<string> Run_Neanderthal = new List<string> { "Run_Neanderthal_Jog01", "Run_Neanderthal_Jog02" };
