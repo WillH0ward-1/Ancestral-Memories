@@ -20,67 +20,6 @@ public class CharacterBehaviours : MonoBehaviour
     public bool dialogueIsActive = false;
 
     public GodRayControl god;
-
-    // Idle
-
-    const string PLAYER_IDLE = "Player_idle";
-
-    // Emotion
-
-    const string PLAYER_CURIOUS = "Player_curious";
-    const string PLAYER_CELEBRATE = "Player_celebrate";
-    const string PLAYER_SAD = "Player_sad";
-    const string PLAYER_STARVING = "Player_starving";
-    const string PLAYER_RAGE = "Player_rage";
-    const string PLAYER_SCARED = "Player_scared";
-
-    // PRAYER
-
-    const string PLAYER_PRAYER_START = "Player_PrayerStart";
-    //const string PLAYER_PRAYER_LOOP = "Player_PrayerLoop";
-    const string PLAYER_PRAYER_LOOP = "Knees_PrayToGround";
-    const string PLAYER_PRAYER_END = "Player_PrayerEnd";
-
-    const string PLAYER_DANCE_01 = "Player_Dance_01";
-    const string PLAYER_DANCE_02 = "Player_Dance_02";
-    const string PLAYER_DANCE_03 = "Player_Dance_03";
-
-    //const string PLAYER_PICKUP = "Player_PickUp";
-    const string PLAYER_PICKUP = "Item_PickUp";
-
-    const string PLAYER_STANDINGEAT = "Player_StandingEat";
-
-    const string PLAYER_TOCROUCH = "Player_ToCrouch";
-
-    const string PLAYER_CROUCHDRINK = "Player_CrouchDrink";
-    const string PLAYER_CROUCHFORAGING = "Player_CrouchForaging";
-    const string PLAYER_CROUCHPLANTSEEDS = "Player_CrouchPlantSeeds";
-    const string PLAYER_CROUCHTOSTAND = "Player_CrouchToStand";
-
-    const string PLAYER_KINDLEFIRE = "Player_KindleFire";
-
-    const string PLAYER_HARVEST_TREE = "Player_Harvest_Tree";
-
-    const string PLAYER_SITONFLOOR = "Player_SitOnFloor";
-    //const string PLAYER_SITTINGFLOORIDLE = "Player_SittingFloorIdle";
-    const string PLAYER_SITTINGFLOORIDLE = "Idle_SitOnGround01";
-
-    const string PLAYER_STANDUPFROMSIT = "Player_StandUpFromSit";
-
-    const string PLAYER_THUNDERSTRUCK = "Player_thunderstruck";
-    const string PLAYER_FALLFLATONFLOOR = "Player_FallFlatOnFloor";
-    const string PLAYER_FACEDOWNIDLE = "Player_FaceDownIdle";
-
-    const string PLAYER_STANDUPFROMFLOOR = "Player_StandUpFromFloor";
-    const string PLAYER_DROWN = "Player_Drown";
-
-    const string PLAYER_VOMIT = "Player_Vomit";
-
-    const string PLAYER_PLAYFLUTE = "Player_PlayFlute";
-
-
-    const string PLAYER_SLEEPING = "Player_SleepingOnFloor";
-
     public string[] danceAnimClips;
 
     private float animationLength;
@@ -455,7 +394,7 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.scrollOverride = false;
         behaviourIsActive = true;
 
-        player.ChangeAnimationState(PLAYER_PLAYFLUTE);
+        player.ChangeAnimationState(HumanControllerAnimations.Music_PlayFlute01);
 
         cinematicCam.ToPlayMusicZoom();
         //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
@@ -467,7 +406,7 @@ public class CharacterBehaviours : MonoBehaviour
         yield return new WaitUntil(() => Input.GetMouseButtonDown(1));
 
         behaviourIsActive = false;
-        player.ChangeAnimationState(PLAYER_IDLE);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
         fluteControl.StopAll();
         //cinematicCam.scrollOverride = false;
         cinematicCam.ToGameZoom();
@@ -480,20 +419,7 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.scrollOverride = true;
         behaviourIsActive = true;
 
-        if (player.hunger <= 25)
-        {
-            player.ChangeAnimationState(PLAYER_FALLFLATONFLOOR);
-            yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
-
-        }
-        else
-        {
-            player.ChangeAnimationState(PLAYER_TOCROUCH);
-            yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
-
-        }
-
-        player.ChangeAnimationState(PLAYER_SLEEPING);
+        player.ChangeAnimationState(HumanControllerAnimations.Sleeping_Idle);
 
         Debug.Log("Do you want to sleep?");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -572,7 +498,7 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        player.ChangeAnimationState(PLAYER_IDLE);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         behaviourIsActive = false;
         cinematicCam.panoramaScroll = false;
@@ -599,7 +525,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         pickUpManager.pickedUpObject = hitObject;
 
-        player.ChangeAnimationState(PLAYER_PICKUP);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         cinematicCam.ToActionZoom();
@@ -608,7 +534,7 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
-        player.ChangeAnimationState(PLAYER_STANDINGEAT);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_Standing_Eat01);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         int minChance = 0;
@@ -686,7 +612,7 @@ public class CharacterBehaviours : MonoBehaviour
         cinematicCam.ToActionZoom();
        // StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
-        player.ChangeAnimationState(PLAYER_PICKUP);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         Debug.Log("Click to exit this action.");
@@ -694,7 +620,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToGameZoom();
 
-        player.ChangeAnimationState(PLAYER_STANDINGEAT);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_Standing_Eat01);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         behaviourIsActive = false;
@@ -714,7 +640,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         vomit.Play();
 
-        player.ChangeAnimationState(PLAYER_VOMIT);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal_ItchSelf01);
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         vomit.Stop();
@@ -731,16 +657,15 @@ public class CharacterBehaviours : MonoBehaviour
 
         //StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
-        player.ChangeAnimationState(PLAYER_TOCROUCH);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_OnKnee_Drink01);
+
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
-        player.ChangeAnimationState(PLAYER_CROUCHDRINK);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
-        player.ChangeAnimationState(PLAYER_CROUCHTOSTAND);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
-
-        if (player.faith < player.maxStat / 2)
+        if (player.faith < player.maxStat / 2) // Vomit if the water is impure due to low faith
         {
             StartCoroutine(Vomit());
             yield break;
@@ -790,9 +715,9 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
 
         cinematicCam.ToActionZoom();
-        player.ChangeAnimationState(PLAYER_SITTINGFLOORIDLE);
 
         StartCoroutine(ChangeTimeScale(timeMultiplyFactor));
+        StartCoroutine(ReflectAnimIntensity());
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
@@ -800,6 +725,27 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = false;
 
         cinematicCam.ToGameZoom();
+
+        yield break;
+    }
+
+    public IEnumerator ReflectAnimIntensity()
+    {
+        while (behaviourIsActive)
+        {
+            if (player.faith < player.maxStat / 2)
+            {
+                player.ChangeAnimationState(HumanControllerAnimations.Sitting_OnGround_Casually);
+            }
+            else
+            {
+                player.ChangeAnimationState(HumanControllerAnimations.Sitting_OnGround_Meditate);
+            }
+
+            yield return null;
+        }
+
+        timeManager.timeMultiplier = timeManager.defaultTimeMultiplier;
 
         yield break;
     }
@@ -855,7 +801,7 @@ public class CharacterBehaviours : MonoBehaviour
 
             minAnimationSpeed = player.animator.speed;
 
-            player.ChangeAnimationState(PLAYER_HARVEST_TREE);
+            player.ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
             player.animator.speed = Mathf.Lerp(minAnimationSpeed, interval, time);
 
             time += Time.deltaTime / interval;
@@ -865,7 +811,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.animator.speed = 1f;
 
-        player.ChangeAnimationState(PLAYER_IDLE);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
@@ -883,16 +829,14 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = true;
 
-        player.ChangeAnimationState(PLAYER_TOCROUCH);
-        yield return new WaitUntil(() => player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
-
         cinematicCam.ToActionZoom();
         ToFrontCam();
 
-        player.ChangeAnimationState(PLAYER_KINDLEFIRE);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_OnKnee_ForageGround);
+
         yield return new WaitUntil(() => player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime - Mathf.Floor(player.animator.GetCurrentAnimatorStateInfo(0).normalizedTime) > 0.99f);
 
-        player.ChangeAnimationState(PLAYER_IDLE);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
@@ -920,12 +864,12 @@ public class CharacterBehaviours : MonoBehaviour
         //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
 
         dialogueIsActive = true;
-        dialogue = hitObject.transform.GetComponent<Dialogue>();
+        dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
         dialogue.StartDialogue(dialogue, player);
 
         ToFrontCam();
 
-        player.ChangeAnimationState(PLAYER_IDLE);
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         player.transform.LookAt(hitObject.transform);
 

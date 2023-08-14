@@ -23,6 +23,7 @@ public class HumanControllerAnimations : MonoBehaviour
     public const string Action_Standing_Prayer = "Action_Standing_Prayer";
     public const string Action_Standing_ScatterSeeds01 = "Action_Standing_ScatterSeeds01";
     public const string Action_Standing_ScatterSeeds02 = "Action_Standing_ScatterSeeds02";
+    public const string Action_STanding_Vomit = "Action_STanding_Vomit";
     public const string Action_StandingToKnees_ToPrayer = "Action_StandingToKnees_ToPrayer";
     public const string Action_StandToKnee_HealGround = "Action_StandToKnee_HealGround";
     public const string Action_Zombie_Bite_Forward = "Action_Zombie_Bite_Forward";

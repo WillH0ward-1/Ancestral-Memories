@@ -11,7 +11,7 @@ public class Dialogue : MonoBehaviour
 {
 
     [SerializeField] private TextMeshProUGUI textComponent;
-    [SerializeField] private Transform dialogueBox;
+    [SerializeField] private GameObject dialogueBox;
 
     [SerializeField] private string[] lines;
     [SerializeField] private float textSpeed;
@@ -69,7 +69,17 @@ public class Dialogue : MonoBehaviour
 
     void Start()
     {
-        dialogueBox = transform.Find("DialogueBox");
+        GameObject dialogueBoxPrefab = Resources.Load("Dialogue/DialogueBox") as GameObject;
+        if (dialogueBoxPrefab != null)
+        {
+            dialogueBox = Instantiate(dialogueBoxPrefab, transform.position, Quaternion.identity);
+            canvas = dialogueBox.GetComponentInChildren<Canvas>();
+        }
+        else
+        {
+            Debug.LogError("Dialogue box prefab not found!");
+        }
+
         canvas = dialogueBox.transform.GetComponentInChildren<Canvas>();
         canvas.enabled = false;
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
@@ -142,7 +152,7 @@ public class Dialogue : MonoBehaviour
 
             lines = dialogue.lines;
 
-            dialogueBoxInstance = Instantiate(dialogueBox.gameObject, dialogue.transform.root);
+            dialogueBoxInstance = Instantiate(dialogueBox, dialogue.transform.root);
             textComponent = dialogueBoxInstance.transform.GetComponentInChildren<TextMeshProUGUI>();
             canvasInstance = dialogueBoxInstance.transform.GetComponentInChildren<Canvas>();
 
