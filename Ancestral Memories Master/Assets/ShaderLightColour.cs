@@ -39,7 +39,7 @@ public class ShaderLightColor : MonoBehaviour
 
     private void UpdateLightColor()
     {
-        float timePercent = timeCycleManager.timeOfDay / 24f;
+        float timePercent = timeCycleManager.TimeOfDay / 24f;
 
         int currentColorIndex = Mathf.FloorToInt(timePercent * timeCycleManager.timeColors.Length) % timeCycleManager.timeColors.Length;
         int nextColorIndex = (currentColorIndex + 1) % timeCycleManager.timeColors.Length;

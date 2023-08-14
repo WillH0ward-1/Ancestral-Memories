@@ -9,7 +9,6 @@ public class SeasonManager : MonoBehaviour
 
     [SerializeField]
     private int _dayOfYear;
-    public int daysPerSeason = 90;
 
     public Season initSeason = Season.Summer;
     [SerializeField, Range(0, 3)]
@@ -38,36 +37,46 @@ public class SeasonManager : MonoBehaviour
             {
                 _currentSeason = value;
                 currentSeasonIndex = (int)_currentSeason;
-                _dayOfYear = currentSeasonIndex * daysPerSeason + (_dayOfYear % daysPerSeason);
+                _dayOfYear = currentSeasonIndex * timeCycle.daysPerSeason + (_dayOfYear % timeCycle.daysPerSeason);
                 if (timeCycle != null)
                 {
-                    timeCycle.dayOfYear = _dayOfYear;
+                    timeCycle.DayOfYear = _dayOfYear;
                 }
                 OnSeasonChanged.Invoke(_currentSeason);
             }
         }
     }
 
-    public int dayOfYear
+    public int DayOfYear
     {
         get { return _dayOfYear; }
         set
         {
-            int totalDaysInYear = TotalDaysInYear;
+            int totalDaysInYear = GetTotalDaysInYear();
             if (totalDaysInYear > 0)
             {
-                _dayOfYear = value % totalDaysInYear; // Use the property to calculate the total number of days
-                currentSeasonIndex = _dayOfYear / daysPerSeason;
+                _dayOfYear = value % totalDaysInYear;
+                currentSeasonIndex = _dayOfYear / timeCycle.daysPerSeason; // Access through TimeCycleManager
                 CurrentSeason = (Season)currentSeasonIndex;
                 if (timeCycle != null)
                 {
-                    timeCycle.dayOfYear = _dayOfYear;
+                    timeCycle.DayOfYear = _dayOfYear;
                 }
             }
         }
     }
 
+    public void InitTime()
+    {
+        timeCycle = GetComponent<TimeCycleManager>();
+        SetInitialSeason();
+        UpdateTotalDaysInYear();
+    }
 
+    public int GetTotalDaysInYear()
+    {
+        return GetNumberOfSeasons() * timeCycle.daysPerSeason; // Access through TimeCycleManager
+    }
 
     private TimeCycleManager timeCycle;
 
@@ -79,10 +88,11 @@ public class SeasonManager : MonoBehaviour
     // Serialized field to display the total number of days in the inspector
     [SerializeField]
     private int _totalDaysInYear;
-    public int TotalDaysInYear
+
+    public Season GetCurrentSeason(int dayOfYear)
     {
-        get { return _totalDaysInYear; }
-        set { _totalDaysInYear = value; }
+        int seasonIndex = dayOfYear / timeCycle.daysPerSeason;
+        return (Season)(seasonIndex % GetNumberOfSeasons());
     }
 
     public Color[] leafColors; // Define in the inspector, one color for each season
@@ -126,25 +136,19 @@ public class SeasonManager : MonoBehaviour
     }
 
 
-    private void Awake()
-    {
-        timeCycle = GetComponent<TimeCycleManager>();
-        SetInitialSeason();
-        UpdateTotalDaysInYear();
-    }
-
     private void SetInitialSeason()
     {
         CurrentSeason = initSeason;
-        dayOfYear = (int)initSeason * daysPerSeason;
+        DayOfYear = (int)initSeason * timeCycle.daysPerSeason;
     }
+
 
     void Update()
     {
         if (timeCycle != null)
         {
-            timeOfDay = timeCycle.timeOfDay;
-            dayOfYear = timeCycle.dayOfYear;
+            timeOfDay = timeCycle.TimeOfDay;
+            DayOfYear = timeCycle.DayOfYear;
         }
     }
 
@@ -152,7 +156,7 @@ public class SeasonManager : MonoBehaviour
     private void UpdateTotalDaysInYear()
     {
         int numberOfSeasons = GetNumberOfSeasons();
-        _totalDaysInYear = numberOfSeasons * daysPerSeason;
+        _totalDaysInYear = numberOfSeasons * timeCycle.daysPerSeason;
 
         // Update the maximum range of the _dayOfYear field based on the total number of days
         _dayOfYear = Mathf.Clamp(_dayOfYear, 0, _totalDaysInYear - 1);

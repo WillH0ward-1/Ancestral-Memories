@@ -25,18 +25,19 @@ public class TimeCycleManager : MonoBehaviour
 
     [SerializeField, Range(0, 365)] private int _dayOfYear; // Current day of the year
     public int daysPerSeason = 90;
+    [SerializeField] private SeasonManager seasonManager;
 
-    public int dayOfYear
+    public int DayOfYear
     {
         get { return _dayOfYear; }
         set
         {
-            _dayOfYear = value % (daysPerSeason * GetNumberOfSeasons());
+            _dayOfYear = value % seasonManager.GetTotalDaysInYear(); // Use the SeasonManager to get the total days
             // We only change the dayOfYear and let the TimeCycleManager continue from the start of the new day
         }
     }
 
-    public float timeOfDay
+    public float TimeOfDay
     {
         get { return _timeOfDay; }
         set
@@ -49,6 +50,21 @@ public class TimeCycleManager : MonoBehaviour
         }
     }
 
+    public int CurrentDay
+    {
+        get { return DayOfYear % 30 + 1; } // Days are 1-based
+    }
+
+    public int CurrentMonth
+    {
+        get { return DayOfYear / 30 + 1; } // Months are 1-based
+    }
+
+    public int CurrentYear
+    {
+        get { return DayOfYear / 360; } // Assuming 12 months of 30 days each
+    }
+
     private Material material;
     private float lastRealTime;
 
@@ -59,6 +75,10 @@ public class TimeCycleManager : MonoBehaviour
 
     private void Awake()
     {
+        seasonManager = GetComponent<SeasonManager>();
+
+        seasonManager.InitTime();
+
         defaultTimeMultiplier = 0.25f;
         timeMultiplier = defaultTimeMultiplier;
         Renderer renderer = skyBox.GetComponentInChildren<Renderer>();
@@ -72,18 +92,18 @@ public class TimeCycleManager : MonoBehaviour
         }
 
         lastRealTime = Time.realtimeSinceStartup;
-        _dayOfYear = Mathf.RoundToInt(timeOfDay / 24f * (daysPerSeason * GetNumberOfSeasons()));
+        _dayOfYear = Mathf.RoundToInt(TimeOfDay / 24f * seasonManager.GetTotalDaysInYear());
     }
 
     private void LateUpdate()
     {
         if (Application.isPlaying || updateInEditor)
         {
-            float previousTime = timeOfDay;
+            float previousTime = TimeOfDay;
             UpdateTimeAndLight();
-            if (timeOfDay < previousTime)
+            if (TimeOfDay < previousTime)
             {
-                dayOfYear = (dayOfYear + 1) % (daysPerSeason * GetNumberOfSeasons());
+                DayOfYear = (DayOfYear + 1) % (daysPerSeason * GetNumberOfSeasons());
             }
         }
     }
@@ -108,15 +128,15 @@ public class TimeCycleManager : MonoBehaviour
 
         lastRealTime = Time.realtimeSinceStartup;
 
-        timeOfDay += timeDelta * timeMultiplier;
-        timeOfDay %= 24;
+        TimeOfDay += timeDelta * timeMultiplier;
+        TimeOfDay %= 24;
 
-        isNightTime = timeOfDay < 6 || timeOfDay >= 18;
+        isNightTime = TimeOfDay < 6 || TimeOfDay >= 18;
 
-        UpdateLight(timeOfDay / 24f);
+        UpdateLight(TimeOfDay / 24f);
         if (Application.isPlaying)
         {
-            RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
+            RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
         }
     }
 
@@ -163,7 +183,7 @@ public class TimeCycleManager : MonoBehaviour
 
         if (!Application.isEditor)
         {
-            var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", timeOfDay);
+            var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
             Debug.Log("time of day (Fmod) = " + fmodTod);
         }
     }
@@ -171,6 +191,14 @@ public class TimeCycleManager : MonoBehaviour
     // Try to find a directional light to use if we haven't set one
     private void OnEnable()
     {
+        seasonManager = transform.GetComponent<SeasonManager>();
+
+        if (seasonManager == null)
+        {
+            Debug.LogError("(TIME MANAGER) SeasonManager component not found: See hierarchy for TIME MANAGER.");
+            return; // Optionally, you could return here to prevent further execution if seasonManager is essential
+        }
+
         if (DirectionalLight != null)
             return;
 
@@ -193,4 +221,5 @@ public class TimeCycleManager : MonoBehaviour
             }
         }
     }
+
 }

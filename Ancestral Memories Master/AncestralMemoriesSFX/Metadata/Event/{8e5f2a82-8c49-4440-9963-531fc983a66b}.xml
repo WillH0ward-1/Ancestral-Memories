@@ -74,11 +74,14 @@
 		<property name="dopplerEnabled">
 			<value>true</value>
 		</property>
+		<property name="dopplerScale">
+			<value>500</value>
+		</property>
 		<property name="minimumDistance">
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>550</value>
+			<value>200</value>
 		</property>
 	</object>
 	<object class="MarkerTrack" id="{4b0292c4-4547-4f49-9764-caff21ab309a}" />
@@ -260,18 +263,18 @@
 			<value>0</value>
 		</property>
 		<property name="maximumDistance">
-			<value>550</value>
+			<value>200</value>
 		</property>
 	</object>
 	<object class="ThreeEQEffect" id="{c5d5fca0-fb6d-4e90-ba0f-67e89a65fef1}">
 		<property name="lowGain">
-			<value>-8</value>
+			<value>-14.5</value>
 		</property>
 		<property name="midGain">
 			<value>-80</value>
 		</property>
 		<property name="highGain">
-			<value>5.5</value>
+			<value>7</value>
 		</property>
 		<property name="lowCrossover">
 			<value>22000</value>

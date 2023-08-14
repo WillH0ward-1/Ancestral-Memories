@@ -32,7 +32,7 @@ public class SunMovement : MonoBehaviour
     {
         if (timeCycleManager == null) return;
 
-        float scaledTimeOfDay = (timeCycleManager.timeOfDay * timeScale) % 24f;
+        float scaledTimeOfDay = (timeCycleManager.TimeOfDay * timeScale) % 24f;
         float shiftedTimeOfDay = (scaledTimeOfDay + 12f) % 24f; // shift the sun 12 hours ahead
         float angle = 360 - (shiftedTimeOfDay / 24f * 360f);
 

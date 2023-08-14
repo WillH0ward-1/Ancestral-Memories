@@ -32,7 +32,7 @@ public class MoonMovement : MonoBehaviour
     {
         if (timeCycleManager == null) return;
 
-        float scaledTimeOfDay = (timeCycleManager.timeOfDay * timeScale) % 24f;
+        float scaledTimeOfDay = (timeCycleManager.TimeOfDay * timeScale) % 24f;
         float angle = 360 - (scaledTimeOfDay / 24f * 360f); // moon matches the current time
 
         if (angle < 0f)

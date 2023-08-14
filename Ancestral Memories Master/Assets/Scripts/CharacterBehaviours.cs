@@ -261,7 +261,7 @@ public class CharacterBehaviours : MonoBehaviour
             isSkeleton = true;
         }
 
-        player.ChangeAnimationState(PLAYER_THUNDERSTRUCK);
+        player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_Electrocution);
 
         yield return new WaitForSeconds(GetAnimLength());
 
@@ -273,12 +273,10 @@ public class CharacterBehaviours : MonoBehaviour
         }
         var maxTimeOnFloor = GetAnimLength() + Random.Range(0, 2);
 
-        player.ChangeAnimationState(PLAYER_FACEDOWNIDLE);
-
         float timeOnFloor = Random.Range(GetAnimLength(), maxTimeOnFloor);
         yield return new WaitForSeconds(timeOnFloor);
 
-        player.ChangeAnimationState(PLAYER_STANDUPFROMFLOOR);
+        player.ChangeAnimationState(HumanControllerAnimations.OnFront_ToStand_InjuredMax);
         float time = 0;
         float duration = GetAnimLength();
 
@@ -310,7 +308,8 @@ public class CharacterBehaviours : MonoBehaviour
     {
         behaviourIsActive = true;
 
-        player.ChangeAnimationState(PLAYER_DROWN);
+        player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_Insanity);
+
         yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         behaviourIsActive = false;
@@ -389,6 +388,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public AuraParticleControl auraParticles;
 
+    bool praying = false;
+
     public IEnumerator Pray(GameObject hitObject)
     {
 
@@ -396,16 +397,16 @@ public class CharacterBehaviours : MonoBehaviour
         behaviourIsActive = true;
         //pulseActive = true;
 
-        player.ChangeAnimationState(PLAYER_PRAYER_START);
-        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
+        player.ChangeAnimationState(HumanControllerAnimations.Action_StandingToKnees_ToPrayer);
 
-        player.ChangeAnimationState(PLAYER_PRAYER_LOOP);
+        yield return StartCoroutine(WaitForAnimationCompletion(player.animator));
 
         cinematicCam.ToPrayerZoom();
 
         StartCoroutine(GainFaith());
+        praying = true;
 
-
+        StartCoroutine(PrayAnimDirection());
         //auraParticles.StartParticles();
         playerAudioSFX.PlayPrayerAudioLoop();
         //StartCoroutine(PrayerPulseEffect());
@@ -415,18 +416,36 @@ public class CharacterBehaviours : MonoBehaviour
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
+        praying = false;
 
-        auraParticles.StopParticles();
+        //auraParticles.StopParticles();
 
         playerAudioSFX.StopPrayerAudio();
         // pulseActive = false;
 
-        player.ChangeAnimationState(PLAYER_PRAYER_END);
+        player.ChangeAnimationState(HumanControllerAnimations.Action_KneesToStanding_FinishPray);
 
         behaviourIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
 
+    }
+
+    IEnumerator PrayAnimDirection()
+    {
+        while (praying)
+        {
+            if (player.faith <= player.maxStat / 2)
+            {
+                player.ChangeAnimationState(HumanControllerAnimations.Action_OnKnees_PrayToGround);
+            }
+            else
+            {
+                player.ChangeAnimationState(HumanControllerAnimations.Action_OnKnees_PrayToSky);
+            }
+
+            yield return null;
+        }
     }
 
     [SerializeField] private FluteControl fluteControl;
