@@ -865,7 +865,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         dialogueIsActive = true;
         dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
-        dialogue.StartDialogue(dialogue, player);
+        dialogue.StartDialogue();
 
         ToFrontCam();
 
@@ -887,6 +887,26 @@ public class CharacterBehaviours : MonoBehaviour
         //StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
 
 
+    }
+
+    public Dialogue FindDialogueComponent(Transform currentTransform)
+    {
+        Dialogue dialogue = currentTransform.GetComponent<Dialogue>();
+        if (dialogue != null)
+        {
+            return dialogue;
+        }
+
+        foreach (Transform child in currentTransform)
+        {
+            dialogue = FindDialogueComponent(child);
+            if (dialogue != null)
+            {
+                return dialogue;
+            }
+        }
+
+        return null;
     }
 
     public float animLength;
