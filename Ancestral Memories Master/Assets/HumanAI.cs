@@ -71,6 +71,8 @@ public class HumanAI : MonoBehaviour
 
     private AICharacterStats stats;
 
+    public enum EvolutionStates { Neanderthal, MidSapien, Sapien }
+
     private void Awake()
     {
         formationController = FindObjectOfType<FormationController>();

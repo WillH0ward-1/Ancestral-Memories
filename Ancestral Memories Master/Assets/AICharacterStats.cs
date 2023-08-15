@@ -13,6 +13,7 @@ public class AICharacterStats : MonoBehaviour
     public float hunger = 1f;
     public float faith = 1f;
     public float psych = 1f;
+    public float evolution = 1f;
 
     public bool isDiseased = false;
     public bool isBlessed = false;
@@ -23,12 +24,14 @@ public class AICharacterStats : MonoBehaviour
     public float healthFactor = 0.00000001f;
     public float faithFactor = 0.00000001f;
     public float hungerFactor = 0.00000001f;
+    public float EvolutionFraction => (evolution - minStat) / (maxStat - minStat);
 
     public event Action<float, float, float> OnHealthChanged;
     public event Action<float, float, float> OnHungerChanged;
     public event Action<float, float, float> OnFaithChanged;
     public event Action<float, float, float> OnPsychChanged;
     public event Action<float, float, float> OnDiseaseDamageApplied;
+    public event Action<float, float, float> OnEvolutionChanged;
 
     public bool IsBlessed => isBlessed;
     public bool IsFaithless => IsFaithless;
@@ -121,6 +124,18 @@ public class AICharacterStats : MonoBehaviour
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
         OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
+
+        UpdateEvolution();
+        OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
+    }
+
+    public float evolutionSpeedFactor = 0.1f;  // New factor to determine the speed of evolution convergence
+
+    private void UpdateEvolution()
+    {
+        float targetEvolution = FaithFraction;
+        float interpolationFactor = Mathf.Lerp(0.01f, evolutionSpeedFactor, FaithFraction); // Interpolation factor varies based on faith
+        evolution = Mathf.Lerp(evolution, targetEvolution, interpolationFactor * Time.deltaTime);
     }
 
     public void Heal(float healFactor)

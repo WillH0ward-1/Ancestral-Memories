@@ -57,13 +57,19 @@ public class Dialogue : MonoBehaviour
     public DialogueLines dialogueLines;
     public DialogueLines.Emotions currentEmotion = DialogueLines.Emotions.Neutral;  // Set default emotion to Neutral
 
+    private LanguageGenerator languageGenerator;
+
     [SerializeField] private EmotionManager emotionManager;
+
+    private AICharacterStats characterStats;
 
     private void Awake()
     {
         player = FindObjectOfType<Player>();
+        characterStats = transform.GetComponentInChildren<AICharacterStats>();
         dialogueLines = FindObjectOfType<DialogueLines>();
-
+        languageGenerator = FindObjectOfType<LanguageGenerator>();
+        languageGenerator.evolutionFraction = characterStats.evolution;
         ValidateEvents();
 
         // Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
@@ -127,7 +133,6 @@ public class Dialogue : MonoBehaviour
         }
     }
 
-
     string GetRandomDialogue()
     {
         int randomIndex = UnityEngine.Random.Range(0, lines.Length - 1);
@@ -135,45 +140,10 @@ public class Dialogue : MonoBehaviour
         return randomDialogue;
     }
 
-    void Update()
-    {
-        if (dialogueActive)
-        {
-            distance = Vector3.Distance(transform.position, player.transform.position);
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                if (textComponent.text == lines[conversationIndex])
-                {
-                    NextLine();
-                }
-                else
-                {
-                    clickPromptObject.SetActive(true);
-                    StopAllCoroutines();
-                    textComponent.text = lines[conversationIndex];
-                }
-            }
-
-            if (distance <= maxDistance)
-            {
-                outOfRange = false;
-            }
-            else if (distance >= maxDistance)
-            {
-                outOfRange = true;
-
-                if (!transform.CompareTag("Campfire"))
-                {
-                    StopDialogue();
-                }
-            }
-        }
-    }
-
     private Canvas canvas;
     private Canvas canvasInstance;
     private GameObject clickPromptObject;
+    private Func<string, string> translationFunction;
 
     public void StartDialogue()
     {
@@ -187,11 +157,14 @@ public class Dialogue : MonoBehaviour
             Enum.TryParse(characterType, true, out DialogueLines.CharacterTypes parsedType))
         {
             lines = dialogueLines.GetDialogue(parsedName, parsedType, currentEmotion).ToArray();
+
             if (lines.Length == 0 || (lines.Length == 1 && lines[0] == "No dialogue available for this combination."))
             {
                 Debug.LogError("No dialogues found for the specified combination.");
                 return; // Exit the method if no dialogues are found for the given combination
             }
+
+            translationFunction = GetTranslationFunction(characterName);
         }
         else
         {
@@ -201,24 +174,24 @@ public class Dialogue : MonoBehaviour
 
         Debug.Log("Dialogue Started.");
 
-        dialogueBoxInstance = Instantiate(dialogueBox); // Instantiate without parent
-        dialogueBoxInstance.transform.SetParent(transform, false); // Set parent without world position stay
+        dialogueBoxInstance = Instantiate(dialogueBox);
+        dialogueBoxInstance.transform.SetParent(transform, false);
 
-        textComponent = dialogueBoxInstance.transform.GetComponentInChildren<TextMeshProUGUI>();
+        textComponent = dialogueBoxInstance.GetComponentInChildren<TextMeshProUGUI>();
         if (textComponent == null)
         {
             Debug.LogError("No TextMeshProUGUI component found in the dialogue box.");
             return;
         }
 
-        canvasInstance = dialogueBoxInstance.transform.GetComponentInChildren<Canvas>();
+        canvasInstance = dialogueBoxInstance.GetComponentInChildren<Canvas>();
         if (canvasInstance == null)
         {
             Debug.LogError("No Canvas component found in the dialogue box.");
             return;
         }
 
-        clickPromptObject = dialogueBoxInstance.transform.GetComponentInChildren<ClickPrompt>().transform.gameObject;
+        clickPromptObject = dialogueBoxInstance.GetComponentInChildren<ClickPrompt>().gameObject;
         if (clickPromptObject == null)
         {
             Debug.LogError("No ClickPrompt component found in the dialogue box.");
@@ -233,13 +206,97 @@ public class Dialogue : MonoBehaviour
         conversationIndex = 0;
         dialogueActive = true;
 
-        if (transform.CompareTag("Campfire"))
+        StartCoroutine(TypeLine());
+        StartCoroutine(UpdateEvolutionFraction());
+    }
+
+    private Func<string, string> GetTranslationFunction(string characterName)
+    {
+        if (characterName.Equals("Neanderthal", StringComparison.OrdinalIgnoreCase))
         {
-            godAudioManager.StartGodAmbienceFX();
-            godRangeSettings.StartCoroutine(godRangeSettings.UpdateActiveStates());
+            return languageGenerator.TranslateToNeanderthal;
+        }
+        else if (characterName.Equals("MidSapien", StringComparison.OrdinalIgnoreCase))
+        {
+            return languageGenerator.TranslateToMidSapien;
+        }
+        else if (characterName.Equals("Sapien", StringComparison.OrdinalIgnoreCase))
+        {
+            return languageGenerator.TranslateToSapien;
         }
 
-        StartCoroutine(TypeLine());
+        // Default to original lines if character name is not recognized
+        return (line) => line;
+    }
+
+    IEnumerator TypeLine()
+    {
+        if (!transform.CompareTag("Animal"))
+        {
+            GetDialogueAudio(characterName, conversationName, characterType, conversationIndex);
+        }
+
+        clickPromptObject.SetActive(false);
+
+        string originalLine = lines[conversationIndex];
+        string translatedLine = translationFunction(originalLine);
+
+        int originalIndex = 0;
+        int translatedIndex = 0;
+        System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(originalLine);
+
+        while (translatedIndex < translatedLine.Length)
+        {
+            if (originalIndex < originalLine.Length)
+            {
+                stringBuilder[originalIndex] = translatedLine[translatedIndex];
+                originalIndex++;
+            }
+            else
+            {
+                stringBuilder.Append(translatedLine[translatedIndex]);
+            }
+
+            if (usePhonemes)
+            {
+                TriggerPhoneme(characterName, characterType);
+            }
+
+            translatedIndex++;
+            textComponent.text = stringBuilder.ToString();
+            yield return new WaitForSeconds(textSpeed);
+        }
+
+        if (originalIndex < originalLine.Length)
+        {
+            stringBuilder.Length = originalIndex;
+            textComponent.text = stringBuilder.ToString();
+        }
+
+        clickPromptObject.SetActive(true);
+    }
+
+    void NextLine()
+    {
+        if (conversationIndex < lines.Length - 1)
+        {
+            conversationIndex++;
+            textComponent.text = string.Empty;
+            StartCoroutine(TypeLine());
+        }
+        else
+        {
+            StopDialogue();
+        }
+    }
+
+    private IEnumerator UpdateEvolutionFraction()
+    {
+        while (dialogueActive && languageGenerator.evolutionFraction < 1f)
+        {
+            languageGenerator.evolutionFraction = characterStats.evolution;
+            yield return null;
+        }
     }
 
     [SerializeField] private string dialogueKeyRef;
@@ -247,10 +304,8 @@ public class Dialogue : MonoBehaviour
 
     public void GetDialogueAudio(string name, string conversationName, string type, int lineIndex)
     {
-
         if (dialogueActive)
         {
-
             string key = name + "/" + type + "/" + name + "-" + conversationName + "-" + type + "-" + lineIndex;
             dialogueKeyRef = key;
 
@@ -295,10 +350,7 @@ public class Dialogue : MonoBehaviour
     {
         if (dialogueActive)
         {
-            // Only constructing the base part of the key here
             string baseKey = name + "/" + type + "/" + PhonemeFolder + "/" + name + "-" + type + "-" + PhonemeIdentifier;
-
-            // Get the full path (key) by appending a random phoneme file to the base key
             string fullKey = GetRandomPhonemePath(baseKey);
 
             if (string.IsNullOrEmpty(fullKey))
@@ -325,16 +377,11 @@ public class Dialogue : MonoBehaviour
 
     private string GetRandomPhonemePath(string baseKey)
     {
-        // Split the baseKey to extract just the path without the filename
         string[] pathParts = baseKey.Split('/');
         string phonemeDirectory = Path.Combine(pathParts[0], pathParts[1], pathParts[2]);
-
-        // Construct the full directory path to where the phonemes should be
         string directoryPath = Path.Combine(DirectoryRoot, "AncestralMemoriesSFX", "DialogueBanks", phonemeDirectory);
-
-        // Removing "Assets/"
         directoryPath = directoryPath.Replace("Assets/", "");
-        fullPathRef = directoryPath; // for debugging
+        fullPathRef = directoryPath;
 
         if (Directory.Exists(directoryPath))
         {
@@ -342,13 +389,8 @@ public class Dialogue : MonoBehaviour
             if (phonemeFiles.Length > 0)
             {
                 int randomIndex = UnityEngine.Random.Range(0, phonemeFiles.Length);
-                // Extract the filename (without extension) from the full path
                 string randomFileNameWithoutExtension = Path.GetFileNameWithoutExtension(phonemeFiles[randomIndex]);
-
-                // Extract just the index part
                 string indexPart = randomFileNameWithoutExtension.Replace(characterName + "-" + characterType + "-" + PhonemeIdentifier, "");
-
-                // Construct the full phoneme path by appending only the index part
                 return baseKey + indexPart;
             }
         }
@@ -372,21 +414,6 @@ public class Dialogue : MonoBehaviour
         yield break;
     }
 
-
-    void NextLine()
-    {
-        if (conversationIndex < lines.Length - 1)
-        {
-            conversationIndex++;
-            textComponent.text = string.Empty;
-            StartCoroutine(TypeLine());
-        }
-        else
-        {
-            StopDialogue();
-        }
-    }
-
     void StopDialogue()
     {
         if (transform.CompareTag("Campfire"))
@@ -394,37 +421,46 @@ public class Dialogue : MonoBehaviour
             godAudioManager.StopGodAmbienceFX();
             godRangeSettings.StopCoroutine(godRangeSettings.UpdateActiveStates());
         }
-
         StopAllCoroutines();
         dialogueActive = false;
         //dialogueInstanceRef.setParameterByNameWithLabel("DialogueActive", "false");
-
         Destroy(dialogueBoxInstance);
     }
 
-    IEnumerator TypeLine()
+    void Update()
     {
-        if (!transform.CompareTag("Animal"))
+        if (dialogueActive)
         {
-            GetDialogueAudio(characterName, conversationName, characterType, conversationIndex);
-        }
+            distance = Vector3.Distance(transform.position, player.transform.position);
 
-        clickPromptObject.SetActive(false);
-
-        foreach (char c in lines[conversationIndex].ToCharArray())
-        {
-            if (usePhonemes)
+            if (Input.GetMouseButtonDown(1))
             {
-                TriggerPhoneme(characterName, characterType);
+                if (textComponent.text == lines[conversationIndex])
+                {
+                    NextLine();
+                }
+                else
+                {
+                    clickPromptObject.SetActive(true);
+                    StopAllCoroutines();
+                    textComponent.text = lines[conversationIndex];
+                }
             }
 
-            textComponent.text += c;
-            yield return new WaitForSeconds(textSpeed);
+            if (distance <= maxDistance)
+            {
+                outOfRange = false;
+            }
+            else if (distance >= maxDistance)
+            {
+                outOfRange = true;
+
+                if (!transform.CompareTag("Campfire"))
+                {
+                    StopDialogue();
+                }
+            }
         }
-
-        clickPromptObject.SetActive(true);
-
-
     }
 
 }
