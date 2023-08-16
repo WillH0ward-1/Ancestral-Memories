@@ -21,7 +21,7 @@ public class LanguageGenerator : MonoBehaviour
         EI, IA, IE, OI, OU, UA, UI, UE, EE, OO
     }
 
-
+    private FormantSynthesizer formantSynth;
 
     private Dictionary<string, string> EnglishToNeanderthalDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     private Dictionary<string, string> EnglishToMidSapienDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -39,6 +39,8 @@ public class LanguageGenerator : MonoBehaviour
         vocabularyManager = FindObjectOfType<VocabularyManager>();
         dialogueLines = FindObjectOfType<DialogueLines>();
         characterStats = GetComponent<AICharacterStats>();
+        formantSynth = GetComponent<FormantSynthesizer>();
+
         SaveVocabularyToFile();
 
         // Read the file once and initialize dictionaries
@@ -89,14 +91,50 @@ public class LanguageGenerator : MonoBehaviour
         vocabularyManager.AddVocabulary(vocabulary);
     }
 
-    private void InitializeDictionary(string[] englishWords, Dictionary<string, string> dictionary, int syllableMultiplier)
+    private void InitializeDictionary(string[] englishWords, Dictionary<string, string> dictionary, int evolutionStage)
     {
         for (int i = 0; i < englishWords.Length; i++)
         {
             string trimmedEnglishWord = englishWords[i].Trim();
-            string fictionalWord = CreateWordByIndex(i, trimmedEnglishWord.Length / syllableMultiplier);
+
+            string fictionalWord;
+            switch (evolutionStage)
+            {
+                case 2: // Neanderthal
+                    fictionalWord = CreateWordByIndex(i, trimmedEnglishWord.Length / 2);
+                    break;
+                case 3: // MidSapien
+                    fictionalWord = CreateMidSapienWord(trimmedEnglishWord);
+                    break;
+                case 4: // Sapien
+                    fictionalWord = CreateSapienWord(trimmedEnglishWord);
+                    break;
+                default:
+                    fictionalWord = trimmedEnglishWord;
+                    break;
+            }
+
             dictionary[trimmedEnglishWord] = fictionalWord;
         }
+    }
+
+    private string CreateMidSapienWord(string englishWord)
+    {
+        // Take the first two characters
+        string prefix = englishWord.Substring(0, Math.Min(2, englishWord.Length));
+
+        // Take the last two characters
+        string suffix = englishWord.Length > 2 ? englishWord.Substring(englishWord.Length - 2, 2) : "";
+
+        int middleSyllableCount = englishWord.Length > 4 ? englishWord.Length / 3 : 1;
+        string middle = CreateWordByIndex(englishWord.GetHashCode(), middleSyllableCount);
+
+        return prefix + middle + suffix;
+    }
+
+    private string CreateSapienWord(string englishWord)
+    {
+        return englishWord;
     }
 
     private string CreateWordByIndex(int index, int syllableCount)
@@ -207,18 +245,23 @@ public class LanguageGenerator : MonoBehaviour
 
     private string BlendWords(string neanderthalWord, string midSapienWord, string sapienWord)
     {
-        // Linear interpolation between words based on evolutionary fraction
-        if (languageEvolution < 0.5f)
+        if (languageEvolution <= 0.33f)
         {
-            float localFraction = languageEvolution * 2; // Normalize to range [0,1]
+            float localFraction = languageEvolution / 0.33f;  // Normalize to range [0,1]
             return StringLerp(neanderthalWord, midSapienWord, localFraction);
+        }
+        else if (languageEvolution <= 0.66f)
+        {
+            float localFraction = (languageEvolution - 0.33f) / 0.33f;  // Normalize to range [0,1]
+            return StringLerp(midSapienWord, sapienWord, localFraction);
         }
         else
         {
-            float localFraction = (languageEvolution - 0.5f) * 2; // Normalize to range [0,1]
+            float localFraction = (languageEvolution - 0.66f) / 0.33f;  // Normalize to range [0,1]
             return StringLerp(midSapienWord, sapienWord, localFraction);
         }
     }
+
 
     // Interpolates two strings based on fraction
     private string StringLerp(string a, string b, float fraction)
@@ -267,24 +310,6 @@ public class LanguageGenerator : MonoBehaviour
         return sapienWord;
     }
 
-
-    private string CreateWord(string englishWord, int syllableCount)
-    {
-        // Use the hash code of the English word as the seed for consistent random values.
-        int seed = englishWord.GetHashCode();
-        Random.InitState(seed);
-
-        string word = "";
-        for (int i = 0; i < syllableCount; i++)
-        {
-            Consonants consonant = (Consonants)Random.Range(0, Enum.GetNames(typeof(Consonants)).Length);
-            Vowels vowel = (Vowels)Random.Range(0, Enum.GetNames(typeof(Vowels)).Length);
-            word += CreateSyllable(consonant, vowel);
-        }
-
-        return word;
-    }
-
     private string CreateSyllable(Consonants consonant, Vowels vowel)
     {
         return consonant.ToString().ToLower() + vowel.ToString().ToLower();
@@ -299,11 +324,17 @@ public class LanguageGenerator : MonoBehaviour
         return tokens.Where(t => !string.IsNullOrWhiteSpace(t)).ToArray();
     }
 
-
-
     public void OnTranslateButtonPressed(string englishInput)
     {
         string translatedText = TranslateToNeanderthal(englishInput);
         Debug.Log(translatedText);
+    }
+
+    public void TranslateAndSpeak(string englishInput)
+    {
+        string translatedText = TranslateByEvolutionFactor(englishInput);
+        Debug.Log(translatedText);
+
+        formantSynth.Speak(translatedText);
     }
 }
