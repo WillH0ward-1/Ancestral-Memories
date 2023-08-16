@@ -12,8 +12,18 @@ using System;
 public class Dialogue : MonoBehaviour
 {
     public bool dialogueActive;
+  
+    public DialogueLines.Emotions CurrentEmotion
+    {
+        get { return currentEmotion; }
+    }
 
-    [SerializeField] private TextMeshProUGUI textComponent;
+
+    public TextMeshProUGUI textComponent;
+    public delegate void TextComponentChanged(TextMeshProUGUI newTextComponent);
+    public event TextComponentChanged OnTextComponentChanged;
+
+
     [SerializeField] private GameObject dialogueBox;
 
     public string conversationName = "";
@@ -178,11 +188,14 @@ public class Dialogue : MonoBehaviour
         dialogueBoxInstance.transform.SetParent(transform, false);
 
         textComponent = dialogueBoxInstance.GetComponentInChildren<TextMeshProUGUI>();
+        OnTextComponentChanged?.Invoke(textComponent); // This line sends the event regardless of the value of textComponent.
+
         if (textComponent == null)
         {
             Debug.LogError("No TextMeshProUGUI component found in the dialogue box.");
             return;
         }
+
 
         canvasInstance = dialogueBoxInstance.GetComponentInChildren<Canvas>();
         if (canvasInstance == null)
@@ -241,10 +254,9 @@ public class Dialogue : MonoBehaviour
     {
         while (dialogueActive)
         {
-            yield return new WaitForSeconds(0.1f);  // Adjust this value based on how frequently you want the updates.
+            yield return new WaitForSeconds(0.1f); 
         }
     }
-
 
     private Func<string, string> GetTranslationFunction(string characterName)
     {
