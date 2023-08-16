@@ -126,16 +126,22 @@ public class AICharacterStats : MonoBehaviour
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
 
         UpdateEvolution();
-        OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
     }
 
     public float evolutionSpeedFactor = 0.1f;  // New factor to determine the speed of evolution convergence
 
     private void UpdateEvolution()
     {
+        float previousEvolution = evolution;  // Store the current evolution value
+
         float targetEvolution = FaithFraction;
-        float interpolationFactor = Mathf.Lerp(0.01f, evolutionSpeedFactor, FaithFraction); // Interpolation factor varies based on faith
+        float interpolationFactor = Mathf.Lerp(0.01f, evolutionSpeedFactor, FaithFraction);
         evolution = Mathf.Lerp(evolution, targetEvolution, interpolationFactor * Time.deltaTime);
+
+        if (evolution != previousEvolution)  // Check if evolution has effectively changed
+        {
+            OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
+        }
     }
 
     public void Heal(float healFactor)

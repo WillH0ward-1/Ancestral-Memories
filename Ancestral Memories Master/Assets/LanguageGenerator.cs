@@ -29,9 +29,16 @@ public class LanguageGenerator : MonoBehaviour
 
     private DialogueLines dialogueLines;
 
+    private VocabularyManager vocabularyManager;
+    private AICharacterStats characterStats;
+
+    public float languageEvolution;
+
     private void Start()
     {
+        vocabularyManager = FindObjectOfType<VocabularyManager>();
         dialogueLines = FindObjectOfType<DialogueLines>();
+        characterStats = GetComponent<AICharacterStats>();
         SaveVocabularyToFile();
 
         // Read the file once and initialize dictionaries
@@ -41,6 +48,24 @@ public class LanguageGenerator : MonoBehaviour
         InitializeDictionary(englishWords, EnglishToNeanderthalDictionary, 2);
         InitializeDictionary(englishWords, EnglishToMidSapienDictionary, 3);
         InitializeDictionary(englishWords, EnglishToSapienDictionary, 4);
+
+        if (characterStats != null)
+        {
+            characterStats.OnEvolutionChanged += HandleEvolutionChanged;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (characterStats != null)
+        {
+            characterStats.OnEvolutionChanged -= HandleEvolutionChanged;
+        }
+    }
+
+    private void HandleEvolutionChanged(float evolutionFraction, float min, float max)
+    {
+        languageEvolution = evolutionFraction;
     }
 
 
@@ -61,8 +86,7 @@ public class LanguageGenerator : MonoBehaviour
     public void SaveVocabularyToFile()
     {
         List<string> vocabulary = dialogueLines.GetVocabulary();
-        string path = Path.Combine(Application.dataPath, "EveryWord.txt");
-        File.WriteAllLines(path, vocabulary);
+        vocabularyManager.AddVocabulary(vocabulary);
     }
 
     private void InitializeDictionary(string[] englishWords, Dictionary<string, string> dictionary, int syllableMultiplier)
@@ -106,8 +130,6 @@ public class LanguageGenerator : MonoBehaviour
         return Translate(englishInput, EnglishToSapienDictionary, SapienGrammarRules);
     }
 
-    public float evolutionFraction;
-
     private string HandleUnrecognizedWord(string token)
     {
         // For unrecognized words, add a default prefix for now. 
@@ -135,14 +157,21 @@ public class LanguageGenerator : MonoBehaviour
                 continue; // Skip further processing for this token
             }
 
+            string translatedWordNeanderthal, translatedWordMidSapien, translatedWordSapien;
+            dictionary.TryGetValue(token, out translatedWordNeanderthal); // Might be null, be cautious when using
+            EnglishToMidSapienDictionary.TryGetValue(token, out translatedWordMidSapien); // Might be null, be cautious when using
+            EnglishToSapienDictionary.TryGetValue(token, out translatedWordSapien); // Might be null, be cautious when using
+
+            string blendedWord = BlendWords(translatedWordNeanderthal ?? "", translatedWordMidSapien ?? "", translatedWordSapien ?? "");
+
             if (isFirstWord)
             {
                 isFirstWord = false; // Reset it immediately as all other checks depend on it
-                if (dictionary.TryGetValue(token, out string translatedWord))
+                if (!string.IsNullOrEmpty(blendedWord))
                 {
                     // Apply grammar rules based on provided rules function
-                    translatedWord = grammarRules(token, translatedWord);
-                    output.Append(SentenceCase(translatedWord));
+                    blendedWord = grammarRules(token, blendedWord);
+                    output.Append(SentenceCase(blendedWord));
                 }
                 else
                 {
@@ -151,11 +180,11 @@ public class LanguageGenerator : MonoBehaviour
             }
             else
             {
-                if (dictionary.TryGetValue(token, out string translatedWord))
+                if (!string.IsNullOrEmpty(blendedWord))
                 {
                     // Apply grammar rules based on provided rules function
-                    translatedWord = grammarRules(token, translatedWord);
-                    output.Append(" " + translatedWord);
+                    blendedWord = grammarRules(token, blendedWord);
+                    output.Append(" " + blendedWord);
                 }
                 else
                 {
@@ -167,23 +196,29 @@ public class LanguageGenerator : MonoBehaviour
         return output.ToString();
     }
 
+    public string TranslateByEvolutionFactor(string englishInput)
+    {
+        string neanderthalWord = TranslateToNeanderthal(englishInput);
+        string midSapienWord = TranslateToMidSapien(englishInput);
+        string sapienWord = TranslateToSapien(englishInput);
 
+        return BlendWords(neanderthalWord, midSapienWord, sapienWord);
+    }
 
     private string BlendWords(string neanderthalWord, string midSapienWord, string sapienWord)
     {
         // Linear interpolation between words based on evolutionary fraction
-        if (evolutionFraction < 0.5f)
+        if (languageEvolution < 0.5f)
         {
-            float localFraction = evolutionFraction * 2; // Normalize to range [0,1]
+            float localFraction = languageEvolution * 2; // Normalize to range [0,1]
             return StringLerp(neanderthalWord, midSapienWord, localFraction);
         }
         else
         {
-            float localFraction = (evolutionFraction - 0.5f) * 2; // Normalize to range [0,1]
+            float localFraction = (languageEvolution - 0.5f) * 2; // Normalize to range [0,1]
             return StringLerp(midSapienWord, sapienWord, localFraction);
         }
     }
-
 
     // Interpolates two strings based on fraction
     private string StringLerp(string a, string b, float fraction)
@@ -217,24 +252,18 @@ public class LanguageGenerator : MonoBehaviour
         {
             neanderthalWord += "ru";
         }
+
         return neanderthalWord;
     }
 
     private string MidSapienGrammarRules(string englishWord, string midSapienWord)
     {
-        if (englishWord.StartsWith("th"))
-        {
-            midSapienWord = "th" + midSapienWord;
-        }
         return midSapienWord;
     }
 
     private string SapienGrammarRules(string englishWord, string sapienWord)
     {
-        if (englishWord.Contains("ing"))
-        {
-            sapienWord += "inga";
-        }
+
         return sapienWord;
     }
 

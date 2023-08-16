@@ -71,15 +71,12 @@ public class Dialogue : MonoBehaviour
 
     [SerializeField] private EmotionManager emotionManager;
 
-    private AICharacterStats characterStats;
-
     private void Awake()
     {
         player = FindObjectOfType<Player>();
-        characterStats = transform.GetComponentInChildren<AICharacterStats>();
+ 
         dialogueLines = FindObjectOfType<DialogueLines>();
-        languageGenerator = FindObjectOfType<LanguageGenerator>();
-        languageGenerator.evolutionFraction = characterStats.evolution;
+        languageGenerator = GetComponent<LanguageGenerator>();
         ValidateEvents();
 
         // Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
