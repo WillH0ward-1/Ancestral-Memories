@@ -3,36 +3,92 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using System.Linq;
+using System.Text;
 
 public class LanguageGenerator : MonoBehaviour
 {
-    public enum Consonants { P, B, T, D, K, G, F, V, S, Z, SH, ZH, M, N, NG }
-    public enum Vowels { A, E, I, O, U }
+    public enum Consonants
+    {
+        P, B, T, D, K, G, F, V, S, Z,
+        SH, ZH, CH, J, M, N, NG, R, L,
+        H, W, WH, TH, DH, Y, QU, X
+    }
 
-    private Dictionary<string, string> EnglishToNeanderthalDictionary = new Dictionary<string, string>();
-    private Dictionary<string, string> EnglishToMidSapienDictionary = new Dictionary<string, string>();
-    private Dictionary<string, string> EnglishToSapienDictionary = new Dictionary<string, string>();
+    public enum Vowels
+    {
+        A, E, I, O, U, Y, AE, AI, AO, AU,
+        EI, IA, IE, OI, OU, UA, UI, UE, EE, OO
+    }
 
-    private AICharacterStats characterStats;
+
+
+    private Dictionary<string, string> EnglishToNeanderthalDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, string> EnglishToMidSapienDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, string> EnglishToSapienDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    private DialogueLines dialogueLines;
 
     private void Start()
     {
-        InitializeDictionary(EnglishToNeanderthalDictionary, 2);
-        InitializeDictionary(EnglishToMidSapienDictionary, 3);
-        InitializeDictionary(EnglishToSapienDictionary, 4);
+        dialogueLines = FindObjectOfType<DialogueLines>();
+        SaveVocabularyToFile();
+
+        // Read the file once and initialize dictionaries
+        string path = Path.Combine(Application.dataPath, "EveryWord.txt");
+        string[] englishWords = SafeReadAllLines(path); // New method to safely read all lines
+
+        InitializeDictionary(englishWords, EnglishToNeanderthalDictionary, 2);
+        InitializeDictionary(englishWords, EnglishToMidSapienDictionary, 3);
+        InitializeDictionary(englishWords, EnglishToSapienDictionary, 4);
     }
 
-    private void InitializeDictionary(Dictionary<string, string> dictionary, int syllableMultiplier)
-    {
-        string path = Path.Combine(Application.dataPath, "EveryWord.txt");
-        string[] englishWords = File.ReadAllLines(path);
 
-        foreach (string englishWord in englishWords)
+    private string[] SafeReadAllLines(string path)
+    {
+        try
         {
-            string trimmedEnglishWord = englishWord.Trim();
-            string fictionalWord = CreateWord(trimmedEnglishWord.Length / syllableMultiplier);
+            return File.ReadAllLines(path);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error reading the file: {ex.Message}");
+            return new string[0]; // Return empty array on error
+        }
+    }
+
+
+    public void SaveVocabularyToFile()
+    {
+        List<string> vocabulary = dialogueLines.GetVocabulary();
+        string path = Path.Combine(Application.dataPath, "EveryWord.txt");
+        File.WriteAllLines(path, vocabulary);
+    }
+
+    private void InitializeDictionary(string[] englishWords, Dictionary<string, string> dictionary, int syllableMultiplier)
+    {
+        for (int i = 0; i < englishWords.Length; i++)
+        {
+            string trimmedEnglishWord = englishWords[i].Trim();
+            string fictionalWord = CreateWordByIndex(i, trimmedEnglishWord.Length / syllableMultiplier);
             dictionary[trimmedEnglishWord] = fictionalWord;
         }
+    }
+
+    private string CreateWordByIndex(int index, int syllableCount)
+    {
+        // Use the index as the seed for consistent random values.
+        Random.InitState(index);
+
+        string word = "";
+        for (int i = 0; i < syllableCount; i++)
+        {
+            Consonants consonant = (Consonants)Random.Range(0, Enum.GetNames(typeof(Consonants)).Length);
+            Vowels vowel = (Vowels)Random.Range(0, Enum.GetNames(typeof(Vowels)).Length);
+            word += CreateSyllable(consonant, vowel);
+        }
+
+        return word;
     }
 
     public string TranslateToNeanderthal(string englishInput)
@@ -52,33 +108,66 @@ public class LanguageGenerator : MonoBehaviour
 
     public float evolutionFraction;
 
+    private string HandleUnrecognizedWord(string token)
+    {
+        // For unrecognized words, add a default prefix for now. 
+        return "xeno_" + token;
+    }
+
+    private string SentenceCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return string.Empty;
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+    }
+
     public string Translate(string englishInput, Dictionary<string, string> dictionary, Func<string, string, string> grammarRules)
     {
-        string[] tokens = TokenizeEnglish(englishInput.ToLower());
-        string output = "";
+        string[] tokens = TokenizeEnglish(englishInput);
+        StringBuilder output = new StringBuilder();
 
+        bool isFirstWord = true;
         foreach (string token in tokens)
         {
-            if (EnglishToNeanderthalDictionary.TryGetValue(token, out string neanderthalWord) &&
-                EnglishToMidSapienDictionary.TryGetValue(token, out string midSapienWord) &&
-                EnglishToSapienDictionary.TryGetValue(token, out string sapienWord))
+            // Check if the token is whitespace or punctuation
+            if (string.IsNullOrWhiteSpace(token) || ".,!?;:-".Contains(token))
             {
-                // Blend words based on evolutionary fraction
-                string blendedWord = BlendWords(neanderthalWord, midSapienWord, sapienWord);
+                output.Append(token);
+                continue; // Skip further processing for this token
+            }
 
-                // Apply grammar rules based on provided rules function
-                blendedWord = grammarRules(token, blendedWord);
-
-                output += blendedWord + " ";
+            if (isFirstWord)
+            {
+                isFirstWord = false; // Reset it immediately as all other checks depend on it
+                if (dictionary.TryGetValue(token, out string translatedWord))
+                {
+                    // Apply grammar rules based on provided rules function
+                    translatedWord = grammarRules(token, translatedWord);
+                    output.Append(SentenceCase(translatedWord));
+                }
+                else
+                {
+                    output.Append(SentenceCase(HandleUnrecognizedWord(token)));
+                }
             }
             else
             {
-                output += CreateWord(token.Length / 3) + " "; // Handle unknown words
+                if (dictionary.TryGetValue(token, out string translatedWord))
+                {
+                    // Apply grammar rules based on provided rules function
+                    translatedWord = grammarRules(token, translatedWord);
+                    output.Append(" " + translatedWord);
+                }
+                else
+                {
+                    output.Append(" " + HandleUnrecognizedWord(token));
+                }
             }
         }
 
-        return output.Trim();
+        return output.ToString();
     }
+
+
 
     private string BlendWords(string neanderthalWord, string midSapienWord, string sapienWord)
     {
@@ -149,15 +238,21 @@ public class LanguageGenerator : MonoBehaviour
         return sapienWord;
     }
 
-    private string CreateWord(int syllableCount)
+
+    private string CreateWord(string englishWord, int syllableCount)
     {
+        // Use the hash code of the English word as the seed for consistent random values.
+        int seed = englishWord.GetHashCode();
+        Random.InitState(seed);
+
         string word = "";
         for (int i = 0; i < syllableCount; i++)
         {
-            Consonants consonant = (Consonants)Random.Range(0, System.Enum.GetNames(typeof(Consonants)).Length);
-            Vowels vowel = (Vowels)Random.Range(0, System.Enum.GetNames(typeof(Vowels)).Length);
+            Consonants consonant = (Consonants)Random.Range(0, Enum.GetNames(typeof(Consonants)).Length);
+            Vowels vowel = (Vowels)Random.Range(0, Enum.GetNames(typeof(Vowels)).Length);
             word += CreateSyllable(consonant, vowel);
         }
+
         return word;
     }
 
@@ -168,8 +263,14 @@ public class LanguageGenerator : MonoBehaviour
 
     private string[] TokenizeEnglish(string englishInput)
     {
-        return englishInput.Split(' ');
+        // Split by spaces and punctuation, but include the punctuation in the result
+        var tokens = System.Text.RegularExpressions.Regex.Split(englishInput, @"(?<=[.!?,:;\-\s])|(?=[.!?,:;\-\s])");
+
+        // Filter out whitespace tokens
+        return tokens.Where(t => !string.IsNullOrWhiteSpace(t)).ToArray();
     }
+
+
 
     public void OnTranslateButtonPressed(string englishInput)
     {

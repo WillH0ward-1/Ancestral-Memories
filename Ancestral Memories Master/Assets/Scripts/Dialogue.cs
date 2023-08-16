@@ -227,28 +227,8 @@ public class Dialogue : MonoBehaviour
     private bool lineInterrupted = false;
     private bool check = false;
     private bool isLineComplete;
-    IEnumerator CheckDialogueProgress()
-    {
-        while (dialogueActive)  // keep it running as long as the dialogue is active
-        {
-            if (Input.GetMouseButtonDown(1))
-            {
-                if (isLineComplete)
-                {
-                    NextLine();
-                }
-                else
-                {
-                    lineInterrupted = true;
-                    clickPromptObject.SetActive(true);
-                    string translatedLine = translationFunction(lines[conversationIndex]);
-                    textComponent.text = translatedLine;
-                }
-            }
-            yield return null;  // wait for the next frame
-        }
-        yield break;
-    }
+
+
 
     IEnumerator ContinuousEvolutionUpdate()
     {
@@ -279,34 +259,60 @@ public class Dialogue : MonoBehaviour
 
     string translatedLineRef;
 
+    IEnumerator CheckDialogueProgress()
+    {
+        while (dialogueActive)
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                if (isLineComplete)
+                {
+                    NextLine();
+                }
+                else if (lineInterrupted)
+                {
+                    // If interrupted a second time while already interrupted, proceed to next line
+                    NextLine();
+                }
+                else
+                {
+                    // If line typing is interrupted, show the full translated line immediately
+                    lineInterrupted = true;
+                    textComponent.text = translationFunction(lines[conversationIndex]);
+                    clickPromptObject.SetActive(true);
+                    isLineComplete = true;
+                    StopCoroutine(TypeLine());
+                }
+            }
+            yield return null;
+        }
+    }
+
     IEnumerator TypeLine()
     {
-        if (lineInterrupted)
-        {
-            translatedLineRef = translationFunction(lines[conversationIndex]);
-            textComponent.text = translatedLineRef;
-            clickPromptObject.SetActive(true);
-            lineInterrupted = false; // Reset the flag
-            yield break; // Exit the coroutine
-        }
-
-        if (!transform.CompareTag("Animal"))
-        {
-            GetDialogueAudio(characterName, conversationName, characterType, conversationIndex);
-        }
-
-        clickPromptObject.SetActive(false);
-
+        isLineComplete = false;
         string originalLine = lines[conversationIndex];
         string translatedLine = translationFunction(originalLine);
+        System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(originalLine);
 
         int originalIndex = 0;
         int translatedIndex = 0;
 
-        System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(originalLine);
-
         while (translatedIndex < translatedLine.Length)
         {
+            if (lineInterrupted)
+            {
+                // Exit coroutine if the line was interrupted
+                yield break;
+            }
+
+            if (!transform.CompareTag("Animal"))
+            {
+                GetDialogueAudio(characterName, conversationName, characterType, conversationIndex);
+            }
+
+            clickPromptObject.SetActive(false);
+
             if (originalIndex < originalLine.Length)
             {
                 stringBuilder[originalIndex] = translatedLine[translatedIndex];
@@ -333,18 +339,19 @@ public class Dialogue : MonoBehaviour
             textComponent.text = stringBuilder.ToString();
         }
 
-        isLineComplete = true;  // set it to true here after the loop
+        isLineComplete = true;
         clickPromptObject.SetActive(true);
     }
 
 
     void NextLine()
     {
-        isLineComplete = false;  // reset the flag her
+        isLineComplete = false;
+        lineInterrupted = false;  // Reset this flag too, for proper progression to the next line
+        conversationIndex++;
 
-        if (conversationIndex < lines.Length - 1)
+        if (conversationIndex < lines.Length)
         {
-            conversationIndex++;
             textComponent.text = string.Empty;
             StartCoroutine(TypeLine());
         }
@@ -353,7 +360,6 @@ public class Dialogue : MonoBehaviour
             StopDialogue();
         }
     }
-
     void StopDialogue()
     {
         if (transform.CompareTag("Campfire"))

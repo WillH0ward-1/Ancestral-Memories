@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class DialogueLines : MonoBehaviour
@@ -50,7 +51,7 @@ public class DialogueLines : MonoBehaviour
     };
 
 
-    private Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
+    public Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
         new Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>>();
 
     private void Start()
@@ -201,6 +202,33 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Huddled together, we brave the cold.", "Dreaming of spring's promise." } }
         };
     }
+
+    public List<string> GetVocabulary()
+    {
+        HashSet<string> vocabulary = new HashSet<string>();
+
+        foreach (var charDialogues in conversations)
+        {
+            foreach (var emotionDialogues in charDialogues.Value)
+            {
+                foreach (string dialogue in emotionDialogues.Value)
+                {
+                    // Split string on space, punctuation etc. and add each word to the hash set.
+                    foreach (string word in dialogue.Split(new[] { ' ', '.', '!', '?', ',', ';', ':' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        vocabulary.Add(word.ToLower().Trim()); // convert to lower case to ensure uniqueness regardless of case.
+                    }
+                }
+            }
+        }
+
+        List<string> sortedVocabulary = vocabulary.ToList();
+        sortedVocabulary.Sort();
+
+        return sortedVocabulary;
+    }
+
+
 
     public List<string> GetDialogue(CharacterNames characterName, CharacterTypes characterType, Emotions emotion)
     {
