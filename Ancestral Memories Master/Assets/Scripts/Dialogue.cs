@@ -206,9 +206,45 @@ public class Dialogue : MonoBehaviour
         conversationIndex = 0;
         dialogueActive = true;
 
+        StartCoroutine(ContinuousEvolutionUpdate());
         StartCoroutine(TypeLine());
-        StartCoroutine(UpdateEvolutionFraction());
+        StartCoroutine(CheckDialogueProgress());
     }
+
+    private bool lineInterrupted = false;
+    private bool check = false;
+    private bool isLineComplete;
+    IEnumerator CheckDialogueProgress()
+    {
+        while (dialogueActive)  // keep it running as long as the dialogue is active
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                if (isLineComplete)
+                {
+                    NextLine();
+                }
+                else
+                {
+                    lineInterrupted = true;
+                    clickPromptObject.SetActive(true);
+                    string translatedLine = translationFunction(lines[conversationIndex]);
+                    textComponent.text = translatedLine;
+                }
+            }
+            yield return null;  // wait for the next frame
+        }
+        yield break;
+    }
+
+    IEnumerator ContinuousEvolutionUpdate()
+    {
+        while (dialogueActive)
+        {
+            yield return new WaitForSeconds(0.1f);  // Adjust this value based on how frequently you want the updates.
+        }
+    }
+
 
     private Func<string, string> GetTranslationFunction(string characterName)
     {
@@ -229,8 +265,19 @@ public class Dialogue : MonoBehaviour
         return (line) => line;
     }
 
+    string translatedLineRef;
+
     IEnumerator TypeLine()
     {
+        if (lineInterrupted)
+        {
+            translatedLineRef = translationFunction(lines[conversationIndex]);
+            textComponent.text = translatedLineRef;
+            clickPromptObject.SetActive(true);
+            lineInterrupted = false; // Reset the flag
+            yield break; // Exit the coroutine
+        }
+
         if (!transform.CompareTag("Animal"))
         {
             GetDialogueAudio(characterName, conversationName, characterType, conversationIndex);
@@ -243,6 +290,7 @@ public class Dialogue : MonoBehaviour
 
         int originalIndex = 0;
         int translatedIndex = 0;
+
         System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(originalLine);
 
         while (translatedIndex < translatedLine.Length)
@@ -273,11 +321,15 @@ public class Dialogue : MonoBehaviour
             textComponent.text = stringBuilder.ToString();
         }
 
+        isLineComplete = true;  // set it to true here after the loop
         clickPromptObject.SetActive(true);
     }
 
+
     void NextLine()
     {
+        isLineComplete = false;  // reset the flag her
+
         if (conversationIndex < lines.Length - 1)
         {
             conversationIndex++;
@@ -290,13 +342,17 @@ public class Dialogue : MonoBehaviour
         }
     }
 
-    private IEnumerator UpdateEvolutionFraction()
+    void StopDialogue()
     {
-        while (dialogueActive && languageGenerator.evolutionFraction < 1f)
+        if (transform.CompareTag("Campfire"))
         {
-            languageGenerator.evolutionFraction = characterStats.evolution;
-            yield return null;
+            godAudioManager.StopGodAmbienceFX();
+            godRangeSettings.StopCoroutine(godRangeSettings.UpdateActiveStates());
         }
+        StopAllCoroutines();
+        dialogueActive = false;
+        //dialogueInstanceRef.setParameterByNameWithLabel("DialogueActive", "false");
+        Destroy(dialogueBoxInstance);
     }
 
     [SerializeField] private string dialogueKeyRef;
@@ -414,38 +470,11 @@ public class Dialogue : MonoBehaviour
         yield break;
     }
 
-    void StopDialogue()
-    {
-        if (transform.CompareTag("Campfire"))
-        {
-            godAudioManager.StopGodAmbienceFX();
-            godRangeSettings.StopCoroutine(godRangeSettings.UpdateActiveStates());
-        }
-        StopAllCoroutines();
-        dialogueActive = false;
-        //dialogueInstanceRef.setParameterByNameWithLabel("DialogueActive", "false");
-        Destroy(dialogueBoxInstance);
-    }
-
     void Update()
     {
         if (dialogueActive)
         {
             distance = Vector3.Distance(transform.position, player.transform.position);
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                if (textComponent.text == lines[conversationIndex])
-                {
-                    NextLine();
-                }
-                else
-                {
-                    clickPromptObject.SetActive(true);
-                    StopAllCoroutines();
-                    textComponent.text = lines[conversationIndex];
-                }
-            }
 
             if (distance <= maxDistance)
             {
@@ -462,8 +491,5 @@ public class Dialogue : MonoBehaviour
             }
         }
     }
-
 }
-
-
 // Dialogue system tutorial: Published by BMo - https://www.youtube.com/watch?v=8oTYabhj248&t=6s - Mar 19 2021
