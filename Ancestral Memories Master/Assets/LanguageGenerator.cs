@@ -29,23 +29,19 @@ public class LanguageGenerator : MonoBehaviour
 
     private DialogueLines dialogueLines;
 
-    private VocabularyManager vocabularyManager;
     private AICharacterStats characterStats;
 
     public float languageEvolution;
 
     private void Start()
     {
-        vocabularyManager = FindObjectOfType<VocabularyManager>();
         dialogueLines = FindObjectOfType<DialogueLines>();
         characterStats = GetComponent<AICharacterStats>();
         formantSynth = GetComponent<FormantSynthesizer>();
 
-        SaveVocabularyToFile();
-
         // Read the file once and initialize dictionaries
-        string path = Path.Combine(Application.dataPath, "EveryWord.txt");
-        string[] englishWords = SafeReadAllLines(path); // New method to safely read all lines
+
+        string[] englishWords = SafeReadAllLines(dialogueLines.EveryWordPath); // New method to safely read all lines
 
         InitializeDictionary(englishWords, EnglishToNeanderthalDictionary, 2);
         InitializeDictionary(englishWords, EnglishToMidSapienDictionary, 3);
@@ -84,12 +80,6 @@ public class LanguageGenerator : MonoBehaviour
         }
     }
 
-
-    public void SaveVocabularyToFile()
-    {
-        List<string> vocabulary = dialogueLines.GetVocabulary();
-        vocabularyManager.AddVocabulary(vocabulary);
-    }
 
     private void InitializeDictionary(string[] englishWords, Dictionary<string, string> dictionary, int evolutionStage)
     {

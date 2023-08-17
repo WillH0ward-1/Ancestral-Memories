@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class DialogueLines : MonoBehaviour
 {
+    public string EveryWordPath = "./Assets/LanguageGen/CharResources/EveryWord.txt";
+
     public enum CharacterNames
     {
         Neanderthal,
@@ -52,11 +54,19 @@ public class DialogueLines : MonoBehaviour
 
 
     public Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
-        new Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>>();
+    new Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>>();
 
-    private void Start()
+    private VocabularyManager vocabularyManager;
+
+    private ProcessNLTK processNLTK; // Natural Language ToolKit
+
+    private void Awake()
     {
+        vocabularyManager = FindObjectOfType<VocabularyManager>();
+
         InitializeDialogues();
+
+        processNLTK = new ProcessNLTK();
 
         foreach (CharacterNames name in Enum.GetValues(typeof(CharacterNames)))
         {
@@ -69,6 +79,14 @@ public class DialogueLines : MonoBehaviour
                 conversations[(name, type)][Emotions.Insane] = new List<string>(sharedInsaneLines);
             }
         }
+
+        processNLTK.SetupNLTK(EveryWordPath);
+    }
+
+    public void SaveVocabularyToFile()
+    {
+        List<string> vocabulary = GetVocabulary();
+        vocabularyManager.AddVocabulary(vocabulary);
     }
 
     private void InitializeDialogues()

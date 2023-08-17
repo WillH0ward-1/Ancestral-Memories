@@ -21,8 +21,8 @@ public class VocabularyManager : MonoBehaviour
     {
         lock (lockObject)
         {
-            string path = Path.Combine(Application.dataPath, "EveryWord.txt");
-            File.WriteAllLines(path, globalVocabulary);
+            string outputPath = Path.Combine(Application.dataPath, "LanguageGen", "CharResources", "EveryWord.txt");
+            File.WriteAllLines(outputPath, globalVocabulary);
         }
     }
 }
