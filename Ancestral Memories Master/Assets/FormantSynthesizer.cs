@@ -8,6 +8,8 @@ public class FormantSynthesizer : MonoBehaviour
     private CsoundUnity csoundUnity;
     private Dictionary<string, PhonemeInfo> phoneticData = new Dictionary<string, PhonemeInfo>();
 
+    private VocabularyManager VocabularyManager;
+
     private void Awake()
     {
         csoundUnity = GetComponent<CsoundUnity>();
@@ -16,12 +18,11 @@ public class FormantSynthesizer : MonoBehaviour
     private void Start()
     {
         LoadPhoneticData();
-        ProcessNLTK phonemeProcessor = new ProcessNLTK();
     }
 
     private void LoadPhoneticData()
     {
-        string phoneticFilePath = Path.Combine(Application.dataPath, "LanguageGen/CharResources/PhoneticTranscriptions.txt");
+        string phoneticFilePath = Path.Combine(Application.dataPath, VocabularyManager.PhoneticBreakdownPath);
 
         if (!File.Exists(phoneticFilePath))
         {
@@ -49,25 +50,6 @@ public class FormantSynthesizer : MonoBehaviour
             }
         }
     }
-
-    private List<int> GetFormantFrequenciesForPhoneme(string phoneme)
-    {
-        List<int> frequencies = new List<int>();
-
-        if (ProcessNLTK.PhonemeMapping.PhonemeFormants.ContainsKey(phoneme))
-        {
-            ProcessNLTK.PhonemeFormant phonemeFormant = ProcessNLTK.PhonemeMapping.PhonemeFormants[phoneme];
-
-            // For simplicity, assuming the first set of frequencies from the FormantFrequencies list
-            if (phonemeFormant.FormantFrequencies.Count > 0)
-            {
-                frequencies = phonemeFormant.FormantFrequencies[0];
-            }
-        }
-
-        return frequencies;
-    }
-
 
     private void SendFrequenciesToCsoundInstrument(List<int> frequencies)
     {
@@ -97,21 +79,9 @@ public class FormantSynthesizer : MonoBehaviour
 
     public void Speak(string word)
     {
-        if (!phoneticData.ContainsKey(word))
-        {
-            Debug.LogWarning($"No phonetic data found for word: {word}");
-            return;
-        }
+        List<int> frequncies = new List<int>();
 
-        PhonemeInfo phonemeInfo = phoneticData[word];
-        foreach (string phoneme in phonemeInfo.phonemes)
-        {
-            if (ProcessNLTK.PhonemeMapping.PhonemeFormants.ContainsKey(phoneme))
-            {
-                List<List<int>> formantFrequencies = ProcessNLTK.PhonemeMapping.PhonemeFormants[phoneme].FormantFrequencies;
-                SendFrequenciesToCsoundInstrument(formantFrequencies[0]); // Sending first set of formant frequencies
-            }
-        }
+        SendFrequenciesToCsoundInstrument(frequncies);
     }
 
     private struct PhonemeInfo

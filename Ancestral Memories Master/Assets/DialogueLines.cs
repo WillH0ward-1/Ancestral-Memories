@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Phonix;
 
 public class DialogueLines : MonoBehaviour
 {
-    public string EveryWordPath = "./Assets/LanguageGen/CharResources/EveryWord.txt";
-
     public enum CharacterNames
     {
         Neanderthal,
@@ -52,21 +51,16 @@ public class DialogueLines : MonoBehaviour
         "Wind has face. I see it!"
     };
 
-
     public Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
     new Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>>();
 
     private VocabularyManager vocabularyManager;
-
-    private ProcessNLTK processNLTK; // Natural Language ToolKit
 
     private void Awake()
     {
         vocabularyManager = FindObjectOfType<VocabularyManager>();
 
         InitializeDialogues();
-
-        processNLTK = new ProcessNLTK();
 
         foreach (CharacterNames name in Enum.GetValues(typeof(CharacterNames)))
         {
@@ -80,13 +74,79 @@ public class DialogueLines : MonoBehaviour
             }
         }
 
-        processNLTK.SetupNLTK(EveryWordPath);
+        SaveVocabularyToFile();
+        SavePhoneticBreakdownToFile();
     }
 
     public void SaveVocabularyToFile()
     {
         List<string> vocabulary = GetVocabulary();
         vocabularyManager.AddVocabulary(vocabulary);
+        vocabularyManager.SaveVocabularyToFile(); // this line saves vocabulary to a file
+    }
+
+    private readonly DoubleMetaphone _generator = new DoubleMetaphone();
+
+    public void SavePhoneticBreakdownToFile()
+    {
+        List<string> vocabulary = GetVocabulary();
+
+        Dictionary<string, string[]> phoneticData = new Dictionary<string, string[]>();
+        IPAGenerator ipaGenerator = new IPAGenerator();
+
+        foreach (var word in vocabulary)
+        {
+            var transcription = ipaGenerator.TranscribeToIPA(word);
+            string[] phonemes = SplitIntoPhonemes(transcription); // This method needs to be defined
+            phoneticData[word] = phonemes;
+        }
+
+        // Save the phonetic breakdown to a file via VocabularyManager
+        vocabularyManager.SavePhoneticBreakdownToFile(phoneticData);
+    }
+
+    private string[] SplitIntoPhonemes(string transcription)
+    {
+        // Logic to split the transcription into individual phonemes
+        // You might need a sophisticated approach, as simple string split might not work
+        // due to combined characters in IPA. For now, a placeholder:
+        return transcription.Split(' '); // Assumes phonemes are space-separated
+    }
+
+
+    public List<string> GetVocabulary()
+    {
+        HashSet<string> vocabulary = new HashSet<string>();
+
+        foreach (var charDialogues in conversations)
+        {
+            foreach (var emotionDialogues in charDialogues.Value)
+            {
+                foreach (string dialogue in emotionDialogues.Value)
+                {
+                    // Split string on space, punctuation etc. and add each word to the hash set.
+                    foreach (string word in dialogue.Split(new[] { ' ', '.', '!', '?', ',', ';', ':' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        vocabulary.Add(word.ToLower().Trim()); // convert to lower case to ensure uniqueness regardless of case.
+                    }
+                }
+            }
+        }
+
+        List<string> sortedVocabulary = vocabulary.ToList();
+        sortedVocabulary.Sort();
+
+        return sortedVocabulary;
+    }
+
+    public List<string> GetDialogue(CharacterNames characterName, CharacterTypes characterType, Emotions emotion)
+    {
+        if (conversations.TryGetValue((characterName, characterType), out var emotionDialogues)
+            && emotionDialogues.TryGetValue(emotion, out var dialogue))
+        {
+            return dialogue;
+        }
+        return new List<string> { "No dialogue available for this combination." };
     }
 
     private void InitializeDialogues()
@@ -220,42 +280,4 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Huddled together, we brave the cold.", "Dreaming of spring's promise." } }
         };
     }
-
-    public List<string> GetVocabulary()
-    {
-        HashSet<string> vocabulary = new HashSet<string>();
-
-        foreach (var charDialogues in conversations)
-        {
-            foreach (var emotionDialogues in charDialogues.Value)
-            {
-                foreach (string dialogue in emotionDialogues.Value)
-                {
-                    // Split string on space, punctuation etc. and add each word to the hash set.
-                    foreach (string word in dialogue.Split(new[] { ' ', '.', '!', '?', ',', ';', ':' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        vocabulary.Add(word.ToLower().Trim()); // convert to lower case to ensure uniqueness regardless of case.
-                    }
-                }
-            }
-        }
-
-        List<string> sortedVocabulary = vocabulary.ToList();
-        sortedVocabulary.Sort();
-
-        return sortedVocabulary;
-    }
-
-
-
-    public List<string> GetDialogue(CharacterNames characterName, CharacterTypes characterType, Emotions emotion)
-    {
-        if (conversations.TryGetValue((characterName, characterType), out var emotionDialogues)
-            && emotionDialogues.TryGetValue(emotion, out var dialogue))
-        {
-            return dialogue;
-        }
-        return new List<string> { "No dialogue available for this combination." };
-    }
-
 }

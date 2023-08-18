@@ -27,7 +27,7 @@ public class LanguageGenerator : MonoBehaviour
     private Dictionary<string, string> EnglishToMidSapienDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     private Dictionary<string, string> EnglishToSapienDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-    private DialogueLines dialogueLines;
+    private VocabularyManager vocabularyManager;
 
     private AICharacterStats characterStats;
 
@@ -35,13 +35,13 @@ public class LanguageGenerator : MonoBehaviour
 
     private void Start()
     {
-        dialogueLines = FindObjectOfType<DialogueLines>();
         characterStats = GetComponent<AICharacterStats>();
         formantSynth = GetComponent<FormantSynthesizer>();
+        vocabularyManager = FindObjectOfType<VocabularyManager>();
 
         // Read the file once and initialize dictionaries
 
-        string[] englishWords = SafeReadAllLines(dialogueLines.EveryWordPath); // New method to safely read all lines
+        string[] englishWords = vocabularyManager.Vocabulary.ToArray();
 
         InitializeDictionary(englishWords, EnglishToNeanderthalDictionary, 2);
         InitializeDictionary(englishWords, EnglishToMidSapienDictionary, 3);
@@ -65,21 +65,6 @@ public class LanguageGenerator : MonoBehaviour
     {
         languageEvolution = evolutionFraction;
     }
-
-
-    private string[] SafeReadAllLines(string path)
-    {
-        try
-        {
-            return File.ReadAllLines(path);
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Error reading the file: {ex.Message}");
-            return new string[0]; // Return empty array on error
-        }
-    }
-
 
     private void InitializeDictionary(string[] englishWords, Dictionary<string, string> dictionary, int evolutionStage)
     {
@@ -312,12 +297,6 @@ public class LanguageGenerator : MonoBehaviour
 
         // Filter out whitespace tokens
         return tokens.Where(t => !string.IsNullOrWhiteSpace(t)).ToArray();
-    }
-
-    public void OnTranslateButtonPressed(string englishInput)
-    {
-        string translatedText = TranslateToNeanderthal(englishInput);
-        Debug.Log(translatedText);
     }
 
     public void TranslateAndSpeak(string englishInput)

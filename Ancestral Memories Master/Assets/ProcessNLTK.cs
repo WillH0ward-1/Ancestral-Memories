@@ -5,9 +5,14 @@ using System.IO;
 using UnityEngine;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
+using Debug = UnityEngine.Debug;
 
 public class ProcessNLTK
 {
+    /*
+    private string scriptPath = Path.Combine("Assets", "PythonScripts", "languageToolKit.py");
+    private string libPath = Path.Combine("Assets", "Plugins", "Lib");
+
     public struct PhonemeFormant
     {
         public string Phoneme;
@@ -28,20 +33,50 @@ public class ProcessNLTK
 
     public void SetupNLTK(string everyWordFilePath)
     {
-        ExecutePythonScript();
+        var engine = Python.CreateEngine();
+
+        ICollection<string> searchPaths = engine.GetSearchPaths();
+        searchPaths.Add(libPath);
+
+        engine.SetSearchPaths(searchPaths);
+
+        ScriptScope scope = engine.CreateScope();
+        scope.SetVariable("NTLK", this);
+       
+        // Execute the Python script
+        try
+        {
+            engine.ExecuteFile(libPath);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("An error occurred while executing the Python script: " + e.Message);
+
+            // Print additional information from Python's error trace
+            if (e.Data.Contains("IronPythonStackTrace"))
+            {
+                Debug.LogError("Python error trace: " + e.Data["IronPythonStackTrace"]);
+            }
+
+            return;
+        }
+
+        // Check if NLTK was imported successfully
+        if (engine.GetSysModule().GetVariable("nltk") != null)
+        {
+            Debug.Log("NLTK imported successfully.");
+        }
+        else
+        {
+            Debug.LogError("NLTK was not imported successfully.");
+        }
+
         LoadPhonemeData(everyWordFilePath); // Pass the EveryWord.txt path
         LoadAdditionalData(); // Load emotion and other additional data
-        // Other NLTK setup calls
+                              // Other NLTK setup calls
     }
 
-    private void ExecutePythonScript()
-    {
-        var engine = Python.CreateEngine();
-        var scope = engine.CreateScope();
 
-        // Execute the Python script using IronPython
-        engine.ExecuteFile("Assets/PythonScripts/languageToolKit.py", scope);
-    }
 
     private void LoadPhonemeData(string filePath)
     {
@@ -106,4 +141,5 @@ public class ProcessNLTK
         }
         return formantFrequencies;
     }
+*/
 }

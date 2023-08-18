@@ -4,9 +4,11 @@ import os
 try:
     import nltk
     from nltk.corpus import cmudict
+    print("NLTK imported successfully.")
 except ImportError:
     print("Please install NLTK library: pip install nltk")
     exit()
+
 
 # Ensure CMU dictionary is downloaded
 try:
