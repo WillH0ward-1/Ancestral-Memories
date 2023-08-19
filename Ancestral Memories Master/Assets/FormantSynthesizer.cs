@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+using Qkmaxware.Phonetics;
 using UnityEngine;
+using static Qkmaxware.Phonetics.IPA;
 
 public class FormantSynthesizer : MonoBehaviour
 {
@@ -10,6 +13,7 @@ public class FormantSynthesizer : MonoBehaviour
     private Dictionary<string, PhonemeInfo> phoneticData = new Dictionary<string, PhonemeInfo>();
 
     private VocabularyManager VocabularyManager;
+    private IPA ipaInstance; // Assuming you have an IPA class, instantiate or get its reference
 
     private void Awake()
     {
@@ -20,37 +24,44 @@ public class FormantSynthesizer : MonoBehaviour
     {
         LoadPhoneticData();
         LoadFormantData();
+        ipaInstance = new IPA(); // Create a new instance of the IPA class or get its reference if it's a singleton
 
     }
 
     private void LoadPhoneticData()
     {
-        string phoneticFilePath = Path.Combine(Application.dataPath, VocabularyManager.PhoneticBreakdownPath);
+        string ipaIndexPath = Path.Combine(Application.dataPath, "LanguageGen", "CharResources", "IPAindex.json");
 
-        if (!File.Exists(phoneticFilePath))
+        if (!File.Exists(ipaIndexPath))
         {
-            Debug.LogError("PhoneticTranscriptions.txt file not found.");
+            Debug.LogError("IPAindex.json file not found.");
             return;
         }
 
-        string[] phoneticLines = File.ReadAllLines(phoneticFilePath);
+        string jsonContent = File.ReadAllText(ipaIndexPath);
+        Dictionary<string, IPASymbol> deserializedIpaSymbols = JsonConvert.DeserializeObject<Dictionary<string, IPASymbol>>(jsonContent);
 
-        foreach (string line in phoneticLines)
+        foreach (var entry in deserializedIpaSymbols)
         {
-            string[] parts = line.Split('=');
-            if (parts.Length == 2)
+            string character = entry.Key;
+            IPASymbol ipaSymbol = entry.Value;
+
+            PhonemeInfo phonemeInfo = new PhonemeInfo
             {
-                string word = parts[0];
-                string[] phonemeData = parts[1].Split(',');
+                phoneme = ipaSymbol.Symbol,
+                frequencies = new List<int>
+            {
+                ipaSymbol.F1,
+                ipaSymbol.F2,
+                ipaSymbol.F3,
+                ipaSymbol.F4,
+                ipaSymbol.F5
+            },
+                // You can populate other properties such as syllableCount, stressPattern, etc., 
+                // if they're available in IPASymbol or another source.
+            };
 
-                PhonemeInfo phonemeInfo = new PhonemeInfo
-                {
-                    phoneme = word,
-                    // Load frequencies, syllable count, stress pattern, etc.
-                };
-
-                phoneticData[word] = phonemeInfo;
-            }
+            phoneticData[character] = phonemeInfo;
         }
     }
 
@@ -80,9 +91,11 @@ public class FormantSynthesizer : MonoBehaviour
         }
     }
 
-    public void Speak(string word)
+    public void Speak(string letter)
     {
-        if (phoneticData.TryGetValue(word, out PhonemeInfo phonemeInfo))
+        string ipaRepresentation = ipaInstance.EnglishToIPA(letter); // This method should return the IPA representation for the word
+
+        if (phoneticData.TryGetValue(ipaRepresentation, out PhonemeInfo phonemeInfo))
         {
             foreach (string phoneme in phonemeInfo.phonemes)
             {
@@ -98,7 +111,7 @@ public class FormantSynthesizer : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"No phonetic data found for word: {word}");
+            Debug.LogWarning($"No phonetic data found for word: {letter}");
         }
     }
 
@@ -123,6 +136,5 @@ public class FormantSynthesizer : MonoBehaviour
         public List<int> frequencies;
         public int syllableCount;
         public List<string> stressPattern;
-        // Add other fields as needed
     }
 }

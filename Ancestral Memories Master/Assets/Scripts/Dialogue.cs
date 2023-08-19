@@ -77,6 +77,8 @@ public class Dialogue : MonoBehaviour
  
         dialogueLines = FindObjectOfType<DialogueLines>();
         languageGenerator = GetComponent<LanguageGenerator>();
+        formantSynth = GetComponent<FormantSynthesizer>();
+
         ValidateEvents();
 
         // Debug.Log("Streaming Asset Path:" + Application.streamingAssetsPath);
@@ -285,6 +287,9 @@ public class Dialogue : MonoBehaviour
         }
     }
 
+    public bool speak = true;
+    private FormantSynthesizer formantSynth;
+
     IEnumerator TypeLine()
     {
         isLineComplete = false;
@@ -325,6 +330,11 @@ public class Dialogue : MonoBehaviour
                 TriggerPhoneme(characterName, characterType);
             }
 
+            if (speak)
+            {
+                formantSynth.Speak(stringBuilder.ToString()); // Pass the translated text to the Speak method
+            }
+
             translatedIndex++;
             textComponent.text = stringBuilder.ToString();
             yield return new WaitForSeconds(textSpeed);
@@ -339,6 +349,7 @@ public class Dialogue : MonoBehaviour
         isLineComplete = true;
         clickPromptObject.SetActive(true);
     }
+
 
 
     void NextLine()
