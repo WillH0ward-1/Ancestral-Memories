@@ -6,24 +6,24 @@ using Newtonsoft.Json;
 using Qkmaxware.Phonetics;
 using UnityEngine;
 using static Qkmaxware.Phonetics.IPA;
+using FMODUnity;
+using FMOD.Studio;
 
 public class FormantSynthesizer : MonoBehaviour
 {
-    private CsoundUnity csoundUnity;
     private Dictionary<string, PhonemeInfo> phoneticData = new Dictionary<string, PhonemeInfo>();
 
     private VocabularyManager VocabularyManager;
     private IPA ipaInstance; // Assuming you have an IPA class, instantiate or get its reference
 
-    private void Awake()
-    {
-        csoundUnity = GetComponent<CsoundUnity>();
-    }
+    [SerializeField] private EventReference soundEventRef;
+    EventInstance soundEvent;
+
+    //private string eventPath = "event:/NPC/FormantSynthesizer"; // Replace with the actual path of your event
 
     private void Start()
     {
         LoadPhoneticData();
-        LoadFormantData();
         ipaInstance = new IPA(); // Create a new instance of the IPA class or get its reference if it's a singleton
 
     }
@@ -56,58 +56,21 @@ public class FormantSynthesizer : MonoBehaviour
                 ipaSymbol.F3,
                 ipaSymbol.F4,
                 ipaSymbol.F5
-            },
-                // You can populate other properties such as syllableCount, stressPattern, etc., 
-                // if they're available in IPASymbol or another source.
+            }
+                // Additional properties can be added if necessary.
             };
 
             phoneticData[character] = phonemeInfo;
         }
     }
 
-    private Dictionary<string, List<int>> formantFrequencies = new Dictionary<string, List<int>>();
-
-    private void LoadFormantData()
-    {
-        string formantFilePath = Path.Combine(Application.dataPath, "LanguageGen", "CharResources", "IPAFormants.txt");
-
-        if (!File.Exists(formantFilePath))
-        {
-            Debug.LogError("IPAFormants.txt file not found.");
-            return;
-        }
-
-        string[] lines = File.ReadAllLines(formantFilePath);
-
-        foreach (string line in lines)
-        {
-            string[] parts = line.Split(':');
-            if (parts.Length == 2)
-            {
-                string phoneme = parts[0].Trim();
-                List<int> frequencies = parts[1].Split(',').Select(int.Parse).ToList();
-                formantFrequencies[phoneme] = frequencies;
-            }
-        }
-    }
-
     public void Speak(string letter)
     {
-        string ipaRepresentation = ipaInstance.EnglishToIPA(letter); // This method should return the IPA representation for the word
+        string ipaRepresentation = ipaInstance.EnglishToIPA(letter);
 
         if (phoneticData.TryGetValue(ipaRepresentation, out PhonemeInfo phonemeInfo))
         {
-            foreach (string phoneme in phonemeInfo.phonemes)
-            {
-                if (formantFrequencies.TryGetValue(phoneme, out List<int> freqs))
-                {
-                    SendFrequenciesToCsoundInstrument(freqs);
-                }
-                else
-                {
-                    Debug.LogWarning($"No formant data found for phoneme: {phoneme}");
-                }
-            }
+            SendFreq(phonemeInfo.frequencies);
         }
         else
         {
@@ -115,26 +78,37 @@ public class FormantSynthesizer : MonoBehaviour
         }
     }
 
-    private void SendFrequenciesToCsoundInstrument(List<int> frequencies)
+    private void SendFreq(List<int> frequencies)
     {
-        if (frequencies.Count >= 3 && csoundUnity != null)
+        if (frequencies.Count >= 3)
         {
-            csoundUnity.SetChannel("iFreq1", frequencies[0]);
-            csoundUnity.SetChannel("iFreq2", frequencies[1]);
-            csoundUnity.SetChannel("iFreq3", frequencies[2]);
+            // Create an instance of the FMOD event
+            soundEvent = RuntimeManager.CreateInstance(soundEventRef);
 
-            // Construct a score event for instrument 1 with a duration of 1 second
-            string scoreEvent = $"i 1 0 1 {frequencies[0]} {frequencies[1]} {frequencies[2]}";
-            csoundUnity.SendScoreEvent(scoreEvent);
+            soundEvent.setParameterByName("Freq1", frequencies[0]);
+            soundEvent.setParameterByName("Freq2", frequencies[1]);
+            soundEvent.setParameterByName("Freq3", frequencies[2]);
+
+            soundEvent.start();
+            soundEvent.release();
         }
     }
+
+    private void OnDestroy()
+    {
+        soundEvent.release();
+    }
+
+    public void StopSpeaking()
+    {
+        soundEvent.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+    }
+
 
     private struct PhonemeInfo
     {
         public string phoneme;
-        public List<string> phonemes;
         public List<int> frequencies;
-        public int syllableCount;
-        public List<string> stressPattern;
+        // Other properties can be added if necessary.
     }
 }
