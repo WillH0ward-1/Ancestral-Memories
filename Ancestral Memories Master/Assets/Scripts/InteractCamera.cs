@@ -53,7 +53,7 @@ public class InteractCamera : MonoBehaviour
 
     void Update()
     {
-        ray = rpCamera.CustomScreenPointToRay(Input.mousePosition);
+        ray = cam.ScreenPointToRay(Input.mousePosition);
 
         Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red); // This will draw the ray in the Scene view
 

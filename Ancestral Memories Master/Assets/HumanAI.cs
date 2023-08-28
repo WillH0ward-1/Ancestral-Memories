@@ -544,9 +544,12 @@ public class HumanAI : MonoBehaviour
     [SerializeField] float minAnimationSpeed = 0.9f;
     [SerializeField] float maxAnimationSpeed = 2.2f;
 
+    TreeInteractions treeInteract;
+
     private IEnumerator Harvest(GameObject target)
     {
         PTGrowing ptGrow = target.GetComponentInChildren<PTGrowing>();
+        treeInteract = target.GetComponentInChildren<TreeInteractions>();
 
         aiPath.maxSpeed = 0f;
         aiPath.destination = transform.position;
@@ -567,6 +570,13 @@ public class HumanAI : MonoBehaviour
         }
 
         yield break;
+    }
+
+    public void HitTree()
+    {
+        if (treeInteract != null) {
+            treeInteract.TreeShake();
+        }
     }
 
     public float minInterval = 0.5f; // Minimum interval in seconds

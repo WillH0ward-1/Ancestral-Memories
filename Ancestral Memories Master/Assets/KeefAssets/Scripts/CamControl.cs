@@ -7,9 +7,8 @@ public class CamControl : MonoBehaviour
     [Header("Camera Control")]
     [Header("========================================================================================================================")]
 
-    public RPCamera rpCamera;
-    private Camera cam;
-    public Camera movementCam;
+    [SerializeField] private Camera cam;
+    //public Camera movementCam;
 
     public bool scrollOverride = false;
 
@@ -110,8 +109,8 @@ public class CamControl : MonoBehaviour
 
     public void Start()
     {
-        rpCamera.perspective = initZoom;
-        cam.orthographicSize = initOrtho;
+        cam.fieldOfView = initZoom;
+        //cam.orthographicSize = initOrtho;
         camTarget = player.transform;
         panoramaScroll = false;
         isSpawning = true;
@@ -126,14 +125,13 @@ public class CamControl : MonoBehaviour
     void Awake()
     {
         player = FindObjectOfType<Player>();
-        cam = GetComponent<Camera>();
+        cam = Camera.main;
         behaviours = player.GetComponent<CharacterBehaviours>();
         offset = new Vector3(player.transform.position.x, player.transform.position.y + 8.0f, player.transform.position.z + 7.0f);
     }
 
     void Update()
     {
-        rpCamera.UpdateProjection(true);
 
         if (!scrollOverride)
         {
@@ -194,10 +192,13 @@ public class CamControl : MonoBehaviour
 
         while (panoramaScroll == true && behaviours.behaviourIsActive)
         {
-            float orthoTarget = cam.orthographicSize - Input.GetAxis("Mouse ScrollWheel") * panoramaScrollSpeed; // Use this when using Orthographic Camera.
+            // Zooming (Moving camera along its forward axis)
+            float zoomAmount = Input.GetAxis("Mouse ScrollWheel") * panoramaScrollSpeed;
+            Vector3 zoomTarget = cam.transform.position + cam.transform.forward * zoomAmount;
 
-            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, orthoTarget, panoramaSmoothFactor * Time.deltaTime);
-            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minOrthoZoom, maxOrthoZoom);
+            cam.transform.position = Vector3.Lerp(cam.transform.position, zoomTarget, panoramaSmoothFactor * Time.deltaTime);
+
+            // Optionally clamp zoom here based on distance to a point, etc.
 
             float screenWidthThird = Screen.width / 3;
             float screenWidthHalf = Screen.width / 2;
@@ -216,7 +217,6 @@ public class CamControl : MonoBehaviour
                 rotateSpeed = -panoramaRotateSpeed * (distanceFromCenter / screenWidthHalf) * rotationFactor;
             }
 
-
             if (rotateSpeed != 0)
             {
                 camTurnAngle = Quaternion.AngleAxis(Time.deltaTime * rotateSpeed, Vector3.up);
@@ -231,6 +231,7 @@ public class CamControl : MonoBehaviour
 
         yield break;
     }
+
 
     void CancelLastCam()
     {
@@ -419,11 +420,8 @@ public class CamControl : MonoBehaviour
         {
             time += Time.deltaTime / duration;
 
-            currentOrthoZoom = cam.orthographicSize;
-            cam.orthographicSize = Mathf.Lerp(currentOrthoZoom, orthoTargetRef, func(time));
-
-            currentZoom = rpCamera.perspective;
-            rpCamera.perspective = Mathf.Lerp(currentZoom, zoomDestinationRef, func(time));
+            currentZoom = cam.fieldOfView;
+            cam.fieldOfView = Mathf.Lerp(currentZoom, zoomDestinationRef, func(time));
 
             yield return null;
         }

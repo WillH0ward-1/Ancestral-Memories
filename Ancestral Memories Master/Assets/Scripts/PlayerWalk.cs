@@ -68,6 +68,7 @@ public class PlayerWalk : MonoBehaviour
         //agent.stoppingDistance = defaultStoppingDistance;
         //agent = GetComponent<NavMeshAgent>();
 
+        cam = Camera.main;
 
         //StopAgent();
         player = GetComponentInChildren<Player>();

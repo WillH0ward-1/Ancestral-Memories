@@ -11,82 +11,79 @@ public class CaveGenerator : MonoBehaviour
     public int cylinderRockCount = 50;
 
     [Header("Sphere Rock Settings")]
-    [SerializeField]
-    private Vector3 minRockScale = new Vector3(0.5f, 0.5f, 0.5f);
-    [SerializeField]
-    private Vector3 maxRockScale = new Vector3(2f, 2f, 2f);
-
-    [SerializeField]
-    private Vector3 minSphereRockScale = new Vector3(0.3f, 0.3f, 0.3f);
-    [SerializeField]
-    private Vector3 maxSphereRockScale = new Vector3(1.5f, 1.5f, 1.5f);
-
+    [SerializeField] private Vector3 minSphereRockScale = new Vector3(0.5f, 0.5f, 0.5f);
+    [SerializeField] private Vector3 maxSphereRockScale = new Vector3(2f, 2f, 2f);
 
     [Header("Cylinder Rock Settings")]
-    [SerializeField]
-    private Vector3 minCylinderRockScale = new Vector3(0.3f, 0.3f, 0.3f);
-    [SerializeField]
-    private Vector3 maxCylinderRockScale = new Vector3(1.5f, 1.5f, 1.5f);
+    [SerializeField] private Vector3 minCylinderRockScale = new Vector3(0.3f, 0.3f, 0.3f);
+    [SerializeField] private Vector3 maxCylinderRockScale = new Vector3(1.5f, 1.5f, 1.5f);
 
     [Header("Door Settings")]
-    [SerializeField]
-    private Vector3 doorScale = new Vector3(5, 5, 5);
-    [SerializeField]
-    private float cylinderYPosition = 0f;
+    [SerializeField] private Vector3 doorScale = new Vector3(5, 5, 5);
+    [SerializeField] private float cylinderYPosition = 0f;
 
     [Header("Door Rotation Settings")]
-    [SerializeField]
-    private Vector3 initialRotation = new Vector3(0, 0, 0);
-    [SerializeField]
-    private Vector3 rotationAdjustment = new Vector3(90, 180, 0);
+    [SerializeField] private Vector3 rotationAdjustment = new Vector3(90, 180, 0);
 
-    [SerializeField]
-    private Material shapeMaterial;
-    [SerializeField]
-    private GameObject cylinderPrefab;
+    [SerializeField] private Material sphereMaterial;
+    [SerializeField] private Material duplicateSphereMaterial;
+    [SerializeField] private Material rockMaterial;
+    [SerializeField] private GameObject cylinderPrefab;
 
     [Header("Scaled Cylinder Rock Settings")]
-    [SerializeField]
-    private Vector3 minCylinderScaleAtHighest = new Vector3(0.3f, 0.3f, 0.3f);
-    [SerializeField]
-    private Vector3 maxCylinderScaleAtLowest = new Vector3(1.5f, 1.5f, 1.5f);
+    [SerializeField] private Vector3 minCylinderScaleAtHighest = new Vector3(0.3f, 0.3f, 0.3f);
+    [SerializeField] private Vector3 maxCylinderScaleAtLowest = new Vector3(1.5f, 1.5f, 1.5f);
 
     private List<GameObject> generatedElements = new List<GameObject>();
 
+    [SerializeField] private LayerMask groundLayerMask;
+
+    [Header("Duplicate Sphere Settings")]
+    [SerializeField] private float duplicateSphereScaleMultiplier = 1f; // Added line
+
+    private void Awake()
+    {
+        GenerateCave();
+    }
 
     public void GenerateCave()
     {
         ClearExistingCave();
-
         GameObject cave = GeneratePrimitive(PrimitiveType.Sphere, Vector3.zero, new Vector3(sphereRadius * 2, sphereRadius * 2, sphereRadius * 2));
+        if (sphereMaterial != null)
+        {
+            cave.GetComponent<Renderer>().material = sphereMaterial;
+        }
 
         Vector3 randomDirection = Random.onUnitSphere;
         Vector3 doorPosition = randomDirection * sphereRadius;
         doorPosition.y = cylinderYPosition;
-
         Quaternion orientation = Quaternion.LookRotation(Vector3.zero - doorPosition);
         GameObject door = Instantiate(cylinderPrefab, doorPosition, orientation);
         door.transform.Rotate(rotationAdjustment, Space.Self);
         door.transform.SetParent(transform, true);
         door.transform.localScale = doorScale;
-
         door.transform.localRotation = Quaternion.Euler(90, door.transform.localRotation.eulerAngles.y, door.transform.localRotation.eulerAngles.z);
 
-        if (shapeMaterial != null)
+        if (rockMaterial != null)
         {
-            door.GetComponent<Renderer>().material = shapeMaterial;
+            door.GetComponent<Renderer>().material = rockMaterial;
         }
 
+        // Create a duplicate sphere at the position of the cylinder (door)
+        GameObject duplicateSphere = GeneratePrimitive(PrimitiveType.Sphere, doorPosition, new Vector3(sphereRadius * 2 * duplicateSphereScaleMultiplier, sphereRadius * 2 * duplicateSphereScaleMultiplier, sphereRadius * 2 * duplicateSphereScaleMultiplier));
+        if (sphereMaterial != null)
+        {
+            duplicateSphere.GetComponent<Renderer>().material = duplicateSphereMaterial;
+        }
         for (int i = 0; i < rockCount; i++)
         {
             GenerateRockOnSphere(cave.transform.position, sphereRadius, door.transform.position, door.transform.localScale, useScaledRocksOnSphere);
         }
-
         for (int i = 0; i < cylinderRockCount; i++)
         {
             GenerateRockOnCylinder(door, minCylinderRockScale, maxCylinderRockScale, useScaledRocksOnCylinder);
         }
-
         generatedElements.Add(door);
     }
 
@@ -97,10 +94,12 @@ public class CaveGenerator : MonoBehaviour
         obj.transform.localScale = scale;
         obj.transform.SetParent(transform);
 
-        if (shapeMaterial != null)
+        if (rockMaterial != null)
         {
-            obj.GetComponent<Renderer>().material = shapeMaterial;
+            obj.GetComponent<Renderer>().material = rockMaterial;
         }
+
+        obj.transform.gameObject.AddComponent<ShaderLightColor>();
 
         generatedElements.Add(obj);
         return obj;
@@ -111,14 +110,12 @@ public class CaveGenerator : MonoBehaviour
         Vector3 randomDirection = Random.onUnitSphere;
         Vector3 position = sphereCenter + randomDirection * sphereRadius;
         Vector3 randomScale = new Vector3(
-            Random.Range(minRockScale.x, maxRockScale.x),
-            Random.Range(minRockScale.y, maxRockScale.y),
-            Random.Range(minRockScale.z, maxRockScale.z)
+            Random.Range(minSphereRockScale.x, maxSphereRockScale.x),
+            Random.Range(minSphereRockScale.y, maxSphereRockScale.y),
+            Random.Range(minSphereRockScale.z, maxSphereRockScale.z)
         );
-
         float distanceToCylinderCenter = Vector3.Distance(cylinderCenter, position);
         float cylinderRadius = cylinderScale.x * 0.5f;
-
         if (distanceToCylinderCenter >= cylinderRadius)
         {
             if (scaleBasedOnHeight)
@@ -126,7 +123,9 @@ public class CaveGenerator : MonoBehaviour
                 float normalizedY = Mathf.InverseLerp(-sphereRadius, sphereRadius, position.y);
                 randomScale = Vector3.Lerp(maxSphereRockScale, minSphereRockScale, normalizedY);
             }
-            GeneratePrimitive(PrimitiveType.Sphere, position, randomScale);
+
+            GameObject rock = GeneratePrimitive(PrimitiveType.Sphere, position, randomScale);
+            CheckIfUnderGround(rock);
         }
     }
 
@@ -160,8 +159,30 @@ public class CaveGenerator : MonoBehaviour
             randomScale = Vector3.Lerp(maxCylinderScaleAtLowest, minCylinderScaleAtHighest, normalizedY);
         }
 
-        GeneratePrimitive(PrimitiveType.Sphere, position, randomScale);
+        GameObject rock = GeneratePrimitive(PrimitiveType.Sphere, position, randomScale);
+        CheckIfUnderGround(rock);
+
     }
+    private bool CheckIfUnderGround(GameObject obj)
+    {
+        Vector3 position = obj.transform.position;
+        RaycastHit hit;
+        if (Physics.Raycast(position, Vector3.up, out hit, Mathf.Infinity, groundLayerMask))
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(obj);
+            }
+            else
+            {
+                DestroyImmediate(obj, false);
+            }
+            generatedElements.Remove(obj);
+            return true;
+        }
+        return false;
+    }
+
 
     public void ClearExistingCave()
     {

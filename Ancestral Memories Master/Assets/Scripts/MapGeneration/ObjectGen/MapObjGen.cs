@@ -161,6 +161,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string seaShellTag = "SeaShell";
     private readonly string pedestalTag = "Pedestal";
     private readonly string humanTag = "Human";
+    private readonly string caveTag = "Cave";
 
     [Header("========================================================================================================================")]
 
@@ -324,7 +325,7 @@ public class MapObjGen : MonoBehaviour
         //AppleTreePoissonDisc(appleTreeSampler);
         GrassPoissonDisc(grassSampler);
         //FoliagePoissonDisc(foliageSampler);
-        RocksPoissonDisc(rockSampler);
+        //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
@@ -1088,17 +1089,10 @@ public class MapObjGen : MonoBehaviour
 
             caveInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
-            caveInstance.transform.localScale = new Vector3(
-            Random.Range(minGrassScale.x, maxGrassScale.x),
-            Random.Range(minGrassScale.y, maxGrassScale.y),
-            Random.Range(minGrassScale.z, maxGrassScale.z));
-
-            caveInstance.tag = grassTag;
+            caveInstance.tag = caveTag;
 
             caveInstance.transform.SetParent(hierarchyRoot.transform);
-
-            caveInstance.AddComponent<NavMeshModifier>();
-
+         
             mapObjectList.Add(caveInstance);
         }
     }
