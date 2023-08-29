@@ -12,7 +12,7 @@ using System;
 public class Dialogue : MonoBehaviour
 {
     public bool dialogueActive;
-  
+
     public DialogueLines.Emotions CurrentEmotion
     {
         get { return currentEmotion; }
@@ -67,16 +67,15 @@ public class Dialogue : MonoBehaviour
     public DialogueLines dialogueLines;
     public DialogueLines.Emotions currentEmotion = DialogueLines.Emotions.Neutral;  // Set default emotion to Neutral
 
-    private LanguageGenerator languageGenerator;
+    public LanguageGeneratorManager languageGeneratorManager;
 
     [SerializeField] private EmotionManager emotionManager;
 
     private void Awake()
     {
         player = FindObjectOfType<Player>();
- 
+
         dialogueLines = FindObjectOfType<DialogueLines>();
-        languageGenerator = GetComponent<LanguageGenerator>();
         formantSynth = GetComponent<FormantSynthesizer>();
 
         ValidateEvents();
@@ -218,7 +217,6 @@ public class Dialogue : MonoBehaviour
         conversationIndex = 0;
         dialogueActive = true;
 
-        StartCoroutine(ContinuousEvolutionUpdate());
         StartCoroutine(TypeLine());
         StartCoroutine(CheckDialogueProgress());
     }
@@ -227,29 +225,19 @@ public class Dialogue : MonoBehaviour
     private bool check = false;
     private bool isLineComplete;
 
-
-
-    IEnumerator ContinuousEvolutionUpdate()
-    {
-        while (dialogueActive)
-        {
-            yield return new WaitForSeconds(0.1f); 
-        }
-    }
-
     private Func<string, string> GetTranslationFunction(string characterName)
     {
         if (characterName.Equals("Neanderthal", StringComparison.OrdinalIgnoreCase))
         {
-            return languageGenerator.TranslateToNeanderthal;
+            return languageGeneratorManager.TranslateToNeanderthal;
         }
         else if (characterName.Equals("MidSapien", StringComparison.OrdinalIgnoreCase))
         {
-            return languageGenerator.TranslateToMidSapien;
+            return languageGeneratorManager.TranslateToMidSapien;
         }
         else if (characterName.Equals("Sapien", StringComparison.OrdinalIgnoreCase))
         {
-            return languageGenerator.TranslateToSapien;
+            return languageGeneratorManager.TranslateToSapien;
         }
 
         // Default to original lines if character name is not recognized
@@ -332,7 +320,7 @@ public class Dialogue : MonoBehaviour
 
             if (speak)
             {
-                formantSynth.Speak(stringBuilder.ToString()); // Pass the translated text to the Speak method
+                formantSynth.Speak(stringBuilder.ToString());
             }
 
             translatedIndex++;
