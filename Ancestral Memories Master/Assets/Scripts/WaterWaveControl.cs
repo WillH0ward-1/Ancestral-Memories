@@ -26,38 +26,12 @@ public class WaterWaveControl : MonoBehaviour
     void Awake()
     {
         waterRenderer = GetComponent<Renderer>();
+        player = FindObjectOfType<Player>();
     }
 
     private void Update()
     {
-        float currentCamRelativeDir = CameraRelativeDirection();
-        if (currentCamRelativeDir != lastCamRelativeDir)
-        {
-            lastCamRelativeDir = currentCamRelativeDir;
-            UpdateWaterSettings(waterSettings._basicWaveSettings.amplitude, waterSettings._basicWaveSettings.wavelength, waterSettings._basicWaveSettings.numWaves);
-        }
-    }
-
-    public float CameraRelativeDirection()
-    {
-        Vector3 camFwd = cam.transform.forward;
-        camFwd.y = 0f;
-        camFwd.Normalize();
-
-        if (camFwd != lastCamForward)
-        {
-            lastCamForward = camFwd;
-
-            float dot = Vector3.Dot(-Vector3.forward, camFwd);
-            float degrees = Mathf.LerpUnclamped(90.0f, 180.0f, dot);
-            if (camFwd.x < 0)
-                degrees *= -1f;
-
-            lastCamRelativeDir = Mathf.RoundToInt(degrees * 1000) / 1000;
-        }
-
-        return lastCamRelativeDir;
-
+        UpdateWaterSettings(waterSettings._basicWaveSettings.amplitude, waterSettings._basicWaveSettings.wavelength, waterSettings._basicWaveSettings.numWaves);
     }
 
     private void OnEnable()

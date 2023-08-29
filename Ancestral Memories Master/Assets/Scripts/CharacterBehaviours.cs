@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using FMOD.Studio;
+using ProceduralModeling;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -778,7 +779,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator HarvestTree(GameObject hitObject)
     {
-        TreeDeathManager treeDeathManager = hitObject.GetComponentInChildren<TreeDeathManager>();
+        PTGrowing treeDeathManager = hitObject.GetComponentInChildren<PTGrowing>();
 
         //killThreshold = hitObject.transform.localScale.x;
         playerAudioSFX.numberOfHits = 0;
@@ -795,7 +796,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         cinematicCam.ToActionZoom();
 
-        while (time <= interval && !Input.GetMouseButtonDown(0) && !treeDeathManager.treeDead)
+        while (time <= interval && !Input.GetMouseButtonDown(0) && !treeDeathManager.isDead)
         {
             interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
 

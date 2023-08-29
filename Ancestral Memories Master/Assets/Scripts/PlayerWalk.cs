@@ -68,7 +68,7 @@ public class PlayerWalk : MonoBehaviour
         //agent.stoppingDistance = defaultStoppingDistance;
         //agent = GetComponent<NavMeshAgent>();
 
-        cam = Camera.main;
+        cam = Camera.main.transform.Find("MovementCam").GetComponent<Camera>();
 
         //StopAgent();
         player = GetComponentInChildren<Player>();
@@ -317,10 +317,18 @@ public class PlayerWalk : MonoBehaviour
     {
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (!Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, walkableLayers)) return;
+        // Draw ray for debugging
+        Debug.DrawRay(ray.origin, ray.direction * 1000, Color.green); // The ray will be green and extends up to 1000 units
+
+        if (!Physics.Raycast(ray, out RaycastHit rayHit, Mathf.Infinity, walkableLayers))
+        {
+            return;
+        }
+
+        // Draw a line from the player to the hit point
+        Debug.DrawLine(playerObject.transform.position, rayHit.point, Color.red);
 
         Vector3 playerPosition = playerObject.transform.position;
-
         distance = Vector3.Distance(playerPosition, rayHit.point);
 
         if (distance >= distanceThreshold)
@@ -330,6 +338,7 @@ public class PlayerWalk : MonoBehaviour
 
         MoveAgent(rayHit.point, distance, playerPosition);
     }
+
 
     private void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)
     {
