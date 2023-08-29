@@ -323,15 +323,12 @@ public class PlayerWalk : MonoBehaviour
 
         distance = Vector3.Distance(playerPosition, rayHit.point);
 
-        if (distance <= distanceThreshold)
-        {
-            MoveAgent(rayHit.point, distance, playerPosition);
-        }
-        else
+        if (distance >= distanceThreshold)
         {
             return;
-
         }
+
+        MoveAgent(rayHit.point, distance, playerPosition);
     }
 
     private void MoveAgent(Vector3 hitPoint, float cursorDistance, Vector3 playerPosition)

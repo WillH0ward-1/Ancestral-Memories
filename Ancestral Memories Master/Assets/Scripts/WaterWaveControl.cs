@@ -25,7 +25,6 @@ public class WaterWaveControl : MonoBehaviour
 
     void Awake()
     {
-        cam = Camera.main;
         waterRenderer = GetComponent<Renderer>();
     }
 
