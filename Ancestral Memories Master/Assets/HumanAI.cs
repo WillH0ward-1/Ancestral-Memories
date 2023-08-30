@@ -71,16 +71,18 @@ public class HumanAI : MonoBehaviour
 
     private AICharacterStats stats;
 
-    public enum EvolutionStates { Neanderthal, MidSapien, Sapien }
+    public enum EvolutionState { Neanderthal, MidSapien, Sapien }
+    public EvolutionState currentEvolutionState;
 
     private void Awake()
     {
         formationController = FindObjectOfType<FormationController>();
+        player = FindObjectOfType<Player>();
+        playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
+
     }
 
     public Dictionary<AIState, Action<GameObject>> stateActions = new Dictionary<AIState, Action<GameObject>>();
-
-
 
     void Start()
     {
@@ -103,6 +105,35 @@ public class HumanAI : MonoBehaviour
 
         ChangeState(AIState.Idle);
 
+    }
+
+    void Update()
+    {
+        if (stats.health <= 0 && !stats.isDead)
+        {
+            Die();
+        }
+
+        if (!stats.isDead)
+        {
+            switch (stats.evolution)
+            {
+                case var e when (e >= 0 && e < 33):
+                    currentEvolutionState = EvolutionState.Neanderthal;
+                    break;
+
+                case var e when (e >= 33 && e < 66):
+                    currentEvolutionState = EvolutionState.MidSapien;
+                    break;
+
+                case var e when (e >= 66):
+                    currentEvolutionState = EvolutionState.Sapien;
+                    break;
+
+                default:
+                    break;
+            }
+        }
     }
 
     void LookAt()
@@ -166,14 +197,6 @@ public class HumanAI : MonoBehaviour
 
     }
 
-    private void Update()
-    {
-        if (stats.health <= 0 && !stats.isDead)
-        {
-            Die();
-        }
-    }
-
     public bool isDead = false;
 
     private void Die()
@@ -187,7 +210,6 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Idle()
     {
-        ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
         //agent.speed = 0f;
         //agent.ResetPath();
@@ -209,6 +231,19 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
+            if (currentEvolutionState == EvolutionState.Neanderthal)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+            }
+            else if (currentEvolutionState == EvolutionState.MidSapien)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Idle_MidSapien01);
+            }
+            else if (currentEvolutionState == EvolutionState.Sapien)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Idle_Sapien01);
+            }
+
             while (time >= 0)
             {
                 if (!inRange)
@@ -248,7 +283,18 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator EnterConversation()
     {
-        ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+        if (currentEvolutionState == EvolutionState.Neanderthal)
+        {
+            ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+        }
+        else if (currentEvolutionState == EvolutionState.MidSapien)
+        {
+            ChangeAnimationState(HumanControllerAnimations.Idle_MidSapien01);
+        }
+        else if (currentEvolutionState == EvolutionState.Sapien)
+        {
+            ChangeAnimationState(HumanControllerAnimations.Idle_Sapien01);
+        }
 
         //agent.speed = 0f;
         //agent.ResetPath();
@@ -292,7 +338,7 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Walk(Vector3 destination)
     {
-        ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal02);
+
         aiPath.canMove = true;
         aiPath.maxSpeed = walkingSpeed;
 
@@ -302,6 +348,19 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
+            if (currentEvolutionState == EvolutionState.Neanderthal)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal01);
+            }
+            else if (currentEvolutionState == EvolutionState.MidSapien)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Walk_MidSapien01);
+            }
+            else if (currentEvolutionState == EvolutionState.Sapien)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Walk_Sapien);
+            }
+
             if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
                 ChangeState(AIState.Following);
@@ -482,12 +541,36 @@ public class HumanAI : MonoBehaviour
             {
                 if (inRunningRange)
                 {
-                    ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog01);
+                    if (currentEvolutionState == EvolutionState.Neanderthal)
+                    {
+                        ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog01);
+                    }
+                    else if (currentEvolutionState == EvolutionState.MidSapien)
+                    {
+                        ChangeAnimationState(HumanControllerAnimations.Run_MidSapien_Jog);
+                    }
+                    else if (currentEvolutionState == EvolutionState.Sapien)
+                    {
+                        ChangeAnimationState(HumanControllerAnimations.Run_Sapien_Jog);
+                    }
+
                     aiPath.maxSpeed = runningSpeed;
                 }
                 else if (inWalkingRange)
                 {
-                    ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal02);
+                    if (currentEvolutionState == EvolutionState.Neanderthal)
+                    {
+                        ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal01);
+                    }
+                    else if (currentEvolutionState == EvolutionState.MidSapien)
+                    {
+                        ChangeAnimationState(HumanControllerAnimations.Walk_MidSapien01);
+                    }
+                    else if (currentEvolutionState == EvolutionState.Sapien)
+                    {
+                        ChangeAnimationState(HumanControllerAnimations.Walk_Sapien);
+                    }
+
                     aiPath.maxSpeed = walkingSpeed;
                 }
             }
@@ -510,13 +593,10 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-
-
     public void SetTargetPosition(Vector3 targetPosition)
     {
         aiPath.destination = targetPosition;
     }
-
 
     public float sphereCastVisualizerDuration = 2;
 
@@ -601,7 +681,19 @@ public class HumanAI : MonoBehaviour
             transform.LookAt(target);
 
             StartCoroutine(ChangeSpeedOverTime(target));
-            ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
+
+            if (currentEvolutionState == EvolutionState.Neanderthal)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Attack_Neanderthal_Punch01);
+            }
+            else if (currentEvolutionState == EvolutionState.MidSapien)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
+            }
+            else if (currentEvolutionState == EvolutionState.Sapien)
+            {
+                ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
+            }
 
             yield return null;
         }
@@ -948,8 +1040,6 @@ public class HumanAI : MonoBehaviour
 
         animator.CrossFadeInFixedTime(newState, crossFadeLength);
         animator.SetBool("Mirror", UnityEngine.Random.value > 0.5f);
-
-
 
         currentState = newState;
     }

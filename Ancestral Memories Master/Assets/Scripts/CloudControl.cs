@@ -23,6 +23,7 @@ public class CloudControl : MonoBehaviour
 
     private void Awake()
     {
+        player = FindObjectOfType<Player>();
         sharedMaterials = transform.GetComponentInChildren<Renderer>().sharedMaterials;
     }
 

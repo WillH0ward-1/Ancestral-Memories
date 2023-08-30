@@ -42,6 +42,7 @@ public class AudioSFXManager : MonoBehaviour
     {
         rigidBody = transform.parent.GetComponent<Rigidbody>();
         player = transform.parent.GetComponent<Player>();
+        cam = Camera.main;
     }
 
     public void AreaUpdateGroundType(int index)

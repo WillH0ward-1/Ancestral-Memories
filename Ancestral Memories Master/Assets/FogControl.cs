@@ -8,23 +8,25 @@ public class FogControl : MonoBehaviour
 {
     public Volume volume;
     private VolumetricFog fog;
+    public VolumeComponent volumeComponent;
 
     // Variables to control fog parameters
-    public VolumetricFogMode fogMode = VolumetricFogMode.Off;
-    public int sampleCount = 64;
-    public bool animateSamplePosition = false;
-    public bool selfShadowingEnabled = true;
+    public VolumetricFogMode fogMode = VolumetricFogMode.On;
+
+    public int sampleCount = 32;
+    public bool animateSamplePosition = true;
+    public bool selfShadowingEnabled = false;
     public int maximumSelfShadowingOctaves = 1;
-    public bool horizonShadowingEnabled = true;
+    public bool horizonShadowingEnabled = false;
     public float maxDistanceVolumetric = 64f;
     public bool analyticFogEnabled = false;
     public float maxDistanceAnalytic = 5000f;
     public bool temporalAntiAliasingEnabled = false;
     public float temporalAntiAliasingIntegrationRate = 0.03f;
-    public float fogDensity = 5f;
+    public float fogDensity = 0f;
     public float anisotropy = 0.2f;
-    public float lightIntensity = 1f;
-    public float shadowIntensity = 1f;
+    public float lightIntensity = 0f;
+    public float shadowIntensity = 0f;
     public float baseHeight = 0f;
     public float attenuationBoundarySize = 10f;
     public Color litColor = Color.white;
@@ -35,24 +37,112 @@ public class FogControl : MonoBehaviour
     public int octaves = 1;
     public float lacunarity = 2f;
     public float gain = 0.3f;
-    public float noiseTiling = 50f;
+    public float noiseTiling = 24;
     public Vector3 noiseWindSpeed = new Vector3(0, 0, 0);
     public Vector3 defaultNoiseWindSpeed = new Vector3(2, 2, -2);
     public Vector2 noiseMap = new Vector2(0, 1);
+    public bool fogModeOverrideState = true;
+
+    private bool isFogAvailable = false;  // To check if the fog component is available
+
+    private VolumetricFog volumetricFog;
 
     void Start()
     {
-        // Get the VolumetricFog component from the Volume
-        if (volume.profile.TryGet(out fog))
+
+        volume = GetComponent<Volume>();
+
+        if (volume == null)
+        {
+            Debug.LogError("Volume component not found!");
+            return;
+        }
+
+        // Check if 'Buto Volumetric Fog' override exists; if not, add one
+        if (!volume.profile.Has<VolumetricFog>()) // Replace ButoVolumetricFog with the actual class name
+        {
+            volumetricFog = volume.profile.Add<VolumetricFog>(); // Replace ButoVolumetricFog with the actual class name;
+
+            if (volume.profile.TryGet<VolumetricFog>(out volumetricFog))
+            {
+                // Assign your values to the VolumetricFog parameters
+                volumetricFog.mode.value = fogMode;
+                volumetricFog.mode.overrideState = fogModeOverrideState;
+                volumetricFog.sampleCount.value = sampleCount;
+                volumetricFog.animateSamplePosition.value = animateSamplePosition;
+                volumetricFog.selfShadowingEnabled.value = selfShadowingEnabled;
+                volumetricFog.maximumSelfShadowingOctaves.value = maximumSelfShadowingOctaves;
+                volumetricFog.horizonShadowingEnabled.value = horizonShadowingEnabled;
+                volumetricFog.maxDistanceVolumetric.value = maxDistanceVolumetric;
+                volumetricFog.analyticFogEnabled.value = analyticFogEnabled;
+                volumetricFog.maxDistanceAnalytic.value = maxDistanceAnalytic;
+                volumetricFog.temporalAntiAliasingEnabled.value = temporalAntiAliasingEnabled;
+                volumetricFog.temporalAntiAliasingIntegrationRate.value = temporalAntiAliasingIntegrationRate;
+                volumetricFog.fogDensity.value = fogDensity;
+                volumetricFog.anisotropy.value = anisotropy;
+                volumetricFog.lightIntensity.value = lightIntensity;
+                volumetricFog.shadowIntensity.value = shadowIntensity;
+                volumetricFog.baseHeight.value = baseHeight;
+                volumetricFog.attenuationBoundarySize.value = attenuationBoundarySize;
+                volumetricFog.litColor.value = litColor;
+                volumetricFog.shadowedColor.value = shadowedColor;
+                volumetricFog.emitColor.value = emitColor;
+                volumetricFog.colorRamp.value = colorRamp;
+                volumetricFog.colorInfluence.value = colorInfluence;
+                // volumetricFog.octaves.value = octaves;
+                // volumetricFog.lacunarity.value = lacunarity;
+                // volumetricFog.gain.value = gain;
+                volumetricFog.noiseTiling.value = noiseTiling;
+                volumetricFog.noiseWindSpeed.value = noiseWindSpeed;
+                volumetricFog.noiseMap.value = noiseMap;
+
+                isFogAvailable = true;
+            }
+        }
+
+    }
+
+    void Update()
+    {
+        if (isFogAvailable)
         {
             UpdateFogParameters();
         }
-        else
-        {
-            Debug.LogWarning("VolumetricFog component not found in the Volume.");
-        }
+    }
 
-        noiseWindSpeed = defaultNoiseWindSpeed;
+    void UpdateFogParameters()
+    {
+        if (fog == null) return;
+
+        // Conditionally update each parameter only if it has changed.
+        if (fog.mode.value != fogMode) fog.mode.value = fogMode;
+        if (fog.sampleCount.value != sampleCount) fog.sampleCount.value = sampleCount;
+        if (fog.animateSamplePosition.value != animateSamplePosition) fog.animateSamplePosition.value = animateSamplePosition;
+        if (fog.selfShadowingEnabled.value != selfShadowingEnabled) fog.selfShadowingEnabled.value = selfShadowingEnabled;
+        if (fog.maximumSelfShadowingOctaves.value != maximumSelfShadowingOctaves) fog.maximumSelfShadowingOctaves.value = maximumSelfShadowingOctaves;
+        if (fog.horizonShadowingEnabled.value != horizonShadowingEnabled) fog.horizonShadowingEnabled.value = horizonShadowingEnabled;
+        if (fog.maxDistanceVolumetric.value != maxDistanceVolumetric) fog.maxDistanceVolumetric.value = maxDistanceVolumetric;
+        if (fog.analyticFogEnabled.value != analyticFogEnabled) fog.analyticFogEnabled.value = analyticFogEnabled;
+        if (fog.maxDistanceAnalytic.value != maxDistanceAnalytic) fog.maxDistanceAnalytic.value = maxDistanceAnalytic;
+        if (fog.temporalAntiAliasingEnabled.value != temporalAntiAliasingEnabled) fog.temporalAntiAliasingEnabled.value = temporalAntiAliasingEnabled;
+        if (fog.temporalAntiAliasingIntegrationRate.value != temporalAntiAliasingIntegrationRate) fog.temporalAntiAliasingIntegrationRate.value = temporalAntiAliasingIntegrationRate;
+        if (fog.fogDensity.value != fogDensity) fog.fogDensity.value = fogDensity;
+        if (fog.anisotropy.value != anisotropy) fog.anisotropy.value = anisotropy;
+        if (fog.lightIntensity.value != lightIntensity) fog.lightIntensity.value = lightIntensity;
+        if (fog.shadowIntensity.value != shadowIntensity) fog.shadowIntensity.value = shadowIntensity;
+        if (fog.baseHeight.value != baseHeight) fog.baseHeight.value = baseHeight;
+        if (fog.attenuationBoundarySize.value != attenuationBoundarySize) fog.attenuationBoundarySize.value = attenuationBoundarySize;
+        if (fog.litColor.value != litColor) fog.litColor.value = litColor;
+        if (fog.shadowedColor.value != shadowedColor) fog.shadowedColor.value = shadowedColor;
+        if (fog.emitColor.value != emitColor) fog.emitColor.value = emitColor;
+        if (fog.colorRamp.value != colorRamp) fog.colorRamp.value = colorRamp;
+        if (fog.colorInfluence.value != colorInfluence) fog.colorInfluence.value = colorInfluence;
+       // if (fog.octaves.value != octaves) fog.octaves.value = octaves;
+       // if (fog.lacunarity.value != lacunarity) fog.lacunarity.value = lacunarity;
+       // if (fog.gain.value != gain) fog.gain.value = gain;
+        if (fog.noiseTiling.value != noiseTiling) fog.noiseTiling.value = noiseTiling;
+        if (fog.noiseWindSpeed.value != noiseWindSpeed) fog.noiseWindSpeed.value = noiseWindSpeed;
+        if (fog.noiseMap.value != noiseMap) fog.noiseMap.value = noiseMap;
     }
 
     public IEnumerator LerpFogDensity(float lerpDuration, float normalizedDensityTarget)
@@ -63,17 +153,57 @@ public class FogControl : MonoBehaviour
         float targetDensity = Mathf.Clamp(normalizedDensityTarget, 0, 1) * 20;
 
         float startDensity = fog.fogDensity.value;
+        float startMaxDistance = fog.maxDistanceVolumetric.value;
+
+        // Compute the target maxDistanceVolumetric value based on the targetDensity
+        float targetMaxDistance = Mathf.Clamp(normalizedDensityTarget, 0, 1) * 20; // or whatever your desired formula is
 
         while (timeElapsed < lerpDuration)
         {
-            fog.fogDensity.value = Mathf.Lerp(startDensity, targetDensity, timeElapsed / lerpDuration);
+            float lerpFactor = timeElapsed / lerpDuration;
+
+            // Lerp both the fog density and the max distance
+            fog.fogDensity.value = Mathf.Lerp(startDensity, targetDensity, lerpFactor);
+            fog.maxDistanceVolumetric.value = Mathf.Lerp(startMaxDistance, targetMaxDistance, lerpFactor);
+
             timeElapsed += Time.deltaTime;
             yield return null;
         }
 
-        // Ensure the target density is set when the lerp is done
+        // Ensure the target values are set when the lerp is done
         fog.fogDensity.value = targetDensity;
+        fog.maxDistanceVolumetric.value = targetMaxDistance;
     }
+
+    public IEnumerator LerpFogColor(float lerpDuration, Color targetEmitColor, Color targetShadowedColor, float targetColorInfluence)
+    {
+        float timeElapsed = 0;
+
+        Color startEmitColor = fog.emitColor.value;
+        Color startShadowedColor = fog.shadowedColor.value;
+
+        float startInfluence = fog.colorInfluence.value;
+        float targetInfluence = targetColorInfluence;
+
+        while (timeElapsed < lerpDuration)
+        {
+            float lerpFactor = timeElapsed / lerpDuration;
+
+            fog.emitColor.value = Color.Lerp(startEmitColor, targetEmitColor, lerpFactor);
+            fog.shadowedColor.value = Color.Lerp(startShadowedColor, targetShadowedColor, lerpFactor);
+            fog.colorInfluence.value = Mathf.Lerp(startInfluence, targetInfluence, lerpFactor);
+
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the target colors and influence are set when the lerp is done
+        fog.emitColor.value = targetEmitColor;
+        fog.shadowedColor.value = targetShadowedColor;
+        fog.colorInfluence.value = targetInfluence;
+    }
+
+
 
     public IEnumerator RandomizeFogWindDirection()
     {
@@ -117,45 +247,5 @@ public class FogControl : MonoBehaviour
 
         // Ensure the target wind direction is set when the lerp is done
         fog.noiseWindSpeed.value = targetWindDirection;
-    }
-
-    void Update()
-    {
-        UpdateFogParameters();
-    }
-
-    void UpdateFogParameters()
-    {
-        if (fog == null) return;
-
-        // Update fog parameters
-        fog.mode.value = fogMode;
-        fog.sampleCount.value = sampleCount;
-        fog.animateSamplePosition.value = animateSamplePosition;
-        fog.selfShadowingEnabled.value = selfShadowingEnabled;
-        fog.maximumSelfShadowingOctaves.value = maximumSelfShadowingOctaves;
-        fog.horizonShadowingEnabled.value = horizonShadowingEnabled;
-        fog.maxDistanceVolumetric.value = maxDistanceVolumetric;
-        fog.analyticFogEnabled.value = analyticFogEnabled;
-        fog.maxDistanceAnalytic.value = maxDistanceAnalytic;
-        fog.temporalAntiAliasingEnabled.value = temporalAntiAliasingEnabled;
-        fog.temporalAntiAliasingIntegrationRate.value = temporalAntiAliasingIntegrationRate;
-        fog.fogDensity.value = fogDensity;
-        fog.anisotropy.value = anisotropy;
-        fog.lightIntensity.value = lightIntensity;
-        fog.shadowIntensity.value = shadowIntensity;
-        fog.baseHeight.value = baseHeight;
-        fog.attenuationBoundarySize.value = attenuationBoundarySize;
-        fog.litColor.value = litColor;
-        fog.shadowedColor.value = shadowedColor;
-        fog.emitColor.value = emitColor;
-        fog.colorRamp.value = colorRamp;
-        fog.colorInfluence.value = colorInfluence;
-        fog.octaves.value = octaves;
-        fog.lacunarity.value = lacunarity;
-        fog.gain.value = gain;
-        fog.noiseTiling.value = noiseTiling;
-        fog.noiseWindSpeed.value = noiseWindSpeed;
-        fog.noiseMap.value = noiseMap;
     }
 }

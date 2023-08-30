@@ -14,7 +14,7 @@ namespace OccaSoftware.Buto
     [Serializable]
     public sealed class VolumetricFogModeParameter : VolumeParameter<VolumetricFogMode>
     {
-        public VolumetricFogModeParameter(VolumetricFogMode value, bool overrideState = false) : base(value, overrideState) { }
+        public VolumetricFogModeParameter(VolumetricFogMode value, bool overrideState = true) : base(value, overrideState) { }
     }
 
 
@@ -22,7 +22,7 @@ namespace OccaSoftware.Buto
     public sealed class VolumetricFog : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Set to On to enable Volumetric Fog.")]
-        public VolumetricFogModeParameter mode = new VolumetricFogModeParameter(VolumetricFogMode.Off);
+        public VolumetricFogModeParameter mode = new VolumetricFogModeParameter(VolumetricFogMode.On);
 
         // Performance and baseline rendering
 

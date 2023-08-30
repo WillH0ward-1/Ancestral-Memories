@@ -56,6 +56,8 @@ public class FluteControl : MonoBehaviour
 
     private void Awake()
     {
+        player = FindObjectOfType<Player>();
+        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
         mapObjGen = FindObjectOfType<MapObjGen>();
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
         playerSFX = GetComponentInChildren<AudioSFXManager>();

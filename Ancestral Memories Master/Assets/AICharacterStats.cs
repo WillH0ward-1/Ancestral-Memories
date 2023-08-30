@@ -125,7 +125,10 @@ public class AICharacterStats : MonoBehaviour
         OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
 
-        UpdateEvolution();
+        if (transform.CompareTag("Human"))
+        {
+            UpdateEvolution();
+        }
     }
 
     public float evolutionSpeedFactor = 0.1f;  // New factor to determine the speed of evolution convergence
@@ -142,6 +145,7 @@ public class AICharacterStats : MonoBehaviour
         {
             OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
         }
+
     }
 
     public void Heal(float healFactor)

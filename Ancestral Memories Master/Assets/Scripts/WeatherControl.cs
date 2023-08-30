@@ -35,6 +35,8 @@ public class WeatherControl : MonoBehaviour
 
     private void Awake()
     {
+        player = FindObjectOfType<Player>();
+
         parent = player.transform;
        // func = Lerp.GetLerpFunction(lerpParams.lerpType);
     }

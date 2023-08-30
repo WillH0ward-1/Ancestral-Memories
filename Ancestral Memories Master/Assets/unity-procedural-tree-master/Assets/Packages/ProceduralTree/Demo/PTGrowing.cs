@@ -74,6 +74,7 @@ namespace ProceduralModeling
 
         private void Awake()
         {
+            weatherControl = FindObjectOfType<RainControl>();
             proceduralTree = GetComponentInChildren<ProceduralTree>();
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;

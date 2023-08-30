@@ -283,6 +283,7 @@ public class MapObjGen : MonoBehaviour
     private void Awake()
     {
         mapCenter = Vector3.zero;
+        player = FindObjectOfType<Player>();
     }
 
     private Vector3[] waterEmitterVerts;
@@ -546,8 +547,6 @@ public class MapObjGen : MonoBehaviour
             deform.enabled = false;
 
             HumanAI humanAI = humanInstance.GetComponentInChildren<HumanAI>();
-            humanAI.player = player;
-            humanAI.playerBehaviours = behaviours;
             humanAI.mapObjGen = this;
 
             AICharacterStats humanStats = humanInstance.GetComponentInChildren<AICharacterStats>();
@@ -731,8 +730,6 @@ public class MapObjGen : MonoBehaviour
 
             PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
             ptGrow.mapObjGen = this;
-
-            ptGrow.weatherControl = rainControl;
 
             TreeAudioManager treeAudioManager = treeInstance.transform.GetComponentInChildren<TreeAudioManager>();
             treeAudioManager.timeManager = timeCycleManager;

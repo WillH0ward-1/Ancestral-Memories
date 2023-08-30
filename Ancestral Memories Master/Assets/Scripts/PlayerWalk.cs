@@ -62,6 +62,7 @@ public class PlayerWalk : MonoBehaviour
     [SerializeField] private CamControl camControl;
 
     private RichAI aiPath;
+    private AICharacterStats stats;
 
     void Awake()
     {
@@ -72,6 +73,8 @@ public class PlayerWalk : MonoBehaviour
 
         //StopAgent();
         player = GetComponentInChildren<Player>();
+        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
+        stats = player.GetComponent<AICharacterStats>();
 
         head.Add(playerHead);
         feet.Add(leftFoot);
@@ -88,7 +91,7 @@ public class PlayerWalk : MonoBehaviour
 
     private void Start()
     {
-
+        
         aiPath = GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
 

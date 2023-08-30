@@ -135,6 +135,9 @@ public class TerrainGenerator : MonoBehaviour {
 	void Start() {
 
 		navGraph = AstarPath.active.data.navmesh;
+		rainControl = FindObjectOfType<RainControl>();
+		player = FindObjectOfType<Player>();
+		viewer = player.transform;
 
 		/*
 		gridGraph = AstarPath.active.data.gridGraph;
@@ -160,7 +163,7 @@ public class TerrainGenerator : MonoBehaviour {
 			tmp.isStatic = true;
 			tmp.tag = "Walkable";
 			tmp.layer = 8; // 'Ground' Layer
-
+	
 			corruptionControl = tmp.AddComponent<CorruptionControl>();
 
 			corruptionControl.player = player;

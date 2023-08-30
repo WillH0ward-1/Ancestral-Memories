@@ -15,6 +15,12 @@ public class CorruptionControl : MonoBehaviour
 
     [SerializeField] List<Transform> transformList = new List<Transform>();
 
+    private void Awake()
+    {
+        player = FindObjectOfType<Player>();
+        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
+    }
+
     void Start()
     {
 
