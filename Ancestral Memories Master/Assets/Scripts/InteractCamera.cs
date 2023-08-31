@@ -4,37 +4,43 @@ using UnityEngine;
 
 public class InteractCamera : MonoBehaviour
 {
-    public GameObject player;
+    // Cached components and variables
+    private Camera cam;
+    private Ray ray;
+    private RaycastHit hit;
+    private OutlineControl outlineControl;
+    private bool selected;
+    private GameObject hoverObj;
+    
+    // Serialized fields and public properties
+    [SerializeField] private float maxSelectionDistance = 5f;
+    [SerializeField] private float minSelectionDistance = 0f;
 
+    // Reference to other scripts and game objects
+    public GameObject player;
     public LayerMask layer;
     public Vector3 collision = Vector3.zero;
     public GameObject lastHit;
-    public Camera cam;
-
     public PlayerWalk playerWalk;
     public RadialMenu radialMenu;
     public CharacterBehaviours behaviour;
-
     public AreaManager areaManager;
-
     public Transform lookAtTarget;
     public Transform defaultTarget;
-
-    private OutlineControl outlineControl;
-
-    Ray ray;
-
-    RPCamera rpCamera;
-
+    public FluteControl fluteControl;
+    
     private void Awake()
     {
         cam = Camera.main;
-        rpCamera = FindObjectOfType<RPCamera>();
     }
+
     private void Start()
     {
-        //cam = player.GetComponent<Player>().interactableCam; 
+        InitializeRadialMenu();
+    }
 
+    private void InitializeRadialMenu()
+    {
         radialMenu.player = player;
         radialMenu.playerWalk = playerWalk;
         radialMenu.hitObject = lastHit;
@@ -42,97 +48,74 @@ public class InteractCamera : MonoBehaviour
         radialMenu.areaManager = areaManager;
     }
 
-    private bool selected;
-
-    [SerializeField] private float maxSelectionDistance = 5f;
-    [SerializeField] private float minSelectionDistance = 0f;
-
-    private GameObject hoverObj;
-
-    public FluteControl fluteControl;
-
-    void Update()
+    private void Update()
     {
+        if (behaviour.behaviourIsActive || behaviour.dialogueIsActive) return;
+
         ray = cam.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red);
 
-        Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red); // This will draw the ray in the Scene view
+        if (!Physics.Raycast(ray, out hit, Mathf.Infinity, layer)) return;
 
-        if (!behaviour.behaviourIsActive || !behaviour.dialogueIsActive)
+        hoverObj = hit.transform.gameObject;
+
+        if (Input.GetMouseButtonDown(1)) HandleMouseDown();
+        if (Input.GetMouseButtonUp(1)) HandleMouseUp();
+
+        UpdateLookAtTarget();
+    }
+
+    private void HandleMouseDown()
+    {
+        if (hoverObj == null || behaviour.behaviourIsActive || areaManager.traversing || behaviour.isPsychdelicMode) return;
+
+        lastHit = hoverObj;
+        outlineControl = lastHit.GetComponentInChildren<OutlineControl>();
+
+        if (IsSelectable(hit.distance))
         {
-            
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layer))
-            {
-                hoverObj = hit.transform.gameObject;
+            selected = true;
+            ToggleOutline(true);
+            ActivateInteractable();
+        }
+    }
 
-                if (Input.GetMouseButtonDown(1))
-                {
-                    if (hoverObj == null)
-                    {
-                        return;
-                    }
+    private void HandleMouseUp()
+    {
+        if (hoverObj == null) return;
+        ToggleOutline(false);
+    }
 
-                    lastHit = hit.transform.gameObject;
-                    outlineControl = lastHit.transform.GetComponentInChildren<OutlineControl>();
+    private bool IsSelectable(float distance)
+    {
+        return distance < maxSelectionDistance && distance > minSelectionDistance;
+    }
 
-                    if (!Input.GetMouseButtonUp(1) && !behaviour.behaviourIsActive && !areaManager.traversing)
-                    {
-                        if (behaviour.isPsychdelicMode)
-                        {
-                            return;
-                        }
+    private void ToggleOutline(bool state)
+    {
+        if (outlineControl != null) outlineControl.outline.enabled = state;
+    }
 
-                        if (hit.distance >= maxSelectionDistance || hit.distance <= minSelectionDistance)
-                        {
-                            Debug.Log("Selection out of range!");
-                            return;
-                        }
+    private void ActivateInteractable()
+    {
+        Interactable interactable = hit.collider.GetComponentInParent<Interactable>();
+        if (interactable != null) interactable.SpawnMenu(hoverObj, hit);
 
-                        selected = true;
+        if (hit.collider.CompareTag("Player"))
+        {
+            lookAtTarget.position = cam.WorldToScreenPoint(hit.point);
+        }
+    }
 
-                        if (outlineControl != null)
-                        {
-                            outlineControl.outline.enabled = true;
-                        }
-
-                        Interactable interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
-
-                        if (interactable != null)
-                        interactable.SpawnMenu(hoverObj, hit);
-
-                        if (hit.collider.transform.CompareTag("Player"))
-                        {
-                            //selected = true;
-                            lookAtTarget.position = cam.WorldToScreenPoint(hit.point);
-                            //Debug.Log(lastHit + "selected");
-                        }
-                    }
-
-                }
-
-
-                if (Input.GetMouseButtonUp(1))
-                {
-
-                    if (hoverObj == null)
-                    {
-                        return;
-                    }
-                    if (outlineControl != null)
-                    {
-                        outlineControl.outline.enabled = false;
-                    }
-                }
-
-
-                if (!behaviour.behaviourIsActive && !behaviour.dialogueIsActive && !areaManager.traversing)
-                {
-                    lookAtTarget.position = hit.point;
-                } else if (behaviour.behaviourIsActive || behaviour.dialogueIsActive || areaManager.traversing) //|| fluteControl.fluteActive)
-                {
-                    lookAtTarget.position = defaultTarget.transform.position;
-                }
-            }
-
-        } 
+    private void UpdateLookAtTarget()
+    {
+        if (!behaviour.behaviourIsActive && !behaviour.dialogueIsActive && !areaManager.traversing)
+        {
+            lookAtTarget.position = hit.point;
+        }
+        else
+        {
+            lookAtTarget.position = defaultTarget.transform.position;
+        }
     }
 }

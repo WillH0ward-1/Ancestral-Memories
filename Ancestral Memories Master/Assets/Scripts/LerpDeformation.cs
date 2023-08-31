@@ -40,9 +40,17 @@ public class LerpDeformation : MonoBehaviour
         inflate.Factor = targetDeform;
     }
 
-    // Update is called once per frame
-    void LateUpdate()
+    private float targetDeform;
+
+    private float auraDeformationOffset = 0.00006f;
+
+    private void HungerChanged(float hunger, float minHunger, float maxHunger)
     {
+        var t = Mathf.InverseLerp(minHunger, maxHunger, hunger);
+        float output = Mathf.Lerp(minVal, maxVal, t);
+
+        targetDeform = output;
+
         currentDeform = targetDeform;
         foreach (Deform.InflateDeformer deformer in inflateDeformers)
         {
@@ -55,18 +63,6 @@ public class LerpDeformation : MonoBehaviour
                 deformer.Factor = currentDeform;
             }
         }
-    }
-
-    private float targetDeform;
-
-    private float auraDeformationOffset = 0.00006f;
-
-    private void HungerChanged(float hunger, float minHunger, float maxHunger)
-    {
-        var t = Mathf.InverseLerp(minHunger, maxHunger, hunger);
-        float output = Mathf.Lerp(minVal, maxVal, t);
-
-        targetDeform = output;
     }
 
 

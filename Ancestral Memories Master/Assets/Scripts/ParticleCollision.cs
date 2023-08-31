@@ -36,6 +36,7 @@ public class ParticleCollision : MonoBehaviour
 
     private void Awake()
     {
+        cam = Camera.main;
         soundObjectManager = FindObjectOfType<SoundObjectManager>();
 
         for (int i = 0; i < maxPoolSize; i++)

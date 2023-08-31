@@ -20,6 +20,7 @@
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_instancing // Enabling GPU Instancing
 
             #include "UnityCG.cginc"
             #include "./ProceduralTree.cginc"
@@ -33,6 +34,7 @@
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
                 float3 normal : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID // Required for GPU Instancing
             };
 
             struct v2f {
@@ -40,6 +42,7 @@
                 float2 uv : TEXCOORD0;
                 float3 normal : TEXCOORD1;
                 float3 worldPos : TEXCOORD2;
+                UNITY_VERTEX_OUTPUT_STEREO // Required for GPU Instancing
             };
 
             float perlinNoise(float3 pos) {
@@ -47,6 +50,7 @@
             }
 
             v2f vert (appdata v) {
+                UNITY_SETUP_INSTANCE_ID(v);  // Required for GPU Instancing
                 v2f o;
                 if (_EnableNoise > 0.5) { // If _EnableNoise is true
                     float3 noiseInput = v.vertex.xyz;
@@ -66,8 +70,8 @@
             fixed4 frag (v2f i) : SV_Target {
                 procedural_tree_clip(i.uv);
                 fixed4 albedo_front = tex2D(_MainTex, i.uv);
-                fixed4 albedo_back = tex2D(_MainTex, 1 - i.uv); // Sample the texture with inverted UV for the back face
-                fixed4 albedo = lerp(albedo_front, albedo_back, step(0.5, i.uv.y)); // Use step function to blend between front and back face
+                fixed4 albedo_back = tex2D(_MainTex, 1 - i.uv);
+                fixed4 albedo = lerp(albedo_front, albedo_back, step(0.5, i.uv.y));
                 
                 fixed4 c;
                 c.rgb = albedo.rgb * _LightColor.rgb;

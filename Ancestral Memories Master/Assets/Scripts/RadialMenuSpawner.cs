@@ -20,7 +20,7 @@ public class RadialMenuSpawner : MonoBehaviour
 
         newMenu.SpawnButtons(obj, lastHit, hit);
 
-      
+
     }
 
 }

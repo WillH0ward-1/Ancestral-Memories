@@ -9,6 +9,8 @@ public class AutoFitText : MonoBehaviour
 
     private TMP_Text tmpText;
 
+    public bool isResizing = false;
+
     private void OnEnable()
     {
         tmpText = GetComponent<TMP_Text>();
@@ -23,11 +25,17 @@ public class AutoFitText : MonoBehaviour
 
     private void Update()
     {
+        if (!isResizing)
+        {
+            return;
+        }
+
         ResizeText();
     }
 
     private void ResizeText()
     {
+        isResizing = true;
         float ratio = Screen.width / (float)Screen.height;
         float newFontSize = baseFontSize * ratio * scaleFactor;
         tmpText.fontSize = newFontSize;

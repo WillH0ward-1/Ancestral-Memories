@@ -15,36 +15,67 @@ public class StatsUI : MonoBehaviour
 
     private bool statsInitialized = false;
 
-    [SerializeField] private float initialScale = 0.01f; // Initial scale of the UI elements
-    [SerializeField] private float fillWidth = 100f; // Width of the fill area
+    [SerializeField] private float initialScale = 0.01f;
+    [SerializeField] private float fillWidth = 100f;
 
-    private AICharacterStats stats; // Reference to the AICharacterStats component
+    private AICharacterStats stats;
+
+    private RectTransform healthFillRect;
+    private RectTransform faithFillRect;
+    private RectTransform hungerFillRect;
+
+    private Image healthFillImage;
+    private Image faithFillImage;
+    private Image hungerFillImage;
+
+    private RectMask2D healthFillMask;
+    private RectMask2D faithFillMask;
+    private RectMask2D hungerFillMask;
+
+    private Player player;
+
+    private bool isUIVisible;
 
     private void Awake()
     {
-        stats = GetComponent<AICharacterStats>(); // Get the AICharacterStats component
+        player = FindObjectOfType<Player>();
+
+        stats = GetComponent<AICharacterStats>();
 
         uiParent = new GameObject("UIParent");
         uiParent.transform.SetParent(transform, false);
 
-        // Instantiate the UI elements in world space.
         healthFill = CreateUIElement("HealthFill", healthColor);
-        healthFill.SetActive(false);
+        healthFill.SetActive(true);
+
+        healthFillRect = healthFill.GetComponent<RectTransform>();
+        healthFillImage = healthFill.GetComponentInChildren<Image>();
+        healthFillMask = healthFill.GetComponentInChildren<RectMask2D>();
 
         if (stats.useFaith)
         {
             faithFill = CreateUIElement("FaithFill", faithColor);
-            faithFill.SetActive(false);
+            faithFill.SetActive(true);
+
+            faithFillRect = faithFill.GetComponent<RectTransform>();
+            faithFillImage = faithFill.GetComponentInChildren<Image>();
+            faithFillMask = faithFill.GetComponentInChildren<RectMask2D>();
         }
 
         hungerFill = CreateUIElement("HungerFill", hungerColor);
-        hungerFill.SetActive(false);
+        hungerFill.SetActive(true);
+
+        hungerFillRect = hungerFill.GetComponent<RectTransform>();
+        hungerFillImage = hungerFill.GetComponentInChildren<Image>();
+        hungerFillMask = hungerFill.GetComponentInChildren<RectMask2D>();
 
         SetUIElementScale(healthFill, initialScale);
+
         if (stats.useFaith)
         {
             SetUIElementScale(faithFill, initialScale);
         }
+
         SetUIElementScale(hungerFill, initialScale);
 
         BillBoardUI billboard = uiParent.AddComponent<BillBoardUI>();
@@ -53,55 +84,97 @@ public class StatsUI : MonoBehaviour
 
     private void Start()
     {
-        // Check if the stats are already initialized
         if (!statsInitialized)
         {
             InitializeStats();
         }
     }
 
-    [SerializeField] private float tightness = 2.89f; // Adjust this value to control the tightness
+    [SerializeField] private float tightness = 2.89f;
+
+    public float hideUIthreshold = 50;
+
+    private bool InRange()
+    {
+        bool inRange;
+
+        float distance = Vector3.Distance(transform.position, player.transform.position);
+
+        if (distance >= hideUIthreshold)
+        {
+            inRange = false;
+        }
+        else
+        {
+            inRange = true;
+        }
+
+        return inRange;
+    }
 
     private void Update()
     {
-        // Calculate the total height of the UI elements
-        float totalHeight = healthFill.GetComponent<RectTransform>().rect.height;
+        if (!transform.CompareTag("Player") && InRange())
+        {
+            UpdateUI();
+        } else if (transform.CompareTag("Player"))
+        {
+            UpdateUI();
+        } else
+        {
+            HideUI();
+        }
+    }
+
+    public void HideUI()
+    {
+        uiParent.SetActive(false);  // Deactivate the parent GameObject, which will hide all children
+        isUIVisible = false;        // Update the flag
+    }
+
+    public void ShowUI()
+    {
+        uiParent.SetActive(true);  // Activate the parent GameObject, which will show all children
+        isUIVisible = true;        // Update the flag
+    }
+
+
+    private void UpdateUI()
+    {
+        if (!isUIVisible) {
+            isUIVisible = true;
+        }
+
+        float totalHeight = healthFillRect.rect.height;
         if (stats.useFaith)
         {
-            totalHeight += faithFill.GetComponent<RectTransform>().rect.height;
+            totalHeight += faithFillRect.rect.height;
         }
-        totalHeight += hungerFill.GetComponent<RectTransform>().rect.height;
+        totalHeight += hungerFillRect.rect.height;
 
-        // Calculate the offset based on the total height and tightness
         float offset = totalHeight / (2 * tightness);
+        float healthOffset = offset - healthFillRect.rect.height / 2;
+        float hungerOffset = offset - hungerFillRect.rect.height / 2;
 
-        // Calculate the individual offsets for each UI element
-        float healthOffset = offset - healthFill.GetComponent<RectTransform>().rect.height / 2;
-        float hungerOffset = offset - hungerFill.GetComponent<RectTransform>().rect.height / 2;
-
-        // Position the UI elements above the character with the adjusted offsets
         Vector3 basePosition = transform.position + new Vector3(0, verticalOffset, 0);
         healthFill.transform.position = basePosition + new Vector3(0, healthOffset, 0);
+
         if (stats.useFaith)
         {
             float faithOffset = 0f;
             faithFill.transform.position = basePosition + new Vector3(0, faithOffset, 0);
             UpdateFaith(stats.FaithFraction);
         }
+
         hungerFill.transform.position = basePosition + new Vector3(0, -hungerOffset, 0);
 
-        // Update the fill amount based on the stats
         UpdateHealth(stats.HealthFraction);
         UpdateHunger(stats.HungerFraction);
     }
 
-
     public void SetUIElementScale(GameObject uiElement, float scale)
     {
-        // Get the RectTransform component of the UI element
         RectTransform rectTransform = uiElement.GetComponent<RectTransform>();
-
-        // Set the scale of the UI element
         rectTransform.localScale = new Vector3(scale, scale, scale);
     }
 
@@ -161,8 +234,6 @@ public class StatsUI : MonoBehaviour
         if (stats != null)
         {
             statsInitialized = true;
-
-            // Attach the update functions to the stat change events.
             stats.OnHealthChanged += HealthStat;
             if (stats.useFaith)
             {
@@ -172,40 +243,26 @@ public class StatsUI : MonoBehaviour
         }
     }
 
+    private void UpdateUI(float valueFraction, Image fillImage, RectMask2D rectMask)
+    {
+        fillImage.fillAmount = valueFraction;
+        float paddingValue = (1f - valueFraction) * 100f;
+        rectMask.padding = new Vector4(0f, 0f, paddingValue, 0f);
+    }
+
     private void UpdateHealth(float healthFraction)
     {
-        healthFill.SetActive(true);
-        Image fillImage = healthFill.GetComponentInChildren<Image>();
-        fillImage.fillAmount = healthFraction;
-
-        // Calculate the mapped value of padding based on the health fraction
-        float paddingValue = (1f - healthFraction) * 100f;
-        RectMask2D rectMask = healthFill.GetComponentInChildren<RectMask2D>();
-        rectMask.padding = new Vector4(0f, 0f, paddingValue, 0f);
+        UpdateUI(healthFraction, healthFillImage, healthFillMask);
     }
 
     private void UpdateFaith(float faithFraction)
     {
-        faithFill.SetActive(true);
-        Image fillImage = faithFill.GetComponentInChildren<Image>();
-        fillImage.fillAmount = faithFraction;
-
-        // Calculate the mapped value of padding based on the faith fraction
-        float paddingValue = (1f - faithFraction) * 100f;
-        RectMask2D rectMask = faithFill.GetComponentInChildren<RectMask2D>();
-        rectMask.padding = new Vector4(0f, 0f, paddingValue, 0f);
+        UpdateUI(faithFraction, faithFillImage, faithFillMask);
     }
 
     private void UpdateHunger(float hungerFraction)
     {
-        hungerFill.SetActive(true);
-        Image fillImage = hungerFill.GetComponentInChildren<Image>();
-        fillImage.fillAmount = hungerFraction;
-
-        // Calculate the mapped value of padding based on the hunger fraction
-        float paddingValue = (1f - hungerFraction) * 100f;
-        RectMask2D rectMask = hungerFill.GetComponentInChildren<RectMask2D>();
-        rectMask.padding = new Vector4(0f, 0f, paddingValue, 0f);
+        UpdateUI(hungerFraction, hungerFillImage, hungerFillMask);
     }
 
     private void OnDestroy()

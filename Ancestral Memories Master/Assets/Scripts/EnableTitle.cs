@@ -5,6 +5,7 @@ public class MouseClickWaiter : MonoBehaviour
 {
     [SerializeField] private CamControl camControl;
     [SerializeField] private TitleUIControl titleControlUI;
+    [SerializeField] private AutoFitText autoFitText;
 
     [SerializeField] private bool waitForClick = true;
 
@@ -12,6 +13,7 @@ public class MouseClickWaiter : MonoBehaviour
     {
         camControl = FindObjectOfType<CamControl>();
         titleControlUI = GetComponentInChildren<TitleUIControl>();
+        autoFitText = GetComponentInChildren<AutoFitText>();
     }
 
     private void Start()
@@ -33,6 +35,7 @@ public class MouseClickWaiter : MonoBehaviour
                 camControl.ToSpawnZoom();
                 titleControlUI.StartCoroutine(titleControlUI.FadeTextToZeroAlpha(2f));
                 waitForClick = false;
+                autoFitText.isResizing = false;
             }
 
             yield return null;

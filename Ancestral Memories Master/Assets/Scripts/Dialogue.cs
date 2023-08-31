@@ -99,11 +99,11 @@ public class Dialogue : MonoBehaviour
     void ValidateEvents()
     {
         // Check if EventReference fields are null
-        if (dialogueEventPath.Path == null || dialogueEventPath.Path == "")
+        if (dialogueEventPath.ToString() == null || dialogueEventPath.ToString() == "")
             Debug.LogError("Dialogue 2D Event Path is not set in " + gameObject.name);
-        if (dialogue3DEventPath.Path == null || dialogue3DEventPath.Path == "")
+        if (dialogue3DEventPath.ToString() == null || dialogue3DEventPath.ToString() == "")
             Debug.LogError("Dialogue 3D Event Path is not set in " + gameObject.name);
-        if (phonemePath.Path == null || phonemePath.Path == "")
+        if (phonemePath.ToString() == null || phonemePath.ToString() == "")
             Debug.LogError("Dialogue Phoneme Path is not set in " + gameObject.name);
     }
 

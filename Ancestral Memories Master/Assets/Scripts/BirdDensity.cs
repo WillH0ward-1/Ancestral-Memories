@@ -22,6 +22,7 @@ public class BirdDensity : MonoBehaviour
 
     private void Awake()
     {
+        cam = Camera.main;
         player = FindObjectOfType<Player>();
     }
 

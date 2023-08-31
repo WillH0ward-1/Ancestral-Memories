@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor.Animations;
 using System.Text;
@@ -121,3 +122,4 @@ public class GetAnimationNames : MonoBehaviour
         Debug.Log($"{scriptName} class updated or created");
     }
 }
+#endif

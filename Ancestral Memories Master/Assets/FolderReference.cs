@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -6,3 +7,4 @@ public class FolderReference : ScriptableObject
 {
     public DefaultAsset folder;
 }
+#endif

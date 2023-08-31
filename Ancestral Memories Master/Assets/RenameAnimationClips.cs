@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -135,3 +136,4 @@ public class RenameAnimationClips : MonoBehaviour
         return AssetDatabase.LoadAssetAtPath<GameObject>(fullPath);
     }
 }
+#endif

@@ -17,9 +17,6 @@ public class TerrainGenerator : MonoBehaviour {
 	public HeightMapSettings heightMapSettings;
 	public TextureData textureSettings;
 
-	public GameObject navMeshContainer;
-	public NavMeshSurface[] surfaces;
-
 	[SerializeField] private MapObjGen mapObjectGen;
 
 	//public NavMeshPrefabInstance navMeshSurface;
@@ -85,20 +82,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private void Awake()
 	{
-
 		SetSeed(seedSettingState);
-
-		surfaces = navMeshContainer.GetComponentsInChildren<NavMeshSurface>();
-
-		foreach (NavMeshSurface surface in surfaces)
-		{
-			surface.RemoveData();
-		}
-
-		foreach (NavMeshSurface surface in surfaces) {
-			surface.BuildNavMesh();
-		}
-		//mapObjGen.meshWorldSize = meshSettings.MeshWorldSize;
 	}
 
 
