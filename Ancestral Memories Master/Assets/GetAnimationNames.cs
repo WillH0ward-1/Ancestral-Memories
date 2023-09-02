@@ -1,9 +1,12 @@
-#if UNITY_EDITOR
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor.Animations;
+#endif
 using System.Text;
 using System.IO;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +15,7 @@ public class GetAnimationNames : MonoBehaviour
 {
     public Animator targetAnimator; // Manually set the Animator target
 
+#if UNITY_EDITOR
     public bool GetAllAnimationNames(out (string AnimatorName, string AnimatorController, string Avatar, string[] AnimationNames) result)
     {
         result = (null, null, null, null);
@@ -47,7 +51,9 @@ public class GetAnimationNames : MonoBehaviour
         result = (targetAnimator.name, ac.name, avatarName, names);
         return true;
     }
+#endif
 
+#if UNITY_EDITOR
     public void WriteAnimationConstantsClass(string[] animationNames)
     {
         AnimatorController ac = targetAnimator.runtimeAnimatorController as AnimatorController;
@@ -67,7 +73,9 @@ public class GetAnimationNames : MonoBehaviour
 
         WriteAndAttachScript(scriptName, content);
     }
+#endif
 
+#if UNITY_EDITOR
     public void WriteAnimationGroupsClass(string[] animationNames)
     {
         AnimatorController ac = targetAnimator.runtimeAnimatorController as AnimatorController;
@@ -92,8 +100,9 @@ public class GetAnimationNames : MonoBehaviour
 
         WriteAndAttachScript(scriptName, content);
     }
+#endif
 
-
+#if UNITY_EDITOR
 
     private void WriteAndAttachScript(string scriptName, StringBuilder content)
     {
@@ -121,5 +130,7 @@ public class GetAnimationNames : MonoBehaviour
 
         Debug.Log($"{scriptName} class updated or created");
     }
-}
+
 #endif
+
+}

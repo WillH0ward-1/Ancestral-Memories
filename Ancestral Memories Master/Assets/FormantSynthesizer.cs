@@ -23,14 +23,14 @@ public class FormantSynthesizer : MonoBehaviour
 
     private void Start()
     {
-        LoadPhoneticData();
         ipaInstance = new IPA(); // Create a new instance of the IPA class or get its reference if it's a singleton
+        LoadPhoneticData();
 
     }
 
     private void LoadPhoneticData()
     {
-        string ipaIndexPath = Path.Combine(Application.dataPath, "LanguageGen", "CharResources", "IPAindex.json");
+        string ipaIndexPath = Path.Combine(Application.persistentDataPath, "IPAindex.json");
 
         if (!File.Exists(ipaIndexPath))
         {

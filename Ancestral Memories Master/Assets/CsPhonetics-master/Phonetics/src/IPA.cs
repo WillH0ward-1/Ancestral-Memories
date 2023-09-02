@@ -17,8 +17,6 @@ namespace Qkmaxware.Phonetics
         private Dictionary<string, string> dictionary;
         private Dictionary<string, IPASymbol> ipaSymbols = new Dictionary<string, IPASymbol>();
 
-        private static readonly string ipaIndexRawPath = Path.Combine(Application.dataPath, "LanguageGen", "CharResources");
-
         public class IPASymbol
         {
             public string Symbol { get; set; }
@@ -115,9 +113,20 @@ namespace Qkmaxware.Phonetics
         {
             this.dictionary = new Dictionary<string, string>();
 
-            string filePath = Path.Combine(Application.dataPath, "CsPhonetics-master", "Phonetics", "data", "CMU.in.IPA.txt");
+            // Change this path to point to the StreamingAssets folder
+            string sourceFilePath = Path.Combine(Application.streamingAssetsPath, "CMU.in.IPA.txt");
 
-            foreach (string line in File.ReadAllLines(filePath))
+            // Destination file path
+            string destinationFilePath = Path.Combine(Application.persistentDataPath, "CMU.in.IPA.txt");
+
+            // Check if the file already exists in the destination, only copy if it doesn't
+            if (!File.Exists(destinationFilePath))
+            {
+                File.Copy(sourceFilePath, destinationFilePath);
+            }
+
+            // Now read from the persistent data path
+            foreach (string line in File.ReadAllLines(destinationFilePath))
             {
                 var parts = line.Split(',', 2);
                 if (parts.Length == 2)
@@ -130,6 +139,8 @@ namespace Qkmaxware.Phonetics
             WriteSymbolsToFile();
             GenerateFormantFile();
         }
+
+
 
         private void ExtractSymbols(string transcription)
         {
@@ -176,7 +187,7 @@ namespace Qkmaxware.Phonetics
 
         private void WriteSymbolsToFile()
         {
-            string outputFilePath = Path.Combine(ipaIndexRawPath, "IPAindex.json");
+            string outputFilePath = Path.Combine(Application.persistentDataPath, "IPAindex.json");
 
             // Sort the symbols by category
             var sortedIpaSymbols = ipaSymbols
@@ -197,10 +208,10 @@ namespace Qkmaxware.Phonetics
 
         public void GenerateFormantFile()
         {
-            string formantFilePath = Path.Combine(ipaIndexRawPath, "IPAFormants.txt");
+            string formantFilePath = Path.Combine(Application.persistentDataPath, "IPAFormants.txt");
 
             // Read the JSON file and deserialize it back into a dictionary
-            string inputFilePath = Path.Combine(ipaIndexRawPath, "IPAindex.json");
+            string inputFilePath = Path.Combine(Application.persistentDataPath, "IPAindex.json");
             if (!File.Exists(inputFilePath))
             {
                 throw new FileNotFoundException($"The file {inputFilePath} was not found.");
@@ -308,11 +319,11 @@ namespace Qkmaxware.Phonetics
                     symbol.TimeModification = 2;
                     symbol.PitchAdjustment = 3;
                     symbol.VowelQuality = 0; // Consonants don't have vowel quality
-                    symbol.F1 = 1000; 
-                    symbol.F2 = 2000; 
-                    symbol.F3 = 3000; 
+                    symbol.F1 = 1000;
+                    symbol.F2 = 2000;
+                    symbol.F3 = 3000;
                     symbol.F4 = 0;
-                    symbol.F5 = 0; 
+                    symbol.F5 = 0;
                     break;
 
                 case IPACategory.Vowel:
@@ -322,33 +333,33 @@ namespace Qkmaxware.Phonetics
                     symbol.VowelQuality = 10;
                     symbol.F1 = 500;
                     symbol.F2 = 1500;
-                    symbol.F3 = 2500; 
-                    symbol.F4 = 3500; 
-                    symbol.F5 = 4500; 
+                    symbol.F3 = 2500;
+                    symbol.F4 = 3500;
+                    symbol.F5 = 4500;
                     break;
 
                 case IPACategory.Diacritic:
-                    symbol.VolumeDuck = 0; 
-                    symbol.TimeModification = 0; 
-                    symbol.PitchAdjustment = 0; 
-                    symbol.VowelQuality = 0; 
-                    symbol.F1 = 0; 
-                    symbol.F2 = 0; 
-                    symbol.F3 = 0; 
-                    symbol.F4 = 0; 
-                    symbol.F5 = 0; 
+                    symbol.VolumeDuck = 0;
+                    symbol.TimeModification = 0;
+                    symbol.PitchAdjustment = 0;
+                    symbol.VowelQuality = 0;
+                    symbol.F1 = 0;
+                    symbol.F2 = 0;
+                    symbol.F3 = 0;
+                    symbol.F4 = 0;
+                    symbol.F5 = 0;
                     break;
 
                 case IPACategory.Suprasegmental:
-                    symbol.VolumeDuck = 2; 
-                    symbol.TimeModification = 1; 
-                    symbol.PitchAdjustment = 1; 
+                    symbol.VolumeDuck = 2;
+                    symbol.TimeModification = 1;
+                    symbol.PitchAdjustment = 1;
                     symbol.VowelQuality = 0; // Suprasegmentals don't have vowel quality
-                    symbol.F1 = 1000; 
-                    symbol.F2 = 2000; 
-                    symbol.F3 = 3000; 
+                    symbol.F1 = 1000;
+                    symbol.F2 = 2000;
+                    symbol.F3 = 3000;
                     symbol.F4 = 0;
-                    symbol.F5 = 0; 
+                    symbol.F5 = 0;
                     break;
 
                 case IPACategory.Unrecognized:
@@ -356,10 +367,10 @@ namespace Qkmaxware.Phonetics
                     symbol.TimeModification = 0;
                     symbol.PitchAdjustment = 0;
                     symbol.VowelQuality = 0;
-                    symbol.F1 = 0; 
+                    symbol.F1 = 0;
                     symbol.F2 = 0;
-                    symbol.F3 = 0; 
-                    symbol.F4 = 0; 
+                    symbol.F3 = 0;
+                    symbol.F4 = 0;
                     symbol.F5 = 0;
                     break;
 

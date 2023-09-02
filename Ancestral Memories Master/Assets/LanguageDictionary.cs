@@ -104,10 +104,4 @@ public class LanguageDictionary : MonoBehaviour
     {
         return consonant.ToString().ToLower() + vowel.ToString().ToLower();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

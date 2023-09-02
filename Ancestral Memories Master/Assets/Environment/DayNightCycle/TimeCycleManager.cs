@@ -117,14 +117,27 @@ public class TimeCycleManager : MonoBehaviour
         }
     }
 
+    private bool hasFocus = true;  // Add this variable to keep track of application focus
+
+    void OnApplicationFocus(bool focus)
+    {
+        hasFocus = focus;
+        if (focus)
+        {
+            lastRealTime = Time.realtimeSinceStartup;  // Reset the lastRealTime when focus is regained
+        }
+    }
+
     private void UpdateTimeAndLight()
     {
-        if (material == null)
-            return;
+        if (!hasFocus || material == null)
+        {
+            return;  // Return early if the application doesn't have focus or material is null
+        }
 
         float timeDelta = Application.isPlaying
             ? Time.deltaTime
-            : (Time.realtimeSinceStartup - lastRealTime);
+            : Mathf.Min(0.1f, Time.realtimeSinceStartup - lastRealTime);  // Cap the timeDelta to prevent overload
 
         lastRealTime = Time.realtimeSinceStartup;
 
@@ -134,11 +147,13 @@ public class TimeCycleManager : MonoBehaviour
         isNightTime = TimeOfDay < 6 || TimeOfDay >= 18;
 
         UpdateLight(TimeOfDay / 24f);
+
         if (Application.isPlaying)
         {
             RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
         }
     }
+
 
     private void UpdateLight(float timePercent)
     {

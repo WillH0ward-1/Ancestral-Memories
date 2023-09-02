@@ -10,10 +10,11 @@ public class VocabularyManager : MonoBehaviour
     private static List<string> globalVocabulary = new List<string>();
 
     // Raw paths
-    private static readonly string baseDirectory = Path.Combine(Application.dataPath, "LanguageGen", "CharResources");
-    private static readonly string everyWordRawPath = Path.Combine(baseDirectory, "EveryWord.txt");
-    private static readonly string phoneticBreakdownRawPath = Path.Combine(baseDirectory, "PhoneticBreakdown.txt");
-    private static readonly string phonemeFormantsRawPath = Path.Combine(baseDirectory, "PhonemeFormants.txt");
+    public readonly string persistentPath;
+
+    private string everyWordRawPath;
+    private string phoneticBreakdownRawPath;
+    private string phonemeFormantsRawPath;
 
     public string EveryWordPath => everyWordRawPath;
     public string PhoneticBreakdownPath => phoneticBreakdownRawPath;
@@ -21,6 +22,13 @@ public class VocabularyManager : MonoBehaviour
 
     // Public property for external scripts to access the vocabulary list
     public IReadOnlyList<string> Vocabulary => globalVocabulary;
+
+    private void Awake()
+    {
+        everyWordRawPath = Path.Combine(Application.dataPath, "Resources", "Dialogue", "EveryWord.txt");
+        phoneticBreakdownRawPath = Path.Combine(Application.dataPath, "Resources", "Dialogue", "PhoneticBreakdown.txt");
+        phonemeFormantsRawPath = Path.Combine(Application.dataPath, "Resources", "Dialogue", "PhonemeFormants.txt");
+    }
 
     public void AddVocabulary(IEnumerable<string> words)
     {
