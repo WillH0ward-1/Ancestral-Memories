@@ -74,7 +74,9 @@ public class Dialogue : MonoBehaviour
     private void Awake()
     {
         player = FindObjectOfType<Player>();
- 
+
+        vocabularyManager = FindObjectOfType<VocabularyManager>();
+
         dialogueLines = FindObjectOfType<DialogueLines>();
         languageGenerator = GetComponent<LanguageGenerator>();
         formantSynth = GetComponent<FormantSynthesizer>();
@@ -250,7 +252,7 @@ public class Dialogue : MonoBehaviour
         else if (characterName.Equals("Sapien", StringComparison.OrdinalIgnoreCase))
         {
             return languageGenerator.TranslateToSapien;
-        }
+        } 
 
         // Default to original lines if character name is not recognized
         return (line) => line;
@@ -290,6 +292,12 @@ public class Dialogue : MonoBehaviour
     public bool speak = true;
     private FormantSynthesizer formantSynth;
 
+    public bool isSyllabic = false;
+    public VocabularyManager vocabularyManager;
+
+    public float timeBetweenSyllables = 0.1f;
+    public float timeBetweenWords = 0.5f;
+
     IEnumerator TypeLine()
     {
         isLineComplete = false;
@@ -299,6 +307,10 @@ public class Dialogue : MonoBehaviour
 
         int originalIndex = 0;
         int translatedIndex = 0;
+        string currentWord = "";
+        int syllableCount = 0;
+
+        // Time durations for syllables and words
 
         while (translatedIndex < translatedLine.Length)
         {
@@ -315,17 +327,43 @@ public class Dialogue : MonoBehaviour
 
             clickPromptObject.SetActive(false);
 
+            char currentChar = translatedLine[translatedIndex];
+
             if (originalIndex < originalLine.Length)
             {
-                stringBuilder[originalIndex] = translatedLine[translatedIndex];
+                stringBuilder[originalIndex] = currentChar;
                 originalIndex++;
             }
             else
             {
-                stringBuilder.Append(translatedLine[translatedIndex]);
+                stringBuilder.Append(currentChar);
             }
 
-            if (usePhonemes)
+            currentWord += currentChar;
+
+            if (currentChar == ' ' || translatedIndex == translatedLine.Length - 1) // End of a word or sentence
+            {
+                if (isSyllabic)
+                {
+                    syllableCount = vocabularyManager.CountSyllablesInWord(currentWord.Trim());
+
+                    for (int i = 0; i < syllableCount; i++)
+                    {
+                        TriggerPhoneme(characterName, characterType);
+                        yield return new WaitForSeconds(timeBetweenSyllables); // Short delay between syllables
+                    }
+
+                    yield return new WaitForSeconds(timeBetweenWords - timeBetweenSyllables); // Additional delay for the pause between words
+                }
+                else
+                {
+                    yield return new WaitForSeconds(timeBetweenWords); // Delay between words when not in syllabic mode
+                }
+
+                currentWord = ""; // Reset the current word
+                syllableCount = 0; // Reset syllable count
+            }
+            else if (!isSyllabic && usePhonemes)
             {
                 TriggerPhoneme(characterName, characterType);
             }
@@ -348,6 +386,34 @@ public class Dialogue : MonoBehaviour
 
         isLineComplete = true;
         clickPromptObject.SetActive(true);
+    }
+
+
+
+    void TriggerPhoneme(string name, string type)
+    {
+        if (dialogueActive)
+        {
+            string baseKey = name + "/" + type + "/" + PhonemeFolder + "/" + name + "-" + type + "-" + PhonemeIdentifier;
+            string fullKey = GetRandomPhonemePath(baseKey);
+
+            if (string.IsNullOrEmpty(fullKey))
+                return;
+
+            phonemeKeyRef = fullKey;
+            Debug.Log(fullKey);
+
+            var phonemeInstance = RuntimeManager.CreateInstance(phonemePath);
+
+            GCHandle stringHandle = GCHandle.Alloc(fullKey, GCHandleType.Pinned);
+            phonemeInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
+            phonemeInstance.setCallback(callbackDelegate);
+
+            RuntimeManager.AttachInstanceToGameObject(phonemeInstance, transform);
+
+            phonemeInstance.start();
+            phonemeInstance.release();
+        }
     }
 
 
@@ -425,32 +491,6 @@ public class Dialogue : MonoBehaviour
 
             StartCoroutine(UpdateDistance(dialogueInstance));
 
-        }
-    }
-
-    void TriggerPhoneme(string name, string type)
-    {
-        if (dialogueActive)
-        {
-            string baseKey = name + "/" + type + "/" + PhonemeFolder + "/" + name + "-" + type + "-" + PhonemeIdentifier;
-            string fullKey = GetRandomPhonemePath(baseKey);
-
-            if (string.IsNullOrEmpty(fullKey))
-                return;
-
-            phonemeKeyRef = fullKey;
-            Debug.Log(fullKey);
-
-            var phonemeInstance = RuntimeManager.CreateInstance(phonemePath);
-
-            GCHandle stringHandle = GCHandle.Alloc(fullKey, GCHandleType.Pinned);
-            phonemeInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
-            phonemeInstance.setCallback(callbackDelegate);
-
-            RuntimeManager.AttachInstanceToGameObject(phonemeInstance, transform);
-
-            phonemeInstance.start();
-            phonemeInstance.release();
         }
     }
 

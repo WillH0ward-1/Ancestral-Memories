@@ -124,6 +124,7 @@ public class LanguageGenerator : MonoBehaviour
         return output.ToString();
     }
 
+
     public string TranslateByEvolutionFactor(string englishInput)
     {
         string neanderthalWord = TranslateToNeanderthal(englishInput);

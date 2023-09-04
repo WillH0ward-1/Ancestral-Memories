@@ -46,12 +46,12 @@ namespace Qkmaxware.Phonetics
             Unrecognized
         }
 
-        private HashSet<string> vowels = new HashSet<string>
+        public HashSet<string> vowels = new HashSet<string>
         {
             "a", "e", "i", "o", "u", "ɑ", "æ", "ɛ", "ɚ", "ɪ", "ɔ", "ʊ", "ʌ"
         };
 
-        private HashSet<string> diacritics = new HashSet<string>
+        public HashSet<string> diacritics = new HashSet<string>
         {
             "̩", "̯", "̪", "̺", "̻",
             "̼", "̟", "̠", "˔", "˕",
@@ -62,13 +62,13 @@ namespace Qkmaxware.Phonetics
             "̴", "̘", "̻", "̏", "ˑ", "ˤ"
         };
 
-        private HashSet<string> suprasegmentals = new HashSet<string>
+        public HashSet<string> suprasegmentals = new HashSet<string>
         {
             "ˈ", "ˌ", "ː", "|", "‖",
             ".", "↘", "↗", "ʍ"
         };
 
-        private HashSet<string> consonants = new HashSet<string>
+        public HashSet<string> consonants = new HashSet<string>
         {
             "p", "b", "t", "d", "ʈ", "ɖ", "c", "ɟ", "k", "ɡ", "q", "ɢ", "ʔ",
             "m", "ɱ", "n", "ɳ", "ɲ", "ŋ", "ɴ",
@@ -83,7 +83,7 @@ namespace Qkmaxware.Phonetics
             "ʦ", "ʣ", "ʧ", "ʤ", "ʨ", "ʥ"
         };
 
-        private HashSet<string> clicks = new HashSet<string>
+        public HashSet<string> clicks = new HashSet<string>
         {
             "ʘ",
             "ǀ",
@@ -92,7 +92,7 @@ namespace Qkmaxware.Phonetics
             "ǁ"
         };
 
-        private HashSet<string> implosives = new HashSet<string>
+        public HashSet<string> implosives = new HashSet<string>
         {
             "ɓ",
             "ɗ",
@@ -101,7 +101,7 @@ namespace Qkmaxware.Phonetics
             "ʛ"
         };
 
-        private HashSet<string> ejectives = new HashSet<string>
+        public HashSet<string> ejectives = new HashSet<string>
         {
             "pʼ", "tʼ", "kʼ", "qʼ", "sʼ", "ʃʼ", "cʼ", "ʧʼ", "ʦʼ", "χʼ"
         };
