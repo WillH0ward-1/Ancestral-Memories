@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Qkmaxware.Phonetics
 {
-    public class IPA : JsonConverter
+    public class IPA
     {
         private Dictionary<string, string> dictionary;
         private Dictionary<string, IPASymbol> ipaSymbols = new Dictionary<string, IPASymbol>();
@@ -234,6 +234,139 @@ namespace Qkmaxware.Phonetics
             File.WriteAllLines(formantFilePath, lines);
         }
 
+        public List<int[]> GetFormants(string ipaString)
+        {
+            List<int[]> formantFrequencies = new List<int[]>();
+
+            for (int i = 0; i < ipaString.Length; i++)
+            {
+                char currentChar = ipaString[i];
+                string potentialDiphthong = (i < ipaString.Length - 1) ? currentChar.ToString() + ipaString[i + 1] : null;
+
+                bool found = false;
+
+                foreach (var category in Formants)
+                {
+                    var soundTypeDictionary = category.Value;
+
+                    // Check for diphthongs first
+                    if (potentialDiphthong != null && soundTypeDictionary.ContainsKey(potentialDiphthong))
+                    {
+                        formantFrequencies.Add(soundTypeDictionary[potentialDiphthong]);
+                        i++; // Skip next character
+                        found = true;
+                        break; // No need to check further
+                    }
+
+                    // Check for single character symbols
+                    string currentSymbol = currentChar.ToString();
+                    if (soundTypeDictionary.ContainsKey(currentSymbol))
+                    {
+                        formantFrequencies.Add(soundTypeDictionary[currentSymbol]);
+                        found = true;
+                        break; // No need to check further
+                    }
+                }
+
+                // If the symbol wasn't found in any category, you can decide whether you want to handle it in a special way or ignore it.
+                if (!found)
+                {
+                    // Handle unknown symbol if needed
+                }
+            }
+
+            return formantFrequencies;
+        }
+
+
+        public static Dictionary<string, Dictionary<string, int[]>> Formants = new Dictionary<string, Dictionary<string, int[]>>
+        {
+            // Monophthongal vowels
+            ["Monophthongal vowels"] = new Dictionary<string, int[]>
+            {
+                {"i", new int[] {270, 2290, 3010}},
+                {"ɪ", new int[] {400, 2200, 2900}},
+                {"e", new int[] {400, 2300, 3000}},
+                {"ɛ", new int[] {600, 1800, 2500}},
+                {"æ", new int[] {650, 1700, 2400}},
+                {"ɑ", new int[] {700, 1150, 2600}},
+                {"ɔ", new int[] {500, 1000, 2500}},
+                {"o", new int[] {450, 800, 2600}},
+                {"u", new int[] {300, 800, 2400}},
+                {"ʊ", new int[] {400, 900, 2500}},
+                {"ʌ", new int[] {600, 1200, 2400}},
+                {"ɝ", new int[] {500, 1500, 2500}},
+                {"ə", new int[] {500, 1500, 2500}}
+            },
+
+            // Diphthongs
+            ["Diphthongs"] = new Dictionary<string, int[]>
+            {
+                {"aɪ", new int[] {650, 1850, 2850}},
+                {"aʊ", new int[] {750, 1250, 2500}},
+                {"oʊ", new int[] {450, 800, 2400}},
+                {"eɪ", new int[] {400, 2300, 3000}},
+                {"ɔɪ", new int[] {490, 1250, 2390}}
+            },
+
+            // Plosives (stops)
+            ["Plosives"] = new Dictionary<string, int[]>
+            {
+                {"p", new int[] {900, 2200, 3450}},
+                {"b", new int[] {700, 2100, 3400}},
+                {"t", new int[] {1650, 4200, 5500}},
+                {"d", new int[] {1600, 4000, 5200}},
+                {"k", new int[] {1400, 3800, 6000}},
+                {"g", new int[] {1100, 3000, 4000}}
+            },
+
+            // Affricates
+            ["Affricates"] = new Dictionary<string, int[]>
+            {
+                {"ʧ", new int[] {2300, 3400, 5000}},
+                {"ʤ", new int[] {2100, 2900, 4400}}
+            },
+
+            // Fricatives
+            ["Fricatives"] = new Dictionary<string, int[]>
+            {
+                {"f", new int[] {760, 1300, 3000}},
+                {"v", new int[] {570, 840, 2410}},
+                {"θ", new int[] {1800, 2600, 3400}},
+                {"ð", new int[] {1400, 2050, 2850}},
+                {"s", new int[] {2200, 5900, 8100}},
+                {"z", new int[] {2400, 4600, 6500}},
+                {"ʃ", new int[] {2300, 3900, 5800}},
+                {"ʒ", new int[] {2200, 3700, 5400}}
+            },
+
+            // Nasals
+            ["Nasals"] = new Dictionary<string, int[]>
+            {
+                {"m", new int[] {250, 2300, 3300}},
+                {"n", new int[] {250, 1750, 2500}},
+                {"ŋ", new int[] {450, 1500, 2100}}
+            },
+
+            // Liquids and glides
+            ["Liquids and glides"] = new Dictionary<string, int[]>
+        {
+                {"l", new int[] {450, 1450, 2600}},
+                {"ɹ", new int[] {300, 1400, 2600}},
+                {"j", new int[] {250, 2200, 3000}},
+                {"w", new int[] {300, 900, 2500}}
+            },
+
+            // Approximants
+            ["Approximants"] = new Dictionary<string, int[]>
+            {
+                {"ɻ", new int[] {450, 1800, 2400}},  // retroflex approximant
+                {"ɰ", new int[] {300, 2200, 3400}}  // voiced velar approximant
+            }
+        };
+
+
+
         private int ExtractFormantValue(string formantsStr, string formantName)
         {
             string pattern = $"{formantName}: (\\d+)";
@@ -307,139 +440,5 @@ namespace Qkmaxware.Phonetics
             { "ʊ", new[] { "400", "900", "2500" } },    // General American 'foot'
             { "ʌ", new[] { "600", "1200", "2400" } }    // General American 'strut'
         };
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            IPASymbol symbol = (IPASymbol)value;
-
-            switch (symbol.Category)
-            {
-                case IPACategory.Consonant:
-                    symbol.VolumeDuck = 1;
-                    symbol.TimeModification = 2;
-                    symbol.PitchAdjustment = 3;
-                    symbol.VowelQuality = 0; // Consonants don't have vowel quality
-                    symbol.F1 = 1000;
-                    symbol.F2 = 2000;
-                    symbol.F3 = 3000;
-                    symbol.F4 = 0;
-                    symbol.F5 = 0;
-                    break;
-
-                case IPACategory.Vowel:
-                    symbol.VolumeDuck = 5;
-                    symbol.TimeModification = 6;
-                    symbol.PitchAdjustment = 7;
-                    symbol.VowelQuality = 10;
-                    symbol.F1 = 500;
-                    symbol.F2 = 1500;
-                    symbol.F3 = 2500;
-                    symbol.F4 = 3500;
-                    symbol.F5 = 4500;
-                    break;
-
-                case IPACategory.Diacritic:
-                    symbol.VolumeDuck = 0;
-                    symbol.TimeModification = 0;
-                    symbol.PitchAdjustment = 0;
-                    symbol.VowelQuality = 0;
-                    symbol.F1 = 0;
-                    symbol.F2 = 0;
-                    symbol.F3 = 0;
-                    symbol.F4 = 0;
-                    symbol.F5 = 0;
-                    break;
-
-                case IPACategory.Suprasegmental:
-                    symbol.VolumeDuck = 2;
-                    symbol.TimeModification = 1;
-                    symbol.PitchAdjustment = 1;
-                    symbol.VowelQuality = 0; // Suprasegmentals don't have vowel quality
-                    symbol.F1 = 1000;
-                    symbol.F2 = 2000;
-                    symbol.F3 = 3000;
-                    symbol.F4 = 0;
-                    symbol.F5 = 0;
-                    break;
-
-                case IPACategory.Unrecognized:
-                    symbol.VolumeDuck = 0;
-                    symbol.TimeModification = 0;
-                    symbol.PitchAdjustment = 0;
-                    symbol.VowelQuality = 0;
-                    symbol.F1 = 0;
-                    symbol.F2 = 0;
-                    symbol.F3 = 0;
-                    symbol.F4 = 0;
-                    symbol.F5 = 0;
-                    break;
-
-                default:
-                    break;
-            }
-
-
-            JObject symbolObject = new JObject
-            {
-                ["Symbol"] = symbol.Symbol,
-                ["Category"] = JToken.FromObject(symbol.Category, serializer),
-                ["VolumeDuck"] = symbol.VolumeDuck,
-                ["TimeModification"] = symbol.TimeModification,
-                ["PitchAdjustment"] = symbol.PitchAdjustment,
-                ["VowelQuality"] = symbol.VowelQuality,
-                ["Formants"] = $"F1: {symbol.F1}, F2: {symbol.F2}, F3: {symbol.F3}, F4: {symbol.F4}, F5: {symbol.F5}"
-            };
-
-            symbolObject.WriteTo(writer);
-        }
-
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (reader.TokenType == JsonToken.StartObject)
-            {
-                JObject jsonObject = JObject.Load(reader);
-
-                string symbol = jsonObject["Symbol"].ToString();
-                IPACategory category = jsonObject["Category"].ToObject<IPACategory>();
-                int volumeDuck = (int)jsonObject["VolumeDuck"];
-                int timeModification = (int)jsonObject["TimeModification"];
-                int pitchAdjustment = (int)jsonObject["PitchAdjustment"];
-                int vowelQuality = (int)jsonObject["VowelQuality"];
-
-                // Extract formants
-                string formantsStr = jsonObject["Formants"].ToString();
-                int f1 = ExtractFormantValue(formantsStr, "F1");
-                int f2 = ExtractFormantValue(formantsStr, "F2");
-                int f3 = ExtractFormantValue(formantsStr, "F3");
-                int f4 = ExtractFormantValue(formantsStr, "F4");
-                int f5 = ExtractFormantValue(formantsStr, "F5");
-
-                // Create and return IPASymbol object
-                IPASymbol ipaSymbol = new IPASymbol
-                {
-                    Symbol = symbol,
-                    Category = category,
-                    VolumeDuck = volumeDuck,
-                    TimeModification = timeModification,
-                    PitchAdjustment = pitchAdjustment,
-                    VowelQuality = vowelQuality,
-                    F1 = f1,
-                    F2 = f2,
-                    F3 = f3,
-                    F4 = f4,
-                    F5 = f5
-                };
-
-                return ipaSymbol;
-            }
-
-            throw new JsonSerializationException("Unexpected token type: " + reader.TokenType);
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(IPASymbol);
-        }
     }
 }

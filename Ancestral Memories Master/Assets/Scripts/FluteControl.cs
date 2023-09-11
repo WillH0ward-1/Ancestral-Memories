@@ -13,9 +13,9 @@ public class FluteControl : MonoBehaviour
 
     [SerializeField] private GameObject attenuationObject;
 
-    [SerializeField] private Player player;
-    [SerializeField] private CharacterBehaviours behaviours;
-    [SerializeField] private AudioSFXManager playerSFX;
+    public Player player;
+    public CharacterBehaviours behaviours;
+    public AudioSFXManager playerSFX;
 
     [SerializeField] private Camera cam;
     [SerializeField] private LayerMask targetLayer;
@@ -56,20 +56,20 @@ public class FluteControl : MonoBehaviour
 
     private void Awake()
     {
-        player = FindObjectOfType<Player>();
-        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
-        mapObjGen = FindObjectOfType<MapObjGen>();
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
         playerSFX = GetComponentInChildren<AudioSFXManager>();
     }
 
+    public void InitializeFlute()
+    {
+
+    }
+
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
-    private StatsManager statsManager;
 
     private void Start()
     {
         callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
-        statsManager = FindObjectOfType<StatsManager>();
     }
 
     public void EnableFluteControl()

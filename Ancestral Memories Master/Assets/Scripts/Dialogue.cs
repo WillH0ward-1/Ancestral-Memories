@@ -73,11 +73,6 @@ public class Dialogue : MonoBehaviour
 
     private void Awake()
     {
-        player = FindObjectOfType<Player>();
-
-        vocabularyManager = FindObjectOfType<VocabularyManager>();
-
-        dialogueLines = FindObjectOfType<DialogueLines>();
         languageGenerator = GetComponent<LanguageGenerator>();
         formantSynth = GetComponent<FormantSynthesizer>();
 
@@ -297,7 +292,7 @@ public class Dialogue : MonoBehaviour
 
     public float timeBetweenSyllables = 0.1f;
     public float timeBetweenWords = 0.5f;
-
+    public float speakingSpeed = 2f;
     IEnumerator TypeLine()
     {
         isLineComplete = false;
@@ -307,10 +302,11 @@ public class Dialogue : MonoBehaviour
 
         int originalIndex = 0;
         int translatedIndex = 0;
-        string currentWord = "";
-        int syllableCount = 0;
 
-        // Time durations for syllables and words
+        if (speak)
+        {
+            StartCoroutine(HandleSpeaking(translatedLine));
+        }
 
         while (translatedIndex < translatedLine.Length)
         {
@@ -339,40 +335,6 @@ public class Dialogue : MonoBehaviour
                 stringBuilder.Append(currentChar);
             }
 
-            currentWord += currentChar;
-
-            if (currentChar == ' ' || translatedIndex == translatedLine.Length - 1) // End of a word or sentence
-            {
-                if (isSyllabic)
-                {
-                    syllableCount = vocabularyManager.CountSyllablesInWord(currentWord.Trim());
-
-                    for (int i = 0; i < syllableCount; i++)
-                    {
-                        TriggerPhoneme(characterName, characterType);
-                        yield return new WaitForSeconds(timeBetweenSyllables); // Short delay between syllables
-                    }
-
-                    yield return new WaitForSeconds(timeBetweenWords - timeBetweenSyllables); // Additional delay for the pause between words
-                }
-                else
-                {
-                    yield return new WaitForSeconds(timeBetweenWords); // Delay between words when not in syllabic mode
-                }
-
-                currentWord = ""; // Reset the current word
-                syllableCount = 0; // Reset syllable count
-            }
-            else if (!isSyllabic && usePhonemes)
-            {
-                TriggerPhoneme(characterName, characterType);
-            }
-
-            if (speak)
-            {
-                formantSynth.Speak(stringBuilder.ToString()); // Pass the translated text to the Speak method
-            }
-
             translatedIndex++;
             textComponent.text = stringBuilder.ToString();
             yield return new WaitForSeconds(textSpeed);
@@ -386,6 +348,22 @@ public class Dialogue : MonoBehaviour
 
         isLineComplete = true;
         clickPromptObject.SetActive(true);
+    }
+
+    IEnumerator HandleSpeaking(string translatedLine)
+    {
+        string currentWord = "";
+        foreach (char c in translatedLine)
+        {
+            currentWord += c;
+            if (c == ' ' || c == translatedLine[translatedLine.Length - 1])
+            {
+                formantSynth.Speak(currentWord.Trim());
+                float deviation = UnityEngine.Random.Range(-0.5f, 0.5f); // e.g., 5% deviation
+                yield return new WaitForSeconds(speakingSpeed * (1 + deviation));
+                currentWord = ""; // Reset the current word
+            }
+        }
     }
 
 

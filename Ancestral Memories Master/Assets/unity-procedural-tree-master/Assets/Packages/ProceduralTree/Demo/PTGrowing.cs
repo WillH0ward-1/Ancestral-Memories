@@ -47,7 +47,7 @@ namespace ProceduralModeling
         private bool isNavMeshCutEnabled = false;
         private Coroutine navMeshCutCoroutine;
 
-        public RainControl weatherControl;
+        public RainControl rainControl;
 
         private float leafColourLerpTime;
 
@@ -74,7 +74,7 @@ namespace ProceduralModeling
 
         private void Awake()
         {
-            weatherControl = FindObjectOfType<RainControl>();
+            rainControl = FindObjectOfType<RainControl>();
             proceduralTree = GetComponentInChildren<ProceduralTree>();
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
@@ -213,7 +213,7 @@ namespace ProceduralModeling
 
             lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
 
-            if (!weatherControl.drought && seasonManager._currentSeason != SeasonManager.Season.Winter)
+            if (!rainControl.drought && seasonManager._currentSeason != SeasonManager.Season.Winter)
             {
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
                 treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);

@@ -76,7 +76,7 @@ public class HumanAI : MonoBehaviour
 
     private void Awake()
     {
-        formationController = FindObjectOfType<FormationController>();
+
         player = FindObjectOfType<Player>();
         playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
 
@@ -279,7 +279,7 @@ public class HumanAI : MonoBehaviour
     public List<GameObject> NearbyAI;
     public bool isTalking = false;
     public bool isListening = false;
-    private FormationController formationController;
+    public FormationController formationController;
 
     private IEnumerator EnterConversation()
     {

@@ -3,6 +3,7 @@ using System.Globalization;
 using TMPro;
 using UnityEngine;
 
+[ExecuteAlways]
 public class TimeSeasonDisplay : MonoBehaviour
 {
     [SerializeField] private SeasonManager seasonManager;
@@ -15,7 +16,7 @@ public class TimeSeasonDisplay : MonoBehaviour
     [SerializeField] private Vector2 dilationRange = new Vector2(0f, 0.1f);
     [SerializeField] private Vector2 alphaRange = new Vector2(0f, 1f);
 
-    private void Awake()
+    private void OnEnable()
     {
         seasonManager = transform.GetComponent<SeasonManager>();
         timeCycleManager = transform.GetComponent<TimeCycleManager>();
@@ -27,10 +28,7 @@ public class TimeSeasonDisplay : MonoBehaviour
         if (seasonsTransform != null) { seasonText = seasonsTransform.GetComponentInChildren<TextMeshProUGUI>(); }
         if (dateTransform != null) { dateText = dateTransform.GetComponentInChildren<TextMeshProUGUI>(); }
         if (yearTransform != null) { yearText = yearTransform.GetComponentInChildren<TextMeshProUGUI>(); } // Get the year text component
-    }
 
-    private void Start()
-    {
         if (seasonManager != null && seasonText != null)
         {
             UpdateSeasonDisplay(seasonManager.CurrentSeason);
@@ -41,7 +39,6 @@ public class TimeSeasonDisplay : MonoBehaviour
         UpdateDateDisplay();
         UpdateYearDisplay();
     }
-
 
     private int lastMonth = -1; // Tracks the last month
     private int lastDay = -1; // Tracks the last day

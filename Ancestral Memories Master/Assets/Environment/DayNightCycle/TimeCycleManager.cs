@@ -17,7 +17,6 @@ public class TimeCycleManager : MonoBehaviour
     public TimeColor[] timeColors;
     [SerializeField, Range(0, 24)] private float _timeOfDay;
     public float timeMultiplier = 0.25f;
-    public float defaultTimeMultiplier = 0.25f;
     public bool isNightTime;
     public bool updateInEditor = true;
     public GameObject skyBox;
@@ -26,6 +25,9 @@ public class TimeCycleManager : MonoBehaviour
     [SerializeField, Range(0, 365)] private int _dayOfYear; // Current day of the year
     public int daysPerSeason = 90;
     [SerializeField] private SeasonManager seasonManager;
+
+     public float defaultTimeMultiplier = 0.25f;
+    [SerializeField] private float editorTimeMultiplier = 0.8f;
 
     public int DayOfYear
     {
@@ -79,7 +81,6 @@ public class TimeCycleManager : MonoBehaviour
 
         seasonManager.InitTime();
 
-        defaultTimeMultiplier = 0.25f;
         timeMultiplier = defaultTimeMultiplier;
         Renderer renderer = skyBox.GetComponentInChildren<Renderer>();
         if (renderer != null)
@@ -207,6 +208,14 @@ public class TimeCycleManager : MonoBehaviour
     private void OnEnable()
     {
         seasonManager = transform.GetComponent<SeasonManager>();
+
+        if (Application.isEditor)
+        {
+            timeMultiplier = editorTimeMultiplier;
+        } else
+        {
+            timeMultiplier = defaultTimeMultiplier;
+        }
 
         if (seasonManager == null)
         {

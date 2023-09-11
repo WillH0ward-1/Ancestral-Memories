@@ -18,6 +18,13 @@ public class FormationController : MonoBehaviour
     }
 
     private List<Group> groups = new List<Group>();
+    private MapObjGen mapObjGen;
+
+    private void Start()
+    {
+        mapObjGen = FindObjectOfType<MapObjGen>();
+        GetAgents();
+    }
 
     public void RegisterAgent(HumanAI agent, GameObject target, FormationManager.FormationType formation)
     {
@@ -58,6 +65,15 @@ public class FormationController : MonoBehaviour
         for (int i = 0; i < group.agents.Count; i++)
         {
             group.agents[i].SetTargetPosition(positions[i]);
+        }
+    }
+
+    private void GetAgents()
+    {
+        foreach(GameObject agent in mapObjGen.humanPopulationList)
+        {
+            HumanAI humanAI = agent.GetComponentInChildren<HumanAI>();
+            humanAI.formationController = this;
         }
     }
 }

@@ -64,23 +64,20 @@ public class FormantSynthesizer : MonoBehaviour
         }
     }
 
-    public void Speak(string letter)
+    public void Speak(string word)
     {
-        string ipaRepresentation = ipaInstance.EnglishToIPA(letter);
+        string ipaRepresentation = ipaInstance.EnglishToIPA(word);
+        List<int[]> allFormants = ipaInstance.GetFormants(ipaRepresentation);
 
-        if (phoneticData.TryGetValue(ipaRepresentation, out PhonemeInfo phonemeInfo))
+        foreach (int[] phonemeFormants in allFormants)
         {
-            SendFreq(phonemeInfo.frequencies);
-        }
-        else
-        {
-            Debug.LogWarning($"No phonetic data found for word: {letter}");
+            SendFreq(phonemeFormants);
         }
     }
 
-    private void SendFreq(List<int> frequencies)
+    private void SendFreq(int[] frequencies)
     {
-        if (frequencies.Count >= 3)
+        if (frequencies.Length >= 3)
         {
             // Create an instance of the FMOD event
             soundEvent = RuntimeManager.CreateInstance(soundEventRef);
@@ -93,6 +90,7 @@ public class FormantSynthesizer : MonoBehaviour
             soundEvent.release();
         }
     }
+
 
     private void OnDestroy()
     {

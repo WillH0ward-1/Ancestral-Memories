@@ -76,9 +76,6 @@ public class AnimalAI : MonoBehaviour
         //agent.autoBraking = false;
         //agent.radius = agentRadius;
 
-        player = FindObjectOfType<Player>();
-        playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
-
         aiPath = transform.GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
         aiPath.acceleration = 10000;

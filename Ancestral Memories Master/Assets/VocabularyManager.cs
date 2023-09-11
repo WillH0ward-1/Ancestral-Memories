@@ -27,8 +27,13 @@ public class VocabularyManager : MonoBehaviour
     // Public property for external scripts to access the vocabulary list
     public IReadOnlyList<string> Vocabulary => globalVocabulary;
 
+    private DialogueLines dialogueLines;
+
     private void Awake()
     {
+        dialogueLines = transform.GetComponentInChildren<DialogueLines>();
+        dialogueLines.vocabularyManager = this;
+
         everyWordRawPath = Path.Combine(Application.persistentDataPath, "EveryWord.txt");
         phoneticBreakdownRawPath = Path.Combine(Application.persistentDataPath, "PhoneticBreakdown.json");
         phonemeFormantsRawPath = Path.Combine(Application.persistentDataPath, "PhonemeFormants.txt");

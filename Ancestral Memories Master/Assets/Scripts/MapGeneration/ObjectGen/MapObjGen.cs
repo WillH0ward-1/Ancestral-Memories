@@ -179,7 +179,6 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private float zOffset = 0;
     [SerializeField] private float initY = 0;
 
-    [SerializeField] private Player player;
     public RadialMenu radialMenu;
     public Camera cam;
 
@@ -202,6 +201,7 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private CharacterBehaviours behaviours;
+    [SerializeField] private Player player;
 
     [Header("========================================================================================================================")]
     [Header("Weather")]
@@ -213,7 +213,7 @@ public class MapObjGen : MonoBehaviour
     public TimeCycleManager timeCycleManager;
 
     private GameObject emitterInstance;
-
+    
     public IEnumerator WaterSFXEmitterGen()
     {
         Vector3[] verts = waterEmitterTransform.GetComponent<MeshFilter>().mesh.vertices;
@@ -283,7 +283,30 @@ public class MapObjGen : MonoBehaviour
     private void Awake()
     {
         mapCenter = Vector3.zero;
-        player = FindObjectOfType<Player>();
+
+        if (player != null)
+        {
+            player = FindObjectOfType<Player>();
+        } else
+        {
+            LogNullWarning("Player");
+        }
+        vocabularyManager = FindObjectOfType<VocabularyManager>();
+
+    }
+
+    private void InitializeFlute()
+    {
+        fluteControl = player.GetComponentInChildren<FluteControl>();
+
+        fluteControl.player = player;
+        fluteControl.behaviours = behaviours;
+        fluteControl.mapObjGen = this;
+    }
+
+    private void LogNullWarning(string variableName)
+    {
+        Debug.LogWarning("MAPOBJGEN: " + variableName + " has not been set in MapObjGen inspector!");
     }
 
     private Vector3[] waterEmitterVerts;
@@ -321,6 +344,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler pedestalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumPedestalRadius);
         PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
         PoissonDiscSampler humanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumHumanRadius);
+
 
         //TreePoissonDisc(treeSampler);
         //AppleTreePoissonDisc(appleTreeSampler);
@@ -374,11 +398,11 @@ public class MapObjGen : MonoBehaviour
         GetPTGrowComponents();
 
         StartCoroutine(StartProceduralTreeGrowth(treeList));
+
+        SpawnPlayer();
         //StartCoroutine(StartTreeGrowth(treeList));
 
         //EnableNavMeshAgents(npcList);
-
-        player.transform.GetComponentInChildren<SpawnPlayer>().SetSpawnPosition(spawnPointsList);
         //RandomizeTreecolours();
 
     }
@@ -462,6 +486,23 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> spawnPointsList;
 
+    private FluteControl fluteControl;
+
+    void SpawnPlayer()
+    {
+        InitializeFlute();
+        player.transform.position = SetSpawnPosition(spawnPointsList);
+    }
+
+    public Vector3 SetSpawnPosition(List<GameObject> spawnPointsList)
+    {
+        int randomIndex = Random.Range(0, spawnPointsList.Count); // Get a random index within the range of the list
+        GameObject randomSpawnPoint = spawnPointsList[randomIndex]; // Get the spawn point at that index
+        Vector3 position = randomSpawnPoint.transform.position; // Set the position of the transform to the position of the randomly selected spawn point
+
+        return position;
+    }
+
     void SpawnPointsPoissonDisc(PoissonDiscSampler spawnPointSampler)
     {
         foreach (Vector2 sample in spawnPointSampler.Samples())
@@ -502,6 +543,11 @@ public class MapObjGen : MonoBehaviour
             animalAI.player = player;
             animalAI.playerBehaviours = behaviours;
 
+            Dialogue dialogue = animalInstance.GetComponentInChildren<Dialogue>();
+            dialogue.player = player;
+            dialogue.vocabularyManager = vocabularyManager;
+            dialogue.dialogueLines = dialogueLines;
+
             FLookAnimator lookAnimator = animalInstance.GetComponentInChildren<FLookAnimator>();
             lookAnimator.enabled = true;
             lookAnimator.ObjectToFollow = player.transform;
@@ -520,6 +566,8 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> humanPopulationList;
     public List<AICharacterStats> allHumanStats;
+    private VocabularyManager vocabularyManager;
+    private DialogueLines dialogueLines;
 
     void HumanPoissonDisc(PoissonDiscSampler humanSampler)
     {
@@ -548,6 +596,13 @@ public class MapObjGen : MonoBehaviour
 
             HumanAI humanAI = humanInstance.GetComponentInChildren<HumanAI>();
             humanAI.mapObjGen = this;
+            humanAI.player = player;
+            humanAI.playerBehaviours = behaviours;
+
+            Dialogue dialogue = humanInstance.GetComponentInChildren<Dialogue>();
+            dialogue.player = player;
+            dialogue.vocabularyManager = vocabularyManager;
+            dialogue.dialogueLines = dialogueLines;
 
             AICharacterStats humanStats = humanInstance.GetComponentInChildren<AICharacterStats>();
             allHumanStats.Add(humanStats);
@@ -678,7 +733,6 @@ public class MapObjGen : MonoBehaviour
     public List<GameObject> grassList;
 
     private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
-    //private CorruptionControl corruptionControl;
 
     public WeatherControl weather;
 

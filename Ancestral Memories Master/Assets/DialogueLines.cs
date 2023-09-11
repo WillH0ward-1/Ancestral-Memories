@@ -54,12 +54,10 @@ public class DialogueLines : MonoBehaviour
     public Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
     new Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>>();
 
-    private VocabularyManager vocabularyManager;
+    public VocabularyManager vocabularyManager;
 
     private void Awake()
     {
-        vocabularyManager = FindObjectOfType<VocabularyManager>();
-
         InitializeDialogues();
 
         foreach (CharacterNames name in Enum.GetValues(typeof(CharacterNames)))

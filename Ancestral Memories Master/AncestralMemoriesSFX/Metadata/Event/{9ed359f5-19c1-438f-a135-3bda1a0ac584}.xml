@@ -177,14 +177,13 @@
 			<value>10</value>
 		</property>
 		<property name="volume">
-			<value>-46</value>
+			<value>-44</value>
 		</property>
 		<property name="looping">
 			<value>true</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{57fc9880-e4c3-4783-9bb1-3facd94af977}</destination>
-			<destination>{1afa635a-7b7b-4c6f-ac1f-6262f3aa9c46}</destination>
 		</relationship>
 		<relationship name="audioFile">
 			<destination>{b100ef33-ed41-4849-af22-4fec3fad8ed9}</destination>
@@ -256,14 +255,6 @@
 	<object class="RandomizerModulator" id="{57fc9880-e4c3-4783-9bb1-3facd94af977}">
 		<property name="nameOfPropertyBeingModulated">
 			<value>startOffset</value>
-		</property>
-	</object>
-	<object class="RandomizerModulator" id="{1afa635a-7b7b-4c6f-ac1f-6262f3aa9c46}">
-		<property name="nameOfPropertyBeingModulated">
-			<value>pitch</value>
-		</property>
-		<property name="amount">
-			<value>7</value>
 		</property>
 	</object>
 	<object class="Automator" id="{bab4d2fb-46c2-4b27-a60d-2b97554a8f1b}">
@@ -364,7 +355,7 @@
 			<value>6</value>
 		</property>
 		<property name="value">
-			<value>5</value>
+			<value>5.00000048</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{38b7a335-a69f-497f-89a1-a68628ab78f5}">
