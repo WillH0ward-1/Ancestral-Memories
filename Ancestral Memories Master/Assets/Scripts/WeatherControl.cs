@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+// using FMODUnity;
+// using FMOD.Studio;
 using System.Linq;
 
 public class WeatherControl : MonoBehaviour
@@ -94,6 +94,7 @@ public class WeatherControl : MonoBehaviour
         windStrength = targetWindStrength;
     }
 
+    /*
     private IEnumerator WindTimeout(GameObject instance, EventInstance wind3DInstance)
     {
         yield return new WaitForSeconds(Random.Range(minLifeTime, maxLifeTime));
@@ -104,6 +105,7 @@ public class WeatherControl : MonoBehaviour
         //StartCoroutine(SpawnBuffer());
         yield break;
     }
+    */
 
     [SerializeField] float windMin = 0f;
     [SerializeField] float windMax = 1f;

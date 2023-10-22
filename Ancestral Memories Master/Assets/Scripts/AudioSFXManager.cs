@@ -1,6 +1,6 @@
 using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+//using FMODUnity;
+//using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -15,6 +15,7 @@ public class AudioSFXManager : MonoBehaviour
 
     private Player player;
 
+    /*
     public EventReference WalkEventPath;
     public EventReference HitTreeEventPath;
     public EventReference WhooshEventPath;
@@ -23,10 +24,13 @@ public class AudioSFXManager : MonoBehaviour
     public EventReference VomitEventPath;
     public EventReference FluteEventPath;
     public EventReference PrayerEventPath;
+    */
+
 
     //[SerializeField] private EventReference PlayerScreamEventPath;
     //[SerializeField] private EventReference DrownEventPath;
 
+    /*
     private EventInstance walkEvent;
 
     private EventInstance rightFootStepInstance;
@@ -35,6 +39,7 @@ public class AudioSFXManager : MonoBehaviour
     private EventInstance fluteEventInstance;
 
     private EventInstance prayerInstance;
+    */
 
     public MusicManager musicManager;
     
@@ -49,29 +54,31 @@ public class AudioSFXManager : MonoBehaviour
     {
     // For area-based method, the 'TerrainType' parameter should be set to 'global'
 
-        RuntimeManager.StudioSystem.setParameterByName("TerrainType", index);
+        //RuntimeManager.StudioSystem.setParameterByName("TerrainType", index);
     }
 
     // For raycasting method, the 'TerrainType' parameter should be set to 'local'
 
     public void RayUpdateGroundType(Transform raySource, int index)
     {
+
         if (raySource.CompareTag("LeftFoot"))
         {
-            leftFootStepInstance.setParameterByName("TerrainType", index);
+            //leftFootStepInstance.setParameterByName("TerrainType", index);
+
         }
 
         if (raySource.CompareTag("RightFoot"))
         {
-            rightFootStepInstance.setParameterByName("TerrainType", index);
+            //rightFootStepInstance.setParameterByName("TerrainType", index);
         }
     }
 
     public void UpdateWaterDepth(Transform raySource, float depth)
     {
-            leftFootStepInstance.setParameterByName("WaterDepth", depth);
+        // leftFootStepInstance.setParameterByName("WaterDepth", depth);
 
-            rightFootStepInstance.setParameterByName("WaterDepth", depth);
+        // rightFootStepInstance.setParameterByName("WaterDepth", depth);
     }
 
     public void CheckGroundType()
@@ -91,8 +98,8 @@ public class AudioSFXManager : MonoBehaviour
     {
         if (behaviours.isPsychdelicMode)
         {
-            musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject, true);
-            musicManager.PlayOneShot(MusicManager.Instruments.JawHarp.ToString(), transform.gameObject, false);
+            // musicManager.PlayOneShot(MusicManager.Instruments.HangDrum.ToString(), transform.gameObject, true);
+            // musicManager.PlayOneShot(MusicManager.Instruments.JawHarp.ToString(), transform.gameObject, false);
         }
     }
 
@@ -103,11 +110,13 @@ public class AudioSFXManager : MonoBehaviour
 
         CheckGroundType();
 
+        /*
         leftFootStepInstance = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(leftFootStepInstance, transform, rigidBody);
 
         leftFootStepInstance.start();
         leftFootStepInstance.release();
+        */
     }
 
     void PlayRightFootStep()
@@ -116,40 +125,47 @@ public class AudioSFXManager : MonoBehaviour
 
         CheckGroundType();
 
+        /*
         rightFootStepInstance = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(rightFootStepInstance, transform, rigidBody);
 
         rightFootStepInstance.start();
         rightFootStepInstance.release();
+        */
     }
 
     public void PlayPrayerAudioLoop()
     {
+        /*
         prayerInstance = RuntimeManager.CreateInstance(PrayerEventPath);
         RuntimeManager.AttachInstanceToGameObject(prayerInstance, transform, rigidBody);
 
         prayerInstance.start();
         prayerInstance.release();
+        */
     }
 
     public void StopPrayerAudio()
     {
-        prayerInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+       // prayerInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
     }
 
     void PlayWalkEvent()
     {
+        /*
         walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();
         walkEvent.release();
+        */
     }
 
-    [NonSerialized] public EventInstance fluteEventRef;
+    //[NonSerialized] public EventInstance fluteEventRef;
 
     public void PlayFluteEvent()
     {
+        /*
         EventInstance fluteEvent = RuntimeManager.CreateInstance(FluteEventPath);
         RuntimeManager.AttachInstanceToGameObject(fluteEvent, transform, rigidBody);
 
@@ -157,64 +173,76 @@ public class AudioSFXManager : MonoBehaviour
 
         fluteEventRef.start();
         fluteEventRef.release();
+        */
     }
 
     void Vomit()
     {
+        /*
         EventInstance vomitEvent = RuntimeManager.CreateInstance(VomitEventPath);
         RuntimeManager.AttachInstanceToGameObject(vomitEvent, transform, rigidBody);
 
         vomitEvent.start();
         vomitEvent.release();
+        */
     }
 
     public void UprootPlantEvent()
     {
+        /*
         EventInstance pickPlantEvent = RuntimeManager.CreateInstance(UprootPlantEventPath);
         RuntimeManager.AttachInstanceToGameObject(pickPlantEvent, transform, rigidBody);
 
         pickPlantEvent.start();
         pickPlantEvent.release();
+        */
     }
 
 
     public void EatEvent()
     {
+        /*
         EventInstance eatEvent = RuntimeManager.CreateInstance(EatEventPath);
         RuntimeManager.AttachInstanceToGameObject(eatEvent, transform, rigidBody);
 
         eatEvent.start();
         eatEvent.release();
+        */
     }
 
     void HitGround()
     {
-
+        /*
         EventInstance walkEvent = RuntimeManager.CreateInstance(WalkEventPath);
         RuntimeManager.AttachInstanceToGameObject(walkEvent, transform, rigidBody);
 
         walkEvent.start();
         walkEvent.release();
+        */
     }
 
     float shakeMultiplier = 1;
 
     void WhooshEvent()
     {
+        /*
         EventInstance whooshEvent = RuntimeManager.CreateInstance(WhooshEventPath);
         RuntimeManager.AttachInstanceToGameObject(whooshEvent, transform, rigidBody);
 
         whooshEvent.start();
         whooshEvent.release();
+        */
     }
 
     void HitTree()
     {
+        /*
         EventInstance hitTreeEvent = RuntimeManager.CreateInstance(HitTreeEventPath);
         RuntimeManager.AttachInstanceToGameObject(hitTreeEvent, transform, rigidBody);
 
         hitTreeEvent.start();
         hitTreeEvent.release();
+        */
 
         float minShakeDuration = 1;
         float maxShakeDuration = 2;

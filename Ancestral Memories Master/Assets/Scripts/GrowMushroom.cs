@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+//using FMODUnity;
+//using FMOD.Studio;
 
 public class MushroomGrowth : MonoBehaviour
 {
@@ -14,8 +14,11 @@ public class MushroomGrowth : MonoBehaviour
     [SerializeField] private float minShrinkDuration = 1;
     [SerializeField] private float maxShrinkDuration = 5;
 
+    /*
     [SerializeField] private EventReference growthEvent;
     private EventInstance growthInstance;
+    */
+
     private MapObjGen mapObjGen;
     private ScaleControl scaleControl;
     private SeasonManager seasonManager;
@@ -46,13 +49,18 @@ public class MushroomGrowth : MonoBehaviour
         if (player.faith > player.maxStat / 2 && seasonManager._currentSeason != SeasonManager.Season.Winter)
         {
             growMushrooms = true;
+
+            mapObjGen.foodSourcesList.Add(mushroom);
+
+            /*
             growthInstance = RuntimeManager.CreateInstance(growthEvent);
             RuntimeManager.AttachInstanceToGameObject(growthInstance, transform);
-
             growthInstance.start();
-            mapObjGen.foodSourcesList.Add(mushroom);
+            */
+
             yield return StartCoroutine(scaleControl.LerpScale(transform.gameObject, shrinkScale, growScale, Random.Range(minGrowDuration, maxGrowDuration), 0));
-            growthInstance.release();
+
+           //  growthInstance.release();
         }
     }
 

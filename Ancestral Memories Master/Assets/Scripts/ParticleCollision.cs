@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+//using FMODUnity;
+//using FMOD.Studio;
 
 public class ParticleCollision : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private Player player;
-    private EventInstance instance;
+    // private EventInstance instance;
     [SerializeField] private float currentWindStrength = 0;
     [SerializeField] private float stability = 0;
     [SerializeField] private float instability = 1;
@@ -22,7 +22,7 @@ public class ParticleCollision : MonoBehaviour
 
     [SerializeField] private float targetHarmonicStability;
     public bool windIsActive;
-    private StudioGlobalParameterTrigger globalParams;
+   //  private StudioGlobalParameterTrigger globalParams;
     [SerializeField] private LayerMask groundLayerMask;
     [SerializeField] private Transform flowerParent;
     [SerializeField] private GameObject[] flowerPrefabs;
@@ -155,7 +155,7 @@ public class ParticleCollision : MonoBehaviour
             if (soundGameObject != null)
             {
                 soundGameObject.transform.position = particlePos;
-                musicManager.PlayOneShot(MusicManager.Instruments.PianoTail.ToString(), soundGameObject, true);
+                // musicManager.PlayOneShot(MusicManager.Instruments.PianoTail.ToString(), soundGameObject, true);
             }
             else
             {
@@ -182,8 +182,8 @@ public class ParticleCollision : MonoBehaviour
             currentHarmonicStability = targetHarmonicStability;
             currentLeafDensity = targetLeafDensity;
 
-            RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", currentHarmonicStability);
-            RuntimeManager.StudioSystem.setParameterByName("LeafDensity", currentLeafDensity);
+            // RuntimeManager.StudioSystem.setParameterByName("HarmonicStability", currentHarmonicStability);
+            // RuntimeManager.StudioSystem.setParameterByName("LeafDensity", currentLeafDensity);
 
             yield return null;
         }

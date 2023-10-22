@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Deform;
 using FIMSpace.FLook;
-using FMODUnity;
+//using FMODUnity;
 using Pathfinding;
 using ProceduralModeling;
 
@@ -280,7 +280,7 @@ public class MapObjGen : MonoBehaviour
 
     }
 
-    private void Awake()
+    private void SetupPlayer()
     {
         mapCenter = Vector3.zero;
 
@@ -315,6 +315,8 @@ public class MapObjGen : MonoBehaviour
 
     public void GenerateMapObjects()
     {
+        SetupPlayer();
+
         mapObjectsGenerated = false;
 
         // ResetPosOffset(mapObject.transform);
@@ -352,15 +354,17 @@ public class MapObjGen : MonoBehaviour
         //FoliagePoissonDisc(foliageSampler);
         //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
-        AnimalPoissonDisc(animalSampler);
+        
         MushroomPoissonDisc(mushroomSampler);
         //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
         SpawnPointsPoissonDisc(spawnPointsSampler);
-        HumanPoissonDisc(humanSampler);
         ProceduralTreePoissonDisc(treeSampler);
+        HumanPoissonDisc(humanSampler);
+        AnimalPoissonDisc(animalSampler);
+
 
         SetOffset();
 
@@ -465,12 +469,14 @@ public class MapObjGen : MonoBehaviour
         {
             if (emitter != null)
             {
+                /* 
                 StudioEventEmitter eventEmitter = emitter.transform.GetComponent<StudioEventEmitter>();
-                // eventEmitter.enabled = true;
+                eventEmitter.enabled = true;
 
                 eventEmitter.enabled = true;
 
-                eventEmitter.Play();
+                 eventEmitter.Play();
+                */
             }
         }
     }
@@ -539,20 +545,20 @@ public class MapObjGen : MonoBehaviour
             deform.enabled = false;
 
             //NavMeshAgent agent = animalInstance.GetComponentInChildren<NavMeshAgent>();
+ 
+            FLookAnimator lookAnimator = animalInstance.GetComponentInChildren<FLookAnimator>();
+            lookAnimator.enabled = true;
+            lookAnimator.ObjectToFollow = player.transform;
+
             AnimalAI animalAI = animalInstance.GetComponentInChildren<AnimalAI>();
             animalAI.player = player;
             animalAI.playerBehaviours = behaviours;
+            animalAI.lookAnimator = lookAnimator;
 
             Dialogue dialogue = animalInstance.GetComponentInChildren<Dialogue>();
             dialogue.player = player;
             dialogue.vocabularyManager = vocabularyManager;
             dialogue.dialogueLines = dialogueLines;
-
-            FLookAnimator lookAnimator = animalInstance.GetComponentInChildren<FLookAnimator>();
-            lookAnimator.enabled = true;
-            lookAnimator.ObjectToFollow = player.transform;
-
-            animalAI.lookAnimator = lookAnimator;
 
             deform.enabled = true;
 
@@ -784,6 +790,8 @@ public class MapObjGen : MonoBehaviour
 
             PTGrowing ptGrow = treeInstance.GetComponentInChildren<PTGrowing>();
             ptGrow.mapObjGen = this;
+            ptGrow.rainControl = rainControl;
+            ptGrow.lerpTerrain = terrain.GetComponentInChildren<LerpTerrain>();
 
             TreeAudioManager treeAudioManager = treeInstance.transform.GetComponentInChildren<TreeAudioManager>();
             treeAudioManager.timeManager = timeCycleManager;

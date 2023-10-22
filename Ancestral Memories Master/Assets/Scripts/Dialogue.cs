@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using FMOD.Studio;
+//using FMOD.Studio;
 using System.Runtime.InteropServices;
-using FMODUnity;
+//using FMODUnity;
 using System.IO;
 
 using System;
@@ -37,12 +37,14 @@ public class Dialogue : MonoBehaviour
     const string PhonemeFolder = "Phonemes";
     const string PhonemeIdentifier = "Phoneme";
 
+    /*
     [SerializeField] private EventReference dialogueEventPath;
     [SerializeField] private EventReference dialogue3DEventPath;
     [SerializeField] private EventReference phonemePath;
 
     FMOD.Studio.EVENT_CALLBACK callbackDelegate;
     FMOD.Studio.EVENT_CALLBACK callbackDelegate3D;
+    */
 
     private int conversationIndex;
     private GameObject dialogueBoxInstance;
@@ -62,7 +64,7 @@ public class Dialogue : MonoBehaviour
     private Transform godPrefab;
     private GodRangeController godRangeSettings;
 
-    private EventReference DialogueDuckSnapshot;
+    // private EventReference DialogueDuckSnapshot;
 
     public DialogueLines dialogueLines;
     public DialogueLines.Emotions currentEmotion = DialogueLines.Emotions.Neutral;  // Set default emotion to Neutral
@@ -95,6 +97,7 @@ public class Dialogue : MonoBehaviour
 
     void ValidateEvents()
     {
+        /*
         // Check if EventReference fields are null
         if (dialogueEventPath.ToString() == null || dialogueEventPath.ToString() == "")
             Debug.LogError("Dialogue 2D Event Path is not set in " + gameObject.name);
@@ -102,6 +105,7 @@ public class Dialogue : MonoBehaviour
             Debug.LogError("Dialogue 3D Event Path is not set in " + gameObject.name);
         if (phonemePath.ToString() == null || phonemePath.ToString() == "")
             Debug.LogError("Dialogue Phoneme Path is not set in " + gameObject.name);
+        */
     }
 
     void Start()
@@ -112,7 +116,7 @@ public class Dialogue : MonoBehaviour
             dialogueBox = Instantiate(dialogueBoxPrefab, transform.position, Quaternion.identity);
             canvas = dialogueBox.GetComponentInChildren<Canvas>();
             canvas.enabled = false;
-            callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+            // callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
         }
         else
         {
@@ -381,6 +385,7 @@ public class Dialogue : MonoBehaviour
             phonemeKeyRef = fullKey;
             Debug.Log(fullKey);
 
+            /*
             var phonemeInstance = RuntimeManager.CreateInstance(phonemePath);
 
             GCHandle stringHandle = GCHandle.Alloc(fullKey, GCHandleType.Pinned);
@@ -391,6 +396,8 @@ public class Dialogue : MonoBehaviour
 
             phonemeInstance.start();
             phonemeInstance.release();
+            */
+
         }
     }
 
@@ -440,6 +447,7 @@ public class Dialogue : MonoBehaviour
 
             if (transform.CompareTag("Campfire"))
             {
+                /*
                 var dialogueInstance3D = RuntimeManager.CreateInstance(dialogue3DEventPath);
                 RuntimeManager.AttachInstanceToGameObject(dialogueInstance3D, player.transform);
 
@@ -451,11 +459,13 @@ public class Dialogue : MonoBehaviour
                 dialogueInstance3D.release();
 
                 StartCoroutine(UpdateDistance(dialogueInstance3D));
+                */
 
             }
 
             //dialogueInstance.setParameterByNameWithLabel("DialogueActive", "true");
 
+            /*
             var dialogueInstance = RuntimeManager.CreateInstance(dialogueEventPath);
 
             GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
@@ -468,6 +478,7 @@ public class Dialogue : MonoBehaviour
             dialogueInstance.release();
 
             StartCoroutine(UpdateDistance(dialogueInstance));
+            */
 
         }
     }
@@ -500,6 +511,7 @@ public class Dialogue : MonoBehaviour
     float newMinDistance;
     float newMaxDistance;
 
+    /*
     public IEnumerator UpdateDistance(EventInstance dialogueInstance)
     {
         var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
@@ -513,6 +525,7 @@ public class Dialogue : MonoBehaviour
 
         yield break;
     }
+    */
 
     void Update()
     {

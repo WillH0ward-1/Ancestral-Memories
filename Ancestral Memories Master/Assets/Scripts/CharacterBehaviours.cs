@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FMOD.Studio;
+//using FMOD.Studio;
 using ProceduralModeling;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -48,11 +48,11 @@ public class CharacterBehaviours : MonoBehaviour
 
     public TimeCycleManager timeManager;
 
-    EVENT_CALLBACK callbackDelegate;
+    //EVENT_CALLBACK callbackDelegate;
 
     void Start()
     {
-        callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+        // callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
         player = FindObjectOfType<Player>();
         waterCheck = player.GetComponent<CheckIfUnderwater>();
         pulseControl = player.GetComponentInChildren<PulseEffectControl>();

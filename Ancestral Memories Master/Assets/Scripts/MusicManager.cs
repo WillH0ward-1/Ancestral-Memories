@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using FMOD.Studio;
-using FMODUnity;
+// using FMOD.Studio;
+// using FMODUnity;
 using UnityEngine;
 
 public class MusicManager : MonoBehaviour
@@ -51,6 +51,7 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private float output = 0;
     [SerializeField] private int faithModulateOutput;
 
+    /*
     [SerializeField] private EventReference strings_EventPath;
     [SerializeField] private EventReference pianoTail_EventPath;
     [SerializeField] private EventReference plateScrapeSynth_EventPath;
@@ -60,6 +61,7 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private EventReference playerFlute_EventPath;
     [SerializeField] private EventReference sine_EventPath;
     [SerializeField] private EventReference darkAmbientSwell_EventPath;
+    */
 
     public enum Instruments // The Instruments type containing the names of instruments
                             // This is held in the InstrumentInfo dictionary
@@ -75,6 +77,7 @@ public class MusicManager : MonoBehaviour
         DarkAmbientSwell
     }
 
+    /*
     public Dictionary<Instruments, EventReference> InstrumentInfo = new() // Holds the name and FMOD reference
     {
         { Instruments.Strings, new EventReference() },
@@ -87,6 +90,8 @@ public class MusicManager : MonoBehaviour
         { Instruments.Sine, new EventReference() },
         { Instruments.DarkAmbientSwell, new EventReference() }
     };
+    */
+
 
     public int stringsVoiceCount = 4; // Initialise voice counts here. 
     /*
@@ -102,6 +107,7 @@ public class MusicManager : MonoBehaviour
     private void SetEventReferences() // Sets all of the event paths in the dictionary so it may be accessed
                                       // as one object, along with it's instrument name
     {
+        /*
         InstrumentInfo[Instruments.Strings] = strings_EventPath;
         InstrumentInfo[Instruments.PianoTail] = pianoTail_EventPath;
         InstrumentInfo[Instruments.PlateScrapeSynth] = plateScrapeSynth_EventPath;
@@ -111,6 +117,7 @@ public class MusicManager : MonoBehaviour
         InstrumentInfo[Instruments.PlayerFlute] = playerFlute_EventPath;
         InstrumentInfo[Instruments.Sine] = sine_EventPath;
         InstrumentInfo[Instruments.DarkAmbientSwell] = darkAmbientSwell_EventPath;
+        */
     }
 
     public float minBuffer = 10f;
@@ -128,11 +135,11 @@ public class MusicManager : MonoBehaviour
                               // values.
     }
 
-    EVENT_CALLBACK callbackDelegate;
+    //EVENT_CALLBACK callbackDelegate;
 
     private void Start()
     {
-        callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+        //callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
 
         SetMode(startingMode);
         StartCoroutine(NoteBuffer());
@@ -234,6 +241,7 @@ public class MusicManager : MonoBehaviour
         return newNote;
     }
 
+    /*
     public EventReference GetInstrumentEvent(string instrumentName)
     {
         if (!Enum.TryParse(instrumentName, out Instruments instrument)) // try to retrieve the corrosponding Instrument 
@@ -248,10 +256,11 @@ public class MusicManager : MonoBehaviour
 
         return eventRef;
     }
+    */
 
     public int maxVoices = 4; // Max number of voices active at one time (Polyphony)
 
-    [SerializeField] private Dictionary<EventInstance, string> activeVoices = new Dictionary<EventInstance, string>(); // Holds The instance and its note name
+    // [SerializeField] private Dictionary<EventInstance, string> activeVoices = new Dictionary<EventInstance, string>(); // Holds The instance and its note name
     [SerializeField] private List<string> activeNotes;
 
     public string instrumentFileRootName = "Instrument";
@@ -265,6 +274,7 @@ public class MusicManager : MonoBehaviour
 
             notesToUse = ModeInfo[mode];
 
+            /*
             for (int i = activeVoices.Count - 1; i >= 0; i--) 
             {
                 KeyValuePair<EventInstance, string> activeVoice = activeVoices.ElementAt(i);
@@ -285,6 +295,8 @@ public class MusicManager : MonoBehaviour
                     UnityEngine.Debug.Log("Removed " + "'" + noteName + "'" + " as this note isn't in the " + mode + " mode! " + newNote + " used instead!");
                 }
             }
+            */
+
         }
     }
 
@@ -305,7 +317,7 @@ public class MusicManager : MonoBehaviour
     {
         notesToUse = Shuffle(notesToUse);
 
-        EventReference eventPath = GetInstrumentEvent(instrument);
+        // EventReference eventPath = GetInstrumentEvent(instrument);
 
         for (int i = 0; i < Mathf.Min(maxVoices, voices); i++) // Clamp the number of notes to generate to maxVoices.
                                                               // repeat the iteration 'voices' number of times if voices
@@ -343,8 +355,8 @@ public class MusicManager : MonoBehaviour
                                                                                  // AncestralMemoriesSFX/NoteBanks/Instrument/Strings/Cs
                                                                                  // This is the path to a string sound in C# pitch (C sharp)
                                                                                  // Check the 'Instrument' folder for more options
-                                                                        
-            EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath); // Adapted from 'Steve The Cube' Project
+
+            /*EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath); // Adapted from 'Steve The Cube' Project
             GCHandle stringHandle = GCHandle.Alloc(key, GCHandleType.Pinned); 
             instrumentInstance.setUserData(GCHandle.ToIntPtr(stringHandle));
             instrumentInstance.setCallback(callbackDelegate);
@@ -366,6 +378,8 @@ public class MusicManager : MonoBehaviour
                                                                         // Random period of time determined by 'minLoopDuration' and 'maxLoopDuration'.
             }
 
+            */
+
             yield return null;
 
         }
@@ -373,6 +387,7 @@ public class MusicManager : MonoBehaviour
         yield break;
     }
 
+    /*
     public IEnumerator NoteDuration(EventInstance instrumentInstance, string note)
     {
         yield return new WaitForSeconds(UnityEngine.Random.Range(minLoopDuration, maxLoopDuration));
@@ -387,9 +402,11 @@ public class MusicManager : MonoBehaviour
 
         yield break;
     }
+    */
 
     private List<string> notesList;
 
+    /*
     public void PlayOneShot(string instrumentName, GameObject emitter, bool isProgrammerEvent) // Use 'Find References', it's called
     {                                                                 // by other scripts
         EventReference eventPath = GetInstrumentEvent(instrumentName);
@@ -423,6 +440,7 @@ public class MusicManager : MonoBehaviour
         instrumentInstance.start();
         instrumentInstance.release();
     }
+    */
 
     /*
      * 

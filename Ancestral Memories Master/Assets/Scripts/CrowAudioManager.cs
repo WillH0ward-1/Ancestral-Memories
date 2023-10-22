@@ -1,6 +1,6 @@
 using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+//using FMODUnity;
+//using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -11,7 +11,7 @@ public class CrowAudioManager : MonoBehaviour
     public Camera cam;
 
     [SerializeField] private Rigidbody rigidBody;
-    [EventRef] private string wingflapEvent;
+    // [EventRef] private string wingflapEvent;
     private float distance;
     private Animator animator;
     private Animation animation;
@@ -67,10 +67,12 @@ public class CrowAudioManager : MonoBehaviour
 
     public void PlayWingFlap()
     {
+        /*
         EventInstance wingFlapInstance = RuntimeManager.CreateInstance(wingflapEvent);
         RuntimeManager.AttachInstanceToGameObject(wingFlapInstance, transform, rigidBody);
 
         wingFlapInstance.start();
         wingFlapInstance.release();
+        */
     }
 }

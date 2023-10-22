@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.AI;
-using FMODUnity;
-using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System;

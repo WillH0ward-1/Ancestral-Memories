@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class DialogueManager : MonoBehaviour
 {
+    /*
     private FMOD.Studio.EVENT_CALLBACK dialogueCallback;
 
     private string EventPath;
@@ -98,5 +99,6 @@ public class DialogueManager : MonoBehaviour
         }
         return FMOD.RESULT.OK;
     }
+    */
 
 }

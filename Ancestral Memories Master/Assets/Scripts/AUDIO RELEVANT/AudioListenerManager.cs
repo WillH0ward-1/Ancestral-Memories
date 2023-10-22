@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMODUnity;
+//using FMODUnity;
 
 public class AudioListenerManager : MonoBehaviour
 {
@@ -10,7 +10,7 @@ public class AudioListenerManager : MonoBehaviour
 
     [SerializeField] LerpParams lerpParams;
 
-    private StudioListener listener;
+    //private StudioListener listener;
 
     [SerializeField] private float toDefaultSpeed = 1f;
 

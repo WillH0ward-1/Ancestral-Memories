@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using FMODUnity;
+//using FMODUnity;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -151,7 +151,7 @@ public class TimeCycleManager : MonoBehaviour
 
         if (Application.isPlaying)
         {
-            RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
+            //RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
         }
     }
 
@@ -199,8 +199,9 @@ public class TimeCycleManager : MonoBehaviour
 
         if (!Application.isEditor)
         {
-            var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
-            Debug.Log("time of day (Fmod) = " + fmodTod);
+           // var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
+           // Debug.Log("time of day (Fmod) = " + fmodTod);
+
         }
     }
 

@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class Player : AICharacterStats
 {
-    void Start()
+    void Awake()
     {
-        Awake();
+        OnAwake();
     }
 
     public override void Update()

@@ -1,16 +1,17 @@
 using UnityEngine;
-using FMODUnity;
-using FMOD.Studio;
+// using FMODUnity;
+// using FMOD.Studio;
 
 public class FireSoundEffects : MonoBehaviour
 {
+    /*
+private PARAMETER_ID ParamID;
+private EventInstance fireLoopEvent;
+private EventInstance fireWooshEvent;
 
-    private PARAMETER_ID ParamID;
-    private EventInstance fireLoopEvent;
-    private EventInstance fireWooshEvent;
-
-    [EventRef] private string FireWooshEvent;
-    [EventRef] private string FireLoopEvent;
+[EventRef] private string FireWooshEvent;
+[EventRef] private string FireLoopEvent;
+*/
 
     private void Awake()
     {
@@ -20,22 +21,25 @@ public class FireSoundEffects : MonoBehaviour
 
     void FireWoosh()
     {
-   
+        /*
         fireWooshEvent = RuntimeManager.CreateInstance(FireWooshEvent);
         
         RuntimeManager.AttachInstanceToGameObject(fireWooshEvent, transform, transform.GetComponent<Rigidbody>());
 
         fireWooshEvent.start();
         fireWooshEvent.release();
+        */
     }
 
     void FireLoop()
     {
+        /*
         fireLoopEvent = RuntimeManager.CreateInstance(FireLoopEvent);
         RuntimeManager.AttachInstanceToGameObject(fireLoopEvent, transform, transform.GetComponent<Rigidbody>());
 
         fireLoopEvent.start();
         fireLoopEvent.release();
+        */
     }
 
    

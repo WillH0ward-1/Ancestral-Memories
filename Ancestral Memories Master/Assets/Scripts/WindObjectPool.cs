@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using FMOD.Studio;
-using FMODUnity;
+// using FMOD.Studio;
+// using FMODUnity;
 using UnityEngine;
 
 public class WindObjectPool : MonoBehaviour
@@ -66,24 +66,26 @@ public class WindObjectPool : MonoBehaviour
 
     private IEnumerator ReturnWindZoneBuffer(GameObject windZoneObject)
     {
+        /*
         EventInstance wind3DInstance = RuntimeManager.CreateInstance(windEventRef);
         RuntimeManager.AttachInstanceToGameObject(wind3DInstance, windZoneObject.transform);
 
         wind3DInstance.start();
         wind3DInstance.release();
+        */
 
         yield return new WaitForSeconds(lifetime);
 
         if (activeWindZones.Contains(windZoneObject.transform))
         {
-            wind3DInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-
+            // wind3DInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
             ReturnWindZoneObject(windZoneObject);
         }
     }
 
     public float windStrength;
 
+    /*
     public IEnumerator WaitLifeTime(EventInstance wind3DInstance)
     {
         bool active = true;
@@ -101,8 +103,9 @@ public class WindObjectPool : MonoBehaviour
 
         active = false;
     }
+    */
 
-    public EventReference windEventRef;
+    // public EventReference windEventRef;
 
 
     public GameObject GetWindZoneObject()

@@ -8,6 +8,7 @@ public class ProgrammerCallBack : MonoBehaviour
 {
     // Code from FMOD examples https://www.fmod.com/docs/2.02/unity/examples-programmer-sounds.html
 
+    /*
     [AOT.MonoPInvokeCallback(typeof(FMOD.Studio.EVENT_CALLBACK))]
     public static FMOD.RESULT ProgrammerInstCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr parameterPtr)
     {
@@ -80,5 +81,6 @@ public class ProgrammerCallBack : MonoBehaviour
         }
         return FMOD.RESULT.OK;
     }
+    */
 
 }

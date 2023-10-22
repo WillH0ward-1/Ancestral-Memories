@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMODUnity;
+//using FMOD;
+//using FMODUnity;
+//using FMOD.Studio;
 using System.Linq;
-using FMOD.Studio;
 using System.Runtime.InteropServices;
 
 public class FluteControl : MonoBehaviour
@@ -65,11 +65,11 @@ public class FluteControl : MonoBehaviour
 
     }
 
-    FMOD.Studio.EVENT_CALLBACK callbackDelegate;
+    //FMOD.Studio.EVENT_CALLBACK callbackDelegate;
 
     private void Start()
     {
-        callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
+        //callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
     }
 
     public void EnableFluteControl()
@@ -156,7 +156,8 @@ public class FluteControl : MonoBehaviour
 
 
     public MusicManager musicManager;
-    public EventReference eventPath;
+
+    //public EventReference eventPath;
 
     string instrumentFileRootName = "Instrument";
     string instrument = "PlayerFlute";
@@ -173,6 +174,7 @@ public class FluteControl : MonoBehaviour
 
         UnityEngine.Debug.Log(key);
 
+        /*
         EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath);
         RuntimeManager.AttachInstanceToGameObject(instrumentInstance, transform, playerSFX.rigidBody);
         instanceRef = instrumentInstance;
@@ -185,18 +187,21 @@ public class FluteControl : MonoBehaviour
 
         instrumentInstance.start();
         instrumentInstance.release();
+        */
+
 
         // Start the new coroutine
         StartCoroutine(ModifyFaithOverTime());
     }
 
 
-    EventInstance instanceRef;
+    // EventInstance instanceRef;
 
     void StopFluteSound()
     {
         fluteActive = false;
-        instanceRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+
+        // instanceRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 
         // Stop the coroutine
         StopCoroutine(ModifyFaithOverTime());

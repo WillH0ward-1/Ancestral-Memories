@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 using Qkmaxware.Phonetics;
 using UnityEngine;
 using static Qkmaxware.Phonetics.IPA;
-using FMODUnity;
-using FMOD.Studio;
+//using FMODUnity;
+// using FMOD.Studio;
 
 public class FormantSynthesizer : MonoBehaviour
 {
@@ -16,8 +16,8 @@ public class FormantSynthesizer : MonoBehaviour
     private VocabularyManager VocabularyManager;
     private IPA ipaInstance; // Assuming you have an IPA class, instantiate or get its reference
 
-    [SerializeField] private EventReference soundEventRef;
-    EventInstance soundEvent;
+    // [SerializeField] private EventReference soundEventRef;
+    // EventInstance soundEvent;
 
     //private string eventPath = "event:/NPC/FormantSynthesizer"; // Replace with the actual path of your event
 
@@ -80,6 +80,7 @@ public class FormantSynthesizer : MonoBehaviour
         if (frequencies.Length >= 3)
         {
             // Create an instance of the FMOD event
+            /*
             soundEvent = RuntimeManager.CreateInstance(soundEventRef);
 
             soundEvent.setParameterByName("Freq1", frequencies[0]);
@@ -88,18 +89,19 @@ public class FormantSynthesizer : MonoBehaviour
 
             soundEvent.start();
             soundEvent.release();
+            */
         }
     }
 
 
     private void OnDestroy()
     {
-        soundEvent.release();
+        // soundEvent.release();
     }
 
     public void StopSpeaking()
     {
-        soundEvent.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        // soundEvent.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
     }
 
 

@@ -13,7 +13,7 @@ namespace ProceduralModeling
         private ProceduralTree proceduralTree;
         private TreeData treeData;
         private LeafScaler leafScaler;
-        private LerpTerrain lerpTerrain;
+        public LerpTerrain lerpTerrain;
 
         public bool isGrowing = false;
         public bool isFullyGrown = false;
@@ -74,13 +74,12 @@ namespace ProceduralModeling
 
         private void Awake()
         {
-            rainControl = FindObjectOfType<RainControl>();
             proceduralTree = GetComponentInChildren<ProceduralTree>();
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, 0);
             leafMaterial = proceduralTree.leafMat;
-            lerpTerrain = FindObjectOfType<LerpTerrain>();
+  
             leafColourLerpTime = lerpTerrain.terrainLerpTime;
 
             leafScaler = gameObject.GetComponent<LeafScaler>();

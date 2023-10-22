@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using FMODUnity;
+//using FMODUnity;
 using UnityEngine;
 
 public class CamControl : MonoBehaviour
@@ -489,7 +489,7 @@ public class CamControl : MonoBehaviour
             float psychOutput = Mathf.Lerp(player.maxStat, player.minStat, t);
             player.PsychModifier(psychOutput);
 
-            RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
+            // RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
 
             yield return null;
         }
@@ -524,7 +524,7 @@ public class CamControl : MonoBehaviour
             float psychOutput = Mathf.Lerp(player.minStat, player.maxStat, t);
             player.PsychModifier(psychOutput);
 
-            RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
+           // RuntimeManager.StudioSystem.setParameterByName("PsychedelicFX", output);
 
             yield return null;
         }

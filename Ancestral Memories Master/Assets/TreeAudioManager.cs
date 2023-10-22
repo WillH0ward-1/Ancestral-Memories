@@ -1,6 +1,6 @@
 using System.Collections;
-using FMOD.Studio;
-using FMODUnity;
+// using FMOD.Studio;
+// using FMODUnity;
 using UnityEngine;
 using ProceduralModeling;
 
@@ -13,6 +13,7 @@ public class TreeAudioManager : MonoBehaviour
     private Rigidbody rigidBody;
     private LeafScaler leafScaler;
 
+    /*
     [SerializeField] private EventReference TreeGrowEventPath;
     [SerializeField] private EventReference TreeLeavesEventPath;
     [SerializeField] private EventReference TreeSproutEventPath;
@@ -20,6 +21,7 @@ public class TreeAudioManager : MonoBehaviour
     [SerializeField] private EventReference TreeHitGroundEventPath;
 
     [SerializeField] private EventReference TreeGrowMusicPath;
+    */
 
     private Interactable interactable;
 
@@ -32,32 +34,35 @@ public class TreeAudioManager : MonoBehaviour
     }
 
     // Add this to your class members
-    private EventInstance treeLeavesSFXInstance;
+    //private EventInstance treeLeavesSFXInstance;
 
     public IEnumerator LeafRustleSFX()
     {
+        /*
         treeLeavesSFXInstance = RuntimeManager.CreateInstance(TreeLeavesEventPath);
         RuntimeManager.AttachInstanceToGameObject(treeLeavesSFXInstance, transform, rigidBody);
 
         treeLeavesSFXInstance.start();
         treeLeavesSFXInstance.release();
+        */
 
         while (!ptGrowing.isDead)
         {
             float leafDensity = leafScaler.NormalizeScale(leafScaler.CurrentScale);
-            treeLeavesSFXInstance.setParameterByName("LeafDensity", leafDensity);
+            // treeLeavesSFXInstance.setParameterByName("LeafDensity", leafDensity);
             yield return null;
         }
 
-        StopInstance(treeLeavesSFXInstance);
+        // StopInstance(treeLeavesSFXInstance);
         yield break;
     }
 
 
-    private EventInstance treeGrowInstance;
+    // private EventInstance treeGrowInstance;
 
     public void StartTreeGrowthSFX(PTGrowing.State state)
     {
+        /*
         treeGrowInstance = RuntimeManager.CreateInstance(TreeGrowEventPath);
         RuntimeManager.AttachInstanceToGameObject(treeGrowInstance, transform, rigidBody);
 
@@ -65,6 +70,8 @@ public class TreeAudioManager : MonoBehaviour
         {
             treeGrowInstance.start();
         }
+
+        */
 
         StartCoroutine(UpdateTreeGrowTime(state));
     }
@@ -83,7 +90,7 @@ public class TreeAudioManager : MonoBehaviour
                 }
 
                 float growTime = ptGrowing.time / ptGrowing.growDuration; // this will give a value between 0 and 1
-                treeGrowInstance.setParameterByName("TreeGrowTime", growTime);
+                // treeGrowInstance.setParameterByName("TreeGrowTime", growTime);
                 yield return null;
             }
         }
@@ -92,7 +99,7 @@ public class TreeAudioManager : MonoBehaviour
             while (ptGrowing.isDead)
             {
                 float dieTime = (ptGrowing.deathDuration - ptGrowing.time) / ptGrowing.deathDuration; // This will give a value decreasing from 1 to 0
-                treeGrowInstance.setParameterByName("TreeGrowTime", dieTime);
+                // treeGrowInstance.setParameterByName("TreeGrowTime", dieTime);
                 yield return null;
             }
         }
@@ -107,29 +114,35 @@ public class TreeAudioManager : MonoBehaviour
     {
         // Stops the coroutine in case it's still running
         StopCoroutine(UpdateTreeGrowTime(PTGrowing.State.Buffering));
-        StopInstance(treeGrowInstance);
+        // StopInstance(treeGrowInstance);
     }
 
 
 
     public void PlayTreeSproutSFX()
     {
+        /*
         EventInstance treeSproutInstance = RuntimeManager.CreateInstance(TreeSproutEventPath);
         RuntimeManager.AttachInstanceToGameObject(treeSproutInstance, transform, rigidBody);
 
         treeSproutInstance.start();
         treeSproutInstance.release();
+        */
     }
 
     public void StartTreeHitGroundSFX()
     {
+        /*
         EventInstance treeHitFloorInstance = RuntimeManager.CreateInstance(TreeHitGroundEventPath);
         RuntimeManager.AttachInstanceToGameObject(treeHitFloorInstance, transform, rigidBody);
 
         treeHitFloorInstance.start();
         treeHitFloorInstance.release();
+        */
     }
 
+
+    /*
     PLAYBACK_STATE PlaybackState(EventInstance instance)
     {
         instance.getPlaybackState(out PLAYBACK_STATE state);
@@ -160,4 +173,5 @@ public class TreeAudioManager : MonoBehaviour
     {
         birdInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
     }
+    */
 }

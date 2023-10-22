@@ -1,8 +1,9 @@
 using UnityEngine;
-using FMODUnity;
+//using FMODUnity;
 
 public class FMODBankManager : MonoBehaviour
 {
+    /*
     private void Awake()
     {
         LoadBank("Master.strings");
@@ -26,5 +27,6 @@ public class FMODBankManager : MonoBehaviour
     {
         RuntimeManager.UnloadBank(bank);
     }
+    */
 
 }

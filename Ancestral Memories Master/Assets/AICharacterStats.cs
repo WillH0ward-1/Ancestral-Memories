@@ -54,7 +54,7 @@ public class AICharacterStats : MonoBehaviour
 
     private DamageEffects damageEffects;
 
-    public void Awake()
+    public virtual void OnAwake()
     {
         damageEffects = transform.GetComponentInChildren<DamageEffects>();
 

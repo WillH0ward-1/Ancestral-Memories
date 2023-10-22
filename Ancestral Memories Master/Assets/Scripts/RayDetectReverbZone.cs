@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMODUnity;
+//using FMOD;
+//using FMODUnity;
 
 public class RayDetectReverbZone : MonoBehaviour
 {
@@ -37,7 +37,7 @@ public class RayDetectReverbZone : MonoBehaviour
         {
             inRange = false;
             castActive = false;
-            reverbManager.emitter.EventInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            // reverbManager.emitter.EventInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         }
     }
 
@@ -49,8 +49,10 @@ public class RayDetectReverbZone : MonoBehaviour
         {
             if (Physics.SphereCast(rayOrigin.transform.position, sphereCastRadius, Vector3.forward, out RaycastHit rayHit, layer))
             {
+                /*
                 reverbManager.emitter.EventInstance.start();
                 reverbManager.emitter.EventInstance.release();
+                */
 
                 float distance = Vector3.Distance(rayOrigin.transform.position, rayHit.transform.position);
                 float intensity = CalculateReverbIntensity(rayOrigin.transform.position, rayHit.transform.position);
@@ -58,7 +60,7 @@ public class RayDetectReverbZone : MonoBehaviour
                 intensityRef = intensity;
                 distanceFromRayOriginRef = distance;
 
-                reverbManager.emitter.EventInstance.setParameterByName("Intensity", intensity);
+                // reverbManager.emitter.EventInstance.setParameterByName("Intensity", intensity);
             }
 
             yield return null;
