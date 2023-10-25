@@ -9,7 +9,7 @@ public class MushroomGrowth : MonoBehaviour
     [SerializeField] private float maxGrowDelay = 10;
     [SerializeField] private float minGrowDuration = 1;
     [SerializeField] private float maxGrowDuration = 5;
-    [SerializeField] private Vector3 growScale = new Vector3(0.5f, 0.5f, 0.5f);
+    public Vector3 growScale = new Vector3(0.5f, 0.5f, 0.5f);
     [SerializeField] private Vector3 shrinkScale = new Vector3(0.00001f, 0.00001f, 0.00001f);
     [SerializeField] private float minShrinkDuration = 1;
     [SerializeField] private float maxShrinkDuration = 5;
@@ -103,4 +103,13 @@ public class MushroomGrowth : MonoBehaviour
             yield return null;
         }
     }
+
+    public void StopAllGrowthProcesses()
+    {
+        StopAllCoroutines();
+        // If you want to immediately stop scale adjustment as well, 
+        // you can do something like:
+        scaleControl.OverrideGrowth(true);
+    }
+
 }

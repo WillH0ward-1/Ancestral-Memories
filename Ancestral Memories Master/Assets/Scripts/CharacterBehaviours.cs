@@ -516,7 +516,7 @@ public class CharacterBehaviours : MonoBehaviour
     public GameObject backFacingPivot;
     public GameObject lookAtTarget;
 
-    [SerializeField] private PickUpObject pickUpManager;
+    public PickUpObject pickUpManager;
 
     [SerializeField] private float psychBuffer = 60f;
 

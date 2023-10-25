@@ -49,8 +49,6 @@ namespace ProceduralModeling
 
         public RainControl rainControl;
 
-        private float leafColourLerpTime;
-
         public enum State
         {
             Buffering,
@@ -68,9 +66,10 @@ namespace ProceduralModeling
         private TreeAudioManager treeAudioSFX;
 
         private PTGrowingManager pTGrowingManager;
-        private SeasonManager seasonManager;
 
         [SerializeField] private float growthInhibitionScaleFactor = 1.0f;
+
+        public SeasonManager seasonManager;
 
         private void Awake()
         {
@@ -79,15 +78,11 @@ namespace ProceduralModeling
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, 0);
             leafMaterial = proceduralTree.leafMat;
-  
-            leafColourLerpTime = lerpTerrain.terrainLerpTime;
 
             leafScaler = gameObject.GetComponent<LeafScaler>();
             treeAudioSFX = GetComponent<TreeAudioManager>();
             treeFruitManager = GetComponent<TreeFruitManager>();
             obstacle = GetComponent<RVOSquareObstacle>();
-
-            seasonManager = FindObjectOfType<SeasonManager>();
 
             currentState = State.Buffering;
             time = 0f;
@@ -125,9 +120,6 @@ namespace ProceduralModeling
             return hitColliders.Length > 0;
         }
 
-
-
-
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
@@ -135,7 +127,6 @@ namespace ProceduralModeling
             Vector3 halfSize = growthInhibitionZone.size / 2;
             Gizmos.DrawWireCube(center, halfSize);
         }
-
 
         public void GrowTree()
         {
@@ -182,6 +173,8 @@ namespace ProceduralModeling
 
             yield return null;
             EnableNavMeshCut();
+
+            mapObjGen.treeGrowingList.Add(transform.gameObject);
 
             while (time < growDuration)
             {
@@ -242,7 +235,7 @@ namespace ProceduralModeling
             deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
             isDead = true;
 
-
+            mapObjGen.treeGrowingList.Remove(transform.gameObject);
 
             leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
 

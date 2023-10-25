@@ -120,6 +120,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 		navGraph = AstarPath.active.data.navmesh;
 		rainControl = FindObjectOfType<RainControl>();
+		mapObjectGen = FindObjectOfType<MapObjGen>();
 		player = FindObjectOfType<Player>();
 		viewer = player.transform;
 
@@ -140,35 +141,35 @@ public class TerrainGenerator : MonoBehaviour {
 
 		UpdateVisibleChunks();
 
-		GameObject tmp = FindChildGameObject(mapObject, terrainChunkName);
+		GameObject terrainObj = FindChildGameObject(mapObject, terrainChunkName);
 
-		if (tmp != null)
+		if (terrainObj != null)
 		{
-			tmp.isStatic = true;
-			tmp.tag = "Walkable";
-			tmp.layer = 8; // 'Ground' Layer
+			terrainObj.isStatic = true;
+			terrainObj.tag = "Walkable";
+			terrainObj.layer = 8; // 'Ground' Layer
 	
-			corruptionControl = tmp.AddComponent<CorruptionControl>();
+			corruptionControl = terrainObj.AddComponent<CorruptionControl>();
 
 			corruptionControl.player = player;
 			corruptionControl.behaviours = behaviours;
 
 			corruptionControl.CorruptionModifierActive = true;
 
-			lerpTerrain = tmp.AddComponent<LerpTerrain>();
+			lerpTerrain = terrainObj.AddComponent<LerpTerrain>();
 			rainControl.lerpTerrain = lerpTerrain;
 
-			StartCoroutine(EnableContacts(tmp));
+			StartCoroutine(EnableContacts(terrainObj));
 
-			MeshFilter meshFilter = tmp.GetComponentInChildren<MeshFilter>();
+			MeshFilter meshFilter = terrainObj.GetComponentInChildren<MeshFilter>();
 
 			Debug.Log("MESHFILTER:" + meshFilter);
 
-			StartCoroutine(GetMesh(tmp));
+			StartCoroutine(GetMesh(terrainObj));
 
-			//Interactable interactable = tmp.AddComponent<Interactable>();
-			//GameObject terrainObject = tmp;
-			//mapObjGen.terrain = terrainObject;
+			Interactable interactable = terrainObj.AddComponent<Interactable>();
+
+			mapObjectGen.terrain = terrainObj;
 
 
 

@@ -16,6 +16,9 @@ public class ScaleControl : MonoBehaviour
 
     public float growthPercent;
 
+    private bool stopGrowth = false;
+    private Coroutine scaleCoroutine;
+
     private Interactable interactable;
 
     private void Awake()
@@ -25,7 +28,7 @@ public class ScaleControl : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(LerpScale(transform.gameObject, transform.localScale, scaleDestinationRef, durationRef, delayRef));
+        scaleCoroutine = StartCoroutine(LerpScale(transform.gameObject, transform.localScale, scaleDestinationRef, durationRef, delayRef));
     }
 
     public IEnumerator LerpScale(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration, float delay)
@@ -33,6 +36,11 @@ public class ScaleControl : MonoBehaviour
         if (scaleObject == null)
         {
             yield break;
+        }
+
+        if (scaleCoroutine != null)
+        {
+            StopCoroutine(scaleCoroutine);
         }
 
         isFullyGrown = false;
@@ -50,6 +58,12 @@ public class ScaleControl : MonoBehaviour
             yield break;
         }
 
+        scaleCoroutine = StartCoroutine(ScaleProcess(scaleObject, scaleStart, scaleDestination, duration));
+        yield return scaleCoroutine;
+    }
+
+    private IEnumerator ScaleProcess(GameObject scaleObject, Vector3 scaleStart, Vector3 scaleDestination, float duration)
+    {
         float time = 0f;
 
         float localScaleX = scaleObject.transform.localScale.x;
@@ -62,15 +76,17 @@ public class ScaleControl : MonoBehaviour
 
         while (time <= 1f)
         {
-            time += Time.deltaTime / duration;
+            if (stopGrowth)
+            {
+                yield break;
+            }
 
+            time += Time.deltaTime / duration;
             growthPercent = time;
 
             timeX += Time.deltaTime / (duration * xAxisGrowMultiplier);
             timeY += Time.deltaTime / (duration * yAxisGrowMultiplier);
             timeZ += Time.deltaTime / (duration * zAxisGrowMultiplier);
-
-            growthPercent = time;
 
             localScaleX = Mathf.Lerp(scaleStart.x, scaleDestination.x, timeX);
             localScaleY = Mathf.Lerp(scaleStart.y, scaleDestination.y, timeY);
@@ -78,26 +94,27 @@ public class ScaleControl : MonoBehaviour
 
             scaleObject.transform.localScale = new Vector3(localScaleX, localScaleY, localScaleZ);
 
-            if (growthPercent <= 0.25f)
+            if (growthPercent <= 0.25f && interactable != null)
             {
-                if (interactable != null)
-                {
-                    interactable.enabled = false;
-                }
+                interactable.enabled = false;
             }
-            else if (growthPercent >= 0.25f)
+            else if (growthPercent >= 0.25f && interactable != null)
             {
-                if (interactable != null)
-                {
-                    interactable.enabled = true;
-                }
+                interactable.enabled = true;
             }
 
             yield return null;
         }
 
         scaleObject.transform.localScale = scaleDestination;
-
         isFullyGrown = true;
+    }
+
+    public void OverrideGrowth(bool shouldStop)
+    {
+        if (scaleCoroutine != null)
+            StopCoroutine(scaleCoroutine);
+
+        stopGrowth = shouldStop;
     }
 }

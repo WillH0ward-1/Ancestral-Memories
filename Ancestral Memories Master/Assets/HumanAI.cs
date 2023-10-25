@@ -14,7 +14,7 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack }
+    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -208,12 +208,12 @@ public class HumanAI : MonoBehaviour
         }
     }
 
+    [SerializeField] private float idleWalkRadius = 1000f;
+    [SerializeField] private float minWalkDistance = 500f; // Adjusted for better logic
+    [SerializeField] private float maxWalkDistance = 1000f; // Adjusted for better logic
+
     private IEnumerator Idle()
     {
-
-        //agent.speed = 0f;
-        //agent.ResetPath();
-
         aiPath.maxSpeed = 0f;
         aiPath.destination = transform.position;
         aiPath.canMove = false;
@@ -231,50 +231,168 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourActive)
         {
-            if (currentEvolutionState == EvolutionState.Neanderthal)
-            {
-                ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
-            }
-            else if (currentEvolutionState == EvolutionState.MidSapien)
-            {
-                ChangeAnimationState(HumanControllerAnimations.Idle_MidSapien01);
-            }
-            else if (currentEvolutionState == EvolutionState.Sapien)
-            {
-                ChangeAnimationState(HumanControllerAnimations.Idle_Sapien01);
-            }
+            SetIdleAnimation(currentEvolutionState); // Update the idle animation based on state
 
             while (time >= 0)
             {
-                if (!inRange)
+                if (!inRange && (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive))
                 {
-                    if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
-                    {
-                        ChangeState(AIState.Following);
-                    }
+                    ChangeState(AIState.Following);
                 }
 
                 time -= Time.deltaTime;
-
                 yield return null;
             }
 
-            int minChance = 0;
-            int maxChance = 4;
-            int randNumber = UnityEngine.Random.Range(minChance, maxChance);
-
             if (time <= 0)
             {
+                if (ShouldWander())
                 {
-                    ChangeState(AIState.Idle);
+                    ChangeState(AIState.Wander);
+                    yield break;
+                } else
+                {
+                    ChangeState(AIState.Idle); // If not wandering, stay idle
                 }
             }
 
             yield return null;
         }
-
-        yield break;
     }
+
+    private IEnumerator Wander()
+    {
+        
+        aiPath.canMove = true;
+        aiPath.maxSpeed = walkingSpeed;
+
+        Vector3? newWanderPoint = null;
+
+        // Attempt to find a valid wander point.
+        while (!newWanderPoint.HasValue)
+        {
+            newWanderPoint = FindRandomPointWithinRadius(idleWalkRadius, minWalkDistance, maxWalkDistance);
+
+            // Optional: A small delay to prevent the loop from running too fast
+            // and overwhelming the processor in case valid points are rare.
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        // Set the destination once a valid point is found.
+        aiPath.destination = newWanderPoint.Value;
+
+        behaviourActive = true;
+
+        while (behaviourActive)
+        {
+            SetWalkingAnimation(currentEvolutionState); // Update the walking animation based on state
+
+            if (!inRange && (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive))
+            {
+                ChangeState(AIState.Following);
+            }
+            else if (aiPath.reachedDestination)
+            {
+                ChangeState(AIState.Idle);
+            }
+
+            yield return null;
+        }
+    }
+
+    private bool ShouldWander()
+    {
+        int chanceToWander = 1;
+        return UnityEngine.Random.value <= chanceToWander;
+    }
+
+    private IEnumerator Walk(Vector3 destination)
+    {
+        aiPath.maxSpeed = walkingSpeed;
+        aiPath.destination = destination;
+        aiPath.canMove = true;
+
+        behaviourActive = true;
+
+        while (behaviourActive)
+        {
+            SetWalkingAnimation(currentEvolutionState); // Setting walking animation
+
+            if (!aiPath.pathPending && (aiPath.reachedEndOfPath || !aiPath.hasPath))
+            {
+                behaviourActive = false;
+            }
+
+            yield return null;
+        }
+
+        ChangeState(AIState.Idle);
+    }
+
+
+    private Vector3? FindRandomPointWithinRadius(float radius, float minDistance, float maxDistance)
+    {
+        Vector2 randomDirection2D = UnityEngine.Random.insideUnitCircle * radius;
+        Vector3 randomPoint = new Vector3(randomDirection2D.x, 0, randomDirection2D.y) + transform.position;
+        Debug.DrawLine(transform.position, randomPoint, Color.red, 5f); // For visualization
+
+        Vector3 elevatedPosition = new Vector3(randomPoint.x, 50f, randomPoint.z);
+        Debug.DrawRay(elevatedPosition, Vector3.down * 100f, Color.blue, 5f); // For visualization
+
+        RaycastHit hit;
+
+        int layerMask = LayerMask.GetMask("Ground", "Water");
+
+        if (Physics.Raycast(elevatedPosition, Vector3.down, out hit, Mathf.Infinity, layerMask))
+        {
+            float distanceToFinalPosition = Vector3.Distance(transform.position, hit.point);
+            Debug.Log("Distance to Point: " + distanceToFinalPosition); // Log the distance
+
+            if (distanceToFinalPosition >= minDistance && distanceToFinalPosition <= maxDistance)
+            {
+                return hit.point;
+            }
+        }
+
+        return null;
+    }
+
+
+
+    private void SetWalkingAnimation(EvolutionState state)
+    {
+        switch (state)
+        {
+            case EvolutionState.Neanderthal:
+                ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal01);
+                break;
+            case EvolutionState.MidSapien:
+                ChangeAnimationState(HumanControllerAnimations.Walk_MidSapien01);
+                break;
+            case EvolutionState.Sapien:
+                ChangeAnimationState(HumanControllerAnimations.Walk_Sapien);
+                break;
+        }
+    }
+
+    private void SetIdleAnimation(EvolutionState state)
+    {
+        switch (state)
+        {
+            case EvolutionState.Neanderthal:
+                ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+                break;
+            case EvolutionState.MidSapien:
+                ChangeAnimationState(HumanControllerAnimations.Idle_MidSapien01);
+                break;
+            case EvolutionState.Sapien:
+                ChangeAnimationState(HumanControllerAnimations.Idle_Sapien01);
+                break;
+        }
+    }
+
+
+
 
     public List<GameObject> NearbyAI;
     public bool isTalking = false;
@@ -335,47 +453,6 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-
-    private IEnumerator Walk(Vector3 destination)
-    {
-
-        aiPath.canMove = true;
-        aiPath.maxSpeed = walkingSpeed;
-
-        aiPath.destination = destination;
-
-        behaviourActive = true;
-
-        while (behaviourActive)
-        {
-            if (currentEvolutionState == EvolutionState.Neanderthal)
-            {
-                ChangeAnimationState(HumanControllerAnimations.Walk_Neanderthal01);
-            }
-            else if (currentEvolutionState == EvolutionState.MidSapien)
-            {
-                ChangeAnimationState(HumanControllerAnimations.Walk_MidSapien01);
-            }
-            else if (currentEvolutionState == EvolutionState.Sapien)
-            {
-                ChangeAnimationState(HumanControllerAnimations.Walk_Sapien);
-            }
-
-            if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
-            {
-                ChangeState(AIState.Following);
-            }
-            else if (aiPath.reachedDestination)
-            {
-                ChangeState(AIState.Idle);
-            }
-
-            yield return null;
-        }
-
-        yield break;
-    }
-
     [SerializeField] float minRandWalkDistance = 0;
     [SerializeField] float maxRandWalkDistance = 15;
     [SerializeField] float randWalkDistance;
@@ -416,11 +493,18 @@ public class HumanAI : MonoBehaviour
                 case AIState.Idle:
                     StartCoroutine(Idle());
                     break;
+                case AIState.Wander:
+                    StartCoroutine(Wander());
+                    break;
                 case AIState.Conversate:
                     StartCoroutine(EnterConversation());
                     break;
                 case AIState.Harvest:
-                    GameObject tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
+
+                    GameObject tree = null;
+
+                    tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
+
                     if (tree != null)
                     {
                         // For example, make the agent walk towards a tree in a circle formation of size 5
@@ -428,12 +512,22 @@ public class HumanAI : MonoBehaviour
                     }
                     else
                     {
-                        Debug.Log("No valid tree found. Can't start WalkToward.");
+                        tree = GetClosest(mapObjGen.treeGrowingList, aiBehaviours.ValidateTree);
+
+                        if (tree != null)
+                        {
+                            StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
+                        } else
+                        {
+                            ChangeState(AIState.Idle);
+                            Debug.Log("No valid tree found. Can't start WalkToward.");
+                        }
                     }
+
                     break;
 
                 case AIState.Walking:
-                    StartCoroutine(Walk(RandomNavSphere(transform.position, randWalkDistance)));
+                    StartCoroutine(Walk(aiPath.destination));
                     break;
                 case AIState.Running:
                     StartCoroutine(Run());
@@ -492,6 +586,7 @@ public class HumanAI : MonoBehaviour
         return closestGameObject;
     }
 
+
     public float inRangeThreshold = 5f;
     public float sphereCastRadius = 10f;
     public float treeHarvestDistance = 15f;
@@ -532,9 +627,26 @@ public class HumanAI : MonoBehaviour
         aiPath.destination = destination;
 
         behaviourActive = true;
+        PTGrowing ptGrow = null; // Declare outside of loop
 
         while (behaviourActive)
         {
+            if (action == stateActions[AIState.Harvest])
+            {
+                // Only get the component if it's null or hasn't been fetched before
+                if (ptGrow == null)
+                {
+                    ptGrow = target.GetComponentInChildren<PTGrowing>();
+                }
+
+                if (ptGrow != null && (ptGrow.isDead || !ptGrow.isFullyGrown))
+                {
+                    ChangeState(AIState.Harvest);
+
+                    yield break;
+                }
+            }
+
             UpdateRange(target.transform);
 
             if (!aiPath.reachedDestination)
@@ -672,6 +784,14 @@ public class HumanAI : MonoBehaviour
         return UnityEngine.Random.Range(minInterval, maxInterval);
     }
 
+    List<string> attackAnimations = new List<string> { HumanControllerAnimations.Attack_Slash01, HumanControllerAnimations.Attack_Slash02, HumanControllerAnimations.Attack_Stab01, HumanControllerAnimations.Attack_Stab02, HumanControllerAnimations.Attack_Stab03, };
+
+    List<string> neanderthalAnimsHarvest = new List<string> { HumanControllerAnimations.Attack_Neanderthal_Punch01, HumanControllerAnimations.Attack_Neanderthal_Punch02 };
+    List<string> midSapienAnimsHaevest = new List<string> { HumanControllerAnimations.Attack_Slash01, HumanControllerAnimations.Attack_Slash02 };
+    List<string> sapienAnimHarvest = new List<string> { HumanControllerAnimations.Action_Standing_HarvestTree };
+
+    private Coroutine currentActionCoroutine = null;
+
     private IEnumerator HarvestAnimation(Transform target)
     {
         behaviourActive = true;
@@ -679,29 +799,32 @@ public class HumanAI : MonoBehaviour
         while (behaviourActive)
         {
             transform.LookAt(target);
-
             StartCoroutine(ChangeSpeedOverTime(target));
+
+            // Ensure we stop the previous coroutine before starting a new one
+            if (currentActionCoroutine != null)
+            {
+                StopCoroutine(currentActionCoroutine);
+            }
 
             if (currentEvolutionState == EvolutionState.Neanderthal)
             {
-                ChangeAnimationState(HumanControllerAnimations.Attack_Neanderthal_Punch01);
+                currentActionCoroutine = StartCoroutine(PerformRandomActionOverTime(target.transform, neanderthalAnimsHarvest, stats));
             }
             else if (currentEvolutionState == EvolutionState.MidSapien)
             {
-                ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
+                currentActionCoroutine = StartCoroutine(PerformRandomActionOverTime(target.transform, midSapienAnimsHaevest, stats));
             }
             else if (currentEvolutionState == EvolutionState.Sapien)
             {
-                ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
+                currentActionCoroutine = StartCoroutine(PerformRandomActionOverTime(target.transform, sapienAnimHarvest, stats));
             }
 
-            yield return null;
+            yield return new WaitUntil(() => currentActionCoroutine == null); // Wait for the current action to finish
         }
 
         yield break;
     }
-
-    List<string> attackAnimations = new List<string> { HumanControllerAnimations.Attack_Slash01, HumanControllerAnimations.Attack_Slash02, HumanControllerAnimations.Attack_Stab01, HumanControllerAnimations.Attack_Stab02, HumanControllerAnimations.Attack_Stab03, };
 
     private IEnumerator PerformRandomActionOverTime(Transform target, List<string> animations, AICharacterStats stats)
     {
@@ -724,6 +847,8 @@ public class HumanAI : MonoBehaviour
         }
 
         animator.speed = 1.0f; // Reset animation speed to normal when finished
+
+        currentActionCoroutine = null; // Indicate this coroutine has finished
     }
 
     private AICharacterStats attackTargetStats;

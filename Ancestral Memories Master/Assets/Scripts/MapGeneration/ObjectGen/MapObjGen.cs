@@ -202,6 +202,7 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private CharacterBehaviours behaviours;
     [SerializeField] private Player player;
+    [SerializeField] private PickUpObject pickUpManager;
 
     [Header("========================================================================================================================")]
     [Header("Weather")]
@@ -213,7 +214,94 @@ public class MapObjGen : MonoBehaviour
     public TimeCycleManager timeCycleManager;
 
     private GameObject emitterInstance;
-    
+
+
+    [Header("========================================================================================================================")]
+    [Header("Seasons")]
+    [Space(10)]
+
+    private SeasonManager seasonManager;
+
+    [Header("Generated Objects")]
+    [Space(10)]
+
+    public List<GameObject> mapObjectList;
+    public List<GameObject> treeList;
+    public List<GameObject> treeGrowingList;
+    public List<GameObject> npcList;
+    public List<GameObject> grassList;
+
+    private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
+
+    public WeatherControl weather;
+
+    public List<GameObject> foodSourcesList;
+    [SerializeField] private LerpTerrain lerpTerrain;
+
+    private float emitterY;
+    [SerializeField] private float emitterYOffset = 10f;
+    [SerializeField] private LayerMask emitterLayerMask;
+
+    private Vector3[] waterEmitterVerts;
+
+    public bool mapObjectsGenerated = false;
+
+
+    private List<Vector3> XspawnPositions;
+    private List<Vector3> ZspawnPositions;
+
+    public List<GameObject> humanPopulationList;
+    public List<AICharacterStats> allHumanStats;
+    private VocabularyManager vocabularyManager;
+    private DialogueLines dialogueLines;
+
+    private float minDistanceFromCenter;
+
+    [Header("Tree Growth + Fruit Growth")]
+    [Space(10)]
+
+    [SerializeField] private int minTreeGrowDuration = 15;
+    [SerializeField] private int maxTreeGrowDuration = 30;
+    [SerializeField] private int minTreeGrowDelay = 15;
+    [SerializeField] private int maxTreeGrowDelay = 30;
+
+    [SerializeField] private int minAppleGrowDuration = 15;
+    [SerializeField] private int maxAppleGrowDuration = 30;
+    [SerializeField] private int minAppleGrowDelay = 15;
+    [SerializeField] private int maxAppleGrowDelay = 30;
+
+    private int treeGrowDuration;
+    private int appleGrowDuration;
+
+    float appleGrowthDelay;
+    float treeGrowthDelay;
+
+    private LeafControl leafControl;
+
+    private MushroomGrowth mushroomControl;
+
+    [SerializeField] private float minDecayDuration = 5f;
+    [SerializeField] public float maxDecayDuration = 10f;
+
+    [SerializeField] public float minDecayDelayTime = 5f;
+    [SerializeField] public float maxDecayDelayTime = 10f;
+
+    [SerializeField] public float minFruitFallBuffer = 1f;
+    [SerializeField] public float maxFruitFallBuffer = 60f;
+
+    public List<GameObject> spawnPointsList;
+
+    private FluteControl fluteControl;
+
+
+    public List<GameObject> huntableAnimalsList;
+
+
+    private List<PTGrowing> ptGrowComponents = new List<PTGrowing>();
+    private float randomTreeColourSeed = 0;
+    public bool readyToGrow = false;
+
+
     public IEnumerator WaterSFXEmitterGen()
     {
         Vector3[] verts = waterEmitterTransform.GetComponent<MeshFilter>().mesh.vertices;
@@ -237,10 +325,6 @@ public class MapObjGen : MonoBehaviour
 
         yield break;
     }
-
-    private float emitterY;
-    [SerializeField] private float emitterYOffset = 10f;
-    [SerializeField] private LayerMask emitterLayerMask;
 
     public IEnumerator GenerateEmitterCheckers()
     {
@@ -280,21 +364,6 @@ public class MapObjGen : MonoBehaviour
 
     }
 
-    private void SetupPlayer()
-    {
-        mapCenter = Vector3.zero;
-
-        if (player != null)
-        {
-            player = FindObjectOfType<Player>();
-        } else
-        {
-            LogNullWarning("Player");
-        }
-        vocabularyManager = FindObjectOfType<VocabularyManager>();
-
-    }
-
     private void InitializeFlute()
     {
         fluteControl = player.GetComponentInChildren<FluteControl>();
@@ -309,9 +378,22 @@ public class MapObjGen : MonoBehaviour
         Debug.LogWarning("MAPOBJGEN: " + variableName + " has not been set in MapObjGen inspector!");
     }
 
-    private Vector3[] waterEmitterVerts;
+    private void SetupPlayer()
+    {
+        mapCenter = Vector3.zero;
 
-    public bool mapObjectsGenerated = false;
+
+        player = FindObjectOfType<Player>();
+        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
+        rainControl = FindObjectOfType<RainControl>();
+        seasonManager = FindObjectOfType<SeasonManager>();
+        dialogueLines = FindObjectOfType<DialogueLines>();
+        vocabularyManager = FindObjectOfType<VocabularyManager>();
+        pickUpManager = FindObjectOfType<PickUpObject>();
+        behaviours.pickUpManager = pickUpManager;
+        
+    }
+
 
     public void GenerateMapObjects()
     {
@@ -354,16 +436,15 @@ public class MapObjGen : MonoBehaviour
         //FoliagePoissonDisc(foliageSampler);
         //RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
-        
+        AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
         //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
         //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
         SpawnPointsPoissonDisc(spawnPointsSampler);
-        ProceduralTreePoissonDisc(treeSampler);
         HumanPoissonDisc(humanSampler);
-        AnimalPoissonDisc(animalSampler);
+        ProceduralTreePoissonDisc(treeSampler);
 
 
         SetOffset();
@@ -481,18 +562,10 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-
-    private List<Vector3> XspawnPositions;
-    private List<Vector3> ZspawnPositions;
-
     public GameObject GetRandomMapObject(GameObject[] mapElements)
     {
         return mapElements[Random.Range(0, mapElements.Length)];
     }
-
-    public List<GameObject> spawnPointsList;
-
-    private FluteControl fluteControl;
 
     void SpawnPlayer()
     {
@@ -521,8 +594,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    public List<GameObject> huntableAnimalsList;
-
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
     {
         foreach (Vector2 sample in animalSampler.Samples())
@@ -548,7 +619,7 @@ public class MapObjGen : MonoBehaviour
  
             FLookAnimator lookAnimator = animalInstance.GetComponentInChildren<FLookAnimator>();
             lookAnimator.enabled = true;
-            lookAnimator.ObjectToFollow = player.transform;
+            //lookAnimator.ObjectToFollow = player.transform;
 
             AnimalAI animalAI = animalInstance.GetComponentInChildren<AnimalAI>();
             animalAI.player = player;
@@ -569,11 +640,6 @@ public class MapObjGen : MonoBehaviour
             //WaterCheck();
         }
     }
-
-    public List<GameObject> humanPopulationList;
-    public List<AICharacterStats> allHumanStats;
-    private VocabularyManager vocabularyManager;
-    private DialogueLines dialogueLines;
 
     void HumanPoissonDisc(PoissonDiscSampler humanSampler)
     {
@@ -676,17 +742,12 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-
-    private int distanceFromCenter;
-
     private float GetDistanceFromCenter(GameObject mapObject)
     {
         float distanceFromCenter = Vector3.Distance(mapObject.transform.position, mapCenter);
 
         return distanceFromCenter;
     }
-
-    private float minDistanceFromCenter;
 
     void SeaShellPoissonDisc(PoissonDiscSampler seaShellSampler)
     {
@@ -730,18 +791,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    [Header("Generated Objects")]
-    [Space(10)]
-
-    public List<GameObject> mapObjectList;
-    public List<GameObject> treeList;
-    public List<GameObject> npcList;
-    public List<GameObject> grassList;
-
-    private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
-
-    public WeatherControl weather;
-
     void SetupCorruptionControl(List<GameObject> list)
     {
         foreach (GameObject mapObj in list)
@@ -765,8 +814,6 @@ public class MapObjGen : MonoBehaviour
             corruptionControl.CorruptionModifierActive = true;
         }
     }
-
-    public List<GameObject> foodSourcesList;
 
     void ProceduralTreePoissonDisc(PoissonDiscSampler treeSampler)
     {
@@ -792,6 +839,7 @@ public class MapObjGen : MonoBehaviour
             ptGrow.mapObjGen = this;
             ptGrow.rainControl = rainControl;
             ptGrow.lerpTerrain = terrain.GetComponentInChildren<LerpTerrain>();
+            ptGrow.seasonManager = seasonManager;
 
             TreeAudioManager treeAudioManager = treeInstance.transform.GetComponentInChildren<TreeAudioManager>();
             treeAudioManager.timeManager = timeCycleManager;
@@ -821,8 +869,6 @@ public class MapObjGen : MonoBehaviour
 
         }
     }
-
-    private List<PTGrowing> ptGrowComponents = new List<PTGrowing>();
 
     private void GetPTGrowComponents()
     {
@@ -900,8 +946,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    private float randomTreeColourSeed = 0;
-
     void RandomizeTreecolours() {
 
         foreach (GameObject tree in treeList)
@@ -915,8 +959,6 @@ public class MapObjGen : MonoBehaviour
         }
 
     }
-
-    public bool readyToGrow = false;
     
     private IEnumerator StartTreeGrowth(List<GameObject> objectList)
     {
@@ -966,28 +1008,6 @@ public class MapObjGen : MonoBehaviour
         }
 
     }
-
-
-    [Header("Tree Growth + Fruit Growth")]
-    [Space(10)]
-
-    [SerializeField] private int minTreeGrowDuration = 15;
-    [SerializeField] private int maxTreeGrowDuration = 30;
-    [SerializeField] private int minTreeGrowDelay = 15;
-    [SerializeField] private int maxTreeGrowDelay = 30;
-
-    [SerializeField] private int minAppleGrowDuration = 15;
-    [SerializeField] private int maxAppleGrowDuration = 30;
-    [SerializeField] private int minAppleGrowDelay = 15;
-    [SerializeField] private int maxAppleGrowDelay = 30;
-
-    private int treeGrowDuration;
-    private int appleGrowDuration;
-
-    float appleGrowthDelay;
-    float treeGrowthDelay;
-
-    private LeafControl leafControl;
 
     //private TreeAudioSFX treeAudio;
 
@@ -1060,15 +1080,6 @@ public class MapObjGen : MonoBehaviour
         dirtExplodeParticles.Stop();
         yield break;
     }
-
-    [SerializeField] private float minDecayDuration = 5f;
-    [SerializeField] public float maxDecayDuration = 10f;
-
-    [SerializeField] public float minDecayDelayTime = 5f;
-    [SerializeField] public float maxDecayDelayTime = 10f;
-
-    [SerializeField] public float minFruitFallBuffer = 1f;
-    [SerializeField] public float maxFruitFallBuffer = 60f;
 
     public IEnumerator WaitUntilFruitGrown(GameObject growObject, ScaleControl scaleControl)
     {
@@ -1218,8 +1229,10 @@ public class MapObjGen : MonoBehaviour
 
             GameObject mushroomInstance = Instantiate(randomMushroom, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
 
-            MushroomGrowth mushroomGrowth = mushroomInstance.transform.GetComponent<MushroomGrowth>();
-            mushroomGrowth.player = player;
+            MushroomGrowth mushroomControl = mushroomInstance.transform.GetComponent<MushroomGrowth>();
+            mushroomControl.player = player;
+
+            
 
             mushroomInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
