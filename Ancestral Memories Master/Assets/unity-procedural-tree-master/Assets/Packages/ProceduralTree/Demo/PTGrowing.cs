@@ -404,3 +404,88 @@ namespace ProceduralModeling
         }
     }
 }
+
+/*
+ * 
+public static Mesh Build(ProceduralTree treeInstance, TreeData data, int generations, float length, float radius, float leafSize, Material leafMat)
+{
+    data.Setup();
+    var root = new TreeBranch(
+        generations,
+        length,
+        radius,
+        data,
+        leafMat
+    );
+
+    treeInstance.GenerateLeaves(root, leafMat);
+    treeInstance.GenerateFruitPoints(root);
+    treeInstance.GenerateMeshCollider();
+
+    var vertices = new List<Vector3>();
+    var normals = new List<Vector3>();
+    var tangents = new List<Vector4>();
+    var uvs = new List<Vector2>();
+    var triangles = new List<int>();
+
+    float maxLength = TraverseMaxLength(root);
+
+    Traverse(root, (branch) =>
+    {
+        var offset = vertices.Count;
+        var vOffset = branch.Offset / maxLength;
+        var vLength = branch.Length / maxLength;
+        for (int i = 0, n = branch.Segments.Count; i < n; i++)
+        {
+            var t = 1f * i / (n - 1);
+            var v = vOffset + vLength * t;
+
+            var segment = branch.Segments[i];
+            var N = segment.Frame.Normal;
+            var B = segment.Frame.Binormal;
+
+            for (int j = 0; j <= data.radialSegments; j++)
+            {
+                // 0.0 ~ 2π
+                var u = 1f * j / data.radialSegments;
+                float rad = u * PI2;
+                float cos = Mathf.Cos(rad), sin = Mathf.Sin(rad);
+                var normal = (cos * N + sin * B).normalized;
+
+                vertices.Add(segment.Position + segment.Radius * normal);
+
+                normals.Add(normal);
+                var tangent = segment.Frame.Tangent;
+                tangents.Add(new Vector4(tangent.x, tangent.y, tangent.z, 0f));
+                uvs.Add(new Vector2(u, v));
+            }
+        }
+
+        for (int j = 1; j <= data.heightSegments; j++)
+        {
+            for (int i = 1; i <= data.radialSegments; i++)
+            {
+                int a = (data.radialSegments + 1) * (j - 1) + (i - 1);
+                int b = (data.radialSegments + 1) * j + (i - 1);
+                int c = (data.radialSegments + 1) * j + i;
+                int d = (data.radialSegments + 1) * (j - 1) + i;
+
+                a += offset;
+                b += offset;
+                c += offset;
+                d += offset;
+
+                triangles.Add(a); triangles.Add(d); triangles.Add(b);
+                triangles.Add(b); triangles.Add(d); triangles.Add(c);
+            }
+        }
+    });
+    var mesh = new Mesh();
+    mesh.vertices = vertices.ToArray();
+    mesh.normals = normals.ToArray();
+    mesh.tangents = tangents.ToArray();
+    mesh.uv = uvs.ToArray();
+    mesh.triangles = triangles.ToArray();
+    return mesh;
+}
+*/

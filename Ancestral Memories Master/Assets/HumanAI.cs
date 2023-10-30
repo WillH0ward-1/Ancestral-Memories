@@ -291,6 +291,7 @@ public class HumanAI : MonoBehaviour
             {
                 ChangeState(AIState.Following);
             }
+
             else if (aiPath.reachedDestination)
             {
                 ChangeState(AIState.Idle);
@@ -486,8 +487,6 @@ public class HumanAI : MonoBehaviour
                 followManager.RemoveFollower(transform.gameObject);
             }
 
-            randWalkDistance = UnityEngine.Random.Range(minRandWalkDistance, maxRandWalkDistance);
-
             switch (state)
             {
                 case AIState.Idle:
@@ -508,6 +507,7 @@ public class HumanAI : MonoBehaviour
                     if (tree != null)
                     {
                         // For example, make the agent walk towards a tree in a circle formation of size 5
+                        target = tree.transform;
                         StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
                     }
                     else
@@ -516,6 +516,7 @@ public class HumanAI : MonoBehaviour
 
                         if (tree != null)
                         {
+                            target = tree.transform;
                             StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
                         } else
                         {
@@ -544,6 +545,7 @@ public class HumanAI : MonoBehaviour
                     break;
                 case AIState.HuntMeat:
                     GameObject animal = GetClosest(mapObjGen.huntableAnimalsList, aiBehaviours.ValidateAnimal);
+                    target = animal.transform;
                     StartCoroutine(WalkTowards(animal, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Attack], attackStoppingDistance));
                     break;
                 default:
@@ -750,6 +752,10 @@ public class HumanAI : MonoBehaviour
         behaviourActive = true;
         StartCoroutine(HarvestAnimation(target.transform));
 
+        // Initialize hits and threshold for harvesting
+        hits = 0;
+        someThreshold = UnityEngine.Random.Range(2, 8);
+
         while (behaviourActive)
         {
             if (ptGrow.isDead || !ptGrow.isFullyGrown)
@@ -761,8 +767,89 @@ public class HumanAI : MonoBehaviour
             yield return null;
         }
 
-        yield break;
+        hits = 0; // Reset hits after harvesting is done or interrupted
     }
+
+    [SerializeField] private float attackMultiplier = 0.1f;
+
+    private IEnumerator Attack(GameObject target)
+    {
+        hits = 0;
+
+        // Stop the AI character and disable its movement.
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        behaviourActive = true;
+        AICharacterStats animalStats = target.GetComponentInChildren<AICharacterStats>();
+        attackTargetStats = animalStats;
+
+        while (behaviourActive)
+        {
+            // Make the AI character face its target.
+            transform.LookAt(target.transform);
+
+            // Perform a random attack action.
+            yield return StartCoroutine(PerformRandomActionOverTime(target.transform, attackAnimations, animalStats));
+
+            if (target.transform.CompareTag("Animal"))
+            {
+                // Check if the target animal is dead, then change the state.
+                if (animalStats.isDead)
+                {
+                    ChangeState(AIState.HuntMeat);
+                    yield break;
+                }
+            }
+            else
+            {
+                ChangeState(AIState.Idle);
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        hits = 0;
+    }
+
+    private AICharacterStats attackTargetStats;
+
+    private int hits = 0;
+    private int someThreshold; // Moved outside method scope
+
+    public void DealDamage()
+    {
+        if (someThreshold == 0)
+        { // Initialize if not set
+            someThreshold = UnityEngine.Random.Range(2, 8);
+        }
+
+        hits++;
+
+        // Define a chance for triggering physics
+        float chanceToTriggerPhysics = 0.3f; // 30% chance to trigger physics
+        float randomChance = UnityEngine.Random.value; // Random value between 0.0 and 1.0
+
+        if (target.transform.CompareTag("Trees"))
+        {
+            ProceduralTree proceduralTree = target.GetComponent<ProceduralTree>();
+            PTGrowing ptGrowing = target.GetComponent<PTGrowing>();
+            // Check if the random chance is less than or equal to our defined chance
+            if (randomChance <= chanceToTriggerPhysics && !ptGrowing.isDead && !ptGrowing.isGrowing && ptGrowing.isFullyGrown)
+            {
+                proceduralTree.EnablePhysicsInBurstMode();
+            }
+        }
+        else
+        {
+            attackTargetStats.TakeDamage(attackMultiplier);
+        }
+    }
+
+
+
 
     public void HitTree()
     {
@@ -823,6 +910,7 @@ public class HumanAI : MonoBehaviour
             yield return new WaitUntil(() => currentActionCoroutine == null); // Wait for the current action to finish
         }
 
+
         yield break;
     }
 
@@ -851,12 +939,6 @@ public class HumanAI : MonoBehaviour
         currentActionCoroutine = null; // Indicate this coroutine has finished
     }
 
-    private AICharacterStats attackTargetStats;
-
-    public void DealDamage()
-    {
-        attackTargetStats.TakeDamage(attackMultiplier);
-    }
 
     private IEnumerator ChangeSpeedOverTime(Transform target)
     {
@@ -868,37 +950,6 @@ public class HumanAI : MonoBehaviour
 
         animator.speed = 1.0f; // Reset animation speed to normal when finished
     }
-
-    [SerializeField] private float attackMultiplier = 0.1f;
-
-    private IEnumerator Attack(GameObject target)
-    {
-        aiPath.maxSpeed = 0f;
-        aiPath.destination = transform.position;
-        aiPath.canMove = false;
-
-        behaviourActive = true;
-        AICharacterStats animalStats = target.GetComponentInChildren<AICharacterStats>();
-        attackTargetStats = animalStats;
-
-        while (behaviourActive)
-        {
-            transform.LookAt(target.transform);
-
-            yield return StartCoroutine(PerformRandomActionOverTime(target.transform, attackAnimations, animalStats));
-
-            if (animalStats.isDead)
-            {
-                ChangeState(AIState.HuntMeat);
-                yield break;
-            }
-
-            yield return null;
-        }
-
-        yield break;
-    }
-
 
     private IEnumerator SmoothlyChangeAnimationSpeed(float targetSpeed, float duration)
     {

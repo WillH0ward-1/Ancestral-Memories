@@ -52,7 +52,17 @@ namespace ProceduralModeling
 			ClearLeaves();
 		}
 
-		public static Mesh Build(ProceduralTree treeInstance, TreeData data, int generations, float length, float radius, float leafSize, Material leafMat)
+		public class SegmentMeshData
+		{
+			public List<Vector3> vertices = new List<Vector3>();
+			public List<int> triangles = new List<int>();
+			public List<Vector3> normals = new List<Vector3>();
+			public List<Vector4> tangents = new List<Vector4>();
+			public List<Vector2> uvs = new List<Vector2>();
+			// Add other necessary data like materials, etc.
+		}
+
+		public static (Mesh, List<SegmentMeshData>) Build(ProceduralTree treeInstance, TreeData data, int generations, float length, float radius, float leafSize, Material leafMat)
 		{
 			data.Setup();
 
@@ -76,10 +86,14 @@ namespace ProceduralModeling
 
 			float maxLength = TraverseMaxLength(root);
 
+			List<SegmentMeshData> segmentMeshes = new List<SegmentMeshData>();
+
 			Traverse(root, (branch) =>
 			{
-				var offset = vertices.Count;
+				SegmentMeshData segmentMesh = new SegmentMeshData();
 
+				var offset = vertices.Count;
+				var segOffset = segmentMesh.vertices.Count;
 				var vOffset = branch.Offset / maxLength;
 				var vLength = branch.Length / maxLength;
 
@@ -91,21 +105,34 @@ namespace ProceduralModeling
 					var segment = branch.Segments[i];
 					var N = segment.Frame.Normal;
 					var B = segment.Frame.Binormal;
+
 					for (int j = 0; j <= data.radialSegments; j++)
 					{
-						// 0.0 ~ 2π
 						var u = 1f * j / data.radialSegments;
 						float rad = u * PI2;
 
 						float cos = Mathf.Cos(rad), sin = Mathf.Sin(rad);
 						var normal = (cos * N + sin * B).normalized;
-						vertices.Add(segment.Position + segment.Radius * normal);
+						var position = segment.Position + segment.Radius * normal;
+
+						var pos = segment.Position + segment.Radius * normal;
+
+						vertices.Add(pos);
 						normals.Add(normal);
 
 						var tangent = segment.Frame.Tangent;
-						tangents.Add(new Vector4(tangent.x, tangent.y, tangent.z, 0f));
+						Vector4 tangentVals = new Vector4(tangent.x, tangent.y, tangent.z, 0f);
 
-						uvs.Add(new Vector2(u, v));
+						tangents.Add(tangentVals);
+
+						Vector2 uv = new Vector2(u, v);
+						uvs.Add(uv);
+
+						// Add the same data to segmentMesh
+						segmentMesh.vertices.Add(pos);
+						segmentMesh.normals.Add(normal);
+						segmentMesh.tangents.Add(tangentVals);
+						segmentMesh.uvs.Add(uv);
 					}
 				}
 
@@ -125,8 +152,25 @@ namespace ProceduralModeling
 
 						triangles.Add(a); triangles.Add(d); triangles.Add(b);
 						triangles.Add(b); triangles.Add(d); triangles.Add(c);
+
+						// Indices for the segment mesh (start from 0)
+						int segA = (data.radialSegments + 1) * (j - 1) + (i - 1);
+						int segB = (data.radialSegments + 1) * j + (i - 1);
+						int segC = (data.radialSegments + 1) * j + i;
+						int segD = (data.radialSegments + 1) * (j - 1) + i;
+
+						segA += segOffset;
+						segB += segOffset;
+						segC += segOffset;
+						segD += segOffset;
+
+
+						segmentMesh.triangles.Add(segA); segmentMesh.triangles.Add(segD); segmentMesh.triangles.Add(segB);
+						segmentMesh.triangles.Add(segB); segmentMesh.triangles.Add(segD); segmentMesh.triangles.Add(segC);
 					}
 				}
+
+				segmentMeshes.Add(segmentMesh);
 			});
 
 			var mesh = new Mesh();
@@ -135,13 +179,182 @@ namespace ProceduralModeling
 			mesh.tangents = tangents.ToArray();
 			mesh.uv = uvs.ToArray();
 			mesh.triangles = triangles.ToArray();
-			return mesh;
+
+			return (mesh, segmentMeshes);
+		}
+
+		private List<GameObject> segmentObjects = new List<GameObject>();
+		public float depthFactor = 1.0f;
+
+		public void CreateSegmentedTreeObjects(List<SegmentMeshData> segmentMeshes, Material material, float depthFactor)
+		{
+			ClearSegmentObjects();
+
+			int totalSegments = segmentMeshes.Count;
+			int segmentsPerGroup = Mathf.Max(1, Mathf.FloorToInt(totalSegments * depthFactor));
+
+			for (int i = 0; i < totalSegments; i += segmentsPerGroup)
+			{
+				SegmentMeshData combinedSegmentMesh = new SegmentMeshData();
+
+				// Combine the data of 'segmentsPerGroup' consecutive segments
+				for (int j = i; j < Mathf.Min(i + segmentsPerGroup, totalSegments); j++)
+				{
+					var segmentMesh = segmentMeshes[j];
+					int vertexOffset = combinedSegmentMesh.vertices.Count;
+
+					combinedSegmentMesh.vertices.AddRange(segmentMesh.vertices);
+					combinedSegmentMesh.normals.AddRange(segmentMesh.normals);
+					combinedSegmentMesh.tangents.AddRange(segmentMesh.tangents);
+					combinedSegmentMesh.uvs.AddRange(segmentMesh.uvs);
+
+					// Add the triangles with the correct offset
+					foreach (var tri in segmentMesh.triangles)
+					{
+						combinedSegmentMesh.triangles.Add(tri + vertexOffset);
+					}
+				}
+
+				// Now create a GameObject for this combined segment
+				string objName = (i + segmentsPerGroup >= totalSegments) ? "TreeRoot" : $"TreeSegment_{i / segmentsPerGroup + 1}";
+				GameObject segmentObj = new GameObject(objName);
+
+				// Adding components to the GameObject
+				var meshFilter = segmentObj.AddComponent<MeshFilter>();
+				var meshRenderer = segmentObj.AddComponent<MeshRenderer>();
+				ShaderLightColor lighting = segmentObj.AddComponent<ShaderLightColor>();
+				lighting.enabled = true;
+				segmentObj.isStatic = true;
+
+				// Assign material
+				meshRenderer.material = material;
+
+				// Create and assign mesh to the MeshFilter
+				Mesh segmentedMesh = new Mesh();
+				segmentedMesh.vertices = combinedSegmentMesh.vertices.ToArray();
+				segmentedMesh.normals = combinedSegmentMesh.normals.ToArray();
+				segmentedMesh.tangents = combinedSegmentMesh.tangents.ToArray();
+				segmentedMesh.uv = combinedSegmentMesh.uvs.ToArray();
+				segmentedMesh.triangles = combinedSegmentMesh.triangles.ToArray();
+				meshFilter.mesh = segmentedMesh;
+
+				// Parent it under a common root for organization
+				segmentObj.transform.SetParent(transform); // Assuming 'this' is the main tree object
+				segmentObj.transform.localPosition = Vector3.zero;
+				segmentObj.transform.localRotation = Quaternion.identity;
+				segmentObj.transform.localScale = Vector3.one;
+
+				// Add the new GameObject to the list
+				segmentObjects.Add(segmentObj);
+			}
+		}
+
+
+		public void ClearSegmentObjects()
+		{
+			foreach (var obj in segmentObjects)
+			{
+				if (obj != null)
+				{
+					if (Application.isPlaying)
+					{
+						Destroy(obj);
+					}
+					else
+					{
+						DestroyImmediate(obj);
+					}
+				}
+			}
+
+			segmentObjects.Clear(); // Clear the list after destroying the objects
+		}
+
+		private int lastPhysicsEnabledIndex = -1; // Store the index up to which physics has been enabled
+		public LayerMask physicsLayers;
+
+		public void EnablePhysicsInBurstMode()
+		{
+			// Ensuring that the next range doesn't overlap with already physics-enabled segments
+			int start = lastPhysicsEnabledIndex + 1;
+
+			// Random range - you can customize the limits as per your requirements
+			int range = UnityEngine.Random.Range(5, 16);  // Example: Enables physics on a random number of segments between 5 and 10
+
+			// Apply physics in the selected range
+			for (int i = start; i < start + range && i < segmentObjects.Count; i++)
+			{
+				// Skip the TreeRoot
+				if (segmentObjects[i].name != "TreeRoot")
+				{
+					AssignPhysics(segmentObjects[i]);
+				}
+
+				lastPhysicsEnabledIndex = i;
+			}
+		}
+
+
+		public void AssignPhysicsToAllSegments()
+		{
+			foreach (var segment in segmentObjects)
+			{
+				AssignPhysics(segment);
+			}
+		}
+
+
+		public void AssignPhysics(GameObject segment)
+		{
+			if (segment == null)
+			{
+				Debug.LogError("Segment object is null. Cannot add physics components.");
+				return;
+			}
+
+			if (segment.name != "TreeRoot")
+			{
+
+				// Add and configure Rigidbody
+				Rigidbody rb = segment.AddComponent<Rigidbody>();
+				rb.useGravity = true;
+				rb.mass = 100f;
+
+				// Add MeshCollider
+				MeshCollider collider = segment.AddComponent<MeshCollider>();
+				collider.convex = true; // You can adjust this based on your requirement
+				collider.includeLayers = physicsLayers;
+				// Using the existing mesh for the collider
+				MeshFilter meshFilter = segment.GetComponent<MeshFilter>();
+				if (meshFilter != null && meshFilter.sharedMesh != null)
+				{
+					collider.sharedMesh = meshFilter.sharedMesh;
+				}
+				else
+				{
+					Debug.LogWarning("Segment does not have a MeshFilter with a mesh assigned. MeshCollider may not function correctly.");
+				}
+			}
 		}
 
 		protected override Mesh Build()
 		{
-			return Build(this, data, generations, length, radius, leafSize, leafMat);
+			var (treeMesh, segmentMeshes) = Build(this, data, generations, length, radius, leafSize, leafMat);
+			// Optionally store segmentMeshes in the class for later use
+			Renderer renderer = transform.GetComponent<Renderer>();
+			Material material = renderer.sharedMaterial;
+			CreateSegmentedTreeObjects(segmentMeshes, material, depthFactor);
+
+			//HideMesh();
+			return treeMesh;
 		}
+
+		private void HideMesh()
+		{
+			// To hide
+			this.GetComponent<MeshRenderer>().enabled = false;
+		}
+
 
 		static float TraverseMaxLength(TreeBranch branch)
 		{
@@ -152,6 +365,7 @@ namespace ProceduralModeling
 			});
 			return branch.Length + max;
 		}
+
 
 		static void Traverse(TreeBranch from, Action<TreeBranch> action)
 		{
@@ -188,6 +402,8 @@ namespace ProceduralModeling
 		public List<GameObject> leafList;
 
 		public Mesh LeafMesh { get; private set; }
+		public List<SegmentMeshData> segmentMeshes; // Storing segment meshes
+
 		public Material LeafMaterial { get; private set; }
 		private int maxInstances;
 
@@ -256,7 +472,7 @@ namespace ProceduralModeling
 
 #if UNITY_EDITOR
 
-			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().mesh;  // Replace with your actual leaf mesh
+			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().mesh;  
 #else
 			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().sharedMesh;  // Replace with your actual leaf mesh
 #endif
@@ -293,10 +509,6 @@ namespace ProceduralModeling
 			treeFruitManager.InitializeFruits(fruitCount);
 		}
 
-
-
-
-
 		void OnRenderObject()
 		{
 			if (LeafMesh != null && LeafMaterial != null && Matrices != null)
@@ -305,40 +517,6 @@ namespace ProceduralModeling
 			}
 		}
 
-		void PositionLeaves(TreeBranch root)
-		{
-			int leafIndex = 0;
-			Traverse(root, (branch) =>
-			{
-				if (branch.Children.Count == 0)
-				{
-					foreach (var segment in branch.Segments)
-					{
-						var lastSegment = branch.Segments.Last();
-
-						if (leafIndex >= leafList.Count)
-						{
-							break;
-						}
-
-						var leafObj = leafList[leafIndex];
-
-						// Translate position to world space
-						var position = transform.TransformPoint(lastSegment.Position);
-						leafObj.transform.position = position;
-
-						// Randomly rotate the leaf
-						leafObj.transform.rotation = Quaternion.Euler(
-							UnityEngine.Random.Range(0, 360),
-							UnityEngine.Random.Range(0, 360),
-							UnityEngine.Random.Range(0, 360)
-						);
-
-						leafIndex++;
-					}
-				}
-			});
-		}
 
 		public override void ClearLeaves()
 		{
@@ -347,8 +525,6 @@ namespace ProceduralModeling
 			// Reset the initialization flag
 			isLeafListInitialized = false;
 		}
-
-
 	}
 
 
