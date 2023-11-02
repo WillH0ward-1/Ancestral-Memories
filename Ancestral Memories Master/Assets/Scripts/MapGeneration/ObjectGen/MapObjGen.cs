@@ -201,7 +201,7 @@ public class MapObjGen : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private CharacterBehaviours behaviours;
-    [SerializeField] private Player player;
+    public Player player;
     [SerializeField] private PickUpObject pickUpManager;
 
     [Header("========================================================================================================================")]
@@ -296,6 +296,7 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> huntableAnimalsList;
 
+    private DisasterManager disasterManager;
 
     private List<PTGrowing> ptGrowComponents = new List<PTGrowing>();
     private float randomTreeColourSeed = 0;
@@ -381,7 +382,6 @@ public class MapObjGen : MonoBehaviour
     private void SetupPlayer()
     {
         mapCenter = Vector3.zero;
-
 
         player = FindObjectOfType<Player>();
         behaviours = player.GetComponentInChildren<CharacterBehaviours>();
@@ -485,11 +485,23 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(StartProceduralTreeGrowth(treeList));
 
         SpawnPlayer();
+
+        SetupDisasters();
         //StartCoroutine(StartTreeGrowth(treeList));
 
         //EnableNavMeshAgents(npcList);
         //RandomizeTreecolours();
 
+    }
+
+    private void SetupDisasters()
+    {
+        disasterManager = FindObjectOfType<DisasterManager>();
+        disasterManager.player = player;
+        disasterManager.humanTargets = humanPopulationList;
+        disasterManager.animalTargets = huntableAnimalsList;
+        disasterManager.treeTargets = treeList;
+        disasterManager.InitDisasters();
     }
 
     public IEnumerator StartProceduralTreeGrowth(List<GameObject> treeList)

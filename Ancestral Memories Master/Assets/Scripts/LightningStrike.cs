@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,117 +6,157 @@ using UnityEngine;
 public class LightningStrike : MonoBehaviour
 {
     [SerializeField] private GameObject lightningPrefab;
+    [SerializeField] private int poolSize = 50;
+    private Queue<GameObject> lightningPool = new Queue<GameObject>();
 
-    [SerializeField] private float duration = 1f;
-    [SerializeField] private Vector3 minScale;
-    [SerializeField] private Vector3 maxScale;
-
-    [SerializeField] private float yOffset = 45f;
-
-    public bool lightningActive = false;
-
-    Light lightningLight;
-
-    public CharacterBehaviours behaviours;
-    [SerializeField] private DisasterManager naturalDisaster;
-
+    [SerializeField] private DisasterManager disasterManager;
     private LightningSoundEffects lightningSFX;
 
-    private ControlAlpha costumeControl;
-
     [SerializeField] private AreaManager areaManager;
-
     [SerializeField] private GameObject fire;
-    [SerializeField] private FireController fireManager;
-
+    [SerializeField] private FireManager fireManager;
     private string insideCave = "InsideCave";
 
-    // Start is called before the first frame update
+    private void Awake()
+    {
+        InitializeLightningPool();
+        groundImpacts = transform.GetComponentInChildren<GroundImpacts>();
+        disasterManager = transform.GetComponentInChildren<DisasterManager>();
+        fireManager = transform.GetComponent<FireManager>();
+    }
+
+    private void InitializeLightningPool()
+    {
+        for (int i = 0; i < poolSize; i++)
+        {
+            GameObject obj = Instantiate(lightningPrefab);
+            obj.SetActive(false);
+            lightningPool.Enqueue(obj);
+        }
+    }
+
+    private GameObject GetLightningFromPool()
+    {
+        GameObject obj = lightningPool.Count > 0 ? lightningPool.Dequeue() : Instantiate(lightningPrefab);
+        obj.SetActive(true);
+        PlayParticleSystems(obj, true);
+        return obj;
+    }
+
+    private void ReturnLightningToPool(GameObject lightning)
+    {
+        PlayParticleSystems(lightning, false);
+        lightning.SetActive(false);
+        lightningPool.Enqueue(lightning);
+    }
+
+    private void PlayParticleSystems(GameObject obj, bool play)
+    {
+        foreach (ParticleSystem ps in obj.GetComponentsInChildren<ParticleSystem>())
+        {
+            if (play) ps.Play();
+            else
+            {
+                ps.Stop();
+                ps.Clear();
+            }
+        }
+    }
 
     public void StrikeLightning(Transform target)
     {
-        if (areaManager.currentRoom != insideCave && !behaviours.behaviourIsActive)
+        if (target == null)
         {
-            behaviours.StartCoroutine(behaviours.Electrocution());
-            StartCoroutine(Strike(target));
-        } else
-        {
-            Debug.Log("Cannot strike!");
+            Debug.LogError("Target is null in StrikeLightning");
             return;
         }
 
+        Debug.Log("Target: " + target.name);
+
+        // Define the delegate outside of the switch for scope reasons
+        Action deathAnimationTrigger = null;
+
+        switch (target.tag)
+        {
+            case "Player":
+                deathAnimationTrigger = () =>
+                {
+                    var playerBehaviours = target.GetComponentInChildren<CharacterBehaviours>();
+                    StartCoroutine(playerBehaviours.Electrocution());
+                };
+                break;
+
+            case "Animal":
+                deathAnimationTrigger = () =>
+                {
+                    var animalAI = target.GetComponentInChildren<AnimalAI>();
+                    StartCoroutine(animalAI.Die());
+                };
+                break;
+
+            case "Human":
+                deathAnimationTrigger = () =>
+                {
+                    var humanAI = target.GetComponentInChildren<HumanAI>();
+                    StartCoroutine(humanAI.DeathElectrocution());
+                };
+                break;
+
+            default:
+                Debug.LogError("Cannot strike " + target.name + "! Qualify " + target.name + " as a target in the LightningStrike script.");
+                return;
+        }
+
+        StartCoroutine(Strike(target, deathAnimationTrigger));
     }
 
-    [SerializeField] private float minLightIntensity;
-    [SerializeField] private float maxLightIntensity;
 
-    public IEnumerator Strike(Transform target)
+    [SerializeField] private GroundImpacts groundImpacts;
+
+    public IEnumerator Strike(Transform target, Action killTarget)
     {
-        maxScale = new Vector3(0.5f, Random.Range(-1f, -20f), 0.5f);
-
         Debug.Log("Lightning!");
 
-        GameObject lightning = Instantiate(lightningPrefab, target.transform.position, Quaternion.identity, target.transform);
+        GameObject lightning = GetLightningFromPool();
         lightningSFX = lightning.GetComponent<LightningSoundEffects>();
         lightningSFX.PlayLightningStrike(target.transform.gameObject);
 
-        lightningLight = lightningPrefab.transform.GetComponentInChildren<Light>();
-        lightningLight.enabled = false;
+        lightning.transform.position = new Vector3(target.position.x, target.position.y, target.position.z);
 
-        lightningLight.enabled = true;
-        lightningLight.intensity = 0f;
+        groundImpacts.ActivateImpactEffects("Lightning", target.transform.position);
 
-        lightning.transform.position = new Vector3(target.position.x, target.position.y + yOffset, target.position.z);
-        lightning.transform.localScale = minScale;
+        // Trigger the death animation and start the fire
+        killTarget?.Invoke();
+        fireManager.StartFireAtPosition(target.transform.position);
 
-        float halfTime = duration / 2; 
+        // Calculate the total duration of the lightning particle effect
+        float totalDuration = GetTotalDurationOfParticleSystems(lightning);
 
-        float lightningDuration = halfTime;
+        yield return new WaitForSeconds(totalDuration); // Wait for the lightning effect to complete
 
-        float time = 0;
-
-        while (time <= 1f)
-        {
-            lightning.transform.localScale = Vector3.Lerp(minScale, maxScale, time);
-            lightningLight.intensity = Mathf.Lerp(minLightIntensity, maxLightIntensity, time);
-            time += Time.deltaTime / lightningDuration;
-            yield return null;
-        }
-
-        if (time >= 1f)
-        {
-            fireManager.StartFire(target.transform, new Vector3(target.position.x, target.position.y, target.position.z));
-
-            yield return Retreat(lightning, lightningDuration);
-            
-        }
-
+        StartCoroutine(Retreat(lightning));
     }
 
-    private IEnumerator Retreat(GameObject lightning, float lightningDuration)
+    private float GetTotalDurationOfParticleSystems(GameObject obj)
+    {
+        float maxDuration = 0f;
+        foreach (ParticleSystem ps in obj.GetComponentsInChildren<ParticleSystem>())
+        {
+            if (ps.main.duration > maxDuration)
+            {
+                maxDuration = ps.main.duration;
+            }
+        }
+        return maxDuration;
+    }
+
+
+
+    private IEnumerator Retreat(GameObject lightning)
     {
         Debug.Log("Lightning End!");
-
-        lightningLight.transform.gameObject.SetActive(false);
-        lightningLight.intensity = 0f;
-
-        float time = 0;
-
-        while (time <= 1f)
-        {
-            lightning.transform.localScale = Vector3.Lerp(maxScale, minScale, time);
-            lightningLight.intensity = Mathf.Lerp(maxLightIntensity, minLightIntensity, time);
-            time += Time.deltaTime / lightningDuration;
-            yield return null;
-        }
-
-        if (time >= 1f)
-        {
-            lightningLight.intensity = 0f;
-            lightningActive = false;
-            StartCoroutine(naturalDisaster.DisasterCoolDown());
-            Destroy(lightning);
-            yield break;
-        }
+        StartCoroutine(disasterManager.DisasterCoolDown());
+        ReturnLightningToPool(lightning);  // Returning to pool instead of destroying
+        yield break;
     }
 }

@@ -19,7 +19,7 @@ public class HumanAI : MonoBehaviour
     [SerializeField] private AIState state = AIState.Idle;
 
     [SerializeField] private AIState currentAIState;
-    [SerializeField] private bool behaviourActive = false;
+    public bool behaviourIsActive = false;
 
     [SerializeField] private float walkingSpeed = 3.5f;
     [SerializeField] private float runningSpeed = 11;
@@ -74,6 +74,8 @@ public class HumanAI : MonoBehaviour
     public enum EvolutionState { Neanderthal, MidSapien, Sapien }
     public EvolutionState currentEvolutionState;
 
+    public bool isElectrocuted;
+
     private void Awake()
     {
 
@@ -111,7 +113,7 @@ public class HumanAI : MonoBehaviour
     {
         if (stats.health <= 0 && !stats.isDead)
         {
-            Die();
+            KillToRagdoll();
         }
 
         if (!stats.isDead)
@@ -199,12 +201,12 @@ public class HumanAI : MonoBehaviour
 
     public bool isDead = false;
 
-    private void Die()
+    private void KillToRagdoll()
     {
         if (!stats.isDead)
         {
             stats.isDead = true;
-            StartCoroutine(ragdollController.TriggerRagdoll());
+            ragdollController.TriggerRagdoll();
         }
     }
 
@@ -227,9 +229,9 @@ public class HumanAI : MonoBehaviour
 
         time = UnityEngine.Random.Range(minActionBuffer, maxActionBuffer);
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             SetIdleAnimation(currentEvolutionState); // Update the idle animation based on state
 
@@ -260,6 +262,68 @@ public class HumanAI : MonoBehaviour
         }
     }
 
+    public float timeSinceLastShock = 0;
+    private Coroutine shockTimerCoroutine;
+    public float shockCooldownTime = 30f; // You can adjust this value as needed
+
+    public IEnumerator DeathElectrocution()
+    {
+        if (shockTimerCoroutine != null)
+        {
+            StopCoroutine(shockTimerCoroutine);
+        }
+
+        isElectrocuted = true;
+
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        behaviourIsActive = true;
+
+        // Random chance
+        float chance = UnityEngine.Random.value; // Random value between 0 and 1
+        float threshold = 0.5f; // Adjust threshold as needed, 0.5 implies 50% chance for each
+
+        if (chance <= threshold)
+        {
+            // Play Electrocution animation
+            ChangeAnimationState(HumanControllerAnimations.Death_Standing_Electrocution);
+
+            // Wait for the length of the Electrocution animation
+            Animator animator = GetComponent<Animator>(); // Assuming an Animator component is attached
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // Layer 0
+            yield return new WaitForSeconds(stateInfo.length);
+
+            // Now get up
+            StartCoroutine(GetUp(true));
+        }
+        else
+        {
+            StartCoroutine(DeathKnockout());
+        }
+
+        isElectrocuted = false;
+    }
+
+    private IEnumerator DeathKnockout()
+    {
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        time = UnityEngine.Random.Range(minActionBuffer, maxActionBuffer);
+
+        behaviourIsActive = true;
+
+        while (behaviourIsActive)
+        {
+            KillToRagdoll();
+
+            yield return null;
+        }
+    }
+
     private IEnumerator Wander()
     {
         
@@ -281,9 +345,9 @@ public class HumanAI : MonoBehaviour
         // Set the destination once a valid point is found.
         aiPath.destination = newWanderPoint.Value;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             SetWalkingAnimation(currentEvolutionState); // Update the walking animation based on state
 
@@ -313,15 +377,15 @@ public class HumanAI : MonoBehaviour
         aiPath.destination = destination;
         aiPath.canMove = true;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             SetWalkingAnimation(currentEvolutionState); // Setting walking animation
 
             if (!aiPath.pathPending && (aiPath.reachedEndOfPath || !aiPath.hasPath))
             {
-                behaviourActive = false;
+                behaviourIsActive = false;
             }
 
             yield return null;
@@ -431,7 +495,7 @@ public class HumanAI : MonoBehaviour
 
         time = UnityEngine.Random.Range(minActionBuffer, maxActionBuffer);
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
         // Spherecast variables
         float spherecastRadius = 25f;
@@ -466,7 +530,7 @@ public class HumanAI : MonoBehaviour
         if (!ragdollController.isRagdollActive)
         {
             StopAllCoroutines();
-            behaviourActive = false;
+            behaviourIsActive = false;
             currentAIState = newState;
             state = currentAIState;
 
@@ -628,10 +692,10 @@ public class HumanAI : MonoBehaviour
 
         aiPath.destination = destination;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
         PTGrowing ptGrow = null; // Declare outside of loop
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             if (action == stateActions[AIState.Harvest])
             {
@@ -691,7 +755,7 @@ public class HumanAI : MonoBehaviour
 
             if (aiPath.reachedDestination)
             {
-                behaviourActive = false;
+                behaviourIsActive = false;
             }
 
             yield return null;
@@ -749,14 +813,14 @@ public class HumanAI : MonoBehaviour
         aiPath.destination = transform.position;
         aiPath.canMove = false;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
         StartCoroutine(HarvestAnimation(target.transform));
 
         // Initialize hits and threshold for harvesting
         hits = 0;
         someThreshold = UnityEngine.Random.Range(2, 8);
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             if (ptGrow.isDead || !ptGrow.isFullyGrown)
             {
@@ -781,11 +845,11 @@ public class HumanAI : MonoBehaviour
         aiPath.destination = transform.position;
         aiPath.canMove = false;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
         AICharacterStats animalStats = target.GetComponentInChildren<AICharacterStats>();
         attackTargetStats = animalStats;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             // Make the AI character face its target.
             transform.LookAt(target.transform);
@@ -881,9 +945,9 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator HarvestAnimation(Transform target)
     {
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             transform.LookAt(target);
             StartCoroutine(ChangeSpeedOverTime(target));
@@ -979,7 +1043,7 @@ public class HumanAI : MonoBehaviour
 
         ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
         yield break;
     }
@@ -987,9 +1051,9 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator DialogueActive()
     {
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
@@ -1046,9 +1110,9 @@ public class HumanAI : MonoBehaviour
         aiPath.canMove = true;
         aiPath.maxSpeed = runningSpeed;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             if (reverseFlee)
             {
@@ -1112,10 +1176,10 @@ public class HumanAI : MonoBehaviour
 
     private IEnumerator Follow(Transform target)
     {
-        behaviourActive = true;
+        behaviourIsActive = true;
         aiPath.canMove = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             UpdateRange(target);
 

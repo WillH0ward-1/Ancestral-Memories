@@ -138,15 +138,8 @@ public class RagdollController : MonoBehaviour
 
     private Rigidbody hipsRigidBody;
 
-    private void Start()
+    public void TriggerRagdoll()
     {
-        //StartCoroutine(TriggerRagdollTest());
-    }
-
-    public IEnumerator TriggerRagdoll()
-    {
-        yield return new WaitForSeconds(1f);
-
         EnableRagdoll();
     }
 

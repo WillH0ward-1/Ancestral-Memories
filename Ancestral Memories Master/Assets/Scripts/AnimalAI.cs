@@ -25,7 +25,7 @@ public class AnimalAI : MonoBehaviour
 
 
     [SerializeField] private AIState currentAIState;
-    [SerializeField] private bool behaviourActive = false;
+    public bool behaviourIsActive = false;
 
     [SerializeField] private float walkingSpeed = 3.5f;
     [SerializeField] private float runningSpeed = 11;
@@ -155,9 +155,9 @@ public class AnimalAI : MonoBehaviour
 
         time = Random.Range(minActionBuffer, maxActionBuffer);
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             while (time >= 0)
             {
@@ -206,9 +206,9 @@ public class AnimalAI : MonoBehaviour
 
         aiPath.destination = destination;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
@@ -233,10 +233,10 @@ public class AnimalAI : MonoBehaviour
 
     private void ChangeState(AIState newState)
     {
-        if (!hasDied)
+        if (!isDead)
         {
             StopAllCoroutines();
-            behaviourActive = false;
+            behaviourIsActive = false;
             currentAIState = newState;
             state = currentAIState;
 
@@ -290,16 +290,15 @@ public class AnimalAI : MonoBehaviour
         Debug.Log(currentAIState);
     }
 
-    private bool hasDied = false;
+    public bool isDead = false;
 
-    private IEnumerator Die()
+    public IEnumerator Die()
     {
-        hasDied = true; // Set flag at start
+        isDead = true; // Set flag at start
 
         StopAllCoroutines();
-        behaviourActive = false;
+        behaviourIsActive = false;
         aiPath.canMove = false;
-        GetComponent<NavMeshAgent>().enabled = false;
         ChangeAnimationState(DIE);
         yield break;
     }
@@ -311,9 +310,9 @@ public class AnimalAI : MonoBehaviour
 
     private IEnumerator DialogueActive()
     {
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             ChangeAnimationState(IDLE);
 
@@ -329,9 +328,9 @@ public class AnimalAI : MonoBehaviour
     {
         ChangeAnimationState(EAT);
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             while (time >= 0)
             {
@@ -381,9 +380,9 @@ public class AnimalAI : MonoBehaviour
         aiPath.canMove = true;
         aiPath.maxSpeed = runningSpeed;
 
-        behaviourActive = true;
+        behaviourIsActive = true;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             //Set NavMesh Agent Speed
 
@@ -473,7 +472,7 @@ public class AnimalAI : MonoBehaviour
 
     private IEnumerator Follow()
     {
-        behaviourActive = true;
+        behaviourIsActive = true;
 
         //agent.speed = walkingSpeed;
         aiPath.canMove = true;
@@ -481,7 +480,7 @@ public class AnimalAI : MonoBehaviour
 
         aiPath.destination = player.transform.position;
 
-        while (behaviourActive)
+        while (behaviourIsActive)
         {
             ChangeAnimationState(WALK);
 

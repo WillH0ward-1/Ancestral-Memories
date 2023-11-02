@@ -183,7 +183,7 @@ namespace ProceduralModeling
 			return (mesh, segmentMeshes);
 		}
 
-		private List<GameObject> segmentObjects = new List<GameObject>();
+		public List<GameObject> segmentObjects = new List<GameObject>();
 		public float depthFactor = 1.0f;
 
 		public void CreateSegmentedTreeObjects(List<SegmentMeshData> segmentMeshes, Material material, float depthFactor)
