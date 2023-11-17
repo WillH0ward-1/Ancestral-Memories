@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using Unity.VisualScripting;
 
 namespace ProceduralModeling
 {
@@ -24,7 +25,6 @@ namespace ProceduralModeling
 
 		private bool isLeafListInitialized;
 
-
 		private LeafScaler leafScaler;
 		private Transform leafRoot;
 
@@ -32,11 +32,22 @@ namespace ProceduralModeling
 
 		private bool generateMeshCollider = false;
 
+		public static Quaternion treeRotation = Quaternion.Euler(0, -45, 0);
+
+		private Renderer solidTreeRenderer;
+
+		private PTGrowing ptGrow;
+
+		private LayerMask hitGroundLayer;
+
+		public ResourcesManager resources;
+
 		void OnEnable()
 		{
 			isLeafListInitialized = false;
 			leafScaler = GetComponent<LeafScaler>();
 			treeFruitManager = GetComponent<TreeFruitManager>();
+			ptGrow = GetComponent<PTGrowing>();
 			leafScaler.proceduralTree = this;
 			
 			if (leafScaler == null)
@@ -45,6 +56,9 @@ namespace ProceduralModeling
 			}
 
 			leafRoot = transform.Find("LeafRoot");
+			leafRoot.transform.AddComponent<NonFlammable>();
+			solidTreeRenderer = transform.GetComponent<Renderer>();
+			hitGroundLayer = LayerMask.GetMask("Ground", "Water", "Rocks", "Cave");
 		}
 
 		void OnDisable()
@@ -115,9 +129,11 @@ namespace ProceduralModeling
 						var normal = (cos * N + sin * B).normalized;
 						var position = segment.Position + segment.Radius * normal;
 
-						var pos = segment.Position + segment.Radius * normal;
+						// Apply rotation
+						position = treeRotation * position;
+						normal = treeRotation * normal;
 
-						vertices.Add(pos);
+						vertices.Add(position);
 						normals.Add(normal);
 
 						var tangent = segment.Frame.Tangent;
@@ -129,7 +145,7 @@ namespace ProceduralModeling
 						uvs.Add(uv);
 
 						// Add the same data to segmentMesh
-						segmentMesh.vertices.Add(pos);
+						segmentMesh.vertices.Add(position);
 						segmentMesh.normals.Add(normal);
 						segmentMesh.tangents.Add(tangentVals);
 						segmentMesh.uvs.Add(uv);
@@ -153,7 +169,7 @@ namespace ProceduralModeling
 						triangles.Add(a); triangles.Add(d); triangles.Add(b);
 						triangles.Add(b); triangles.Add(d); triangles.Add(c);
 
-						// Indices for the segment mesh (start from 0)
+						// Indices for the segment mesh
 						int segA = (data.radialSegments + 1) * (j - 1) + (i - 1);
 						int segB = (data.radialSegments + 1) * j + (i - 1);
 						int segC = (data.radialSegments + 1) * j + i;
@@ -163,7 +179,6 @@ namespace ProceduralModeling
 						segB += segOffset;
 						segC += segOffset;
 						segD += segOffset;
-
 
 						segmentMesh.triangles.Add(segA); segmentMesh.triangles.Add(segD); segmentMesh.triangles.Add(segB);
 						segmentMesh.triangles.Add(segB); segmentMesh.triangles.Add(segD); segmentMesh.triangles.Add(segC);
@@ -182,6 +197,7 @@ namespace ProceduralModeling
 
 			return (mesh, segmentMeshes);
 		}
+
 
 		public List<GameObject> segmentObjects = new List<GameObject>();
 		public float depthFactor = 1.0f;
@@ -239,13 +255,33 @@ namespace ProceduralModeling
 				meshFilter.mesh = segmentedMesh;
 
 				// Parent it under a common root for organization
-				segmentObj.transform.SetParent(transform); // Assuming 'this' is the main tree object
+				segmentObj.transform.SetParent(transform);
 				segmentObj.transform.localPosition = Vector3.zero;
 				segmentObj.transform.localRotation = Quaternion.identity;
 				segmentObj.transform.localScale = Vector3.one;
-
+				segmentObj.AddComponent<CollisionNotifier>();
 				// Add the new GameObject to the list
 				segmentObjects.Add(segmentObj);
+			}
+		}
+
+		void HideSegments()
+        {
+			solidTreeRenderer.enabled = true;
+
+			foreach(GameObject segment in segmentObjects)
+            {
+				segment.transform.gameObject.SetActive(false);
+			}
+        }
+
+		void ShowSegments()
+		{
+			solidTreeRenderer.enabled = false;
+
+			foreach (GameObject segment in segmentObjects)
+			{
+				segment.transform.gameObject.SetActive(true);
 			}
 		}
 
@@ -275,34 +311,53 @@ namespace ProceduralModeling
 
 		public void EnablePhysicsInBurstMode()
 		{
-			// Ensuring that the next range doesn't overlap with already physics-enabled segments
-			int start = lastPhysicsEnabledIndex + 1;
-
-			// Random range - you can customize the limits as per your requirements
-			int range = UnityEngine.Random.Range(5, 16);  // Example: Enables physics on a random number of segments between 5 and 10
-
-			// Apply physics in the selected range
-			for (int i = start; i < start + range && i < segmentObjects.Count; i++)
+			if (ptGrow.ValidateTree())
 			{
-				// Skip the TreeRoot
-				if (segmentObjects[i].name != "TreeRoot")
+				ShowSegments();
+
+				// Ensuring that the next range doesn't overlap with already physics-enabled segments
+				int start = lastPhysicsEnabledIndex + 1;
+
+				// Calculate the maximum possible range to avoid going beyond the list's count
+				int maxRange = segmentObjects.Count - start;
+
+				// Check if there are enough segments left to enable physics
+				if (maxRange <= 0)
 				{
-					AssignPhysics(segmentObjects[i]);
+					Debug.LogWarning("No more segments available to enable physics on.");
+					return;
 				}
 
-				lastPhysicsEnabledIndex = i;
+				// If there are fewer remaining segments than the minimum burst size, adjust the minimum size
+				int minBurstSize = Mathf.Min(5, maxRange);
+
+				// Random range - adjusted to not exceed the number of remaining segments
+				int range = UnityEngine.Random.Range(minBurstSize, Mathf.Min(16, maxRange + 1));
+
+				// Apply physics in the selected range
+				for (int i = start; i < start + range; i++)
+				{
+					// Skip the TreeRoot
+					if (segmentObjects[i].name != "TreeRoot")
+					{
+						AssignPhysics(segmentObjects[i]);
+					}
+
+					lastPhysicsEnabledIndex = i;
+				}
 			}
 		}
 
-
 		public void AssignPhysicsToAllSegments()
 		{
+
 			foreach (var segment in segmentObjects)
 			{
 				AssignPhysics(segment);
 			}
 		}
 
+		public List<GameObject> stickList;
 
 		public void AssignPhysics(GameObject segment)
 		{
@@ -314,17 +369,20 @@ namespace ProceduralModeling
 
 			if (segment.name != "TreeRoot")
 			{
+				segment.transform.SetParent(null);
 
-				// Add and configure Rigidbody
 				Rigidbody rb = segment.AddComponent<Rigidbody>();
 				rb.useGravity = true;
-				rb.mass = 100f;
+				rb.automaticCenterOfMass = true;
+				rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+				rb.mass = 500f;
 
-				// Add MeshCollider
 				MeshCollider collider = segment.AddComponent<MeshCollider>();
-				collider.convex = true; // You can adjust this based on your requirement
+				collider.convex = true;
 				collider.includeLayers = physicsLayers;
-				// Using the existing mesh for the collider
+				collider.providesContacts = true;
+				collider.includeLayers = hitGroundLayer;
+
 				MeshFilter meshFilter = segment.GetComponent<MeshFilter>();
 				if (meshFilter != null && meshFilter.sharedMesh != null)
 				{
@@ -334,20 +392,95 @@ namespace ProceduralModeling
 				{
 					Debug.LogWarning("Segment does not have a MeshFilter with a mesh assigned. MeshCollider may not function correctly.");
 				}
+
+				CheckSegmentCollision(segment);
 			}
 		}
 
+		private void CheckSegmentCollision(GameObject segment)
+		{
+			// Temporarily change the layer to ignore raycasts
+			segment.layer = LayerMask.NameToLayer("Ignore Raycast");
+
+			CollisionNotifier collisionNotifier = segment.GetComponent<CollisionNotifier>();
+
+			if (collisionNotifier == null)
+			{
+				collisionNotifier = segment.AddComponent<CollisionNotifier>();
+				if (collisionNotifier == null)
+				{
+					Debug.LogError("Failed to add CollisionNotifier component.");
+					return;
+				}
+			}
+
+			collisionNotifier.OnCollisionEnterEvent.AddListener(OnCollision);
+
+            void OnCollision(Collision collision)
+            {
+				if (IsCollisionWithGround(collision))
+				{
+					DisableSegmentGravity(segment);
+					
+					collisionNotifier.OnCollisionEnterEvent.RemoveListener(OnCollision); // Unsubscribe from event
+					segment.layer = LayerMask.NameToLayer("Stick");
+					resources.AddResourceObject("Wood", segment);
+				}
+			}
+		}
+
+
+		private bool IsCollisionWithGround(Collision collision)
+		{
+			foreach (ContactPoint contact in collision.contacts)
+			{
+				if (hitGroundLayer == (hitGroundLayer | (1 << contact.otherCollider.gameObject.layer)))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private void DisableSegmentGravity(GameObject segment)
+		{
+			Rigidbody rb = segment.GetComponent<Rigidbody>();
+			if (rb != null)
+			{
+				rb.useGravity = false;
+				rb.isKinematic = true; // Make the Rigidbody kinematic
+
+			}
+		}
+
+		public int minGenerations = 1;
+		public int maxGenerations = 8;
+		public float minRadius = 0.2f;
+		public float maxRadius = 0.7f;
+		public float exponent = 2;
+
 		protected override Mesh Build()
 		{
-			var (treeMesh, segmentMeshes) = Build(this, data, generations, length, radius, leafSize, leafMat);
+			// Generate a random number for generations within the specified range
+			int randomGenerations = UnityEngine.Random.Range(minGenerations, maxGenerations + 1);
+
+			// Calculate distance from the center of the map
+			float distanceFromCenter = Vector3.Distance(transform.position, Vector3.zero);
+
+			// Calculate the radius based on the distance using an exponential curve
+			float normalizedDistance = Mathf.Clamp01(distanceFromCenter / TerrainGenerator.GetMeshScale());
+			float radius = maxRadius - (Mathf.Pow(normalizedDistance, exponent) * (maxRadius - minRadius));
+
+			var (treeMesh, segmentMeshes) = Build(this, data, randomGenerations, length, radius, leafSize, leafMat);
 			// Optionally store segmentMeshes in the class for later use
-			Renderer renderer = transform.GetComponent<Renderer>();
-			Material material = renderer.sharedMaterial;
+			Material material = solidTreeRenderer.sharedMaterial;
 			CreateSegmentedTreeObjects(segmentMeshes, material, depthFactor);
 
-			//HideMesh();
+			HideSegments();
+
 			return treeMesh;
 		}
+
 
 		private void HideMesh()
 		{
@@ -445,7 +578,7 @@ namespace ProceduralModeling
 						var lastSegment = branch.Segments.Last();
 
 						// Translate position to world space
-						var position = transform.TransformPoint(lastSegment.Position);
+						var position = transform.TransformPoint(treeRotation * lastSegment.Position);
 
 						Quaternion rotation = UnityEngine.Random.rotation;
 
@@ -497,7 +630,7 @@ namespace ProceduralModeling
 						var lastSegment = branch.Segments.Last();
 
 						// Translate position to world space
-						var position = transform.TransformPoint(lastSegment.Position);
+						var position = transform.TransformPoint(treeRotation * lastSegment.Position);
 
 						FruitPoints.Add(position);
 					}

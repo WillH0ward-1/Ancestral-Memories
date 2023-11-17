@@ -33,11 +33,26 @@ namespace ProceduralModeling
 				return meshCollider;
             }
         }
+
+		public TerrainGenerator TerrainGenerator
+        {
+            get
+            {
+				if (terrainGenerator == null)
+                {
+                    terrainGenerator = FindObjectOfType<TerrainGenerator>();
+                }
+                return terrainGenerator;
+            }
+        }
+
 		MeshFilter filter;
 		MeshCollider meshCollider;
+        TerrainGenerator terrainGenerator;
 
-		protected virtual void Start()
+        protected virtual void Start()
 		{
+			TerrainGenerator terrainGenerator = FindObjectOfType<TerrainGenerator>();
 			Rebuild();
 		}
 

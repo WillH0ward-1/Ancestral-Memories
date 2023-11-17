@@ -5,17 +5,11 @@ using UnityEngine;
 
 public class FireSpreadRange : MonoBehaviour
 {
-    public enum FlammableTag
-    {
-        Trees,
-        Human,
-        Animal
-    }
+    public enum FlammableTag { Trees, Human, Animal }
 
-
-
-    public float checkInterval = 0.5f;  // How often to check for flammable objects
-    public float checkRadius = 10f;     // The radius of the sphere used to check for objects
+    public float checkInterval = 0.5f;
+    public float checkRadius = 10f;
+    public LayerMask flammableLayer;  // Set this in the inspector
 
     private HashSet<GameObject> objectsOnFire = new HashSet<GameObject>();
 
@@ -26,21 +20,25 @@ public class FireSpreadRange : MonoBehaviour
 
     private void CheckForFlammableObjects()
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, checkRadius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, checkRadius, flammableLayer);
+
         foreach (var hitCollider in hitColliders)
         {
             GameObject hitObj = hitCollider.gameObject;
-            if (IsFlammable(hitObj) && !IsAlreadyOnFire(hitObj))
+
+            if (IsFlammable(hitObj))
             {
-                if (hitObj.transform.CompareTag("Trees"))
+
+                if (hitObj.CompareTag("Trees"))
                 {
-                    FireManager.Instance.StartFireOnSegments(hitObj.transform.GetComponentInChildren<ProceduralTree>().segmentObjects);
+                    if (!hitObj.GetComponentInChildren<PTGrowing>().ValidateTree()) continue;
                 }
-                else
+
+                if (!IsAlreadyOnFire(hitObj))
                 {
-                    FireManager.Instance.StartFireOnObject(hitObj);
+                    StartCoroutine(FireManager.Instance.StartFireOnObject(hitObj));
+                    objectsOnFire.Add(hitObj);
                 }
-                objectsOnFire.Add(hitObj); // Mark as on fire
             }
         }
     }
@@ -50,6 +48,11 @@ public class FireSpreadRange : MonoBehaviour
         return Enum.TryParse(obj.tag, out FlammableTag _);
     }
 
+    public void ObjectExtinguished(GameObject obj)
+    {
+        objectsOnFire.Remove(obj);
+    }
+
     private bool IsAlreadyOnFire(GameObject obj)
     {
         return objectsOnFire.Contains(obj);
@@ -57,8 +60,7 @@ public class FireSpreadRange : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Draw a sphere in the editor to visualize the check area
-        Gizmos.color = Color.red;
+        Gizmos.color = objectsOnFire.Count > 0 ? Color.red : Color.green;
         Gizmos.DrawWireSphere(transform.position, checkRadius);
     }
 }

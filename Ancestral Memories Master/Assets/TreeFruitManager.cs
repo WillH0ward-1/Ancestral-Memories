@@ -10,13 +10,9 @@ public class TreeFruitManager : MonoBehaviour
     public List<GameObject> fruits; // Stores the pooled fruit game objects
     public int maxFruits; // Maximum number of fruits we want to instantiate
     public float growTime = 3f;
-    public float lifetime;
     public float minDecayTime = 3f;
     public float maxDecayTime = 6f;
-    private ProceduralTree proceduralTree;
 
-    // Scale parameters
-    public Vector3 minFruitScale = Vector3.zero;
     public Vector3 maxFruitScale = Vector3.one;
 
     private LayerMask hitGroundLayer;
@@ -26,8 +22,16 @@ public class TreeFruitManager : MonoBehaviour
 
     public bool isBearingFruit = false;
 
+    private Dictionary<GameObject, Coroutine> growCoroutines = new Dictionary<GameObject, Coroutine>();
+
+    private PTGrowing ptGrow;
+
+    public ResourcesManager resources;
+
     private void Awake()
     {
+        ptGrow = GetComponent<PTGrowing>();
+
         hitGroundLayer = LayerMask.GetMask("Ground", "Water", "Rocks", "Cave");
         fruitPool = new Queue<GameObject>();
     }
@@ -55,53 +59,76 @@ public class TreeFruitManager : MonoBehaviour
         }
     }
 
+    private void AddToResources(GameObject fruit)
+    {
+        resources.AddResourceObject("Food", fruit);
+    }
 
+    private void RemoveFromResources(GameObject fruit)
+    {
+        resources.RemoveResourceObject("Food", fruit);
+    }
 
     public void SpawnFruits(List<Vector3> fruitPoints)
     {
-        if (Random.value > 0.5f)
+        Debug.Log($"Player Faith: {player.faith}");
+
+        isBearingFruit = Random.value > 0.5f;
+        if (!isBearingFruit)
         {
-            isBearingFruit = false;
+            Debug.Log("Tree is not bearing fruit this time.");
             return;
         }
 
         int fruitCount = Mathf.Min(maxFruits, fruitPoints.Count);
+        ReturnActiveFruitsToPool();
 
-        // Deactivate any existing active fruits and add them back to the pool
+        // Ensure a minimum percentage of fruits fall regardless of player's faith
+        float minFruitFallPercentage = 0.2f; // At least 20% of fruits will fall
+        int fruitsToFall = Mathf.Max(
+            Mathf.RoundToInt(fruitCount * (player.faith / 100f)),
+            Mathf.RoundToInt(fruitCount * minFruitFallPercentage)
+        );
+        Debug.Log($"Fruits to fall: {fruitsToFall}, Fruit Pool Count: {fruitPool.Count}");
+
+        for (int i = 0; i < fruitsToFall; i++)
+        {
+            if (fruitPool.Count == 0)
+            {
+                Debug.LogWarning("Fruit pool is empty, breaking loop.");
+                break;
+            }
+            GameObject fruit = fruitPool.Dequeue();
+            fruitAttributesDict[fruit].isDead = false;
+            ResetFruit(fruit, fruitPoints[i]);
+            fruit.SetActive(true);
+            growCoroutines[fruit] = StartCoroutine(GrowFruit(fruit, i, fruitsToFall));
+        }
+    }
+
+
+
+
+    private void ReturnActiveFruitsToPool()
+    {
         foreach (GameObject fruit in fruits)
         {
             if (fruit.activeSelf)
             {
                 fruit.SetActive(false);
-                StopCoroutine(GrowFruit(fruit, fruit.transform));
-                DisableFruitGravity(fruit);
+                if (growCoroutines.TryGetValue(fruit, out Coroutine coroutine))
+                {
+                    StopCoroutine(coroutine);
+                    growCoroutines.Remove(fruit);
+                }
+                fruit.transform.localScale = Vector3.zero; // Reset scale to zero when returning to pool
                 fruitPool.Enqueue(fruit);
             }
         }
-
-        // Spawn fruits at the fruit points
-        for (int i = 0; i < fruitCount; i++)
-        {
-            if (fruitPool.Count == 0)
-            {
-                // If the fruit pool is empty, break the loop
-                break;
-            }
-
-            GameObject fruit = fruitPool.Dequeue();
-
-            if (fruitAttributesDict.TryGetValue(fruit, out FoodAttributes foodAttributes))
-            {
-                foodAttributes.isDead = false;
-            }
-
-            ResetFruit(fruit, fruitPoints[i]); // Reset the fruit's state and set its position
-            fruit.SetActive(true);
-            StartCoroutine(GrowFruit(fruit, fruit.transform));
-        }
     }
 
-    private IEnumerator GrowFruit(GameObject fruit, Transform fruitRoot)
+
+    private IEnumerator GrowFruit(GameObject fruit, int index, int fruitCount)
     {
         float timeElapsed = 0;
         Vector3 initialScale = Vector3.zero;
@@ -118,25 +145,30 @@ public class TreeFruitManager : MonoBehaviour
 
         fruit.transform.localScale = targetScale;
 
-        yield break;
+        yield return StartCoroutine(Lifetime(fruit, index, fruitCount));
     }
 
-    private IEnumerator Lifetime(GameObject fruit, Transform fruitRoot)
+    private IEnumerator Lifetime(GameObject fruit, int index, int totalFruits)
     {
-        lifetime = Random.Range(10f, 20f);
-        yield return new WaitForSeconds(lifetime);
+        // Get the remaining lifetime of the tree
+        float remainingLifetime = ptGrow.GetRemainingLifetime();
 
-        StartCoroutine(Fall(fruit, fruitRoot));
+        // Calculate the interval at which each fruit should fall
+        float fallInterval = remainingLifetime / totalFruits;
 
-        yield break;
+        // Calculate the specific fall time for this fruit based on its index
+        float fallTime = fallInterval * index;
+
+        // Wait for the calculated fall time
+        yield return new WaitForSeconds(fallTime);
+
+        // Start the fall coroutine
+        StartCoroutine(Fall(fruit));
     }
 
-    public IEnumerator Fall(GameObject fruit, Transform fruitRoot)
+    public IEnumerator Fall(GameObject fruit)
     {
         fruit.transform.SetParent(null);
-
-        Vector3 initialScale = transform.localScale;
-        Vector3 targetScale = Vector3.zero;
 
         Collider collider = fruit.transform.GetComponent<Collider>();
         Rigidbody rigidBody = fruit.transform.GetComponent<Rigidbody>();
@@ -175,6 +207,7 @@ public class TreeFruitManager : MonoBehaviour
             {
                 DisableFruitGravity(fruit);
                 mapObjGen.foodSourcesList.Add(fruit);
+                AddToResources(fruit);
                 StartCoroutine(Decay(fruit));
 
                 if (collision.collider.CompareTag("Water"))
@@ -186,12 +219,6 @@ public class TreeFruitManager : MonoBehaviour
                 collisionNotifier.OnCollisionEnterEvent.RemoveListener(OnCollision);
                 fruitCollider.gameObject.layer = LayerMask.NameToLayer("Food"); // Restore the original layer
             }
-        }
-
-        // Unsubscribe from the collision event in the OnDestroy method
-        void OnDestroy()
-        {
-            collisionNotifier.OnCollisionEnterEvent.RemoveListener(OnCollision);
         }
     }
 
@@ -235,31 +262,38 @@ public class TreeFruitManager : MonoBehaviour
         }
     }
 
-    public float waitToDecay = 5f;
+    public float minDecayMultiplier = 0.5f; // Faster decay (half the base decay time)
+    public float maxDecayMultiplier = 2.0f; // Slower decay (double the base decay time)
+    public float baseDecayTime = 5f; // Base decay time in seconds when faith is 50
 
     public float DetermineFruitDecay()
     {
-        float fruitDecayBuffer = player.faith / 10;
+        float decayMultiplier = Mathf.Lerp(minDecayMultiplier, maxDecayMultiplier, (100f - player.faith) / 100f);
 
-        return fruitDecayBuffer;
+        float decayTime = baseDecayTime * decayMultiplier;
+
+        return decayTime;
     }
+
 
     public IEnumerator Decay(GameObject fruit)
     {
-        float decayBuffer = Random.Range(minDecayTime, maxDecayTime);
+        // Wait for a delay before starting the decay process
+        yield return new WaitForSeconds(DetermineFruitDecay());
+
+        // Reset the timeElapsed for the decay process
         float timeElapsed = 0;
 
-        waitToDecay = DetermineFruitDecay();
+        // Randomly determine the time it will take for the fruit to decay
+        float decayBuffer = Random.Range(minDecayTime, maxDecayTime);
 
-        while (timeElapsed < waitToDecay)
-        {
-            yield return null;
-        }
+        // Get the current scale of the fruit
+        Vector3 initialScale = fruit.transform.localScale;
 
+        // Set the target scale to zero
+        Vector3 targetScale = Vector3.zero;
 
-        Vector3 initialScale = fruit.transform.localScale;  // Get the current scale of the fruit
-        Vector3 targetScale = Vector3.zero;  // Set the target scale to zero
-
+        // Gradually scale down the fruit to simulate decay
         while (timeElapsed < decayBuffer)
         {
             fruit.transform.localScale = Vector3.Lerp(initialScale, targetScale, timeElapsed / decayBuffer);
@@ -267,32 +301,26 @@ public class TreeFruitManager : MonoBehaviour
             yield return null;
         }
 
-        mapObjGen.foodSourcesList.Remove(fruit);
-
-        fruit.transform.localScale = targetScale;
+        RemoveFromResources(fruit);
         fruit.SetActive(false);
-
-        if (fruitAttributesDict.TryGetValue(fruit, out FoodAttributes foodAttributes))
-        {
-            foodAttributes.isDead = true;
-        }
-
-        fruitPool.Enqueue(fruit); // Add the fruit back to the pool for reuse
-
-        yield break;
+        fruitPool.Enqueue(fruit);
     }
+
+
 
     public void ClearFruits()
     {
-        // Deactivate and enqueue all active fruits back into the pool
-        foreach (GameObject fruit in fruits)
+        ReturnActiveFruitsToPool();
+    }
+
+    private void OnDestroy()
+    {
+        // Make sure to clean up coroutines on destroy
+        foreach (var entry in growCoroutines)
         {
-            if (fruit.activeSelf)
+            if (entry.Value != null)
             {
-                fruit.SetActive(false);
-                StopCoroutine(GrowFruit(fruit, fruit.transform));
-                DisableFruitGravity(fruit);
-                fruitPool.Enqueue(fruit);
+                StopCoroutine(entry.Value);
             }
         }
     }

@@ -41,6 +41,8 @@ public class CaveGenerator : MonoBehaviour
     [Header("Duplicate Sphere Settings")]
     [SerializeField] private float duplicateSphereScaleMultiplier = 1f; // Added line
 
+    private List<GameObject> allRocks;
+
     private void Awake()
     {
         GenerateCave();
@@ -125,9 +127,26 @@ public class CaveGenerator : MonoBehaviour
             }
 
             GameObject rock = GeneratePrimitive(PrimitiveType.Sphere, position, randomScale);
+            InitRock(rock);
             CheckIfUnderGround(rock);
         }
     }
+
+    private void InitRock(GameObject rock)
+    {
+        rock.isStatic = true;
+
+        // Ensure the rock's material uses a GPU-optimized shader
+        var renderer = rock.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            Material rockMaterial = renderer.sharedMaterial;
+
+            // Enable GPU instancing
+            rockMaterial.enableInstancing = true;
+        }
+    }
+
 
     private void GenerateRockOnCylinder(GameObject cylinderPrefab, Vector3 minScale, Vector3 maxScale, bool scaleBasedOnHeight)
     {
@@ -160,9 +179,11 @@ public class CaveGenerator : MonoBehaviour
         }
 
         GameObject rock = GeneratePrimitive(PrimitiveType.Sphere, position, randomScale);
+        InitRock(rock);
         CheckIfUnderGround(rock);
 
     }
+
     private bool CheckIfUnderGround(GameObject obj)
     {
         Vector3 position = obj.transform.position;
@@ -183,9 +204,10 @@ public class CaveGenerator : MonoBehaviour
         return false;
     }
 
-
     public void ClearExistingCave()
     {
+        if (generatedElements.Count == 0) return; // Only clear if there are elements to clear
+
         foreach (GameObject go in generatedElements)
         {
             if (Application.isPlaying)

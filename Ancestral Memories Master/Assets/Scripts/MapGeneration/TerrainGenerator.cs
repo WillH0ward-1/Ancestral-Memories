@@ -203,6 +203,13 @@ public class TerrainGenerator : MonoBehaviour {
 		yield break;
 	}
 
+	public float GetMeshScale()
+    {
+		float mapScale = meshSettings.meshWorldSize;
+		return mapScale;
+
+	}
+
 public IEnumerator EnableContacts(GameObject tmp)
 	{
 		Collider collider = null;

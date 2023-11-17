@@ -1,3 +1,4 @@
+// CaveGeneratorEditor.cs
 using UnityEngine;
 using UnityEditor;
 
@@ -9,11 +10,17 @@ public class CaveGeneratorEditor : Editor
         // Draw the default inspector
         DrawDefaultInspector();
 
-        // Add a button
-        CaveGenerator myScript = (CaveGenerator)target;
+        CaveGenerator caveGen = (CaveGenerator)target;
+
         if (GUILayout.Button("Update Cave"))
         {
-            myScript.GenerateCave();
+            caveGen.GenerateCave();
+        }
+
+        // Add this button for clearing the cave
+        if (GUILayout.Button("Clear Cave"))
+        {
+            caveGen.ClearExistingCave();
         }
     }
 }

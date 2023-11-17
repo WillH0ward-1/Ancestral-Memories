@@ -165,6 +165,11 @@ public class MapObjGen : MonoBehaviour
 
     [Header("========================================================================================================================")]
 
+    [Header("Rock Settings")]
+
+    [SerializeField] private float rockYOffset = 0;
+    private Material rockMaterial;
+
     [Header("========================================================================================================================")]
 
     [Header("Positioning")]
@@ -203,6 +208,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private CharacterBehaviours behaviours;
     public Player player;
     [SerializeField] private PickUpObject pickUpManager;
+    [SerializeField] private InteractCamera interactCam;
+    [SerializeField] private ResourcesManager resources;
+    [SerializeField] private Camera camera;
 
     [Header("========================================================================================================================")]
     [Header("Weather")]
@@ -251,6 +259,9 @@ public class MapObjGen : MonoBehaviour
     private List<Vector3> ZspawnPositions;
 
     public List<GameObject> humanPopulationList;
+    public List<GameObject> huntableAnimalsList;
+    public List<GameObject> flammableObjectList;
+
     public List<AICharacterStats> allHumanStats;
     private VocabularyManager vocabularyManager;
     private DialogueLines dialogueLines;
@@ -293,15 +304,13 @@ public class MapObjGen : MonoBehaviour
 
     private FluteControl fluteControl;
 
-
-    public List<GameObject> huntableAnimalsList;
-
     private DisasterManager disasterManager;
 
     private List<PTGrowing> ptGrowComponents = new List<PTGrowing>();
     private float randomTreeColourSeed = 0;
     public bool readyToGrow = false;
 
+    private FireManager fireManager;
 
     public IEnumerator WaterSFXEmitterGen()
     {
@@ -382,14 +391,20 @@ public class MapObjGen : MonoBehaviour
     private void SetupPlayer()
     {
         mapCenter = Vector3.zero;
-
+        camera = Camera.main;
         player = FindObjectOfType<Player>();
+        interactCam = camera.GetComponentInChildren<InteractCamera>();
+        interactCam.InitInteractions();
         behaviours = player.GetComponentInChildren<CharacterBehaviours>();
         rainControl = FindObjectOfType<RainControl>();
         seasonManager = FindObjectOfType<SeasonManager>();
         dialogueLines = FindObjectOfType<DialogueLines>();
         vocabularyManager = FindObjectOfType<VocabularyManager>();
         pickUpManager = FindObjectOfType<PickUpObject>();
+        fireManager = FindObjectOfType<FireManager>();
+        fireManager.mapObjGen = this;
+        resources = FindObjectOfType<ResourcesManager>();
+
         behaviours.pickUpManager = pickUpManager;
         
     }
@@ -398,7 +413,7 @@ public class MapObjGen : MonoBehaviour
     public void GenerateMapObjects()
     {
         SetupPlayer();
-
+        
         mapObjectsGenerated = false;
 
         // ResetPosOffset(mapObject.transform);
@@ -434,7 +449,7 @@ public class MapObjGen : MonoBehaviour
         //AppleTreePoissonDisc(appleTreeSampler);
         GrassPoissonDisc(grassSampler);
         //FoliagePoissonDisc(foliageSampler);
-        //RocksPoissonDisc(rockSampler);
+        RocksPoissonDisc(rockSampler);
         //FliesPoissonDisc(fliesSampler);
         AnimalPoissonDisc(animalSampler);
         MushroomPoissonDisc(mushroomSampler);
@@ -471,13 +486,14 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(humanPopulationList);
         ListCleanupAIStats(allHumanStats);
         ListCleanup(huntableAnimalsList);
+        ListCleanup(flammableObjectList);
 
         mapObjectsGenerated = true;
 
         SetupCorruptionControl(mapObjectList);
 
         RandomizeHumanRace();
-
+        fireManager.GenerateFirePoints();
         EnableStudioEmitters(grassList);
 
         GetPTGrowComponents();
@@ -648,6 +664,7 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(animalInstance);
             npcList.Add(animalInstance);
             huntableAnimalsList.Add(animalInstance);
+            flammableObjectList.Add(animalInstance);
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
@@ -682,6 +699,7 @@ public class MapObjGen : MonoBehaviour
             humanAI.mapObjGen = this;
             humanAI.player = player;
             humanAI.playerBehaviours = behaviours;
+            humanAI.resources = resources;
 
             Dialogue dialogue = humanInstance.GetComponentInChildren<Dialogue>();
             dialogue.player = player;
@@ -690,6 +708,8 @@ public class MapObjGen : MonoBehaviour
 
             AICharacterStats humanStats = humanInstance.GetComponentInChildren<AICharacterStats>();
             allHumanStats.Add(humanStats);
+
+            
 
             FLookAnimator lookAnimator = humanInstance.GetComponentInChildren<FLookAnimator>();
             lookAnimator.enabled = true;
@@ -702,7 +722,7 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(humanInstance);
             npcList.Add(humanInstance);
             humanPopulationList.Add(humanInstance);
-
+            flammableObjectList.Add(humanInstance);
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
@@ -876,6 +896,7 @@ public class MapObjGen : MonoBehaviour
             weather.windAffectedRendererList.Add(treeInstance.transform);
 
             treeList.Add(treeInstance);
+            flammableObjectList.Add(treeInstance);
 
             RandomiseTreeTextures();
 
@@ -897,8 +918,8 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (PTGrowing ptGrow in ptGrowComponents)
         {
-            ptGrow.KillLeaves();
-            ptGrow.KillFruits();
+            ptGrow.KillAllLeaves();
+            ptGrow.KillAllFruits();
         }
     }
 
@@ -1093,40 +1114,6 @@ public class MapObjGen : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator WaitUntilFruitGrown(GameObject growObject, ScaleControl scaleControl)
-    {
-        yield return new WaitUntil(() => scaleControl.isFullyGrown);
-
-        float fallBuffer = Random.Range(minFruitFallBuffer, maxFruitFallBuffer);
-
-        yield return new WaitForSeconds(fallBuffer);
-
-        if (growObject.transform.CompareTag("Apple") || growObject.transform.CompareTag("Stick"))
-        {
-            Rigidbody rigidBody = growObject.transform.GetComponent<Rigidbody>();
-            Collider collider = growObject.transform.GetComponent<Collider>();
-            HitGround hitGround = growObject.GetComponent<HitGround>();
-
-            rigidBody.useGravity = true; // Object falling to ground.
-            rigidBody.isKinematic = false;
-
-            yield return new WaitUntil(() => hitGround.hit);
-
-            float decayDuration = Random.Range(minDecayDuration, maxDecayDuration);
-            float decayDelay = Random.Range(minDecayDelayTime, maxDecayDelayTime);
-
-            StartCoroutine(scaleControl.LerpScale(growObject, growObject.transform.localScale, Vector3.zero, decayDuration, decayDelay));
-
-            Destroy(growObject, decayDelay + decayDuration);
-
-            yield break;
-
-        } else if (growObject.transform.CompareTag("AppleTree"))
-        {
-            yield break;
-        }
-    }
-
     void GrassPoissonDisc(PoissonDiscSampler grassSampler)
     {
         foreach (Vector2 sample in grassSampler.Samples())
@@ -1210,28 +1197,21 @@ public class MapObjGen : MonoBehaviour
         foreach (Vector2 sample in rockSamples.Samples())
         {
             GameObject randomRocks = GetRandomMapObject(rocks);
-
             float rockYboost = 35;
-
             GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY + rockYboost, sample.y), Quaternion.identity);
-
             rockInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-
             rockInstance.transform.localScale = new Vector3(
             Random.Range(minRockScale.x, maxRockScale.x),
             Random.Range(minRockScale.y, maxRockScale.y),
             Random.Range(minRockScale.z, maxRockScale.z));
-
             rockInstance.tag = rockTag;
-
             int rockLayer = LayerMask.NameToLayer("Rocks");
             rockInstance.layer = rockLayer;
-
             rockInstance.transform.SetParent(hierarchyRoot.transform);
-
             mapObjectList.Add(rockInstance);
         }
     }
+
 
     void MushroomPoissonDisc(PoissonDiscSampler mushroomSampler)
     {

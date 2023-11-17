@@ -15,12 +15,15 @@ namespace ProceduralModeling
         private LeafScaler leafScaler;
         public LerpTerrain lerpTerrain;
 
+        private NavMeshCutting navMeshCutting;
+
         public bool isGrowing = false;
         public bool isFullyGrown = false;
 
         public float minLifeTimeSeconds = 10f;
         public float maxLifeTimeSeconds = 25f;
         public float lifeTimeSecs = 60f;
+        [SerializeField] private float remainingLifeTime = 60f;
 
         private const string kGrowingKey = "_T";
 
@@ -39,8 +42,9 @@ namespace ProceduralModeling
 
         private TreeFruitManager treeFruitManager;
 
-        private RVOSquareObstacle obstacle;
         private BoxCollider growthInhibitionZone;
+
+        private Interactable interactable;
 
         [SerializeField] private LayerMask entityLayers;
 
@@ -74,6 +78,7 @@ namespace ProceduralModeling
         private void Awake()
         {
             proceduralTree = GetComponentInChildren<ProceduralTree>();
+            navMeshCutting = GetComponentInChildren<NavMeshCutting>();
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, 0);
@@ -82,7 +87,7 @@ namespace ProceduralModeling
             leafScaler = gameObject.GetComponent<LeafScaler>();
             treeAudioSFX = GetComponent<TreeAudioManager>();
             treeFruitManager = GetComponent<TreeFruitManager>();
-            obstacle = GetComponent<RVOSquareObstacle>();
+            interactable = GetComponent<Interactable>();
 
             currentState = State.Buffering;
             time = 0f;
@@ -93,13 +98,17 @@ namespace ProceduralModeling
             {
                 pTGrowingManager.RegisterPTGrowing(this);
             }
+        }
+
+        private void Start()
+        {
 
             growthInhibitionZone = gameObject.AddComponent<BoxCollider>();
             growthInhibitionZone.isTrigger = true;
-            growthInhibitionZone.size = new Vector3(obstacle.size.x * growthInhibitionScaleFactor, obstacle.height * growthInhibitionScaleFactor, obstacle.size.y * growthInhibitionScaleFactor);
-            growthInhibitionZone.center = obstacle.center;
+            growthInhibitionZone.size = new Vector3(navMeshCutting.obstacle.size.x * growthInhibitionScaleFactor, navMeshCutting.obstacle.height * growthInhibitionScaleFactor, navMeshCutting.obstacle.size.y * growthInhibitionScaleFactor);
+            growthInhibitionZone.center = navMeshCutting.obstacle.center;
 
-            DisableNavMeshCut();
+            navMeshCutting.DisableNavMeshCut();
         }
 
         private DeformableManager deform;
@@ -122,14 +131,18 @@ namespace ProceduralModeling
 
         private void OnDrawGizmos()
         {
+            /*
             Gizmos.color = Color.red;
             Vector3 center = transform.position + growthInhibitionZone.center;
             Vector3 halfSize = growthInhibitionZone.size / 2;
             Gizmos.DrawWireCube(center, halfSize);
+            */
         }
 
         public void GrowTree()
         {
+            interactable.enabled = false;
+
             isFullyGrown = false;
             currentState = State.Buffering;
             time = 0f;
@@ -138,8 +151,21 @@ namespace ProceduralModeling
             StartCoroutine(GrowBuffer(false));
         }
 
+        public bool ValidateTree()
+        {
+            if (isGrowing || isDead || !isFullyGrown)
+            {
+                return false;
+            } else
+            {
+                return true;
+            }
+        }
+
         private IEnumerator GrowBuffer(bool reseed)
         {
+            interactable.enabled = false;
+
             time = 0f;
             growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
 
@@ -163,6 +189,8 @@ namespace ProceduralModeling
 
         private IEnumerator Growing()
         {
+            interactable.enabled = false;
+
             isFullyGrown = false;
             currentState = State.Growing;
             time = 0f;
@@ -172,7 +200,7 @@ namespace ProceduralModeling
             treeAudioSFX.StartTreeGrowthSFX(State.Growing);
 
             yield return null;
-            EnableNavMeshCut();
+            navMeshCutting.EnableNavMeshCut();
 
             mapObjGen.treeGrowingList.Add(transform.gameObject);
 
@@ -196,9 +224,10 @@ namespace ProceduralModeling
             StartCoroutine(Lifetime());
         }
 
-
         private IEnumerator Lifetime()
         {
+            interactable.enabled = true;
+
             currentState = State.Alive;
             isFullyGrown = true;
             isDead = false;
@@ -216,6 +245,7 @@ namespace ProceduralModeling
             while (time < lifeTimeSecs)
             {
                 time += Time.deltaTime;
+                remainingLifeTime = GetRemainingLifetime();
 
                 yield return null;
             }
@@ -224,8 +254,16 @@ namespace ProceduralModeling
             StartCoroutine(Dying());
         }
 
+        public float GetRemainingLifetime()
+        {
+            // Ensure that we don't return negative values if the tree is already dead.
+            return Mathf.Max(lifeTimeSecs - time, 0);
+        }
+
         private IEnumerator Dying()
         {
+            interactable.enabled = false;
+
             float time = 0f;
 
             currentState = State.Dying;
@@ -241,7 +279,7 @@ namespace ProceduralModeling
 
             foreach (GameObject fruit in treeFruitManager.fruits)
             {
-                StartCoroutine(treeFruitManager.Fall(fruit, fruit.transform));
+                StartCoroutine(treeFruitManager.Fall(fruit));
             }
 
             treeAudioSFX.StartTreeGrowthSFX(State.Dying);
@@ -266,7 +304,8 @@ namespace ProceduralModeling
             isFullyGrown = false;
 
             yield return null;
-            DisableNavMeshCut();
+
+            navMeshCutting.DisableNavMeshCut();
 
             StartCoroutine(Revive());
         }
@@ -340,7 +379,7 @@ namespace ProceduralModeling
 
 
 
-        public void KillLeaves()
+        public void KillAllLeaves()
         {
             if (isFullyGrown)
             {
@@ -349,36 +388,21 @@ namespace ProceduralModeling
             }
         }
 
-        public void KillFruits()
+        public void KillAllFruits()
         {
             foreach (GameObject fruit in treeFruitManager.fruits)
             {
-                StartCoroutine(treeFruitManager.Fall(fruit, fruit.transform));
+                StartCoroutine(treeFruitManager.Fall(fruit));
             }
         }
 
-        public void EnableNavMeshCut()
-        {
-            if (obstacle != null)
-            {
-                obstacle.enabled = true;
-            }
-        }
-
-        public void DisableNavMeshCut()
-        {
-            if (obstacle != null)
-            {
-                obstacle.enabled = false;
-            }
-        }
 
         // Internal method to enable NavmeshCut
         public void EnableNavMeshCutInternal()
         {
-            if (obstacle != null)
+            if (navMeshCutting.obstacle != null)
             {
-                obstacle.enabled = true;
+                navMeshCutting.obstacle.enabled = true;
             }
 
             /*
@@ -392,9 +416,9 @@ namespace ProceduralModeling
         // Internal method to disable NavmeshCut
         public void DisableNavMeshCutInternal()
         {
-            if (obstacle != null)
+            if (navMeshCutting.obstacle != null)
             {
-                obstacle.enabled = false;
+                navMeshCutting.obstacle.enabled = false;
             }
 
             if (pTGrowingManager != null)

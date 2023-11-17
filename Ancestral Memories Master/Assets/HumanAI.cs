@@ -76,6 +76,8 @@ public class HumanAI : MonoBehaviour
 
     public bool isElectrocuted;
 
+    public ResourcesManager resources;
+
     private void Awake()
     {
 
@@ -104,6 +106,8 @@ public class HumanAI : MonoBehaviour
         stateActions[AIState.Harvest] = (target) => StartCoroutine(Harvest(target));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
         stateActions[AIState.Attack] = (target) => StartCoroutine(Attack(target));
+
+        AddToPopulation();
 
         ChangeState(AIState.Idle);
 
@@ -206,8 +210,19 @@ public class HumanAI : MonoBehaviour
         if (!stats.isDead)
         {
             stats.isDead = true;
+            RemoveFromPopulation();
             ragdollController.TriggerRagdoll();
         }
+    }
+
+    public void RemoveFromPopulation()
+    {
+        resources.RemoveResourceObject("Population", transform.gameObject);
+    }
+
+    public void AddToPopulation()
+    {
+        resources.AddResourceObject("Population", transform.gameObject);
     }
 
     [SerializeField] private float idleWalkRadius = 1000f;

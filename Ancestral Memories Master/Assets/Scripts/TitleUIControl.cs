@@ -18,6 +18,10 @@ public class TitleUIControl : MonoBehaviour
 
     private IEnumerator fadeToFullAlphaCoroutine;
     private IEnumerator fadeToZeroAlphaCoroutine;
+    private Coroutine textWobbleCoroutine;
+
+    [SerializeField] private float wobbleRadius = 1f;
+    [SerializeField] private float wobbleSpeed = 1f;
 
     private void Awake()
     {
@@ -27,11 +31,12 @@ public class TitleUIControl : MonoBehaviour
         text.fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, dilationRange.x);
     }
 
-    private void OnValidate()
+    private void OnEnable()
     {
         if (text == null)
         {
             text = transform.GetComponent<TextMeshProUGUI>();
+            StartTextWobbleAnimation(wobbleRadius, wobbleSpeed); // Example values for radius and speed
         }
 
         if (SkyMaterial != null && text != null)
@@ -159,6 +164,71 @@ public class TitleUIControl : MonoBehaviour
 
     public void DisableTitleText()
     {
+        StopTextWobbleAnimation();
         transform.gameObject.SetActive(false);
     }
+
+    private IEnumerator AnimateTextCharacters(float radius, float speed)
+    {
+        while (text != null && text.gameObject.activeInHierarchy)
+        {
+            TMP_TextInfo textInfo = text.textInfo;
+            if (textInfo == null)
+            {
+                Debug.LogError("textInfo is null");
+                yield break;
+            }
+
+            TMP_MeshInfo[] cachedMeshInfo = textInfo.CopyMeshInfoVertexData();
+
+            for (int i = 0; i < textInfo.characterCount; ++i)
+            {
+                TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+                if (!charInfo.isVisible) continue;
+
+                int materialIndex = charInfo.materialReferenceIndex;
+                int vertexIndex = charInfo.vertexIndex;
+
+                Vector3[] sourceVertices = cachedMeshInfo[materialIndex].vertices;
+                // Apply a continuous and changing offset
+                Vector3 offset = Random.insideUnitSphere * radius * Mathf.Sin(Time.time * speed);
+
+                textInfo.meshInfo[materialIndex].vertices[vertexIndex + 0] = sourceVertices[vertexIndex + 0] + offset;
+                textInfo.meshInfo[materialIndex].vertices[vertexIndex + 1] = sourceVertices[vertexIndex + 1] + offset;
+                textInfo.meshInfo[materialIndex].vertices[vertexIndex + 2] = sourceVertices[vertexIndex + 2] + offset;
+                textInfo.meshInfo[materialIndex].vertices[vertexIndex + 3] = sourceVertices[vertexIndex + 3] + offset;
+            }
+
+            for (int i = 0; i < textInfo.meshInfo.Length; ++i)
+            {
+                textInfo.meshInfo[i].mesh.vertices = textInfo.meshInfo[i].vertices;
+                text.UpdateVertexData(TMP_VertexDataUpdateFlags.All);
+            }
+
+            // A smaller yield time for more frequent updates
+            yield return new WaitForSeconds(0.05f);
+        }
+    }
+
+
+
+    public void StartTextWobbleAnimation(float radius, float speed)
+    {
+        // Stop existing coroutine if it's running
+        if (textWobbleCoroutine != null)
+        {
+            StopCoroutine(textWobbleCoroutine);
+        }
+        textWobbleCoroutine = StartCoroutine(AnimateTextCharacters(radius, speed));
+    }
+
+    public void StopTextWobbleAnimation()
+    {
+        if (textWobbleCoroutine != null)
+        {
+            StopCoroutine(textWobbleCoroutine);
+            textWobbleCoroutine = null;
+        }
+    }
+
 }
