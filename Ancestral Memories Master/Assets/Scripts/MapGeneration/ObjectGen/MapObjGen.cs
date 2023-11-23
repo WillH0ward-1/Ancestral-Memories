@@ -419,16 +419,17 @@ public class MapObjGen : MonoBehaviour
         {
             LerpDeformation npcDeform = g.GetComponentInChildren<LerpDeformation>();
             npcDeform.player = player;
-
+            npcDeform.SubscribeToHunger();
             //DeformableManager npcDeformManager = npcDeform.transform.gameObject.AddComponent<DeformableManager>();
             //npcDeformManager.update = true;
         }
 
         LerpDeformation playerDeform = player.GetComponentInChildren<LerpDeformation>();
         playerDeform.player = player;
+        playerDeform.SubscribeToHunger();
 
         //DeformableManager playerDeformManager = playerDeform.transform.gameObject.AddComponent<DeformableManager>();
-       // playerDeformManager.update = true;
+        // playerDeformManager.update = true;
     }
 
 

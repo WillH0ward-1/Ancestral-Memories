@@ -15,11 +15,12 @@ public class LerpDeformation : MonoBehaviour
     private float targetDeform;
 
     [SerializeField] private List<Deform.InflateDeformer> inflateDeformers;
+    [SerializeField] private List<Deform.InflateDeformer> nonAuraDeformers;
     [SerializeField] private List<Deform.InflateDeformer> auraDeformers;
-
+   
     private float auraDeformationOffset = 0.00006f;
 
-    private void OnEnable()
+    public void SubscribeToHunger()
     {
         if (player != null)
         {
@@ -47,9 +48,21 @@ public class LerpDeformation : MonoBehaviour
 
         foreach (Deform.InflateDeformer deformer in inflateDeformers)
         {
+            deformer.update = true;
+            Deform.Deformable deformable = deformer.transform.GetComponent<Deform.Deformable>();
+
+            deformable.UpdateMode = Deform.UpdateMode.Auto;
+            deformable.CullingMode = Deform.CullingMode.AlwaysUpdate;
+            deformable.NormalsRecalculation = Deform.NormalsRecalculation.None;
+            deformable.BoundsRecalculation = Deform.BoundsRecalculation.Never;
+            deformable.ColliderRecalculation = Deform.ColliderRecalculation.None;
+
             if (deformer.gameObject.CompareTag("Aura"))
             {
                 auraDeformers.Add(deformer);
+            } else
+            {
+                nonAuraDeformers.Add(deformer);
             }
         }
     }
@@ -64,7 +77,7 @@ public class LerpDeformation : MonoBehaviour
         currentDeform = targetDeform;
 
         // Apply deformation to all inflateDeformers
-        foreach (Deform.InflateDeformer deformer in inflateDeformers)
+        foreach (Deform.InflateDeformer deformer in nonAuraDeformers)
         {
             deformer.Factor = currentDeform;
         }

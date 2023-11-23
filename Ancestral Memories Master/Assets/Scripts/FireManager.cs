@@ -77,7 +77,7 @@ public class FireManager : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogWarning($"'Rig' tagged object not found in children of: {flammableObject.name}");
+                     //   Debug.LogWarning($"'Rig' tagged object not found in children of: {flammableObject.name}");
                     }
                 }
                 else
@@ -89,7 +89,7 @@ public class FireManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Object layer is not flammable: {flammableObject.name}");
+               //  Debug.LogWarning($"Object layer is not flammable: {flammableObject.name}");
             }
         }
     }
@@ -140,7 +140,7 @@ public class FireManager : MonoBehaviour
     {
         if (coolDownDictionary.TryGetValue(target, out bool isCoolingDown) && isCoolingDown)
         {
-            Debug.Log($"Object {target.name} is cooling down and cannot catch fire.");
+            //Debug.Log($"Object {target.name} is cooling down and cannot catch fire.");
             yield break;
         }
 
@@ -156,7 +156,7 @@ public class FireManager : MonoBehaviour
 
                 if (fireInstance == null)
                 {
-                    Debug.LogWarning("Fire instance could not be created due to empty pool.");
+                    // Debug.LogWarning("Fire instance could not be created due to empty pool.");
                     continue; // Skip this iteration and move on to the next one.
                 }
 
@@ -170,7 +170,7 @@ public class FireManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"No fire points found for object: {target.name}");
+            // Debug.LogWarning($"No fire points found for object: {target.name}");
         }
     }
 
