@@ -14,6 +14,7 @@ public class AICharacterStats : MonoBehaviour
     public float faith = 1f;
     public float psych = 1f;
     public float evolution = 1f;
+    public int age = 0;
 
     public bool isDiseased = false;
     public bool isBlessed = false;
@@ -43,7 +44,7 @@ public class AICharacterStats : MonoBehaviour
     public float HealthFraction => (health - minStat) / (maxStat - minStat);
     public float HungerFraction => (hunger - minStat) / (maxStat - minStat);
     public float FaithFraction => (faith - minStat) / (maxStat - minStat);
-    public float PsychFraction => (faith - minStat) / (maxStat - minStat);
+    public float PsychFraction => (psych - minStat) / (maxStat - minStat);
 
     public bool useFaith = true;
 
@@ -54,9 +55,11 @@ public class AICharacterStats : MonoBehaviour
 
     private DamageEffects damageEffects;
 
+    public TimeCycleManager time;
+
     public virtual void OnAwake()
     {
-        damageEffects = transform.GetComponentInChildren<DamageEffects>();
+        age = 0;
 
         health = maxStat;
         hunger = maxStat;
@@ -64,15 +67,93 @@ public class AICharacterStats : MonoBehaviour
         psych = minStat;
         isDiseased = false;
 
-        // Invoke the initial values of the stats
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
         OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
         OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
 
         animator = transform.GetComponentInChildren<Animator>();
+        damageEffects = transform.GetComponentInChildren<DamageEffects>();
+
+        isDead = false;
+
+        calculatedLifespan = CalculateLifespan();
     }
 
+    private bool subscribed = false;
+
+    public void SubscribeToBirthday()
+    {
+        time.OnNewYear += IncrementAge;
+        subscribed = true;
+    }
+
+    private void OnDisable()
+    {
+        if (time != null)
+        {
+            time.OnNewYear -= IncrementAge;
+        }
+    }
+
+    void Start()
+    {
+        StartCoroutine(StartLifespanCheckWhenReady());
+    }
+
+    private IEnumerator StartLifespanCheckWhenReady()
+    {
+        // Wait until 'time' is not null
+        yield return new WaitUntil(() => subscribed);
+
+        StartCoroutine(LifespanCheckCoroutine());
+    }
+
+    public float calculatedLifespan;
+    public int maxLifeSpan = 120; // Maximum lifespan
+    public int minLifeSpan = 30;  // Minimum lifespan
+
+    private IEnumerator LifespanCheckCoroutine()
+    {
+        while (!isDead)
+        {
+            float inGameHourDuration = 3600f / time.timeMultiplier; // 1 in-game hour
+            yield return new WaitForSeconds(6f * inGameHourDuration); // Wait for 6 in-game hours
+
+            calculatedLifespan = CalculateLifespan();
+
+            Debug.Log($"Age: {age}, Calculated Lifespan: {calculatedLifespan}");
+
+            if (age >= calculatedLifespan)
+            {
+                Debug.Log("Character has died of old age.");
+                isDead = true;
+            }
+        }
+    }
+    private float CalculateLifespan()
+    {
+        // Sum of all stats, each ranging from 0 to 1
+        float totalStatSum = health + hunger + faith + psych;
+
+        // Normalized lifespan calculation
+        float normalizedLifespan = totalStatSum / 4;
+        float calculatedLifespan = normalizedLifespan * maxLifeSpan;
+
+        // Clamping the lifespan between minLifeSpan and maxLifeSpan
+        calculatedLifespan = Mathf.Clamp(calculatedLifespan, minLifeSpan, maxLifeSpan);
+
+        Debug.Log($"Total Stat Sum: {totalStatSum}, Normalized Lifespan: {normalizedLifespan}, Calculated Lifespan: {calculatedLifespan}");
+
+        return calculatedLifespan;
+    }
+
+
+    private void IncrementAge()
+    {
+        age++;
+        Debug.Log($"Age incremented to: {age}");
+    }
 
     public virtual void Update()
     {
@@ -80,44 +161,49 @@ public class AICharacterStats : MonoBehaviour
         float faithInfluence = 1.0f - FaithFraction; // a value between 0.0 and 1.0, higher when faith is lower
         faithInfluence *= faithInfluence; // square it to make it exponential
 
-        if (hunger > minStat)
+        if (!isDead)
         {
-            isStarving = false;
+            if (hunger > minStat)
+            {
+                isStarving = false;
 
-            if (useFaith)
+                if (useFaith)
+                {
+                    hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
+                }
+                else
+                {
+                    hunger -= Time.deltaTime * hungerFactor;
+                }
+
+                hunger = Mathf.Clamp(hunger, minStat, maxStat);
+            }
+            else
             {
-                hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
-            } else
-            {
-                hunger -= Time.deltaTime * hungerFactor;
+                isStarving = true;
+
+                if (useFaith)
+                {
+                    health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
+                }
+                else
+                {
+                    health -= Time.deltaTime * healthFactor;
+                }
+
+                health = Mathf.Clamp(health, minStat, maxStat);
             }
 
-            hunger = Mathf.Clamp(hunger, minStat, maxStat);
-        }
-        else
-        {
-            isStarving = true;
-
-            if (useFaith)
+            if (useFaith && faith > minStat)
             {
-                health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
-            } else
-            {
-                health -= Time.deltaTime * healthFactor;
+                faith -= Time.deltaTime * faithFactor;
+                faith = Mathf.Clamp(faith, minStat, maxStat);
             }
 
-            health = Mathf.Clamp(health, minStat, maxStat);
-        }
-
-        if (useFaith && faith > minStat)
-        {
-            faith -= Time.deltaTime * faithFactor;
-            faith = Mathf.Clamp(faith, minStat, maxStat);
-        }
-
-        if (health <= minStat)
-        {
-            isDead = true;
+            if (health <= minStat)
+            {
+                isDead = true;
+            }
         }
 
         OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
@@ -135,39 +221,87 @@ public class AICharacterStats : MonoBehaviour
 
     private void UpdateEvolution()
     {
-        float previousEvolution = evolution;  // Store the current evolution value
-
-        float targetEvolution = FaithFraction;
-        float interpolationFactor = Mathf.Lerp(0.01f, evolutionSpeedFactor, FaithFraction);
-        evolution = Mathf.Lerp(evolution, targetEvolution, interpolationFactor * Time.deltaTime);
-
-        if (evolution != previousEvolution)  // Check if evolution has effectively changed
+        if (!isDead)
         {
-            OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
-        }
+            float previousEvolution = evolution;  // Store the current evolution value
 
+            float targetEvolution = FaithFraction;
+            float interpolationFactor = Mathf.Lerp(0.01f, evolutionSpeedFactor, FaithFraction);
+            evolution = Mathf.Lerp(evolution, targetEvolution, interpolationFactor * Time.deltaTime);
+
+            if (evolution != previousEvolution)  // Check if evolution has effectively changed
+            {
+                OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
+            }
+        }
+        
     }
 
     public void Heal(float healFactor)
     {
-        health += healFactor;
-        health = Mathf.Clamp(health, minStat, maxStat);
-        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
+        if (!isDead)
+        {
+            health += healFactor;
+            health = Mathf.Clamp(health, minStat, maxStat);
+            OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
+        }
     }
 
-    public void SetHealth(int value)
+    public void SetHealth(float value)
     {
         health = value;
         health = Mathf.Clamp(health, minStat, maxStat);
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
     }
 
+    public void SetFaith(float value)
+    {
+        faith = value;
+        faith = Mathf.Clamp(faith, minStat, maxStat);
+        OnHealthChanged?.Invoke(FaithFraction, minStat, maxStat);
+    }
+
+    public void SetHunger(float value)
+    {
+        hunger = value;
+        hunger = Mathf.Clamp(hunger, minStat, maxStat);
+        OnHealthChanged?.Invoke(HungerFraction, minStat, maxStat);
+    }
+
+    public void ReinitializeAll()
+    {
+        isDead = false;
+
+        MaxAllStats();
+        ResetAge();
+    }
+
+    public void MaxAllStats()
+    {
+        SetFaith(maxStat);
+        SetHealth(maxStat);
+        SetHunger(maxStat);
+    }
+
+    public void ResetAge()
+    {
+        age = 0;
+    }
+
     public void TakeDamage(float damageTaken)
     {
-        health -= damageTaken;
-        health = Mathf.Clamp(health, minStat, maxStat);
-        OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
-        damageEffects.FlashRed();
+        if (!isDead)
+        {
+            health -= damageTaken;
+            health = Mathf.Clamp(health, minStat, maxStat);
+            OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
+            damageEffects.FlashRed();
+
+            if (health <= minStat && !isDead)
+            {
+                isDead = true;
+            }
+        }
     }
 
     public void FaithModify(float faithModifer)
@@ -231,10 +365,13 @@ public class AICharacterStats : MonoBehaviour
 
     public void ContractDisease()
     {
-        if (!Disease.IsContracted)
+        if (!isDead)
         {
-            int diseaseIndex = UnityEngine.Random.Range(0, Disease.Severity.Length);
-            Disease.Contract();
+            if (!Disease.IsContracted)
+            {
+                int diseaseIndex = UnityEngine.Random.Range(0, Disease.Severity.Length);
+                Disease.Contract();
+            }
         }
     }
 

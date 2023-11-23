@@ -11,9 +11,14 @@ public class ResourcesUI : MonoBehaviour
     public float uiHeight = 50f;
     public float spacing = 10f;
     public float horizontalOffset = 0f; // Variable to control the horizontal shift
+    public float verticalOffset = 0f; // Variable to control the vertical shift
 
     private HorizontalLayoutGroup layoutGroup;
+    private float previousHorizontalOffset; // For tracking changes in horizontalOffset
+    private float previousVerticalOffset; // For tracking changes in verticalOffset
+
     public List<RectTransform> uiElements = new List<RectTransform>(); // Keep track of UI elements
+    private Dictionary<string, TextMeshProUGUI> resourceTexts = new Dictionary<string, TextMeshProUGUI>();
 
     private void Awake()
     {
@@ -23,23 +28,21 @@ public class ResourcesUI : MonoBehaviour
         layoutGroup.childControlWidth = true;
         layoutGroup.childControlHeight = true;
         layoutGroup.spacing = spacing;
-        layoutGroup.padding = new RectOffset(50, 50, 50, 50);
+
         previousHorizontalOffset = horizontalOffset;
-        layoutGroup.padding.left = (int)horizontalOffset;
+        previousVerticalOffset = verticalOffset;
+
+        ApplyOffsets();
     }
 
-    private Dictionary<string, TextMeshProUGUI> resourceTexts = new Dictionary<string, TextMeshProUGUI>();
-
-    public void UpdateResourceCount(string resourceTypeName, int count)
+    private void ApplyOffsets()
     {
-        if (resourceTexts.TryGetValue(resourceTypeName, out var textComponent))
+        layoutGroup.padding.left = (int)horizontalOffset;
+        layoutGroup.padding.top = (int)verticalOffset;
+
+        foreach (var uiElement in uiElements)
         {
-            // Update the resource count in the UI
-            textComponent.text = $"{resourceTypeName}: {count}";
-        }
-        else
-        {
-            Debug.LogError($"No UI element found for resource type: {resourceTypeName}");
+            UpdateUIElementPosition(uiElement);
         }
     }
 
@@ -47,61 +50,35 @@ public class ResourcesUI : MonoBehaviour
     {
         if (layoutGroup == null) layoutGroup = GetComponent<HorizontalLayoutGroup>();
         layoutGroup.spacing = spacing;
-
-        // Update the padding to incorporate the horizontalOffset.
-        layoutGroup.padding.left = (int)horizontalOffset;
-
-        // Update the height of all UI elements.
-        foreach (RectTransform uiElement in uiElements)
-        {
-            if (uiElement != null)
-            {
-                uiElement.sizeDelta = new Vector2(uiElement.sizeDelta.x, uiHeight);
-            }
-        }
+        ApplyOffsets();
     }
-
-    private float previousHorizontalOffset; // Add this variable at the class level
 
     private void Update()
     {
-        if (!Mathf.Approximately(horizontalOffset, previousHorizontalOffset))
+        if (!Mathf.Approximately(horizontalOffset, previousHorizontalOffset) ||
+            !Mathf.Approximately(verticalOffset, previousVerticalOffset))
         {
-            // Update the padding of the layout group to shift the elements.
-            layoutGroup.padding.left = (int)horizontalOffset;
-
-            // Force the layout group to re-arrange the elements immediately.
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)layoutGroup.transform);
-
+            ApplyOffsets();
             previousHorizontalOffset = horizontalOffset;
+            previousVerticalOffset = verticalOffset;
         }
     }
 
-    public void UpdateAllUIPositions()
+    public void UpdateResourceCount(string resourceTypeName, int count)
     {
-        foreach (var uiElement in uiElements)
+        if (resourceTexts.TryGetValue(resourceTypeName, out var textComponent))
         {
-            UpdateUIElementPosition(uiElement);
+            textComponent.text = $"{resourceTypeName}: {count}";
+        }
+        else
+        {
+            // Handle the case where the resource type is not found
         }
     }
-
-
-private void UpdateUIElementPosition(RectTransform uiElement)
-{
-    int index = uiElements.IndexOf(uiElement);
-    // Assuming a centered anchor, calculate the position for each element based on its index
-    float elementXPosition = horizontalOffset + (spacing * index) - (spacing * (uiElements.Count - 1) / 2.0f);
-    uiElement.anchoredPosition = new Vector2(elementXPosition, uiElement.anchoredPosition.y);
-}
-
-
 
     public void ClearUIElementsList()
     {
-        if (uiElements != null)
-        {
-            uiElements.Clear();
-        }
+        uiElements.Clear();
     }
 
     public void InitializeUI(Dictionary<string, int> resources)
@@ -113,13 +90,11 @@ private void UpdateUIElementPosition(RectTransform uiElement)
             CreateResourceUI(entry.Key, entry.Value);
         }
 
-        // Ensure all positions are updated after initialization
         foreach (var uiElement in uiElements)
         {
             UpdateUIElementPosition(uiElement);
         }
     }
-
 
     public void ClearUIElements()
     {
@@ -127,14 +102,20 @@ private void UpdateUIElementPosition(RectTransform uiElement)
         {
             if (element != null)
             {
-                DestroyImmediate(element.gameObject);
+                if (Application.isPlaying)
+                {
+                    Destroy(element.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(element.gameObject);
+                }
             }
         }
-        uiElements.Clear();
-        resourceTexts.Clear(); // Clear the dictionary as well
+
+        ClearUIElementsList();
+        resourceTexts.Clear();
     }
-
-
 
     private void CreateResourceUI(string resourceName, int value)
     {
@@ -145,10 +126,10 @@ private void UpdateUIElementPosition(RectTransform uiElement)
         SetupTextMeshPro(tmp, resourceName, value);
 
         RectTransform rectTransform = resourceUI.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(160, uiHeight); // Adjust the width as needed
-        rectTransform.anchorMin = new Vector2(0.5f, 0f);
+        rectTransform.sizeDelta = new Vector2(160, uiHeight);
+        rectTransform.anchorMin = new Vector2(0.5f, 1f);
         rectTransform.anchorMax = new Vector2(0.5f, 1f);
-        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.pivot = new Vector2(0.5f, 1f);
 
         uiElements.Add(rectTransform);
         UpdateUIElementPosition(rectTransform);
@@ -162,18 +143,16 @@ private void UpdateUIElementPosition(RectTransform uiElement)
         tmp.color = Color.white;
         tmp.font = fontAsset;
         tmp.enableWordWrapping = false;
-        tmp.outlineWidth = 0.1f;
-        tmp.outlineColor = Color.black;
 
-        tmp.fontMaterial = new Material(fontAsset.material);
-        tmp.fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.3f);
-        tmp.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0.35f);
+        // Configure TextMeshPro properties as needed
+    }
 
-        tmp.fontSharedMaterial = new Material(fontAsset.material);
-        tmp.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, -1f);
-        tmp.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 1f);
-        tmp.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayDilate, 1f);
-        tmp.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
-        tmp.fontSharedMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+    private void UpdateUIElementPosition(RectTransform uiElement)
+    {
+        int index = uiElements.IndexOf(uiElement);
+        float elementXPosition = horizontalOffset + (spacing * index) - (spacing * (uiElements.Count - 1) / 2.0f);
+        float elementYPosition = -verticalOffset;
+
+        uiElement.anchoredPosition = new Vector2(elementXPosition, elementYPosition);
     }
 }

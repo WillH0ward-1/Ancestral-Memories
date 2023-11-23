@@ -78,17 +78,9 @@ public class HumanAI : MonoBehaviour
 
     public ResourcesManager resources;
 
-    private void Awake()
-    {
-
-        player = FindObjectOfType<Player>();
-        playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
-
-    }
-
     public Dictionary<AIState, Action<GameObject>> stateActions = new Dictionary<AIState, Action<GameObject>>();
 
-    void Start()
+    public void InitHuman()
     {
 
         aiPath = transform.GetComponentInChildren<RichAI>();
@@ -115,9 +107,9 @@ public class HumanAI : MonoBehaviour
 
     void Update()
     {
-        if (stats.health <= 0 && !stats.isDead)
+        if (stats.isDead && !isDying)
         {
-            KillToRagdoll();
+            StartCoroutine(Die());
         }
 
         if (!stats.isDead)
@@ -142,6 +134,47 @@ public class HumanAI : MonoBehaviour
         }
     }
 
+    private bool isDying = false;
+
+    public IEnumerator Die()
+    {
+        isDying = true;
+        behaviourIsActive = true;
+
+        ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallBackwards);
+        yield return new WaitForSeconds(GetAnimLength());
+
+        if (stats.faith >= stats.maxStat / 2)
+        {
+            StartCoroutine(Revive(false));
+        } else
+        {
+            yield break;
+        }
+
+        yield break;
+    }
+
+    public IEnumerator Revive(bool onFront)
+    {
+
+        if (onFront)
+        {
+            ChangeAnimationState(HumanControllerAnimations.OnFront_ToStand_Dazed01);
+        }
+        else
+        {
+            ChangeAnimationState(HumanControllerAnimations.OnBack_GetUp01);
+        }
+
+        yield return new WaitForSeconds(GetAnimLength());
+
+        isDying = false;
+        behaviourIsActive = false;
+
+        yield break;
+    }
+
     void LookAt()
     {
         if (!ragdollController.isRagdollActive)
@@ -163,6 +196,7 @@ public class HumanAI : MonoBehaviour
     [SerializeField] float maxActionBuffer = 10;
 
     private bool overriden = false;
+
 
     public IEnumerator GetUp(bool isFacingUp)
     {
@@ -203,16 +237,11 @@ public class HumanAI : MonoBehaviour
 
     }
 
-    public bool isDead = false;
-
     private void KillToRagdoll()
     {
-        if (!stats.isDead)
-        {
-            stats.isDead = true;
-            RemoveFromPopulation();
-            ragdollController.TriggerRagdoll();
-        }
+
+        RemoveFromPopulation();
+        ragdollController.TriggerRagdoll();
     }
 
     public void RemoveFromPopulation()

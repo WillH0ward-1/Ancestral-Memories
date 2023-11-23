@@ -1,56 +1,64 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class RainControl : MonoBehaviour
 {
     private MapObjGen mapObjGen;
-
     [SerializeField] private WeatherControl weather;
-
     public ParticleSystem rainParticles;
-
     [SerializeField] private AreaManager areaManager;
-
     public LerpTerrain lerpTerrain;
-
     public ParticleSystem.EmissionModule emission;
     public float emissionMultiplier = 128f;
+    public SeasonManager seasons;
+    public Material rainMaterial; // Material with the 'Tint' parameter
 
-    void Start()
-    {
-        emission = rainParticles.emission;
-        emission.enabled = false;
-        isRaining = false;
+    [SerializeField] private float minDroughtDuration = 30f;
+    [SerializeField] private float maxDroughtDuration = 60f;
 
-        StartCoroutine(ChanceOfRain());
-    }
+    public float rainDuration;
+    public float minRainDuration = 10f;
+    public float maxRainDuration = 60f;
+
+    [SerializeField] private float rainStrengthTarget;
+    [SerializeField] private float emissionRateOverTime;
+    [SerializeField] private CloudControl clouds;
+    public float rainDanceMultiplier = 1f;
+    public float minRainDanceMultiplier = 1f;
+    public float maxRainDanceMultiplier = 5f;
 
     public bool isRaining = false;
     public bool drought = false;
-
     public float minWaitForRain = 0f;
     public float maxWaitForRain = 300f;
 
     private bool isInside;
     [SerializeField] private bool triggerDrought;
-
     public Player player;
     public CharacterBehaviours behaviours;
-
     public float maxEmissionOverTime;
     private float droughtThreshold = 0;
     [SerializeField] private float droughtThresholdDivisor = 2;
 
+    private new Renderer renderer;
+    private MaterialPropertyBlock propBlock;
+
     private void Awake()
     {
-
         transform.parent.SetParent(player.transform);
-
         behaviours = player.transform.GetComponentInChildren<CharacterBehaviours>();
         mapObjGen = FindObjectOfType<MapObjGen>();
-        //weather = transform.GetComponent<WeatherControl>();
         droughtThreshold = player.maxStat / droughtThresholdDivisor;
+
+        renderer = GetComponent<Renderer>();
+        propBlock = new MaterialPropertyBlock();
+    }
+
+    void Start()
+    {
+        emission = rainParticles.emission;
+        emission.enabled = false;
+        StartCoroutine(ChanceOfRain());
     }
 
     public IEnumerator ChanceOfRain()
@@ -59,163 +67,128 @@ public class RainControl : MonoBehaviour
         {
             float time = 0;
             float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
-            float rainDuration = 0;
-            float maxRainDuration = 10f; // Set this value to the desired maximum rain duration
 
-            while (time <= rainWaitDuration)
+            while (time < rainWaitDuration)
             {
                 time += Time.deltaTime;
-
-                // Check if the rain duration has elapsed
-                if (isRaining)
-                {
-                    rainDuration += Time.deltaTime;
-                    if (rainDuration >= maxRainDuration)
-                    {
-                        break;
-                    }
-                }
-
                 yield return null;
             }
 
-            if (time >= rainWaitDuration)
+            if (!isRaining && player.faith >= droughtThreshold && areaManager.currentRoom == "Outside")
             {
-                if (isRaining || areaManager.currentRoom != "Outside")
-                {
-                    StartCoroutine(ChanceOfRain());
-                    yield break;
-                }
-                else if (!isRaining && player.faith >= droughtThreshold)
-                {
-                    StartCoroutine(StartRaining());
-                }
-                else if (player.faith <= droughtThreshold && triggerDrought)
-                {
-                    StartCoroutine(Drought());
-                    yield break;
-                }
-
+                StartCoroutine(StartRaining());
             }
-
-            yield break;
+            else if (player.faith <= droughtThreshold && triggerDrought)
+            {
+                StartCoroutine(Drought());
+            }
         }
     }
-
-    public float minDroughtDuration = 30f;
-    public float maxDroughtDuration = 60f;
 
     public IEnumerator Drought()
     {
         drought = true;
-
         float time = 0;
         float droughtDuration = Random.Range(minDroughtDuration, maxDroughtDuration);
 
-        StartCoroutine(lerpTerrain.ToDesert());
+        lerpTerrain.ToDesert();
         mapObjGen.KillAllTreeProduce();
 
         while (time < droughtDuration)
         {
             time += Time.deltaTime;
-
-            if (time >= droughtDuration)
-            {
-                StartCoroutine(ChanceOfRain());
-                yield break;
-            }
-
             yield return null;
         }
 
-        yield break;
-
+        drought = false;
+        StartCoroutine(ChanceOfRain());
     }
-
-    [SerializeField] private float rainDuration;
-
-    float rainStrength;
-
-
-    public float minRainDuration = 10f;
-    public float maxRainDuration = 60f;
-
-    [SerializeField] private float rainStrengthTarget;
-    float emissionRate;
-    [SerializeField] public float emissionRateOverTime;
-
-    public CloudControl clouds;
-
-    public float rainDanceMultiplier = 1f;
-    public float minRainDanceMultiplier = 1f;
-    public float maxRainDanceMultiplier = 5f;
 
     public IEnumerator StartRaining()
     {
-
         clouds.OverrideCloudPower(clouds.cloudPersistanceMax);
-
         emissionRateOverTime = 0;
         emission.rateOverTime = emissionRateOverTime * rainDanceMultiplier;
-
         isRaining = true;
-
-        if (drought)
-        {
-            drought = false;
-        }
-
-        mapObjGen.ReviveAllDeadProduce();
-
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 
-        //rainStrength = Random.Range(minRainStrength, maxRainStrength);
-        StartCoroutine(lerpTerrain.ToWetOasis());
-
-        float time = 0;
+        if (seasons.CurrentSeason == SeasonManager.Season.Winter)
+        {
+            SnowShape();
+            StartCoroutine(LerpMaterialColor(Color.white)); // Lerp to snow color
+        }
+        else
+        {
+            RainShape();
+            StartCoroutine(LerpMaterialColor(Color.blue)); // Lerp to rain color
+        }
 
         emission.enabled = true;
         rainParticles.Play();
 
-        while (time <= 1f && areaManager.currentRoom == "Outside")
+        float time = 0;
+        while (time < rainDuration && areaManager.currentRoom == "Outside")
         {
-            time += Time.deltaTime / rainDuration;
-
-            rainStrengthTarget = maxEmissionOverTime;
-            emission.rateOverTime = Mathf.Lerp(emissionRateOverTime, rainStrengthTarget, time);
-            maxEmissionOverTime = weather.windStrength * emissionMultiplier + 1; // (Yields a range of 0 - 1 * emissionMultiplier 
-
+            float rainStrength = Mathf.Lerp(0, maxEmissionOverTime, time / rainDuration);
+            emission.rateOverTime = rainStrength * emissionMultiplier;
+            time += Time.deltaTime;
             yield return null;
         }
 
-        if (time >= 1f || areaManager.currentRoom != "Outside")
-        {
-            StartCoroutine(StopRaining(true));
-            yield break;
-        }
+        StartCoroutine(StopRaining());
     }
 
-    private bool retrigger = false;
-
-    private float grassDryTime = 30;
-
-    public IEnumerator StopRaining(bool retrigger)
+    public IEnumerator StopRaining()
     {
         clouds.StopCloudPowerOverride();
-
         emissionRateOverTime = 0;
         emission.enabled = false;
         isRaining = false;
         rainParticles.Stop();
-        StartCoroutine(lerpTerrain.ToOasis());
 
-        if (retrigger)
+        StartCoroutine(ChanceOfRain());
+
+        yield break;
+    }
+
+    private void SnowShape()
+    {
+        var main = rainParticles.main;
+        main.startSize3D = true;
+        main.startSizeX = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
+        main.startSizeY = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
+        main.startSizeZ = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
+    }
+
+    private void RainShape()
+    {
+        var main = rainParticles.main;
+        main.startSize3D = true;
+        main.startSizeX = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
+        main.startSizeY = new ParticleSystem.MinMaxCurve(1f, 2f);
+        main.startSizeZ = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
+    }
+
+    private IEnumerator LerpMaterialColor(Color targetColor)
+    {
+        float lerpDuration = 1f; // Duration to lerp color
+        float time = 0f;
+
+        // Get the current properties of the material
+        renderer.GetPropertyBlock(propBlock);
+        Color startColor = propBlock.GetColor("Tint");
+
+        while (time < lerpDuration)
         {
-            StartCoroutine(ChanceOfRain());
-            yield break;
-        } else
-        {
-            yield break;
+            Color lerpedColor = Color.Lerp(startColor, targetColor, time / lerpDuration);
+            propBlock.SetColor("Tint", lerpedColor);
+            renderer.SetPropertyBlock(propBlock);
+
+            time += Time.deltaTime;
+            yield return null;
         }
+
+        propBlock.SetColor("Tint", targetColor); // Ensure final color is set
+        renderer.SetPropertyBlock(propBlock);
     }
 }

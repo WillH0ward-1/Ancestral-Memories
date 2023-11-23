@@ -205,7 +205,7 @@ public class MapObjGen : MonoBehaviour
     [Header("Behaviours Reference")]
     [Space(10)]
 
-    [SerializeField] private CharacterBehaviours behaviours;
+    [SerializeField] private CharacterBehaviours playerBehaviours;
     public Player player;
     [SerializeField] private PickUpObject pickUpManager;
     [SerializeField] private InteractCamera interactCam;
@@ -379,7 +379,7 @@ public class MapObjGen : MonoBehaviour
         fluteControl = player.GetComponentInChildren<FluteControl>();
 
         fluteControl.player = player;
-        fluteControl.behaviours = behaviours;
+        fluteControl.behaviours = playerBehaviours;
         fluteControl.mapObjGen = this;
     }
 
@@ -395,18 +395,40 @@ public class MapObjGen : MonoBehaviour
         player = FindObjectOfType<Player>();
         interactCam = camera.GetComponentInChildren<InteractCamera>();
         interactCam.InitInteractions();
-        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
+        playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
+        playerBehaviours.mapObjGen = this;
         rainControl = FindObjectOfType<RainControl>();
         seasonManager = FindObjectOfType<SeasonManager>();
+        rainControl.seasons = seasonManager;
         dialogueLines = FindObjectOfType<DialogueLines>();
         vocabularyManager = FindObjectOfType<VocabularyManager>();
         pickUpManager = FindObjectOfType<PickUpObject>();
         fireManager = FindObjectOfType<FireManager>();
         fireManager.mapObjGen = this;
         resources = FindObjectOfType<ResourcesManager>();
-
-        behaviours.pickUpManager = pickUpManager;
+        AICharacterStats stats = player.GetComponentInChildren<AICharacterStats>();
+        stats.time = timeCycleManager;
+        stats.SubscribeToBirthday();
+        playerBehaviours.pickUpManager = pickUpManager;
         
+    }
+
+    private void SetupDeformers()
+    {
+        foreach(GameObject g in npcList)
+        {
+            LerpDeformation npcDeform = g.GetComponentInChildren<LerpDeformation>();
+            npcDeform.player = player;
+
+            //DeformableManager npcDeformManager = npcDeform.transform.gameObject.AddComponent<DeformableManager>();
+            //npcDeformManager.update = true;
+        }
+
+        LerpDeformation playerDeform = player.GetComponentInChildren<LerpDeformation>();
+        playerDeform.player = player;
+
+        //DeformableManager playerDeformManager = playerDeform.transform.gameObject.AddComponent<DeformableManager>();
+       // playerDeformManager.update = true;
     }
 
 
@@ -492,6 +514,7 @@ public class MapObjGen : MonoBehaviour
 
         SetupCorruptionControl(mapObjectList);
 
+
         RandomizeHumanRace();
         fireManager.GenerateFirePoints();
         EnableStudioEmitters(grassList);
@@ -502,6 +525,7 @@ public class MapObjGen : MonoBehaviour
 
         SpawnPlayer();
 
+        SetupDeformers();
         SetupDisasters();
         //StartCoroutine(StartTreeGrowth(treeList));
 
@@ -651,8 +675,12 @@ public class MapObjGen : MonoBehaviour
 
             AnimalAI animalAI = animalInstance.GetComponentInChildren<AnimalAI>();
             animalAI.player = player;
-            animalAI.playerBehaviours = behaviours;
+            animalAI.playerBehaviours = playerBehaviours;
             animalAI.lookAnimator = lookAnimator;
+
+            AICharacterStats animalStats = animalInstance.GetComponentInChildren<AICharacterStats>();
+            animalStats.time = timeCycleManager;
+            animalStats.SubscribeToBirthday();
 
             Dialogue dialogue = animalInstance.GetComponentInChildren<Dialogue>();
             dialogue.player = player;
@@ -698,7 +726,7 @@ public class MapObjGen : MonoBehaviour
             HumanAI humanAI = humanInstance.GetComponentInChildren<HumanAI>();
             humanAI.mapObjGen = this;
             humanAI.player = player;
-            humanAI.playerBehaviours = behaviours;
+            humanAI.playerBehaviours = playerBehaviours;
             humanAI.resources = resources;
 
             Dialogue dialogue = humanInstance.GetComponentInChildren<Dialogue>();
@@ -707,9 +735,9 @@ public class MapObjGen : MonoBehaviour
             dialogue.dialogueLines = dialogueLines;
 
             AICharacterStats humanStats = humanInstance.GetComponentInChildren<AICharacterStats>();
+            humanStats.time = timeCycleManager;
+            humanStats.SubscribeToBirthday();
             allHumanStats.Add(humanStats);
-
-            
 
             FLookAnimator lookAnimator = humanInstance.GetComponentInChildren<FLookAnimator>();
             lookAnimator.enabled = true;
@@ -723,6 +751,9 @@ public class MapObjGen : MonoBehaviour
             npcList.Add(humanInstance);
             humanPopulationList.Add(humanInstance);
             flammableObjectList.Add(humanInstance);
+
+            humanAI.InitHuman();
+
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
@@ -835,7 +866,7 @@ public class MapObjGen : MonoBehaviour
 
             corruptionControl.rain = rainControl;
             corruptionControl.player = player;
-            corruptionControl.behaviours = behaviours;
+            corruptionControl.behaviours = playerBehaviours;
 
             if (mapObj.transform.CompareTag("Animal"))
             {
@@ -880,8 +911,11 @@ public class MapObjGen : MonoBehaviour
             TreeFruitManager treeFruitManager = treeInstance.transform.GetComponentInChildren<TreeFruitManager>();
             treeFruitManager.player = player;
             treeFruitManager.mapObjGen = this;
-
+            treeFruitManager.resources = resources;
             //ptGrow.GrowTree();
+
+            ProceduralTree pt = treeInstance.GetComponentInChildren<ProceduralTree>();
+            pt.resources = resources;
 
             int treeLayer = LayerMask.NameToLayer("Trees");
             treeInstance.layer = treeLayer;

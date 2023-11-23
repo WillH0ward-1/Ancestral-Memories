@@ -158,6 +158,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 			lerpTerrain = terrainObj.AddComponent<LerpTerrain>();
 			rainControl.lerpTerrain = lerpTerrain;
+			lerpTerrain.rainControl = rainControl;
 
 			StartCoroutine(EnableContacts(terrainObj));
 

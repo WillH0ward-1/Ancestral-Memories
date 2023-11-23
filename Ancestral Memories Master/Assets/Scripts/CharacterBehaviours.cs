@@ -48,6 +48,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     public TimeCycleManager timeManager;
 
+    public MapObjGen mapObjGen;
+
     //EVENT_CALLBACK callbackDelegate;
 
     void Start()
@@ -161,6 +163,126 @@ public class CharacterBehaviours : MonoBehaviour
 
         return;
     }
+
+    private bool isDying = false;
+
+    private void Update()
+    {
+        if (player.isDead && !isDying)
+        {
+            StartCoroutine(Die());
+        }
+    }
+
+    private IEnumerator Die()
+    {
+        isDying = true;
+        behaviourIsActive = true;
+
+        animSpeed = defaultAnimSpeed;
+        playerWalk.StopAgentOverride();
+        player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallForwards01);
+
+        yield return new WaitForSeconds(GetAnimLength());
+
+        float timeOnFloor = Random.Range(GetAnimLength(), GetAnimLength() + Random.Range(0, 2));
+        yield return new WaitForSeconds(timeOnFloor);
+
+        // Start pulling the player underground
+        float duration = 5f; // Duration to pull the player underground
+        float time = 0;
+        Vector3 startPosition = player.transform.position;
+        RaycastHit hit;
+
+        if (Physics.Raycast(player.transform.position, Vector3.up, out hit, Mathf.Infinity))
+        {
+            float targetY = hit.point.y - 10f; // Target y-position (10 units below the ground)
+
+            while (time < duration)
+            {
+                time += Time.deltaTime;
+                float lerpFactor = time / duration;
+                player.transform.position = new Vector3(
+                    player.transform.position.x,
+                    Mathf.Lerp(startPosition.y, targetY, lerpFactor),
+                    player.transform.position.z
+                );
+                yield return null;
+            }
+        }
+
+        // Wait for a short random buffer
+        yield return new WaitForSeconds(Random.Range(0.5f, 2f));
+
+        // Start the revive process
+        StartCoroutine(Revive());
+    }
+
+    private IEnumerator Revive()
+    {
+        player.ReinitializeAll();
+
+        if (mapObjGen.spawnPointsList.Count > 0)
+        {
+            int randomIndex = Random.Range(0, mapObjGen.spawnPointsList.Count);
+            Vector3 spawnPointPosition = mapObjGen.spawnPointsList[randomIndex].transform.position;
+            Vector3 undergroundPosition = new Vector3(spawnPointPosition.x, spawnPointPosition.y - 10f, spawnPointPosition.z); // 10 units below ground
+
+            // Set player's position underground
+            player.transform.position = undergroundPosition;
+
+            player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
+
+            float animLength = GetAnimLength();
+            float time = 0f;
+            RaycastHit hit;
+            float groundYPosition = spawnPointPosition.y;
+
+            // Find ground level by raycasting downwards
+            if (Physics.Raycast(spawnPointPosition, Vector3.down, out hit))
+            {
+                groundYPosition = hit.point.y;
+            }
+
+            while (time < animLength)
+            {
+                time += Time.deltaTime;
+                float lerpFactor = time / animLength;
+                Vector3 interpolatedPosition = Vector3.Lerp(undergroundPosition, spawnPointPosition, lerpFactor);
+
+                // Check if player is above ground level
+                if (interpolatedPosition.y >= groundYPosition)
+                {
+                    interpolatedPosition.y = groundYPosition;
+                    player.transform.position = interpolatedPosition;
+                    break;
+                }
+
+                player.transform.position = interpolatedPosition;
+                yield return null;
+            }
+        }
+        else
+        {
+            Debug.LogError("Spawn points list is empty.");
+        }
+
+
+        player.ChangeAnimationState(HumanControllerAnimations.Emotion_Scared_LookAround);
+
+        yield return new WaitForSeconds(GetAnimLength());
+
+        playerWalk.CancelAgentOverride();
+
+        isDying = false;
+        behaviourIsActive = false;
+
+    }
+
+
+
+
+
 
     public IEnumerator ExitGame()
     {

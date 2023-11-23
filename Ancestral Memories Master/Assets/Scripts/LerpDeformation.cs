@@ -6,43 +6,53 @@ using Unity.Mathematics;
 
 public class LerpDeformation : MonoBehaviour
 {
-
     public Player player;
 
     public float maxVal = 0f;
     public float minVal = -0.02f;
 
     private float currentDeform;
+    private float targetDeform;
 
-    [SerializeField] private Deform.InflateDeformer inflate;
-    [SerializeField] private Deform.InflateDeformer[] inflateDeformers;
+    [SerializeField] private List<Deform.InflateDeformer> inflateDeformers;
+    [SerializeField] private List<Deform.InflateDeformer> auraDeformers;
+
+    private float auraDeformationOffset = 0.00006f;
 
     private void OnEnable()
     {
-        player.OnHungerChanged += HungerChanged;
+        if (player != null)
+        {
+            player.OnHungerChanged += HungerChanged;
+        }
     }
 
     private void OnDisable()
     {
-        player.OnHungerChanged -= HungerChanged;
+        if (player != null)
+        {
+            player.OnHungerChanged -= HungerChanged;
+        }
     }
 
-    // Start is called before the first frame update
-
-    void Awake()
+    private void Awake()
     {
-        player = FindObjectOfType<Player>();
-
-        inflateDeformers = transform.GetComponentsInChildren<Deform.InflateDeformer>();
-
-        inflate = transform.GetComponentInChildren<Deform.InflateDeformer>();
-
-        inflate.Factor = targetDeform;
+        InitDeformers();
     }
 
-    private float targetDeform;
+    void InitDeformers()
+    {
+        inflateDeformers = new List<Deform.InflateDeformer>(transform.GetComponentsInChildren<Deform.InflateDeformer>());
+        auraDeformers = new List<Deform.InflateDeformer>();
 
-    private float auraDeformationOffset = 0.00006f;
+        foreach (Deform.InflateDeformer deformer in inflateDeformers)
+        {
+            if (deformer.gameObject.CompareTag("Aura"))
+            {
+                auraDeformers.Add(deformer);
+            }
+        }
+    }
 
     private void HungerChanged(float hunger, float minHunger, float maxHunger)
     {
@@ -52,19 +62,17 @@ public class LerpDeformation : MonoBehaviour
         targetDeform = output;
 
         currentDeform = targetDeform;
+
+        // Apply deformation to all inflateDeformers
         foreach (Deform.InflateDeformer deformer in inflateDeformers)
         {
-            if (deformer.gameObject.CompareTag("Aura"))
-            {
-                deformer.Factor = currentDeform += auraDeformationOffset;
-            }
-            else
-            {
-                deformer.Factor = currentDeform;
-            }
+            deformer.Factor = currentDeform;
+        }
+
+        // Apply additional deformation for auraDeformers
+        foreach (Deform.InflateDeformer auraDeformer in auraDeformers)
+        {
+            auraDeformer.Factor = currentDeform + auraDeformationOffset;
         }
     }
-
-
-
 }

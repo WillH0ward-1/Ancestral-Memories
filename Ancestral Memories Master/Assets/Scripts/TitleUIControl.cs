@@ -23,6 +23,11 @@ public class TitleUIControl : MonoBehaviour
     [SerializeField] private float wobbleRadius = 1f;
     [SerializeField] private float wobbleSpeed = 1f;
 
+    [SerializeField] private string lightAngleParam = "Light Angle";  // Shader property name for local light angle
+    [SerializeField] private float lightAngleLerpDuration = 2f;  // Duration for one complete lerp cycle (0 to 6 to 0)
+    private Coroutine lightAngleLerpCoroutine;
+
+
     private void Awake()
     {
         text = transform.GetComponent<TextMeshProUGUI>();
@@ -37,6 +42,7 @@ public class TitleUIControl : MonoBehaviour
         {
             text = transform.GetComponent<TextMeshProUGUI>();
             StartTextWobbleAnimation(wobbleRadius, wobbleSpeed); // Example values for radius and speed
+            StartLightAngleLerpAnimation();
         }
 
         if (SkyMaterial != null && text != null)
@@ -55,6 +61,7 @@ public class TitleUIControl : MonoBehaviour
                 text.fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, dilationRange.y);
             }
         }
+
     }
 
     private void Update()
@@ -207,6 +214,42 @@ public class TitleUIControl : MonoBehaviour
 
             // A smaller yield time for more frequent updates
             yield return new WaitForSeconds(0.05f);
+        }
+    }
+
+    public void StartLightAngleLerpAnimation()
+    {
+        if (lightAngleLerpCoroutine != null)
+        {
+            StopCoroutine(lightAngleLerpCoroutine);
+        }
+        lightAngleLerpCoroutine = StartCoroutine(LerpLightAngle());
+    }
+
+    private IEnumerator LerpLightAngle()
+    {
+        while (true)
+        {
+            // Lerp from 0 to 6
+            yield return StartCoroutine(LerpLightAngleValue(0f, 6f, lightAngleLerpDuration / 2));
+
+            // Lerp from 6 back to 0
+            yield return StartCoroutine(LerpLightAngleValue(6f, 0f, lightAngleLerpDuration / 2));
+        }
+    }
+
+    private IEnumerator LerpLightAngleValue(float startValue, float endValue, float duration)
+    {
+        float time = 0f;
+        while (time < duration)
+        {
+            float currentAngle = Mathf.Lerp(startValue, endValue, time / duration);
+            if (text != null)
+            {
+                text.fontSharedMaterial.SetFloat(lightAngleParam, currentAngle);
+            }
+            time += Time.deltaTime;
+            yield return null;
         }
     }
 

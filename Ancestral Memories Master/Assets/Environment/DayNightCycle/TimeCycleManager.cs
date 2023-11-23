@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 //using FMODUnity;
 using UnityEngine;
@@ -67,6 +68,11 @@ public class TimeCycleManager : MonoBehaviour
         get { return DayOfYear / 360; } // Assuming 12 months of 30 days each
     }
 
+    private void Start()
+    {
+        _timeOfDay = 5f;
+    }
+
     private Material material;
     private float lastRealTime;
 
@@ -96,15 +102,23 @@ public class TimeCycleManager : MonoBehaviour
         _dayOfYear = Mathf.RoundToInt(TimeOfDay / 24f * seasonManager.GetTotalDaysInYear());
     }
 
+    public event Action OnNewYear;
+
     private void LateUpdate()
     {
         if (Application.isPlaying || updateInEditor)
         {
             float previousTime = TimeOfDay;
             UpdateTimeAndLight();
+
+            // Check if a new day has started
             if (TimeOfDay < previousTime)
             {
                 DayOfYear = (DayOfYear + 1) % (daysPerSeason * GetNumberOfSeasons());
+                if (DayOfYear == 0) // New year starts when DayOfYear wraps around
+                {
+                    OnNewYear?.Invoke();
+                }
             }
         }
     }

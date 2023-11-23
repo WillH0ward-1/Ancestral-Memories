@@ -28,10 +28,12 @@ public class RagdollController : MonoBehaviour
     private AnimationClip StandUpFromFrontClip;
     private AnimationClip StandUpFromBackClip;
 
+    AICharacterStats stats;
+
     private void Awake()
     {
         animator = GetComponentInChildren<Animator>();
-
+        stats = GetComponentInChildren<AICharacterStats>();
         foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
         {
             if (clip.name == HumanControllerAnimations.OnFront_ToStand_Dazed01)
@@ -211,6 +213,11 @@ public class RagdollController : MonoBehaviour
         if (KnockedOut || isRagdollActive)
         {
             DisableRagdoll();
+        } else if (stats.isDead)
+        {
+            KnockedOut = false;
+
+            yield break;
         }
 
         KnockedOut = false;

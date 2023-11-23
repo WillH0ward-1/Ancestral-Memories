@@ -309,44 +309,46 @@ namespace ProceduralModeling
 		private int lastPhysicsEnabledIndex = -1; // Store the index up to which physics has been enabled
 		public LayerMask physicsLayers;
 
-		public void EnablePhysicsInBurstMode()
+		IEnumerator EnablePhysicsInBurstModeCoroutine()
 		{
 			if (ptGrow.ValidateTree())
 			{
+				ptGrow.KillTree();
 				ShowSegments();
 
-				// Ensuring that the next range doesn't overlap with already physics-enabled segments
 				int start = lastPhysicsEnabledIndex + 1;
-
-				// Calculate the maximum possible range to avoid going beyond the list's count
 				int maxRange = segmentObjects.Count - start;
 
-				// Check if there are enough segments left to enable physics
 				if (maxRange <= 0)
 				{
 					Debug.LogWarning("No more segments available to enable physics on.");
-					return;
+					yield break;
 				}
 
-				// If there are fewer remaining segments than the minimum burst size, adjust the minimum size
 				int minBurstSize = Mathf.Min(5, maxRange);
-
-				// Random range - adjusted to not exceed the number of remaining segments
 				int range = UnityEngine.Random.Range(minBurstSize, Mathf.Min(16, maxRange + 1));
 
-				// Apply physics in the selected range
 				for (int i = start; i < start + range; i++)
 				{
-					// Skip the TreeRoot
 					if (segmentObjects[i].name != "TreeRoot")
 					{
 						AssignPhysics(segmentObjects[i]);
 					}
 
 					lastPhysicsEnabledIndex = i;
+
+					// Optionally yield every few iterations to spread the load
+					if (i % 5 == 0)
+						yield return null;
 				}
 			}
 		}
+
+		public void EnablePhysicsInBurstMode()
+		{
+			StartCoroutine(EnablePhysicsInBurstModeCoroutine());
+		}
+
 
 		public void AssignPhysicsToAllSegments()
 		{

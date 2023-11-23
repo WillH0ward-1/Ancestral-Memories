@@ -63,6 +63,9 @@ public class InteractCamera : MonoBehaviour
             selected = true;
             ToggleOutline(true);
             ActivateInteractable();
+        } else
+        {
+            selected = false;
         }
     }
 

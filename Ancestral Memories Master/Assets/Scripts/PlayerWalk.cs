@@ -93,7 +93,7 @@ public class PlayerWalk : MonoBehaviour
         aiPath = GetComponentInChildren<RichAI>();
         aiPath.endReachedDistance = defaultStoppingDistance;
 
-        ChangeState(HumanControllerAnimations.Walk_Neanderthal01);
+        ChangeState(HumanControllerAnimations.Idle_MidSapien01);
         //StartCoroutine(DetectWater());
     }
 

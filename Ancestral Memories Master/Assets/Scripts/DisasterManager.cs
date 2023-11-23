@@ -23,6 +23,9 @@ public class DisasterManager : MonoBehaviour
     private List<StruckTarget> struckTargets = new List<StruckTarget>();
     [SerializeField] private float targetCooldownDuration = 30f; // Time in seconds before a target can be struck again
 
+    private Transform lastStruckTarget = null; // Field to store the last target
+
+
     public void InitDisasters()
     {
         StartCoroutine(DisasterCountdown());
@@ -38,7 +41,9 @@ public class DisasterManager : MonoBehaviour
         float currentTime = Time.time;
         foreach (Transform target in allTargets)
         {
-            if (target != null && IsValidTarget(target) && !struckTargets.Any(st => st.TargetTransform == target && st.EligibleTime > currentTime))
+            if (target != null && IsValidTarget(target)
+                && !struckTargets.Any(st => st.TargetTransform == target && st.EligibleTime > currentTime)
+                && target != lastStruckTarget) // Exclude the last struck target
             {
                 return target;
             }
@@ -57,12 +62,13 @@ public class DisasterManager : MonoBehaviour
                 return (playerBehaviour.behaviourIsActive && !areaManager.traversing);
 
             case "Animal":
-                var animalAI = target.GetComponentInChildren<AnimalAI>();
-                return !animalAI.isDead;
+                var animalAIstats = target.GetComponentInChildren<AICharacterStats>();
+                return !animalAIstats.isDead;
 
             case "Human":
+                var humanAIstats = target.GetComponentInChildren<AICharacterStats>();
                 var humanAI = target.GetComponentInChildren<HumanAI>();
-                return !humanAI.isElectrocuted && !humanAI.isDead;
+                return !humanAI.isElectrocuted && !humanAIstats.isDead;
 
             default:
                 return false;
@@ -98,6 +104,8 @@ public class DisasterManager : MonoBehaviour
                 struckTargets.Add(new StruckTarget { TargetTransform = target, EligibleTime = Time.time + targetCooldownDuration });
             }
 
+            lastStruckTarget = target; // Update the last struck target
+
             struckTargets.RemoveAll(st => st.EligibleTime <= Time.time);
         }
         else
@@ -105,7 +113,6 @@ public class DisasterManager : MonoBehaviour
             StartCoroutine(DisasterCoolDown());
         }
     }
-
     [SerializeField] float minDisasterRetrigger = 10;
     [SerializeField] float maxDisasterRetrigger = 30;
 
@@ -114,10 +121,7 @@ public class DisasterManager : MonoBehaviour
         disasterCountdown = false;
         disasterOccuring = false;
         yield return new WaitForSeconds(Random.Range(minDisasterRetrigger, maxDisasterRetrigger));
-        if (player.faith <= player.maxStat / 2 && !disasterOccuring)
-        {
-            TriggerDisaster();
-        }
+
         StartCoroutine(DisasterCountdown());
     }
 }

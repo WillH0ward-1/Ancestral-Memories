@@ -189,69 +189,83 @@ namespace ProceduralModeling
 
         private IEnumerator Growing()
         {
-            interactable.enabled = false;
-
-            isFullyGrown = false;
-            currentState = State.Growing;
-            time = 0f;
-            isDead = false;
-            growDuration = Random.Range(minGrowDuration, maxGrowDuration);
-
-            treeAudioSFX.StartTreeGrowthSFX(State.Growing);
-
-            yield return null;
-            navMeshCutting.EnableNavMeshCut();
-
-            mapObjGen.treeGrowingList.Add(transform.gameObject);
-
-            while (time < growDuration)
+            if (!isDead)
             {
-                if (!isDead)
-                {
-                    isGrowing = true;
-                    float t = time / growDuration;
-                    growTime = Mathf.Lerp(0, 1, t);
-                    material.SetFloat(kGrowingKey, growTime);
-                    time += Time.deltaTime;
-                }
+                interactable.enabled = false;
+
+                isFullyGrown = false;
+                currentState = State.Growing;
+                time = 0f;
+                isDead = false;
+                growDuration = Random.Range(minGrowDuration, maxGrowDuration);
+
+                treeAudioSFX.StartTreeGrowthSFX(State.Growing);
 
                 yield return null;
+                navMeshCutting.EnableNavMeshCut();
+
+                mapObjGen.treeGrowingList.Add(transform.gameObject);
+
+                while (time < growDuration)
+                {
+                    if (!isDead)
+                    {
+                        isGrowing = true;
+                        float t = time / growDuration;
+                        growTime = Mathf.Lerp(0, 1, t);
+                        material.SetFloat(kGrowingKey, growTime);
+                        time += Time.deltaTime;
+                    }
+
+                    yield return null;
+                }
+
+                isGrowing = false;
+                time = 0f;
+
+                StartCoroutine(Lifetime());
             }
+        }
 
-            isGrowing = false;
-            time = 0f;
-
-            StartCoroutine(Lifetime());
+        public void KillTree()
+        {
+            if (!isDead)
+            {
+                isDead = true;
+            }
         }
 
         private IEnumerator Lifetime()
         {
-            interactable.enabled = true;
-
-            currentState = State.Alive;
-            isFullyGrown = true;
-            isDead = false;
-
-            lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
-
-            if (!rainControl.drought && seasonManager._currentSeason != SeasonManager.Season.Winter)
+            if (!isDead)
             {
-                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
-                treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
+                interactable.enabled = true;
+
+                currentState = State.Alive;
+                isFullyGrown = true;
+                isDead = false;
+
+                lifeTimeSecs = Random.Range(minLifeTimeSeconds, maxLifeTimeSeconds);
+
+                if (!rainControl.drought && seasonManager._currentSeason != SeasonManager.Season.Winter)
+                {
+                    leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
+                    treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
+                }
+
+                StartCoroutine(treeAudioSFX.LeafRustleSFX());
+
+                while (time < lifeTimeSecs)
+                {
+                    time += Time.deltaTime;
+                    remainingLifeTime = GetRemainingLifetime();
+
+                    yield return null;
+                }
+
+                time = 0f;
+                StartCoroutine(Dying());
             }
-
-            StartCoroutine(treeAudioSFX.LeafRustleSFX());
-
-            while (time < lifeTimeSecs)
-            {
-                time += Time.deltaTime;
-                remainingLifeTime = GetRemainingLifetime();
-
-                yield return null;
-            }
-
-            time = 0f;
-            StartCoroutine(Dying());
         }
 
         public float GetRemainingLifetime()
@@ -262,52 +276,55 @@ namespace ProceduralModeling
 
         private IEnumerator Dying()
         {
-            interactable.enabled = false;
-
-            float time = 0f;
-
-            currentState = State.Dying;
-
-            isFullyGrown = false;
-
-            deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
-            isDead = true;
-
-            mapObjGen.treeGrowingList.Remove(transform.gameObject);
-
-            leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
-
-            foreach (GameObject fruit in treeFruitManager.fruits)
+            if (!isDead)
             {
-                StartCoroutine(treeFruitManager.Fall(fruit));
-            }
+                interactable.enabled = false;
 
-            treeAudioSFX.StartTreeGrowthSFX(State.Dying);
+                float time = 0f;
 
-            while (time < leafScaler.lerpduration)
-            {
-                time += Time.deltaTime;
+                currentState = State.Dying;
+
+                isFullyGrown = false;
+
+                deathDuration = Random.Range(minDeathDuration, maxDeathDuration);
+                isDead = true;
+
+                mapObjGen.treeGrowingList.Remove(transform.gameObject);
+
+                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+
+                foreach (GameObject fruit in treeFruitManager.fruits)
+                {
+                    StartCoroutine(treeFruitManager.Fall(fruit));
+                }
+
+                treeAudioSFX.StartTreeGrowthSFX(State.Dying);
+
+                while (time < leafScaler.lerpduration)
+                {
+                    time += Time.deltaTime;
+                    yield return null;
+                }
+
+                time = 0f;
+
+                while (time < deathDuration)
+                {
+                    float t = time / deathDuration;
+                    growTime = Mathf.Lerp(1, 0, t);
+                    material.SetFloat(kGrowingKey, growTime);
+                    time += Time.deltaTime;
+                    yield return null;
+                }
+
+                isFullyGrown = false;
+
                 yield return null;
+
+                navMeshCutting.DisableNavMeshCut();
+
+                StartCoroutine(Revive());
             }
-
-            time = 0f;
-
-            while (time < deathDuration)
-            {
-                float t = time / deathDuration;
-                growTime = Mathf.Lerp(1, 0, t);
-                material.SetFloat(kGrowingKey, growTime);
-                time += Time.deltaTime;
-                yield return null;
-            }
-
-            isFullyGrown = false;
-
-            yield return null;
-
-            navMeshCutting.DisableNavMeshCut();
-
-            StartCoroutine(Revive());
         }
 
         private IEnumerator Revive()
@@ -364,9 +381,12 @@ namespace ProceduralModeling
 
         public IEnumerator LerpLeafColour(Color targetColor)
         {
-            float lerpTime = 0;
-            float lerpDuration = 5.0f; // adjust this to control the speed of the color transition
+            float baseLerpDuration = 5.0f; // Base duration for the color transition
+            float randomFactor = Random.Range(0.8f, 1.2f); // Random factor to vary the duration
+            float lerpDuration = baseLerpDuration * randomFactor; // Adjusted duration with randomness
+
             Color currentColor = leafMaterial.GetColor(leafColourParam);
+            float lerpTime = 0;
 
             while (lerpTime < lerpDuration)
             {
@@ -384,7 +404,7 @@ namespace ProceduralModeling
             if (isFullyGrown)
             {
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
-                DetachLeaves();
+                //DetachLeaves();
             }
         }
 

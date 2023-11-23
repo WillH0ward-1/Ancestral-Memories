@@ -7,7 +7,6 @@ using System.Linq;
 public class LerpTerrain : MonoBehaviour
 {
     private Player player;
-
     public float Desert = 0f;
     public float Oasis = 12f;
     public float Wet = 22f;
@@ -18,178 +17,334 @@ public class LerpTerrain : MonoBehaviour
     [SerializeField] private float killDuration = 3f;
     [SerializeField] private float reviveDuration = 12f;
 
-    [SerializeField] private float currentState;
-
-    private SeasonManager seasonManager; // Reference to the SeasonManager script
-
     [SerializeField] private string VertexTileParam = "_VertexTile";
     [SerializeField] private string SnowDensityParam = "_SnowDensity";
     [SerializeField] private string AutumnColourParam = "_AutumnColour";
 
-    private RainControl raincontrol;
+    private float minSnowHeight = 0.9f;
+    private float maxSnowHeight = 1.2f;
 
-    private bool isLerpingAutumnColor;
-    private bool isLerpingSnowDensity;
+    private SeasonManager seasonManager; // Reference to the SeasonManager script
 
-    public float terrainLerpTime = 10f;
+    private Coroutine autumnLerpCoroutine;
+    private Coroutine snowLerpCoroutine;
+    private Coroutine vertexLerpCoroutine;
+
+    [SerializeField] private string SnowHeightParam = "_SnowHeight";  // Name of the shader property for snow height
+    [SerializeField] private float growSnowDuration = 5f;  // Duration to fully grow snow
+    [SerializeField] private float meltSnowDuration = 5f;  // Duration to fully melt snow
+    private Coroutine snowCoroutine;
+    private float snowMeltDelay = 5f; // Time buffer before snow starts melting after rain stops
+
+    private Coroutine growSnowCoroutine;
+    private Coroutine meltSnowCoroutine;
+
+    public RainControl rainControl;
 
     private void Awake()
     {
         player = FindObjectOfType<Player>();
-        raincontrol = FindObjectOfType<RainControl>();
         seasonManager = FindObjectOfType<SeasonManager>();
         seasonManager.OnSeasonChanged.AddListener(HandleSeasonChange);
-        seasonManager = FindObjectOfType<SeasonManager>();
-        duration = terrainLerpTime;
-    }
 
-
-    void Start()
-    {
         GetRenderers();
-        ToState(Oasis);
+        InitSnowHeight();
+        ApplyImmediateSeasonState(seasonManager.initSeason);
     }
+
+    private void InitSnowHeight()
+    {
+        foreach (Renderer r in rendererList)
+        {
+            r.sharedMaterial.SetFloat(SnowHeightParam, minSnowHeight);
+        }
+    }
+
+    void HandleSeasonChange(SeasonManager.Season newSeason)
+    {
+        ApplyImmediateSeasonState(newSeason);
+
+        // Melt snow if the new season is not Winter
+        if (newSeason != SeasonManager.Season.Winter)
+        {
+            MeltSnow();
+        }
+    }
+
 
     private void Update()
     {
         if (seasonManager._currentSeason == SeasonManager.Season.Autumn)
         {
-            LerpAutumnColor(player.faith < player.maxStat / 2 ? 0f : 1f);
+            if (autumnLerpCoroutine == null)
+            {
+                autumnLerpCoroutine = StartCoroutine(LerpAutumnColor(player.faith < player.maxStat / 2 ? 0f : 1f));
+            }
         }
         else if (seasonManager._currentSeason == SeasonManager.Season.Winter)
         {
-            LerpSnowDensity(1f);
+            if (snowLerpCoroutine == null)
+            {
+                snowLerpCoroutine = StartCoroutine(LerpSnowDensity(1f));
+            }
         }
         else
         {
-            LerpAutumnColor(0f);
-            LerpSnowDensity(0f);
+            if (autumnLerpCoroutine == null)
+            {
+                autumnLerpCoroutine = StartCoroutine(LerpAutumnColor(0f));
+            }
+            if (snowLerpCoroutine == null)
+            {
+                snowLerpCoroutine = StartCoroutine(LerpSnowDensity(0f));
+            }
+        }
+
+        HandleSnowBehavior();
+    }
+
+    void ApplyImmediateSeasonState(SeasonManager.Season season)
+    {
+        if (vertexLerpCoroutine != null)
+        {
+            StopCoroutine(vertexLerpCoroutine);
+            vertexLerpCoroutine = null;
+        }
+
+        switch (season)
+        {
+            case SeasonManager.Season.Summer:
+                ToOasis();
+                break;
+            case SeasonManager.Season.Autumn:
+                ToOasis();
+                break;
+            case SeasonManager.Season.Winter:
+                ToWetOasis();
+                break;
+            case SeasonManager.Season.Spring:
+                ToOasis();
+                break;
+            default:
+                // Handle default case
+                break;
         }
     }
 
-    private void LerpAutumnColor(float targetValue)
+    public void ToDesert()
     {
-        float duration = targetValue == 0f ? killDuration : reviveDuration;
+        ChangeState(Desert);
+    }
 
+    public void ToOasis()
+    {
+        ChangeState(Oasis);
+    }
+
+    public void ToWetOasis()
+    {
+        ChangeState(Wet);
+    }
+
+    void ChangeState(float newState)
+    {
+        if (vertexLerpCoroutine != null)
+        {
+            StopCoroutine(vertexLerpCoroutine);
+        }
+        vertexLerpCoroutine = StartCoroutine(LerpVertexTile(newState, duration));
+    }
+
+    IEnumerator LerpVertexTile(float targetState, float duration)
+    {
+        float time = 0f;
+
+        while (time < 1f)
+        {
+            float lerpFactor = time / duration;
+            foreach (Renderer r in rendererList)
+            {
+                Vector4 currentState = r.sharedMaterial.GetVector(VertexTileParam);
+                currentState.y = Mathf.Lerp(currentState.y, targetState, lerpFactor);
+                r.sharedMaterial.SetVector(VertexTileParam, currentState);
+            }
+
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        vertexLerpCoroutine = null;
+    }
+
+    private IEnumerator LerpAutumnColor(float targetValue)
+    {
+        float lerpDuration = targetValue == 0f ? killDuration : reviveDuration;
+        // Ensure there are elements in the list before accessing
+        if (rendererList.Count > 0)
+        {
+            float currentAutumnColour = rendererList[0].sharedMaterial.GetFloat(AutumnColourParam);
+            float time = 0f;
+
+            while (time < 1f)
+            {
+                float lerpFactor = time / lerpDuration;
+                float newAutumnColour = Mathf.Lerp(currentAutumnColour, targetValue, lerpFactor);
+                foreach (Renderer r in rendererList)
+                {
+                    r.sharedMaterial.SetFloat(AutumnColourParam, newAutumnColour);
+                }
+
+                time += Time.deltaTime;
+                yield return null;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("rendererList is empty in LerpAutumnColor");
+        }
+
+        autumnLerpCoroutine = null;
+    }
+
+
+    private IEnumerator LerpSnowDensity(float targetValue)
+    {
+        float lerpDuration = targetValue == 0f ? killDuration : reviveDuration;
+
+        // Ensure there are elements in the list before accessing
+        if (rendererList.Count > 0)
+        {
+            float currentSnowDensity = rendererList[0].sharedMaterial.GetFloat(SnowDensityParam);
+            float time = 0f;
+
+            while (time < 1f)
+            {
+                float lerpFactor = time / lerpDuration;
+                float newSnowDensity = Mathf.Lerp(currentSnowDensity, targetValue, lerpFactor);
+                foreach (Renderer r in rendererList)
+                {
+                    r.sharedMaterial.SetFloat(SnowDensityParam, newSnowDensity);
+                }
+
+                time += Time.deltaTime;
+                yield return null;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("rendererList is empty in LerpSnowDensity");
+        }
+
+        snowLerpCoroutine = null;
+    }
+
+    private void HandleSnowBehavior()
+    {
+        if (seasonManager._currentSeason == SeasonManager.Season.Winter)
+        {
+            if (rainControl.isRaining && snowCoroutine == null)
+            {
+                // Start growing snow if it's winter and raining
+                GrowSnow();
+            }
+            else if (!rainControl.isRaining && snowCoroutine == null)
+            {
+                // Start a delayed snow melting coroutine after rain stops
+                StartCoroutine(DelayedSnowMelt());
+            }
+        }
+        else if (snowCoroutine == null)
+        {
+            // Melt snow if it's not winter
+            MeltSnow();
+        }
+    }
+
+    private IEnumerator DelayedSnowMelt()
+    {
+        yield return new WaitForSeconds(snowMeltDelay);
+        // Check again to ensure it's still not raining after the delay
+        if (!rainControl.isRaining)
+        {
+            MeltSnow();
+        }
+    }
+
+
+    private float GetCurrentSnowHeight()
+    {
+        // Assuming rendererList is not empty and all renderers have the same snow height
+        if (rendererList.Count > 0)
+        {
+            return rendererList[0].sharedMaterial.GetFloat(SnowHeightParam);
+        }
+        return 0f; // Default value if rendererList is empty
+    }
+
+    public void GrowSnow()
+    {
+        float currentSnowHeight = GetCurrentSnowHeight();
+        if (currentSnowHeight < maxSnowHeight)
+        {
+            StartSnowCoroutine(currentSnowHeight, maxSnowHeight, growSnowDuration);
+        }
+    }
+
+    public void MeltSnow()
+    {
+        float currentSnowHeight = GetCurrentSnowHeight();
+        if (currentSnowHeight > minSnowHeight)
+        {
+            StartSnowCoroutine(currentSnowHeight, minSnowHeight, meltSnowDuration);
+        }
+    }
+
+    private void StartSnowCoroutine(float startValue, float endValue, float duration)
+    {
+        if (snowCoroutine != null)
+        {
+            StopCoroutine(snowCoroutine);
+        }
+        snowCoroutine = StartCoroutine(LerpSnowHeight(startValue, endValue, duration));
+    }
+
+    private IEnumerator LerpSnowHeight(float startValue, float endValue, float duration)
+    {
+        float time = 0f;
+        while (time < duration)
+        {
+            float currentSnowHeight = Mathf.Lerp(startValue, endValue, time / duration);
+            SetSnowHeight(currentSnowHeight);
+
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the final value is set at the end of the duration
+        SetSnowHeight(endValue);
+        snowCoroutine = null;
+    }
+
+    private void SetSnowHeight(float height)
+    {
         foreach (Renderer r in rendererList)
         {
-            float currentAutumnColour = r.sharedMaterial.GetFloat(AutumnColourParam);
-            float newAutumnColour = Mathf.Lerp(currentAutumnColour, targetValue, Time.deltaTime / duration);
-            r.sharedMaterial.SetFloat(AutumnColourParam, newAutumnColour);
-        }
-    }
-
-    private void LerpSnowDensity(float targetValue)
-    {
-        float duration = targetValue == 0f ? killDuration : reviveDuration;
-
-        foreach (Renderer r in rendererList)
-        {
-            float currentSnowDensity = r.sharedMaterial.GetFloat(SnowDensityParam);
-            float newSnowDensity = Mathf.Lerp(currentSnowDensity, targetValue, Time.deltaTime / duration);
-            r.sharedMaterial.SetFloat(SnowDensityParam, newSnowDensity);
+            r.sharedMaterial.SetFloat(SnowHeightParam, height);
         }
     }
 
 
 
-    void HandleSeasonChange(SeasonManager.Season newSeason)
-    {
-        if (isSeasonOverride)
-        {
-            isSeasonOverride = false;
-        }
-    }
+
 
     void OnDestroy()
     {
         seasonManager.OnSeasonChanged.RemoveListener(HandleSeasonChange);
     }
 
-    IEnumerator SetTerrainState(float newState)
-    {
-        foreach (Renderer r in rendererList)
-        {
-            newState = r.sharedMaterial.GetVector(VertexTileParam).y;
-            r.sharedMaterial.SetVector(VertexTileParam, new Vector4(0, newState, 0, 0));
-            yield return null;
-        }
-    }
-
     void GetRenderers()
     {
         Renderer[] objectRenderers = transform.GetComponentsInChildren<Renderer>();
         rendererList = objectRenderers.ToList();
-    }
-
-    public IEnumerator ToOasis()
-    {
-        ToState(Oasis);
-        yield break;
-    }
-
-    public IEnumerator ToWetOasis()
-    {
-        ToState(Wet);
-        yield break;
-    }
-
-    public IEnumerator ToDesert()
-    {
-        if (seasonManager._currentSeason == SeasonManager.Season.Summer)
-        {
-            ToState(Desert);
-            yield break;
-        }
-    }
-
-    void ToState(float newState)
-    {
-        StopAllCoroutines();
-
-        if (newState != currentState)
-        {
-            currentState = newState;
-            StartCoroutine(LerpVertexTile(newState, duration));
-            return;
-        }
-    }
-
-    private bool isVertexLerping;
-    private bool isSeasonOverride;
-
-    float state;
-
-    private IEnumerator LerpVertexTile(float targetState, float duration)
-    {
-        float time = 0f;
-
-        while (time <= 1f)
-        {
-            isVertexLerping = true;
-
-            if (isVertexLerping == false)
-            {
-                yield break;
-            }
-
-            foreach (Renderer r in rendererList)
-            {
-                state = r.sharedMaterial.GetVector(VertexTileParam).y;
-                float stateval = state;
-                state = Mathf.Lerp(stateval, targetState, time);
-                r.sharedMaterial.SetVector(VertexTileParam, new Vector4(0, state, 0, 0));
-                time += Time.deltaTime / duration;
-                yield return null;
-            }
-
-            yield return null;
-        }
-
-        if (time >= 1f)
-        {
-            isVertexLerping = false;
-            yield break;
-        }
     }
 }

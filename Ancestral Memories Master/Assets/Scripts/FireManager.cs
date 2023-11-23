@@ -138,6 +138,12 @@ public class FireManager : MonoBehaviour
 
     public IEnumerator StartFireOnObject(GameObject target)
     {
+        if (coolDownDictionary.TryGetValue(target, out bool isCoolingDown) && isCoolingDown)
+        {
+            Debug.Log($"Object {target.name} is cooling down and cannot catch fire.");
+            yield break;
+        }
+
         ObjectOnFire(target, true);
 
         if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
@@ -147,6 +153,7 @@ public class FireManager : MonoBehaviour
                 yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
 
                 GameObject fireInstance = GetFireFromPool();
+
                 if (fireInstance == null)
                 {
                     Debug.LogWarning("Fire instance could not be created due to empty pool.");
@@ -158,11 +165,65 @@ public class FireManager : MonoBehaviour
 
                 StartCoroutine(ControlFire(fireInstance, target));
             }
+
+            StartCoroutine(CoolDown(target));
         }
         else
         {
             Debug.LogWarning($"No fire points found for object: {target.name}");
         }
+    }
+
+    [SerializeField] private float coolDownTime = 15f;
+    private Dictionary<GameObject, bool> coolDownDictionary = new Dictionary<GameObject, bool>();
+
+    public IEnumerator CoolDown(GameObject target)
+    {
+        // Add target to cooldown dictionary
+        coolDownDictionary[target] = true;
+
+        // Wait for the cooldown time
+        yield return new WaitForSeconds(coolDownTime);
+
+        // After cooldown, allow target to catch fire again
+        coolDownDictionary[target] = false;
+    }
+
+    public void StopFireOnObject(GameObject target)
+    {
+
+        if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
+        {
+            foreach (GameObject firePoint in firePoints)
+            {
+                // Check if the firePoint has an active fire instance as a child
+                if (firePoint.transform.childCount > 0)
+                {
+                    GameObject fireInstance = firePoint.transform.GetChild(0).gameObject;
+                    StopAndReturnFire(fireInstance);
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"No fire points found for object: {target.name}");
+        }
+
+        // Mark the object as not on fire
+        ObjectOnFire(target, false);
+    }
+
+    private void StopAndReturnFire(GameObject fireInstance)
+    {
+        // If the fire instance has a particle system, stop it
+        ParticleSystem fireParticles = fireInstance.GetComponent<ParticleSystem>();
+        if (fireParticles)
+        {
+            fireParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+
+        // Return the fire instance to the pool
+        ReturnFireToPool(fireInstance);
     }
 
 
@@ -253,6 +314,11 @@ public class FireManager : MonoBehaviour
         fireInstance.transform.position = position;
 
         StartCoroutine(ControlFire(fireInstance, null));
+    }
+
+    private void FireCooldown()
+    {
+
     }
 
     private void CheckForFlammableObjects(GameObject fireInstance)

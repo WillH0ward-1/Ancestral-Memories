@@ -233,7 +233,7 @@ public class AnimalAI : MonoBehaviour
 
     private void ChangeState(AIState newState)
     {
-        if (!isDead)
+        if (!stats.isDead)
         {
             StopAllCoroutines();
             behaviourIsActive = false;
@@ -290,11 +290,9 @@ public class AnimalAI : MonoBehaviour
         Debug.Log(currentAIState);
     }
 
-    public bool isDead = false;
-
     public IEnumerator Die()
     {
-        isDead = true; // Set flag at start
+        stats.isDead = true; // Set flag at start
 
         StopAllCoroutines();
         behaviourIsActive = false;
