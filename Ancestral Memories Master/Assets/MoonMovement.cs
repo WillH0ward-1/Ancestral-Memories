@@ -6,8 +6,6 @@ public class MoonMovement : MonoBehaviour
     public Transform pivot;
     public float distance = 10.0f;
     public TimeCycleManager timeCycleManager;
-    [Range(0.1f, 2f)]
-    public float timeScale = 1f;
 
     void OnEnable()
     {
@@ -32,13 +30,9 @@ public class MoonMovement : MonoBehaviour
     {
         if (timeCycleManager == null) return;
 
-        float scaledTimeOfDay = (timeCycleManager.TimeOfDay * timeScale) % 24f;
-        float angle = 360 - (scaledTimeOfDay / 24f * 360f); // moon matches the current time
-
-        if (angle < 0f)
-        {
-            angle += 360f;
-        }
+        // Original angle calculation for the moon
+        float angle = 360 - (timeCycleManager.TimeOfDay / 24f * 360f);
+        angle %= 360f; // Ensure the angle stays within 0-360 degrees range
 
         float radian = angle * Mathf.Deg2Rad;
 

@@ -18,64 +18,128 @@ public class RadialMenu : MonoBehaviour
 
     public List<RadialButton> buttons;
 
-    public GameObject hitObject;
+    public GameObject lastHit;
     public RaycastHit rayHit;
 
     public AreaManager areaManager;
 
     [SerializeField] private TextMeshProUGUI tmp;
 
+    [SerializeField] private float hoverAmplitude = 5.0f;
+    [SerializeField] private float hoverFrequency = 1.0f;
+
+    [SerializeField] private float popDuration = 0.25f; // Duration of the pop effect
+    [SerializeField] private AnimationCurve popCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // Customize this curve in the inspector
+
     private void Awake()
     {
         selectionText = "";
+        tmp = transform.GetComponentInChildren<TextMeshProUGUI>();
     }
-
     public void SpawnButtons(Interactable obj, GameObject lastHit, RaycastHit hit)
     {
-        hitObject = lastHit;
+        this.lastHit = lastHit;
         rayHit = hit;
 
-        tmp = transform.GetComponentInChildren<TextMeshProUGUI>();
-        StartCoroutine(AnimateButtons(obj));
+        StartCoroutine(SpawnAndAnimateButtons(obj)); // This coroutine will handle button creation and animations
     }
 
-    private IEnumerator AnimateButtons(Interactable obj)
+    private IEnumerator SpawnAndAnimateButtons(Interactable obj)
     {
         for (int i = 0; i < obj.options.Length; i++)
         {
             RadialButton newButton = Instantiate(buttonPrefab);
-            newButton.transform.SetParent(transform, false); 
+            newButton.transform.SetParent(transform, false);
 
             float theta = (2 * Mathf.PI / obj.options.Length) * i;
             float xPos = Mathf.Sin(theta);
             float yPos = Mathf.Cos(theta);
 
-            newButton.transform.localPosition = new Vector3(xPos, yPos, 0f) * 100f;
-
-            //newButton.transform.localPosition = new Vector3(0f, 100f, 0f);
-
-            // colour = newButton.circle.color;
-            //Color colourIndex = obj.options[i].color;
-            // colour = colourIndex;
-            //colour.a = colourIndex.a;
-
+            newButton.transform.localPosition = new Vector3(xPos, yPos, 0f) * 150f;
+            newButton.transform.localScale = Vector3.zero;
             newButton.circle.color = obj.options[i].color;
             newButton.icon.sprite = obj.options[i].sprite;
             newButton.title = obj.options[i].title;
             newButton.myMenu = this;
 
             buttons.Add(newButton);
-            yield return new WaitForSeconds(Random.Range(0.01f, 0.02f));
-            
+
+            float hoverOffset = Random.Range(0f, 2f * Mathf.PI);
+            StartCoroutine(HoverButton(newButton, hoverOffset));
+            //StartCoroutine(PulseButton(newButton));
+
+            if (i == 0)
+            {
+                StartCoroutine(PopButton(newButton));
+            }
+            else
+            {
+                float delay = Random.Range(0.25f, 0.5f);
+                yield return new WaitForSeconds(delay);
+                StartCoroutine(PopButton(newButton));
+            }
         }
     }
 
-    [SerializeField] private float buttonRevealSpeed;
-    [SerializeField] Vector3 targetButtonSize = new(1, 1, 1);
-
-    public void Animate(RadialButton newButton)
+    private IEnumerator PulseButton(RadialButton button)
     {
-        StartCoroutine(newButton.AnimateButtonIn(buttonRevealSpeed, targetButtonSize));
+        while (true)
+        {
+            float pulseScale = 1 + Random.Range(-0.05f, 0.05f); // Random factor within a small range
+            float pulseDuration = Random.Range(0.5f, 1.5f); // Random duration for the pulse
+            Vector3 originalScale = button.transform.localScale;
+            Vector3 targetScale = originalScale * pulseScale;
+
+            float time = 0;
+            while (time < pulseDuration)
+            {
+                time += Time.deltaTime;
+                button.transform.localScale = Vector3.Lerp(originalScale, targetScale, time / pulseDuration);
+                yield return null;
+            }
+
+            // Reverse the pulsing
+            time = 0;
+            while (time < pulseDuration)
+            {
+                time += Time.deltaTime;
+                button.transform.localScale = Vector3.Lerp(targetScale, originalScale, time / pulseDuration);
+                yield return null;
+            }
+
+            yield return null;
+        }
+    }
+
+
+
+
+    private IEnumerator PopButton(RadialButton button)
+    {
+        float time = 0;
+
+        while (time < popDuration)
+        {
+            time += Time.deltaTime;
+            float scale = popCurve.Evaluate(time / popDuration);
+            button.transform.localScale = new Vector3(scale, scale, scale);
+
+            yield return null;
+        }
+
+        button.transform.localScale = Vector3.one; // Ensure it ends at the correct scale
+    }
+
+
+    private IEnumerator HoverButton(RadialButton button, float offset)
+    {
+        Vector3 originalPosition = button.transform.localPosition;
+        while (true) // loop indefinitely
+        {
+            float y = hoverAmplitude * Mathf.Sin(hoverFrequency * Time.time + offset);
+            button.transform.localPosition = originalPosition + new Vector3(0, y, 0);
+            yield return null;
+        }
     }
 
     public bool walkingToward = false;
@@ -86,45 +150,47 @@ public class RadialMenu : MonoBehaviour
 
         if (Input.GetMouseButtonUp(1) && !behaviours.behaviourIsActive)
         {
+            CleanUpButtons(); // Clean up buttons when mouse is released
+
             if (selected)
             {
-
                 Debug.Log("Selected " + selected.title + " !");
-
-                HideButtons();
 
                 if (selected.title == "Enter")
                 {
                     if (!behaviours.psychModeIncoming)
                     {
-                        Debug.Log("Entering Portal! Hitobject = " + hitObject + ".");
-
-                        //StartCoroutine(PortalDestroyBuffer());
-                        Debug.Log(hitObject);
-                        areaManager.StartCoroutine(areaManager.EnterPortal(hitObject));
+                        Debug.Log("Entering Portal! Hitobject = " + lastHit + ".");
+                        areaManager.StartCoroutine(areaManager.EnterPortal(lastHit));
                     }
-
                 }
                 else
                 {
                     Debug.Log("Walking Toward.");
-                    //StartCoroutine(DestroyBuffer());
-                    behaviours.WalkToward(hitObject, selected.title, rayHit);
-
+                    behaviours.WalkToward(lastHit, selected.title, rayHit);
                 }
-                
             }
-
-            else if (!selected)
+            else
             {
                 Debug.Log("Not Selected!");
-
-                Destroy(gameObject);
-                return;
             }
-            
         }
     }
+
+    private void CleanUpButtons()
+    {
+        foreach (RadialButton button in buttons)
+        {
+            if (button != null)
+            {
+                Destroy(button.gameObject); // Optionally, you can choose to hide them instead
+            }
+        }
+        buttons.Clear(); // Clear the list of buttons
+
+        Destroy(gameObject);
+    }
+
 
     private void DestroyMenu()
     {
@@ -135,12 +201,12 @@ public class RadialMenu : MonoBehaviour
     {
         foreach (RadialButton button in buttons)
         {
-            //button.gameObject.SetActive(false);
-            button.icon.enabled = false;
-           
-            Image image = button.GetComponent<Image>();
-            image.enabled = false;
-            
+            if (button != null)
+            {
+                button.icon.enabled = false;
+                Image image = button.GetComponent<Image>();
+                image.enabled = false;
+            }
         }
     }
 

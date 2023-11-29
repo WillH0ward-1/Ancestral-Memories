@@ -14,7 +14,7 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander }
+    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander, RunningPanic }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -232,15 +232,20 @@ public class HumanAI : MonoBehaviour
             yield return null;
         }
 
-        ChangeState(AIState.Idle);
+        if (!stats.isTerrified)
+        {
+            ChangeState(AIState.Idle);
+        } else
+        {
+            ChangeState(AIState.RunningPanic);
+        }
+
         yield break;
 
     }
 
     private void KillToRagdoll()
     {
-
-        RemoveFromPopulation();
         ragdollController.TriggerRagdoll();
     }
 
@@ -368,6 +373,17 @@ public class HumanAI : MonoBehaviour
         }
     }
 
+    private bool CheckIsConcious()
+    {
+        if (stats.isDead && stats.isKnockedOut)
+        {
+            return false;
+        } else
+        {
+            return true;
+        }
+    }
+
     private IEnumerator Wander()
     {
         
@@ -379,7 +395,7 @@ public class HumanAI : MonoBehaviour
         // Attempt to find a valid wander point.
         while (!newWanderPoint.HasValue)
         {
-            newWanderPoint = FindRandomPointWithinRadius(idleWalkRadius, minWalkDistance, maxWalkDistance);
+            newWanderPoint = FindRandomPointWithinRadius(idleWalkRadius);
 
             // Optional: A small delay to prevent the loop from running too fast
             // and overwhelming the processor in case valid points are rare.
@@ -439,32 +455,39 @@ public class HumanAI : MonoBehaviour
     }
 
 
-    private Vector3? FindRandomPointWithinRadius(float radius, float minDistance, float maxDistance)
+    private Vector3? FindRandomPointWithinRadius(float radius)
     {
-        Vector2 randomDirection2D = UnityEngine.Random.insideUnitCircle * radius;
-        Vector3 randomPoint = new Vector3(randomDirection2D.x, 0, randomDirection2D.y) + transform.position;
-        Debug.DrawLine(transform.position, randomPoint, Color.red, 5f); // For visualization
-
-        Vector3 elevatedPosition = new Vector3(randomPoint.x, 50f, randomPoint.z);
-        Debug.DrawRay(elevatedPosition, Vector3.down * 100f, Color.blue, 5f); // For visualization
-
-        RaycastHit hit;
-
-        int layerMask = LayerMask.GetMask("Ground", "Water");
-
-        if (Physics.Raycast(elevatedPosition, Vector3.down, out hit, Mathf.Infinity, layerMask))
+        int maxAttempts = 50; // Limit the number of attempts to prevent an infinite loop
+        for (int i = 0; i < maxAttempts; i++)
         {
-            float distanceToFinalPosition = Vector3.Distance(transform.position, hit.point);
-            Debug.Log("Distance to Point: " + distanceToFinalPosition); // Log the distance
+            float minDistance = radius / 2;
+            float maxDistance = radius * 2;
 
-            if (distanceToFinalPosition >= minDistance && distanceToFinalPosition <= maxDistance)
+            Vector2 randomDirection2D = UnityEngine.Random.insideUnitCircle * radius;
+            Vector3 randomPoint = new Vector3(randomDirection2D.x, 0, randomDirection2D.y) + transform.position;
+            Debug.DrawLine(transform.position, randomPoint, Color.red, 5f); // For visualization
+
+            Vector3 elevatedPosition = new Vector3(randomPoint.x, 50f, randomPoint.z);
+            Debug.DrawRay(elevatedPosition, Vector3.down * 100f, Color.blue, 5f); // For visualization
+
+            RaycastHit hit;
+            int layerMask = LayerMask.GetMask("Ground", "Water");
+
+            if (Physics.Raycast(elevatedPosition, Vector3.down, out hit, Mathf.Infinity, layerMask))
             {
-                return hit.point;
+                float distanceToFinalPosition = Vector3.Distance(transform.position, hit.point);
+
+                if (distanceToFinalPosition >= minDistance && distanceToFinalPosition <= maxDistance)
+                {
+                    return hit.point;
+                }
             }
         }
 
-        return null;
+        return null; // Return null if a valid point is not found within the maximum attempts
     }
+
+
 
 
 
@@ -656,12 +679,59 @@ public class HumanAI : MonoBehaviour
                     target = animal.transform;
                     StartCoroutine(WalkTowards(animal, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Attack], attackStoppingDistance));
                     break;
+                case AIState.RunningPanic:
+                    StartCoroutine(PanicRunning());
+                    break;
                 default:
                     break;
             }
 
 //            Debug.Log(currentAIState);
         }
+    }
+
+    public float minDirectionChangeInterval = 1f;
+    public float maxDirectionChangeInterval = 10f;
+    public float panicRadius = 25f;
+
+    public IEnumerator StopPanic()
+    {
+        stats.isTerrified = false;
+
+        yield break;
+    }
+
+    public IEnumerator PanicRunning()
+    {
+        if (CheckIsConcious())
+        {
+            behaviourIsActive = true;
+            stats.isTerrified = true;
+
+            aiPath.maxSpeed = runningSpeed;
+            aiPath.isStopped = false;
+            ChangeAnimationState("Run_Scared_Terrified"); // Placeholder for panic animation
+
+            float nextDirectionChangeTime = 0;
+
+            while (stats.isTerrified && CheckIsConcious())
+            {
+                if (Time.time >= nextDirectionChangeTime)
+                {
+                    nextDirectionChangeTime = Time.time + UnityEngine.Random.Range(minDirectionChangeInterval, maxDirectionChangeInterval);
+                    aiPath.destination = (Vector3)FindRandomPointWithinRadius(panicRadius);
+                }
+
+                yield return null;
+            }
+
+            if (CheckIsConcious())
+            {
+                ChangeState(AIState.Idle); // Placeholder for returning to idle state
+            }
+        }
+
+        yield break;
     }
 
     private GameObject GetClosest(List<GameObject> objects, AIBehaviours.ValidateObject validate)
@@ -713,8 +783,6 @@ public class HumanAI : MonoBehaviour
         Debug.Log("Walking towards: " + target + "!");
 
         aiPath.endReachedDistance = stoppingDistance;
-
-
         aiPath.canMove = true;
 
         Vector3 destination = target.transform.position;

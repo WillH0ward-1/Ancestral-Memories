@@ -14,7 +14,7 @@ public class TimeCycleManager : MonoBehaviour
         public Color lightColor;
     }
 
-    [SerializeField] private Light DirectionalLight;
+    [SerializeField] public Light DirectionalLight;
     public TimeColor[] timeColors;
     [SerializeField, Range(0, 24)] private float _timeOfDay;
     public float timeMultiplier = 0.25f;
@@ -25,10 +25,14 @@ public class TimeCycleManager : MonoBehaviour
 
     [SerializeField, Range(0, 365)] private int _dayOfYear; // Current day of the year
     public int daysPerSeason = 90;
-    [SerializeField] private SeasonManager seasonManager;
+    public SeasonManager seasonManager;
 
      public float defaultTimeMultiplier = 0.25f;
     [SerializeField] private float editorTimeMultiplier = 0.8f;
+
+    public float minSunIntensity = 1;
+    public float maximumSunIntensity = 1;
+    public float sunIntensity;
 
     public int DayOfYear
     {
@@ -79,27 +83,6 @@ public class TimeCycleManager : MonoBehaviour
     private int GetNumberOfSeasons()
     {
         return System.Enum.GetValues(typeof(SeasonManager.Season)).Length;
-    }
-
-    private void Awake()
-    {
-        seasonManager = GetComponent<SeasonManager>();
-
-        seasonManager.InitTime();
-
-        timeMultiplier = defaultTimeMultiplier;
-        Renderer renderer = skyBox.GetComponentInChildren<Renderer>();
-        if (renderer != null)
-        {
-            material = renderer.sharedMaterial;
-        }
-        else
-        {
-            Debug.LogError("No Renderer found on this GameObject or its children.");
-        }
-
-        lastRealTime = Time.realtimeSinceStartup;
-        _dayOfYear = Mathf.RoundToInt(TimeOfDay / 24f * seasonManager.GetTotalDaysInYear());
     }
 
     public event Action OnNewYear;
@@ -222,7 +205,24 @@ public class TimeCycleManager : MonoBehaviour
     // Try to find a directional light to use if we haven't set one
     private void OnEnable()
     {
-        seasonManager = transform.GetComponent<SeasonManager>();
+
+        seasonManager = GetComponent<SeasonManager>();
+
+        seasonManager.InitTime();
+
+        timeMultiplier = defaultTimeMultiplier;
+        Renderer renderer = skyBox.GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            material = renderer.sharedMaterial;
+        }
+        else
+        {
+            Debug.LogError("No Renderer found on this GameObject or its children.");
+        }
+
+        lastRealTime = Time.realtimeSinceStartup;
+        _dayOfYear = Mathf.RoundToInt(TimeOfDay / 24f * seasonManager.GetTotalDaysInYear());
 
         if (Application.isEditor)
         {

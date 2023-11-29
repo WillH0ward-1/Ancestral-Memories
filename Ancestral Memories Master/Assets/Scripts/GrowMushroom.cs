@@ -19,20 +19,18 @@ public class MushroomGrowth : MonoBehaviour
     private EventInstance growthInstance;
     */
 
-    private MapObjGen mapObjGen;
+    public MapObjGen mapObjGen;
     private ScaleControl scaleControl;
-    private SeasonManager seasonManager;
+    public SeasonManager seasonManager;
 
     public bool growMushrooms = true;
 
     public Player player;
     private GameObject mushroom;
 
+
     private void Awake()
     {
-        player = FindObjectOfType<Player>();
-        seasonManager = FindObjectOfType<SeasonManager>();
-        mapObjGen = FindObjectOfType<MapObjGen>();
         mushroom = transform.gameObject;
     }
 

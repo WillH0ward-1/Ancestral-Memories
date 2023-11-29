@@ -1,26 +1,32 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AICharacterStats : MonoBehaviour
 {
     // Define the base stats
+
+    public string npcName;
+    public int age = 0;
+
+    public bool isDead = false;
+
     public float minStat = 0f;
     public float maxStat = 1f;
+
+    public bool isDiseased = false;
+    public bool isBlessed = false;
+    public bool isStarving = false;
+    public bool isTerrified = false;
+    public bool isKnockedOut = false;
 
     public float health = 1f;
     public float hunger = 1f;
     public float faith = 1f;
     public float psych = 1f;
     public float evolution = 1f;
-    public int age = 0;
-
-    public bool isDiseased = false;
-    public bool isBlessed = false;
-    public bool isStarving = false;
-
-    public bool isDead = false;
 
     public float healthFactor = 0.00000001f;
     public float faithFactor = 0.00000001f;
@@ -41,6 +47,7 @@ public class AICharacterStats : MonoBehaviour
     public float minBlessedDuration = 30f;
     public float maxBlessedDuration = 60f;
 
+
     public float HealthFraction => (health - minStat) / (maxStat - minStat);
     public float HungerFraction => (hunger - minStat) / (maxStat - minStat);
     public float FaithFraction => (faith - minStat) / (maxStat - minStat);
@@ -56,6 +63,20 @@ public class AICharacterStats : MonoBehaviour
     private DamageEffects damageEffects;
 
     public TimeCycleManager time;
+
+    public enum RelationshipType { Friend, Stranger, Enemy }
+
+    [Serializable]
+    public struct Relationship
+    {
+        public GameObject npc;
+        public RelationshipType type;
+    }
+
+    public List<Relationship> relationships = new List<Relationship>();
+
+    public MapObjGen mapObjGen;
+
 
     public virtual void OnAwake()
     {
@@ -80,6 +101,95 @@ public class AICharacterStats : MonoBehaviour
         calculatedLifespan = CalculateLifespan();
     }
 
+    public IEnumerator InitAllRelationships(List<GameObject> npcList)
+    {
+        foreach (GameObject g in npcList)
+        {
+            AICharacterStats stats = g.GetComponentInChildren<AICharacterStats>();
+
+            // Clear existing relationships
+            stats.relationships.Clear();
+
+            // Add relationships
+            foreach (GameObject other in npcList)
+            {
+                if (other != g) // Don't add self
+                {
+                    Relationship relationship = new Relationship
+                    {
+                        npc = other,
+                        type = RelationshipType.Stranger // default to Stranger
+                    };
+                    stats.relationships.Add(relationship);
+                }
+            }
+        }
+
+        yield break;
+    }
+
+    public void GiveName()
+    {
+        if (NameDictionary.Instance != null)
+        {
+            npcName = NameDictionary.Instance.GetRandomMaleName();
+        }
+        else
+        {
+            Debug.LogError("NameDictionary instance is not found.");
+        }
+    }
+
+    public void UpdateRelationshipStatus(GameObject npc, RelationshipType newRelation)
+    {
+        // Update this NPC's relationship status towards the other NPC
+        for (int i = 0; i < relationships.Count; i++)
+        {
+            if (relationships[i].npc == npc)
+            {
+                // Check if the relationship is already in the desired state
+                if (relationships[i].type == newRelation)
+                {
+                    // Relationship is already in the desired state, no need to update
+                    return;
+                }
+
+                relationships[i] = new Relationship
+                {
+                    npc = npc,
+                    type = newRelation
+                };
+                break;
+            }
+        }
+
+        // Update the other NPC's relationship status towards this NPC
+        AICharacterStats otherStats = npc.GetComponentInChildren<AICharacterStats>();
+        if (otherStats != null)
+        {
+            for (int i = 0; i < otherStats.relationships.Count; i++)
+            {
+                if (otherStats.relationships[i].npc == gameObject)
+                {
+                    // Check if the relationship is already in the desired state
+                    if (otherStats.relationships[i].type == newRelation)
+                    {
+                        // Relationship is already in the desired state, no need to update
+                        return;
+                    }
+
+                    otherStats.relationships[i] = new Relationship
+                    {
+                        npc = gameObject,
+                        type = newRelation
+                    };
+                    break;
+                }
+            }
+        }
+    }
+
+
     private bool subscribed = false;
 
     public void SubscribeToBirthday()
@@ -99,6 +209,7 @@ public class AICharacterStats : MonoBehaviour
     void Start()
     {
         StartCoroutine(StartLifespanCheckWhenReady());
+        GiveName();
     }
 
     private IEnumerator StartLifespanCheckWhenReady()

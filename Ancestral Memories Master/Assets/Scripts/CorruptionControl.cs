@@ -15,13 +15,7 @@ public class CorruptionControl : MonoBehaviour
 
     [SerializeField] List<Transform> transformList = new List<Transform>();
 
-    private void Awake()
-    {
-        player = FindObjectOfType<Player>();
-        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
-    }
-
-    void Start()
+    public void InitCorruption()
     {
 
         //CorruptionModifierActive = false;
@@ -52,12 +46,14 @@ public class CorruptionControl : MonoBehaviour
 
         }
 
+        SubscribeToCorruption();
+
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
 
-    private void OnEnable()
+    private void SubscribeToCorruption()
     {
-        if (CorruptionModifierActive)
+        if (CorruptionModifierActive && player != null)
         {
             player.OnFaithChanged += CorruptionModifier;
         }
@@ -66,7 +62,7 @@ public class CorruptionControl : MonoBehaviour
 
     private void OnDisable()
     {
-        if (CorruptionModifierActive)
+        if (CorruptionModifierActive && player != null)
         {
             player.OnFaithChanged -= CorruptionModifier;
         }

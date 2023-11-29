@@ -142,11 +142,14 @@ public class RagdollController : MonoBehaviour
 
     public void TriggerRagdoll()
     {
+        humanAI.RemoveFromPopulation();
+
         EnableRagdoll();
     }
 
     public void EnableRagdoll()
     {
+        stats.isKnockedOut = true;
 
         humanAI.StartCoroutine(humanAI.StopAllBehaviours());
 
@@ -176,8 +179,6 @@ public class RagdollController : MonoBehaviour
 
     }
 
-    public bool KnockedOut = false;
-
     public float KOtimer= 10f;
     public float minKOtime = 5f;
     public float maxKOtime = 10f;
@@ -198,7 +199,6 @@ public class RagdollController : MonoBehaviour
         }
         */
 
-        KnockedOut = true;
         KOtimer = Random.Range(minKOtime, maxKOtime) * 10;
 
         Debug.Log("Knocked Out!");
@@ -210,17 +210,17 @@ public class RagdollController : MonoBehaviour
             yield return null;
         }
 
-        if (KnockedOut || isRagdollActive)
+        if (stats.isKnockedOut || isRagdollActive)
         {
             DisableRagdoll();
         } else if (stats.isDead)
         {
-            KnockedOut = false;
+            stats.isKnockedOut = false;
 
             yield break;
         }
 
-        KnockedOut = false;
+        stats.isKnockedOut = false;
 
         yield return null;
     }
@@ -272,6 +272,8 @@ public class RagdollController : MonoBehaviour
         {
             humanAI.StartCoroutine(humanAI.GetUp(false));
         }
+
+        humanAI.AddToPopulation();
 
         isRagdollActive = false;
     }

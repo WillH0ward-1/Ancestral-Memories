@@ -18,11 +18,10 @@ public class FormationController : MonoBehaviour
     }
 
     private List<Group> groups = new List<Group>();
-    private MapObjGen mapObjGen;
+    public MapObjGen mapObjGen;
 
-    private void Start()
+    public void InitFormationAgents()
     {
-        mapObjGen = FindObjectOfType<MapObjGen>();
         GetAgents();
     }
 

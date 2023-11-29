@@ -13,7 +13,7 @@ public class AudioSFXManager : MonoBehaviour
     private AreaManager areaManager;
     [SerializeField] private PlayerWalk playerWalk;
 
-    private Player player;
+    public Player player;
 
     /*
     public EventReference WalkEventPath;
@@ -46,7 +46,6 @@ public class AudioSFXManager : MonoBehaviour
     private void Awake()
     {
         rigidBody = transform.parent.GetComponent<Rigidbody>();
-        player = transform.parent.GetComponent<Player>();
         cam = Camera.main;
     }
 

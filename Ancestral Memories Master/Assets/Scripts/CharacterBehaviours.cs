@@ -50,17 +50,21 @@ public class CharacterBehaviours : MonoBehaviour
 
     public MapObjGen mapObjGen;
 
+    private Animator animator;
+
     //EVENT_CALLBACK callbackDelegate;
 
     void Start()
     {
         // callbackDelegate = new EVENT_CALLBACK(ProgrammerCallBack.ProgrammerInstCallback);
-        player = FindObjectOfType<Player>();
-        waterCheck = player.GetComponent<CheckIfUnderwater>();
-        pulseControl = player.GetComponentInChildren<PulseEffectControl>();
-        playerAudioSFX = player.GetComponentInChildren<AudioSFXManager>();
+        player = GetComponentInChildren<Player>();
+        waterCheck = GetComponentInChildren<CheckIfUnderwater>();
+        pulseControl = GetComponentInChildren<PulseEffectControl>();
+        playerAudioSFX = GetComponentInChildren<AudioSFXManager>();
         vomit.Stop();
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
+        pickUpManager = player.GetComponentInChildren<PickUpObject>();
+        animator = GetComponentInChildren<Animator>();
 
         //animSpeed = player.activeAnimator.speed;
     }
@@ -94,7 +98,7 @@ public class CharacterBehaviours : MonoBehaviour
                 StartCoroutine(Reflect());
                 break;
             case "Dance":
-                StartCoroutine(Dance(GetRandomAnimation(danceAnimClips)));
+                StartCoroutine(Dance());
                 break;
             case "HarvestTree":
                 StartCoroutine(HarvestTree(hitObject));
@@ -183,9 +187,9 @@ public class CharacterBehaviours : MonoBehaviour
         playerWalk.StopAgentOverride();
         player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallForwards01);
 
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
 
-        float timeOnFloor = Random.Range(GetAnimLength(), GetAnimLength() + Random.Range(0, 2));
+        float timeOnFloor = Random.Range(AnimationUtilities.GetAnimLength(animator), AnimationUtilities.GetAnimLength(animator) + Random.Range(0, 2));
         yield return new WaitForSeconds(timeOnFloor);
 
         // Start pulling the player underground
@@ -216,72 +220,76 @@ public class CharacterBehaviours : MonoBehaviour
 
         // Start the revive process
         StartCoroutine(Revive());
+
+        yield break;
     }
 
     private IEnumerator Revive()
     {
+        behaviourIsActive = true;
+
         player.ReinitializeAll();
 
         if (mapObjGen.spawnPointsList.Count > 0)
         {
             int randomIndex = Random.Range(0, mapObjGen.spawnPointsList.Count);
             Vector3 spawnPointPosition = mapObjGen.spawnPointsList[randomIndex].transform.position;
-            Vector3 undergroundPosition = new Vector3(spawnPointPosition.x, spawnPointPosition.y - 10f, spawnPointPosition.z); // 10 units below ground
 
-            // Set player's position underground
+            // Get the collider bounds and calculate the bottom point
+            Collider playerCollider = player.GetComponentInChildren<CapsuleCollider>();
+            Vector3 colliderBottom = playerCollider.bounds.min;
+
+            Vector3 undergroundPosition = new Vector3(spawnPointPosition.x, spawnPointPosition.y - 20f, spawnPointPosition.z);
             player.transform.position = undergroundPosition;
 
             player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
 
-            float animLength = GetAnimLength();
+            float animLength = AnimationUtilities.GetAnimLength(animator);
             float time = 0f;
-            RaycastHit hit;
-            float groundYPosition = spawnPointPosition.y;
-
-            // Find ground level by raycasting downwards
-            if (Physics.Raycast(spawnPointPosition, Vector3.down, out hit))
-            {
-                groundYPosition = hit.point.y;
-            }
 
             while (time < animLength)
             {
                 time += Time.deltaTime;
                 float lerpFactor = time / animLength;
-                Vector3 interpolatedPosition = Vector3.Lerp(undergroundPosition, spawnPointPosition, lerpFactor);
 
-                // Check if player is above ground level
-                if (interpolatedPosition.y >= groundYPosition)
+                // Perform a raycast downwards from the bottom of the player's collider
+                RaycastHit hit;
+                if (Physics.Raycast(colliderBottom, Vector3.down, out hit))
                 {
-                    interpolatedPosition.y = groundYPosition;
-                    player.transform.position = interpolatedPosition;
-                    break;
+                    spawnPointPosition.y = hit.point.y; // Update the y-position target based on the raycast
                 }
 
-                player.transform.position = interpolatedPosition;
+                // Interpolate only the y-position
+                Vector3 currentPosition = player.transform.position;
+                currentPosition.y = Mathf.Lerp(undergroundPosition.y, spawnPointPosition.y, lerpFactor);
+                player.transform.position = currentPosition;
+
+                // Update the bottom point of the collider for the next iteration
+                colliderBottom = playerCollider.bounds.min;
+
                 yield return null;
             }
+
+            // Ensure the player is positioned exactly at the ground level after interpolation
+            Vector3 finalPosition = player.transform.position;
+            finalPosition.y = spawnPointPosition.y;
+            player.transform.position = finalPosition;
+
+            player.ChangeAnimationState(HumanControllerAnimations.Emotion_Scared_LookAround);
+
+            yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
+
+            playerWalk.CancelAgentOverride();
+
+            isDying = false;
         }
         else
         {
             Debug.LogError("Spawn points list is empty.");
         }
 
-
-        player.ChangeAnimationState(HumanControllerAnimations.Emotion_Scared_LookAround);
-
-        yield return new WaitForSeconds(GetAnimLength());
-
-        playerWalk.CancelAgentOverride();
-
-        isDying = false;
-        behaviourIsActive = false;
-
+        yield break;
     }
-
-
-
-
 
 
     public IEnumerator ExitGame()
@@ -325,7 +333,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_Electrocution);
 
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
 
 
         if (isSkeleton)
@@ -333,14 +341,14 @@ public class CharacterBehaviours : MonoBehaviour
             costumeControl.SwitchSkeleton();
             isSkeleton = false;
         }
-        var maxTimeOnFloor = GetAnimLength() + Random.Range(0, 2);
+        var maxTimeOnFloor = AnimationUtilities.GetAnimLength(animator) + Random.Range(0, 2);
 
-        float timeOnFloor = Random.Range(GetAnimLength(), maxTimeOnFloor);
+        float timeOnFloor = Random.Range(AnimationUtilities.GetAnimLength(animator), maxTimeOnFloor);
         yield return new WaitForSeconds(timeOnFloor);
 
         player.ChangeAnimationState(HumanControllerAnimations.OnFront_ToStand_InjuredMax);
         float time = 0;
-        float duration = GetAnimLength();
+        float duration = AnimationUtilities.GetAnimLength(animator);
 
         while (time <= duration)
         {
@@ -606,28 +614,31 @@ public class CharacterBehaviours : MonoBehaviour
 
     public RainControl rainControl;
 
-    public IEnumerator Dance(string randomDanceAnim)
+    public bool isDancing = false;
+
+    public IEnumerator Dance()
     {
         behaviourIsActive = true;
-
-        player.ChangeAnimationState(randomDanceAnim);
-
         cinematicCam.ToPanoramaZoom();
-
         rainControl.rainDanceMultiplier = rainControl.maxRainDanceMultiplier;
 
-        //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
+        isDancing = true;
 
-        Debug.Log("Click to exit this action.");
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        while (!Input.GetMouseButtonDown(0))
+        {
+            string randomDanceAnim = AnimAccess.Instance.GetRandomAnimation("Dance");
+            player.ChangeAnimationState(randomDanceAnim);
+
+            float animLength = AnimationUtilities.GetAnimLength(animator);
+            yield return new WaitForSeconds(animLength);
+        }
+
+        isDancing = false;
 
         player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
-
         behaviourIsActive = false;
         cinematicCam.panoramaScroll = false;
-
         cinematicCam.ToGameZoom();
-
         rainControl.rainDanceMultiplier = rainControl.minRainDanceMultiplier;
 
         yield break;
@@ -895,6 +906,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] float minAnimationSpeed = 1;
     [SerializeField] float maxAnimationSpeed = 4;
+
     float interval;
 
     private float camMoveDuration = 1f;
@@ -903,7 +915,6 @@ public class CharacterBehaviours : MonoBehaviour
     {
         PTGrowing treeDeathManager = hitObject.GetComponentInChildren<PTGrowing>();
 
-        //killThreshold = hitObject.transform.localScale.x;
         playerAudioSFX.numberOfHits = 0;
         playerAudioSFX.targetTree = hitObject;
 
@@ -911,38 +922,21 @@ public class CharacterBehaviours : MonoBehaviour
 
         behaviourIsActive = true;
 
-
-        float time = 0;
-
-        interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
-
+        float duration = Random.Range(minAnimationSpeed, maxAnimationSpeed);
         cinematicCam.ToActionZoom();
 
-        while (time <= interval && !Input.GetMouseButtonDown(0) && !treeDeathManager.isDead)
+        yield return StartCoroutine(AnimationUtilities.AnimateWithVariableSpeed(player.animator, HumanControllerAnimations.Action_Standing_HarvestTree, minAnimationSpeed, maxAnimationSpeed, duration, () =>
         {
-            interval = Random.Range(minAnimationSpeed, maxAnimationSpeed);
+            // Actions to perform after animation completes
+            player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+            behaviourIsActive = false;
+            cinematicCam.ToGameZoom();
+            SheatheItem();
+        }));
 
-            minAnimationSpeed = player.animator.speed;
-
-            player.ChangeAnimationState(HumanControllerAnimations.Action_Standing_HarvestTree);
-            player.animator.speed = Mathf.Lerp(minAnimationSpeed, interval, time);
-
-            time += Time.deltaTime / interval;
-
-            yield return null;
-        }
-
-        player.animator.speed = 1f;
-
-        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
-
-        behaviourIsActive = false;
-        cinematicCam.ToGameZoom();
-
-        SheatheItem();
-
-        yield break;
+        // Other logic if needed
     }
+
 
     [SerializeField] private GameObject campFire;
 
@@ -1033,14 +1027,5 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
     public float animLength;
-
-    private float GetAnimLength()
-    {
-        animLength = player.animator.GetCurrentAnimatorStateInfo(0).length;
-        return animLength;
-    }
-
-
-
 
 }

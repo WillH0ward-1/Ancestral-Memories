@@ -1,18 +1,22 @@
 using UnityEngine;
 using System.Collections;
 
+[ExecuteAlways]
+
 public class BreathingEffect : MonoBehaviour
 {
     // Breathing effect variables
     private float time = 0.0f;
     public float breathingSpeed = 1.0f;
     public float movementRange = 0.1f;
-    private Transform mainCamera;
+    Camera cam;
+    private Transform camTransform;
     private Vector3 previousRandomOffset;
 
-    void Start()
+    void OnEnable()
     {
-        mainCamera = transform.parent.transform;
+        cam = Camera.main;
+        camTransform = cam.transform;
         StartCoroutine(ApplyBreathingEffect());
     }
 
@@ -28,8 +32,8 @@ public class BreathingEffect : MonoBehaviour
             Vector3 randomOffset = new Vector3(offsetX, offsetY, offsetZ) * movementRange;
 
             // Remove the previous random offset before applying the new one
-            mainCamera.transform.position -= previousRandomOffset;
-            mainCamera.transform.position += randomOffset;
+            camTransform.transform.position -= previousRandomOffset;
+            camTransform.transform.position += randomOffset;
 
             // Store the new random offset for the next frame
             previousRandomOffset = randomOffset;

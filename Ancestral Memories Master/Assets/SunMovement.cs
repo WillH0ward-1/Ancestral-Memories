@@ -6,8 +6,6 @@ public class SunMovement : MonoBehaviour
     public Transform pivot;
     public float distance = 10.0f;
     public TimeCycleManager timeCycleManager;
-    [Range(0.1f, 2f)]
-    public float timeScale = 1f;
 
     void OnEnable()
     {
@@ -32,9 +30,9 @@ public class SunMovement : MonoBehaviour
     {
         if (timeCycleManager == null) return;
 
-        float scaledTimeOfDay = (timeCycleManager.TimeOfDay * timeScale) % 24f;
-        float shiftedTimeOfDay = (scaledTimeOfDay + 12f) % 24f; // shift the sun 12 hours ahead
-        float angle = 360 - (shiftedTimeOfDay / 24f * 360f);
+        // Add 180 degrees to place the sun opposite to its original position
+        float angle = (360 - (timeCycleManager.TimeOfDay / 24f * 360f)) + 180f;
+        angle %= 360f; // Ensure the angle stays within 0-360 degrees range
 
         float radian = angle * Mathf.Deg2Rad;
 

@@ -22,6 +22,7 @@ public class FireManager : MonoBehaviour
     [SerializeField] private float startFireDuration = 10f;
     [SerializeField] private float minFireDuration = 8f;
     [SerializeField] private float maxFireDuration = 16f;
+    [SerializeField] private float maxTotalFireDuration = 20f;
     [SerializeField] private float endFireDuration = 5f;
     [SerializeField] private float minFireSpreadDelay = 2;
     [SerializeField] private float maxFireSpreadDelay = 3f;
@@ -135,44 +136,144 @@ public class FireManager : MonoBehaviour
         }
     }
 
+    private Coroutine fireCoroutine;
+    private Coroutine fireControlCoroutine;
 
     public IEnumerator StartFireOnObject(GameObject target)
     {
         if (coolDownDictionary.TryGetValue(target, out bool isCoolingDown) && isCoolingDown)
         {
-            //Debug.Log($"Object {target.name} is cooling down and cannot catch fire.");
             yield break;
         }
 
+        HumanAI humanAI = null;
+        if (target.CompareTag("Human"))
+        {
+            humanAI = target.GetComponentInChildren<HumanAI>();
+            humanAI.ChangeState(HumanAI.AIState.RunningPanic);
+        }
+
         ObjectOnFire(target, true);
+        Coroutine controlCoroutine = null;
 
         if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
         {
             foreach (GameObject firePoint in firePoints)
             {
                 yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
-
                 GameObject fireInstance = GetFireFromPool();
-
                 if (fireInstance == null)
                 {
-                    // Debug.LogWarning("Fire instance could not be created due to empty pool.");
-                    continue; // Skip this iteration and move on to the next one.
+                    continue;
                 }
-
                 fireInstance.transform.position = firePoint.transform.position;
                 fireInstance.transform.SetParent(firePoint.transform);
 
-                StartCoroutine(ControlFire(fireInstance, target));
+                controlCoroutine = StartCoroutine(ControlFire(fireInstance, target));
             }
-
-            StartCoroutine(CoolDown(target));
         }
-        else
+
+        Coroutine startFireCoroutine = StartCoroutine(CoolDown(target));
+        fireCoroutines[target] = (startFireCoroutine, controlCoroutine);
+
+        StartCoroutine(StartFireStopCountDown(target, humanAI));
+    }
+
+    private void CheckForFlammableObjects(GameObject fireInstance, GameObject target)
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(fireInstance.transform.position, checkRadius, flammableLayerMask);
+
+        foreach (var hitCollider in hitColliders)
         {
-            // Debug.LogWarning($"No fire points found for object: {target.name}");
+            GameObject hitObj = hitCollider.gameObject;
+
+            if (IsFlammable(hitObj) && !IsAlreadyOnFire(hitObj))
+            {
+                if (hitObj.CompareTag("Trees"))
+                {
+                    if (!hitObj.GetComponentInChildren<PTGrowing>().ValidateTree()) continue;
+                }
+
+                // StartFireOnObject coroutine is started and tracked for each flammable object
+                Coroutine newFireCoroutine = StartCoroutine(StartFireOnObject(hitObj));
+                objectsOnFire.Add(hitObj);
+
+                // Update the dictionary with the new coroutine, keep the existing control coroutine if present
+                if (fireCoroutines.TryGetValue(hitObj, out var existingCoroutines))
+                {
+                    fireCoroutines[hitObj] = (newFireCoroutine, existingCoroutines.controlFireCoroutine);
+                }
+                else
+                {
+                    fireCoroutines[hitObj] = (newFireCoroutine, null);
+                }
+            }
         }
     }
+
+    private Dictionary<GameObject, (Coroutine startFireCoroutine, Coroutine controlFireCoroutine)> fireCoroutines = new Dictionary<GameObject, (Coroutine, Coroutine)>();
+
+
+    private IEnumerator ControlFire(GameObject fireInstance, GameObject target)
+    {
+        ParticleSystem fireParticles = fireInstance.GetComponent<ParticleSystem>();
+        Vector3 maxScale = new Vector3(35, 35, 35); // Adjust max scale if needed
+
+        // Initial scale should be zero
+        fireInstance.transform.localScale = Vector3.zero;
+
+        // Start increasing the scale and emission rate of the fire GameObject
+        float time = 0;
+        while (time < startFireDuration)
+        {
+            time += Time.deltaTime;
+            float lerpFactor = time / startFireDuration;
+            Vector3 scale = Vector3.Lerp(Vector3.zero, maxScale, lerpFactor);
+
+            if (fireParticles)
+            {
+                ParticleSystem.EmissionModule emissionModule = fireParticles.emission;
+                emissionModule.rateOverTime = Mathf.Lerp(0, startFireEmissionRateTarget, lerpFactor);
+            }
+
+            fireInstance.transform.localScale = scale;
+
+            yield return null;
+        }
+
+        // Fire at full intensity for a random duration between min and max fire duration
+        float randomFireDuration = UnityEngine.Random.Range(minFireDuration, maxFireDuration);
+        float elapsedTime = 0;
+        while (elapsedTime < randomFireDuration)
+        {
+            elapsedTime += checkInterval;
+            CheckForFlammableObjects(fireInstance, target);
+            yield return new WaitForSeconds(checkInterval);
+        }
+
+        // Begin to reduce the emission rate and scale down the GameObject
+        time = 0;
+        while (time < endFireDuration)
+        {
+            time += Time.deltaTime;
+            float lerpFactor = time / endFireDuration;
+            Vector3 scale = Vector3.Lerp(maxScale, Vector3.zero, lerpFactor);
+
+            if (fireParticles)
+            {
+                ParticleSystem.EmissionModule emissionModule = fireParticles.emission;
+                emissionModule.rateOverTime = Mathf.Lerp(startFireEmissionRateTarget, 0, lerpFactor);
+            }
+
+            fireInstance.transform.localScale = scale;
+
+            yield return null;
+        }
+
+        ReturnFireToPool(fireInstance);
+        ObjectOnFire(target, false);
+    }
+
 
     [SerializeField] private float coolDownTime = 15f;
     private Dictionary<GameObject, bool> coolDownDictionary = new Dictionary<GameObject, bool>();
@@ -189,14 +290,40 @@ public class FireManager : MonoBehaviour
         coolDownDictionary[target] = false;
     }
 
+    public IEnumerator StartFireStopCountDown(GameObject target, HumanAI humanAI)
+    {
+        yield return new WaitForSeconds(maxTotalFireDuration);
+
+        StopFireOnObject(target);
+
+        if (target.CompareTag("Human") && humanAI != null)
+        {
+            StartCoroutine(humanAI.StopPanic());
+        }
+
+        yield break;
+
+    }
+
     public void StopFireOnObject(GameObject target)
     {
+        if (fireCoroutines.TryGetValue(target, out var coroutines))
+        {
+            if (coroutines.startFireCoroutine != null)
+            {
+                StopCoroutine(coroutines.startFireCoroutine);
+            }
+            if (coroutines.controlFireCoroutine != null)
+            {
+                StopCoroutine(coroutines.controlFireCoroutine);
+            }
+            fireCoroutines.Remove(target);
+        }
 
         if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
         {
             foreach (GameObject firePoint in firePoints)
             {
-                // Check if the firePoint has an active fire instance as a child
                 if (firePoint.transform.childCount > 0)
                 {
                     GameObject fireInstance = firePoint.transform.GetChild(0).gameObject;
@@ -204,14 +331,9 @@ public class FireManager : MonoBehaviour
                 }
             }
         }
-        else
-        {
-            Debug.LogWarning($"No fire points found for object: {target.name}");
-        }
-
-        // Mark the object as not on fire
         ObjectOnFire(target, false);
     }
+
 
     private void StopAndReturnFire(GameObject fireInstance)
     {
@@ -321,95 +443,10 @@ public class FireManager : MonoBehaviour
 
     }
 
-    private void CheckForFlammableObjects(GameObject fireInstance)
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(fireInstance.transform.position, checkRadius, flammableLayerMask);
-
-        foreach (var hitCollider in hitColliders)
-        {
-            GameObject hitObj = hitCollider.gameObject;
-
-            if (IsFlammable(hitObj))
-            {
-
-                if (hitObj.CompareTag("Trees"))
-                {
-                    if (!hitObj.GetComponentInChildren<PTGrowing>().ValidateTree()) continue;
-                }
-
-                if (!IsAlreadyOnFire(hitObj))
-                {
-                    StartCoroutine(Instance.StartFireOnObject(hitObj));
-                    objectsOnFire.Add(hitObj);
-                }
-            }
-        }
-    }
-
     private bool IsFlammable(GameObject obj)
     {
         // Check if the object's layer is in the flammableLayerMask
         return ((flammableLayerMask.value & (1 << obj.layer)) > 0);
-    }
-
-    private IEnumerator ControlFire(GameObject fireInstance, GameObject target)
-    {
-        ParticleSystem fireParticles = fireInstance.GetComponent<ParticleSystem>();
-        Vector3 maxScale = new Vector3(35, 35, 35); // Adjust max scale if needed
-
-        // Initial scale should be zero
-        fireInstance.transform.localScale = Vector3.zero;
-
-        // Start increasing the scale and emission rate of the fire GameObject
-        float time = 0;
-        while (time < startFireDuration)
-        {
-            time += Time.deltaTime;
-            float lerpFactor = time / startFireDuration;
-            Vector3 scale = Vector3.Lerp(Vector3.zero, maxScale, lerpFactor);
-
-            if (fireParticles)
-            {
-                ParticleSystem.EmissionModule emissionModule = fireParticles.emission;
-                emissionModule.rateOverTime = Mathf.Lerp(0, startFireEmissionRateTarget, lerpFactor);
-            }
-
-            fireInstance.transform.localScale = scale;
-
-            yield return null;
-        }
-
-        // Fire at full intensity for a random duration between min and max fire duration
-        float randomFireDuration = UnityEngine.Random.Range(minFireDuration, maxFireDuration);
-        float elapsedTime = 0;
-        while (elapsedTime < randomFireDuration)
-        {
-            elapsedTime += checkInterval;
-            CheckForFlammableObjects(fireInstance);
-            yield return new WaitForSeconds(checkInterval);
-        }
-
-        // Begin to reduce the emission rate and scale down the GameObject
-        time = 0;
-        while (time < endFireDuration)
-        {
-            time += Time.deltaTime;
-            float lerpFactor = time / endFireDuration;
-            Vector3 scale = Vector3.Lerp(maxScale, Vector3.zero, lerpFactor);
-
-            if (fireParticles)
-            {
-                ParticleSystem.EmissionModule emissionModule = fireParticles.emission;
-                emissionModule.rateOverTime = Mathf.Lerp(startFireEmissionRateTarget, 0, lerpFactor);
-            }
-
-            fireInstance.transform.localScale = scale;
-
-            yield return null;
-        }
-
-        ReturnFireToPool(fireInstance);
-        ObjectOnFire(target, false);
     }
 
     private bool IsAlreadyOnFire(GameObject obj)

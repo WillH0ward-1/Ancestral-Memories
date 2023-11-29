@@ -20,11 +20,10 @@ public class HumanSFX : MonoBehaviour
     [SerializeField] private EventReference PrayerEventPath;
     */
 
-    private AudioSFXManager playerSFX;
+    public AudioSFXManager audioManager;
 
     private void Awake()
     {
-        playerSFX = FindObjectOfType<AudioSFXManager>();
 
         /*
         WalkEventPath = playerSFX.WalkEventPath;

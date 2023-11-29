@@ -329,6 +329,7 @@ namespace ProceduralModeling
 
         private IEnumerator Revive()
         {
+            interactable.enabled = false;
             isFullyGrown = false;
             currentState = State.Reviving;
             yield return StartCoroutine(GrowBuffer(true));
@@ -336,6 +337,7 @@ namespace ProceduralModeling
 
         public void CutDown()
         {
+            interactable.enabled = false;
             leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
             treeFruitManager.ClearFruits(); // Clear fruits during CutDown
             time = 0f;

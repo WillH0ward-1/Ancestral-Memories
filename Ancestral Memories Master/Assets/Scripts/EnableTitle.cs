@@ -9,9 +9,12 @@ public class MouseClickWaiter : MonoBehaviour
 
     [SerializeField] private bool waitForClick = true;
 
+    private Camera cam;
+
     private void Awake()
     {
-        camControl = FindObjectOfType<CamControl>();
+        cam = Camera.main;
+        camControl = cam.GetComponentInChildren<CamControl>();
         titleControlUI = GetComponentInChildren<TitleUIControl>();
         autoFitText = GetComponentInChildren<AutoFitText>();
     }

@@ -16,6 +16,8 @@ public class MapObjGen : MonoBehaviour
     [Header("Map Object Generator")]
     [Header("========================================================================================================================")]
 
+    public bool mapObjectsGenerated = false;
+
     public GameObject terrain;
 
     [Header("Terrain Mesh Data")]
@@ -50,6 +52,8 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] cave;
     [SerializeField] private GameObject[] humans;
     [SerializeField] private GameObject[] proceduralTrees;
+    [SerializeField] private GameObject[] limeStones;
+    [SerializeField] private GameObject[] temples;
 
     [SerializeField] private GameObject spawnPointPrefab;
 
@@ -101,6 +105,9 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minCaveScale;
     [SerializeField] Vector3 maxCaveScale;
 
+    [SerializeField] Vector3 minLimeStoneScale;
+    [SerializeField] Vector3 maxLimeStoneScale;
+
     [SerializeField] private Vector3 humanAverageScale = new Vector3(1.03f, 0.59f, 0.83f);
 
     [Header("========================================================================================================================")]
@@ -131,7 +138,10 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumPedestalRadius = 70;
     [SerializeField] float minimumCaveRadius = 70;
     [SerializeField] float minimumHumanRadius = 70;
+    [SerializeField] float minimumLimeStoneRadius = 70;
     [SerializeField] float minimumSpawnPointRadius = 70;
+    [SerializeField] float minimumTempleRadius = 70;
+
     [Header("========================================================================================================================")]
 
     [Header("Navmesh")]
@@ -162,13 +172,8 @@ public class MapObjGen : MonoBehaviour
     private readonly string pedestalTag = "Pedestal";
     private readonly string humanTag = "Human";
     private readonly string caveTag = "Cave";
-
-    [Header("========================================================================================================================")]
-
-    [Header("Rock Settings")]
-
-    [SerializeField] private float rockYOffset = 0;
-    private Material rockMaterial;
+    private readonly string limeStoneTag = "Limestone";
+    private readonly string templeTag = "Temple";
 
     [Header("========================================================================================================================")]
 
@@ -192,8 +197,41 @@ public class MapObjGen : MonoBehaviour
     private Vector3 mapCenter;
 
     [Header("========================================================================================================================")]
+    [Header("Seasons")]
+    [Space(10)]
+
+    [SerializeField] private SeasonManager seasonManager;
+
+    [Header("========================================================================================================================")]
+    [Header("Weather")]
+    [Space(10)]
+
+    public WeatherControl weather;
+    [SerializeField] private RainControl rainControl;
+    [SerializeField] private TreeDeathManager treeFallManager;
+    public TimeCycleManager timeCycleManager;
+
+    [Header("========================================================================================================================")]
+
+    [Header("Rock Settings")]
+
+    [SerializeField] private float rockYOffset = 0;
+    private Material rockMaterial;
+
+    [Header("========================================================================================================================")]
     [Header("Sound Emitters")]
     [Space(10)]
+
+    [SerializeField] private AudioSFXManager audioManager;
+
+    [Header("========================================================================================================================")]
+    [Header("Sound Emitters")]
+    [Space(10)]
+
+    private GameObject emitterInstance;
+
+    private float emitterY;
+    [SerializeField] private float checkOffset = 10f;
 
     [SerializeField] private Transform EmittersContainer;
     [SerializeField] private GameObject waterSoundEmitter;
@@ -201,66 +239,61 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private Transform waterEmitterRoot;
     [SerializeField] private List<GameObject> waterEmitters;
 
+    private Vector3[] waterEmitterVerts;
+
     [Header("========================================================================================================================")]
     [Header("Behaviours Reference")]
     [Space(10)]
 
     [SerializeField] private CharacterBehaviours playerBehaviours;
     public Player player;
-    [SerializeField] private PickUpObject pickUpManager;
     [SerializeField] private InteractCamera interactCam;
     [SerializeField] private ResourcesManager resources;
     [SerializeField] private Camera camera;
 
     [Header("========================================================================================================================")]
-    [Header("Weather")]
-    [Space(10)]
-
-    [SerializeField] private RainControl rainControl;
-    [SerializeField] private TreeDeathManager treeFallManager;
-
-    public TimeCycleManager timeCycleManager;
-
-    private GameObject emitterInstance;
-
-
-    [Header("========================================================================================================================")]
-    [Header("Seasons")]
-    [Space(10)]
-
-    private SeasonManager seasonManager;
-
     [Header("Generated Objects")]
     [Space(10)]
+
+    private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
 
     public List<GameObject> mapObjectList;
     public List<GameObject> treeList;
     public List<GameObject> treeGrowingList;
     public List<GameObject> npcList;
     public List<GameObject> grassList;
+    public List<GameObject> templeList;
 
-    private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
-
-    public WeatherControl weather;
+    [Header("========================================================================================================================")]
+    [Header("Resources")]
+    [Space(10)]
 
     public List<GameObject> foodSourcesList;
+    public List<GameObject> limeStoneList;
+    public List<GameObject> stoneList;
+
+    [Header("========================================================================================================================")]
+    [Header("Terrain")]
+    [Space(10)]
+
     [SerializeField] private LerpTerrain lerpTerrain;
 
-    private float emitterY;
-    [SerializeField] private float emitterYOffset = 10f;
-    [SerializeField] private LayerMask emitterLayerMask;
+    [Header("========================================================================================================================")]
+    [Header("NPC's")]
+    [Space(10)]
 
-    private Vector3[] waterEmitterVerts;
+    public List<GameObject> humanPopulationList;
+    public List<GameObject> huntableAnimalsList;
 
-    public bool mapObjectsGenerated = false;
+    [Header("========================================================================================================================")]
+    [Header("Flammable Objects")]
+    [Space(10)]
+
+    public List<GameObject> flammableObjectList;
 
 
     private List<Vector3> XspawnPositions;
     private List<Vector3> ZspawnPositions;
-
-    public List<GameObject> humanPopulationList;
-    public List<GameObject> huntableAnimalsList;
-    public List<GameObject> flammableObjectList;
 
     public List<AICharacterStats> allHumanStats;
     private VocabularyManager vocabularyManager;
@@ -330,49 +363,49 @@ public class MapObjGen : MonoBehaviour
 
         if (i >= verts.Length)
         {
-            StartCoroutine(GenerateEmitterCheckers());
+            StartCoroutine(CheckOverWater(waterEmitters));
         }
 
         yield break;
     }
 
-    public IEnumerator GenerateEmitterCheckers()
+    public IEnumerator CheckOverWater(List<GameObject> list)
     {
-        foreach (GameObject emitter in waterEmitters)
+        foreach (GameObject obj in list)
         {
-            emitterY = emitter.transform.position.y;
-
-            emitter.transform.position = new Vector3(emitter.transform.position.x, emitterY += emitterYOffset, emitter.transform.position.z);
-
-            if (Physics.Raycast(emitter.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity, emitterLayerMask))
+            if (IsOverWater(obj, checkOffset, out float hitPointY))
             {
-                if (downHit.collider.CompareTag("Water"))
-                {
-                    float newY = emitterY -= emitterYOffset;
-
-                    emitter.transform.position = new Vector3(emitter.transform.position.x, newY, emitter.transform.position.z);
-                    continue;
-                }
-                else
-                {
-                    DestroyObject(emitter);
-                }
+                // Adjust emitter position to the hit point Y-coordinate
+                obj.transform.position = new Vector3(obj.transform.position.x, hitPointY, obj.transform.position.z);
             }
-
-            static void DestroyObject(GameObject emitter)
+            else
             {
-                //                Debug.Log("Object destroyed in game.");
-                Destroy(emitter);
-
+                Destroy(obj);
             }
         }
 
-        ListCleanup(waterEmitters);
-        EnableStudioEmitters(waterEmitters);
-
         yield break;
-
     }
+
+
+    public static bool IsOverWater(GameObject obj, float emitterYOffset, out float hitPointY)
+    {
+        hitPointY = 0f; // Default value
+        float emitterY = obj.transform.position.y + emitterYOffset;
+        Vector3 emitterPosition = new Vector3(obj.transform.position.x, emitterY, obj.transform.position.z);
+
+        if (Physics.Raycast(emitterPosition, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
+        {
+            if (downHit.collider.CompareTag("Water"))
+            {
+                hitPointY = downHit.point.y;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private void InitializeFlute()
     {
@@ -397,20 +430,54 @@ public class MapObjGen : MonoBehaviour
         interactCam.InitInteractions();
         playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
         playerBehaviours.mapObjGen = this;
-        rainControl = FindObjectOfType<RainControl>();
+        rainControl = player.GetComponentInChildren<RainControl>();
         seasonManager = FindObjectOfType<SeasonManager>();
         rainControl.seasons = seasonManager;
-        dialogueLines = FindObjectOfType<DialogueLines>();
-        vocabularyManager = FindObjectOfType<VocabularyManager>();
-        pickUpManager = FindObjectOfType<PickUpObject>();
-        fireManager = FindObjectOfType<FireManager>();
+        dialogueLines = GetComponentInChildren<DialogueLines>();
+        vocabularyManager = GetComponentInChildren<VocabularyManager>();
+        fireManager = GetComponentInChildren<FireManager>();
         fireManager.mapObjGen = this;
         resources = FindObjectOfType<ResourcesManager>();
+        FormationController formationController = GetComponentInChildren<FormationController>();
+        formationController.mapObjGen = this;
+        formationController.InitFormationAgents();
         AICharacterStats stats = player.GetComponentInChildren<AICharacterStats>();
         stats.time = timeCycleManager;
         stats.SubscribeToBirthday();
-        playerBehaviours.pickUpManager = pickUpManager;
         
+    }
+
+    public IEnumerator InitAllRelationships()
+    {
+        foreach (GameObject g in npcList)
+        {
+            AICharacterStats stats = g.GetComponentInChildren<AICharacterStats>();
+            stats.mapObjGen = this;
+            StartCoroutine(stats.InitAllRelationships(npcList));
+        }
+
+        yield break;
+    }
+
+
+    private void InitAudioManager()
+    {
+        foreach (GameObject g in npcList)
+        {
+            AudioSFXManager audio = g.GetComponentInChildren<AudioSFXManager>();
+
+            if (audio != null) { 
+            audio.player = player;
+            audio.behaviours = playerBehaviours;
+            } else
+            {
+                continue;
+            }
+        }
+
+        AudioSFXManager playerAudio = player.GetComponentInChildren<AudioSFXManager>();
+        playerAudio.player = player;
+        playerAudio.behaviours = playerBehaviours;
     }
 
     private void SetupDeformers()
@@ -466,7 +533,8 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler pedestalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumPedestalRadius);
         PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
         PoissonDiscSampler humanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumHumanRadius);
-
+        PoissonDiscSampler limeStoneSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumLimeStoneRadius);
+        PoissonDiscSampler templeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTempleRadius);
 
         //TreePoissonDisc(treeSampler);
         //AppleTreePoissonDisc(appleTreeSampler);
@@ -483,13 +551,17 @@ public class MapObjGen : MonoBehaviour
         SpawnPointsPoissonDisc(spawnPointsSampler);
         HumanPoissonDisc(humanSampler);
         ProceduralTreePoissonDisc(treeSampler);
-
+        LimeStonePoissonDisc(limeStoneSampler);
+        TemplePoissonDisc(templeSampler);
 
         SetOffset();
 
         foreach (GameObject obj in mapObjectList)
         {
-            GroundCheck(obj);
+            if (!obj.CompareTag(limeStoneTag) && !obj.CompareTag(templeTag))
+            {
+                GroundCheck(obj);
+            }
         }
 
         foreach (GameObject obj in spawnPointsList)
@@ -497,9 +569,8 @@ public class MapObjGen : MonoBehaviour
             GroundCheck(obj);
         }
 
-        DestroyDeadZones();
-
         StartCoroutine(WaterSFXEmitterGen());
+        StartCoroutine(CheckOverWater(limeStoneList));
 
         ListCleanup(spawnPointsList);
         ListCleanup(mapObjectList);
@@ -510,11 +581,16 @@ public class MapObjGen : MonoBehaviour
         ListCleanupAIStats(allHumanStats);
         ListCleanup(huntableAnimalsList);
         ListCleanup(flammableObjectList);
+        ListCleanup(limeStoneList);
+        ListCleanup(templeList);
+
+        DestroyDeadZones();
 
         mapObjectsGenerated = true;
 
         SetupCorruptionControl(mapObjectList);
 
+        InitAudioManager();
 
         RandomizeHumanRace();
         fireManager.GenerateFirePoints();
@@ -528,6 +604,7 @@ public class MapObjGen : MonoBehaviour
 
         SetupDeformers();
         SetupDisasters();
+        StartCoroutine(InitAllRelationships());
         //StartCoroutine(StartTreeGrowth(treeList));
 
         //EnableNavMeshAgents(npcList);
@@ -876,6 +953,8 @@ public class MapObjGen : MonoBehaviour
             }
 
             corruptionControl.CorruptionModifierActive = true;
+
+            corruptionControl.InitCorruption();
         }
     }
 
@@ -1233,7 +1312,7 @@ public class MapObjGen : MonoBehaviour
         {
             GameObject randomRocks = GetRandomMapObject(rocks);
             float rockYboost = 35;
-            GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY + rockYboost, sample.y), Quaternion.identity);
+            GameObject rockInstance = Instantiate(randomRocks, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
             rockInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
             rockInstance.transform.localScale = new Vector3(
             Random.Range(minRockScale.x, maxRockScale.x),
@@ -1244,6 +1323,45 @@ public class MapObjGen : MonoBehaviour
             rockInstance.layer = rockLayer;
             rockInstance.transform.SetParent(hierarchyRoot.transform);
             mapObjectList.Add(rockInstance);
+            stoneList.Add(rockInstance);
+        }
+    }
+
+    void LimeStonePoissonDisc(PoissonDiscSampler limeStoneSamples)
+    {
+        foreach (Vector2 sample in limeStoneSamples.Samples())
+        {
+            GameObject randomLimeStone = GetRandomMapObject(limeStones);
+            float limeStoneYBoost = 35;
+            GameObject limeStoneInstance = Instantiate(randomLimeStone, new Vector3(sample.x, initY + limeStoneYBoost, sample.y), Quaternion.identity);
+            limeStoneInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            limeStoneInstance.transform.localScale = new Vector3(
+            Random.Range(minLimeStoneScale.x, minLimeStoneScale.x),
+            Random.Range(minLimeStoneScale.y, minLimeStoneScale.y),
+            Random.Range(minLimeStoneScale.z, minLimeStoneScale.z));
+            //limeStoneInstance.tag = limeStoneTag;
+            //int limeStoneLayer = LayerMask.NameToLayer("LimeStone");
+            //limeStoneInstance.layer = limeStoneLayer;
+            limeStoneInstance.transform.SetParent(hierarchyRoot.transform);
+            mapObjectList.Add(limeStoneInstance);
+            limeStoneList.Add(limeStoneInstance);
+        }
+    }
+
+    void TemplePoissonDisc(PoissonDiscSampler templeSamples)
+    {
+        foreach (Vector2 sample in templeSamples.Samples())
+        {
+            GameObject randomTemple = GetRandomMapObject(limeStones);
+            GameObject templeInstance = Instantiate(randomTemple, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
+            templeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+            //limeStoneInstance.tag = limeStoneTag;
+            //int limeStoneLayer = LayerMask.NameToLayer("LimeStone");
+            //limeStoneInstance.layer = limeStoneLayer;
+            templeInstance.transform.SetParent(hierarchyRoot.transform);
+            mapObjectList.Add(templeInstance);
+            templeList.Add(templeInstance);
         }
     }
 
@@ -1258,9 +1376,9 @@ public class MapObjGen : MonoBehaviour
 
             MushroomGrowth mushroomControl = mushroomInstance.transform.GetComponent<MushroomGrowth>();
             mushroomControl.player = player;
-
+            mushroomControl.mapObjGen = this;
+            mushroomControl.seasonManager = seasonManager;
             
-
             mushroomInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
             mushroomInstance.transform.localScale = new Vector3(
@@ -1397,27 +1515,32 @@ public class MapObjGen : MonoBehaviour
 
     void DestroyDeadZones()
     {
-        if (Physics.Raycast(mapObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+        foreach (GameObject gameObject in mapObjectList)
         {
-            if (hitFloor.collider.CompareTag("DeadZone"))
+            if (Physics.Raycast(gameObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
             {
-                //Debug.Log("DeadZone hit.");
-                DestroyObject();
+                if (hitFloor.collider.CompareTag("DeadZone"))
+                {
+                    //Debug.Log("DeadZone hit.");
+                    DestroyObject();
+                }
+
+                continue;
             }
-        }
 
 
-        void DestroyObject()
-        {
-            if (Application.isEditor)
+            void DestroyObject()
             {
-                Debug.Log("Object destroyed in Editor.");
-                DestroyImmediate(mapObject);
-            }
-            else
-            {
-                Debug.Log("Object destroyed in game.");
-                Destroy(mapObject);
+                if (Application.isEditor)
+                {
+                    Debug.Log("Object destroyed in Editor.");
+                    DestroyImmediate(mapObject);
+                }
+                else
+                {
+                    Debug.Log("Object destroyed in game.");
+                    Destroy(mapObject);
+                }
             }
         }
         

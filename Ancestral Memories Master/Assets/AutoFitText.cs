@@ -7,35 +7,36 @@ public class AutoFitText : MonoBehaviour
     public float baseFontSize = 100f;
     public float scaleFactor = 0.01f;
 
-    private TMP_Text tmpText;
+    public bool isResizing = true; // Add this field to control the resizing
 
-    public bool isResizing = false;
+    private TMP_Text tmpText;
+    private Vector2 lastScreenSize;
 
     private void OnEnable()
     {
         tmpText = GetComponent<TMP_Text>();
-        ResizeText();
-    }
-
-    private void Start()
-    {
-        tmpText = GetComponent<TMP_Text>();
-        ResizeText();
+        lastScreenSize = new Vector2(Screen.width, Screen.height);
+        if (isResizing)
+        {
+            ResizeText();
+        }
     }
 
     private void Update()
     {
-        if (!isResizing)
-        {
-            return;
-        }
+        if (!isResizing) return; // Check the flag before proceeding
 
-        ResizeText();
+        Vector2 currentScreenSize = new Vector2(Screen.width, Screen.height);
+        // Check if the screen size has changed since the last frame
+        if (currentScreenSize != lastScreenSize)
+        {
+            ResizeText();
+            lastScreenSize = currentScreenSize;
+        }
     }
 
     private void ResizeText()
     {
-        isResizing = true;
         float ratio = Screen.width / (float)Screen.height;
         float newFontSize = baseFontSize * ratio * scaleFactor;
         tmpText.fontSize = newFontSize;

@@ -1,9 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    private OutlineControl outlineControl;
+
     public Action[] options;
 
     [System.Serializable]
@@ -14,9 +14,19 @@ public class Interactable : MonoBehaviour
         public string title;
     }
 
-    public void SpawnMenu(GameObject lastHit, RaycastHit rayHit)
-    {       
-        RadialMenuSpawner.menuInstance.SpawnMenu(this, lastHit, rayHit);
+    void Awake()
+    {
+        outlineControl = GetComponentInChildren<OutlineControl>();
     }
 
+    public void ToggleOutline(bool state)
+    {
+        if (outlineControl != null)
+            outlineControl.outline.enabled = state;
+    }
+
+    public void SpawnMenu(GameObject lastHit, RaycastHit rayHit)
+    {
+        RadialMenuSpawner.menuInstance.SpawnMenu(this, lastHit, rayHit);
+    }
 }

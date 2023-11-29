@@ -108,6 +108,8 @@ public class Dialogue : MonoBehaviour
         */
     }
 
+    private Transform head;
+
     void Start()
     {
         GameObject dialogueBoxPrefab = Resources.Load("Dialogue/DialogueBox") as GameObject;
