@@ -83,6 +83,9 @@ public class TerrainGenerator : MonoBehaviour {
 	private void Awake()
 	{
 		SetSeed(seedSettingState);
+		mapObjectGen = FindObjectOfType<MapObjGen>();
+		player = FindObjectOfType<Player>();
+		rainControl = player.GetComponentInChildren<RainControl>();
 	}
 
 
@@ -116,12 +119,10 @@ public class TerrainGenerator : MonoBehaviour {
 
 	private Mesh mesh;
 
+
 	void Start() {
 
 		navGraph = AstarPath.active.data.navmesh;
-		rainControl = FindObjectOfType<RainControl>();
-		mapObjectGen = FindObjectOfType<MapObjGen>();
-		player = FindObjectOfType<Player>();
 		viewer = player.transform;
 
 		/*

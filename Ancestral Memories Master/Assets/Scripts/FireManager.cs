@@ -63,34 +63,37 @@ public class FireManager : MonoBehaviour
 
         foreach (GameObject flammableObject in mapObjGen.flammableObjectList)
         {
-            // Check if the GameObject is on one of the flammable layers
-            if (((1 << flammableObject.layer) & flammableLayerMask) != 0)
+            if (flammableObject != null)
             {
-                if (flammableObject.layer == LayerMask.NameToLayer("Human") || flammableObject.layer == LayerMask.NameToLayer("Animals"))
+                // Check if the GameObject is on one of the flammable layers
+                if (((1 << flammableObject.layer) & flammableLayerMask) != 0)
                 {
-                    Transform rigTransform = FindRigInChildren(flammableObject.transform);
-
-                    if (rigTransform != null)
+                    if (flammableObject.layer == LayerMask.NameToLayer("Human") || flammableObject.layer == LayerMask.NameToLayer("Animals"))
                     {
-                        List<GameObject> firePoints = new List<GameObject>();
-                        CreateFirePoints(rigTransform.gameObject, firePoints); // Call the function directly
-                        flammableObjectsToFirePoints[flammableObject] = firePoints;
+                        Transform rigTransform = FindRigInChildren(flammableObject.transform);
+
+                        if (rigTransform != null)
+                        {
+                            List<GameObject> firePoints = new List<GameObject>();
+                            CreateFirePoints(rigTransform.gameObject, firePoints); // Call the function directly
+                            flammableObjectsToFirePoints[flammableObject] = firePoints;
+                        }
+                        else
+                        {
+                            //   Debug.LogWarning($"'Rig' tagged object not found in children of: {flammableObject.name}");
+                        }
                     }
                     else
                     {
-                     //   Debug.LogWarning($"'Rig' tagged object not found in children of: {flammableObject.name}");
+                        List<GameObject> firePoints = new List<GameObject>();
+                        CreateFirePoints(flammableObject, firePoints); // Call the function directly
+                        flammableObjectsToFirePoints[flammableObject] = firePoints;
                     }
                 }
                 else
                 {
-                    List<GameObject> firePoints = new List<GameObject>();
-                    CreateFirePoints(flammableObject, firePoints); // Call the function directly
-                    flammableObjectsToFirePoints[flammableObject] = firePoints;
+                    //  Debug.LogWarning($"Object layer is not flammable: {flammableObject.name}");
                 }
-            }
-            else
-            {
-               //  Debug.LogWarning($"Object layer is not flammable: {flammableObject.name}");
             }
         }
     }

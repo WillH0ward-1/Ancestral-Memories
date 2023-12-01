@@ -14,7 +14,6 @@ public class ShaderLightColor : MonoBehaviour
 
     private void OnEnable()
     {
-        timeCycleManager = FindObjectOfType<TimeCycleManager>();
         rend = GetComponent<MeshRenderer>();
         propBlock = new MaterialPropertyBlock();
 
@@ -34,7 +33,10 @@ public class ShaderLightColor : MonoBehaviour
 
     private void Update()
     {
-        UpdateLightColor();
+        if (timeCycleManager != null)
+        {
+            UpdateLightColor();
+        }
     }
 
     private void UpdateLightColor()

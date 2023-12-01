@@ -17,39 +17,64 @@ public class CorruptionControl : MonoBehaviour
 
     public void InitCorruption()
     {
-
-        //CorruptionModifierActive = false;
-        /*
-        if (!transform.CompareTag("Trees"))
+        if (transform.CompareTag("Player"))
         {
-            objectRenderers = transform.GetComponentsInChildren<MeshRenderer>();
-            rendererList = objectRenderers.ToList();
-        } else
-        {
-            objectRenderer = transform.GetComponent<MeshRenderer>();
-            rendererList.Add(objectRenderer);
+            player = transform.GetComponentInChildren<Player>();
+            behaviours = transform.GetComponentInChildren<CharacterBehaviours>();
         }
-        */
 
-        transformList.Add(transform);
-
-        foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
+        // Iterate through all renderers in the object and its children
+        Renderer[] allRenderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer renderer in allRenderers)
         {
-            m.SetFloat("_MinKarma", newMin);
-            m.SetFloat("_MaxKarma", newMax);
+            foreach (Material m in renderer.sharedMaterials)
+            {
+                // Ensure the material is not null before applying changes
+                if (m != null)
+                {
+                    // Check and set _MinKarma if it exists
+                    if (m.HasProperty("_MinKarma"))
+                    {
+                        m.SetFloat("_MinKarma", newMin);
+                    }
 
-            m.SetFloat("_NewMin", newMin);
-            m.SetFloat("_NewMax", newMax);
+                    // Check and set _MaxKarma if it exists
+                    if (m.HasProperty("_MaxKarma"))
+                    {
+                        m.SetFloat("_MaxKarma", newMax);
+                    }
 
-            m.SetFloat("_MinWarpStrength", newMin);
-            m.SetFloat("_MaxWarpStrength", newMax);
+                    // Check and set _NewMin if it exists
+                    if (m.HasProperty("_NewMin"))
+                    {
+                        m.SetFloat("_NewMin", newMin);
+                    }
 
+                    // Check and set _NewMax if it exists
+                    if (m.HasProperty("_NewMax"))
+                    {
+                        m.SetFloat("_NewMax", newMax);
+                    }
+
+                    // Check and set _MinWarpStrength if it exists
+                    if (m.HasProperty("_MinWarpStrength"))
+                    {
+                        m.SetFloat("_MinWarpStrength", newMin);
+                    }
+
+                    // Check and set _MaxWarpStrength if it exists
+                    if (m.HasProperty("_MaxWarpStrength"))
+                    {
+                        m.SetFloat("_MaxWarpStrength", newMax);
+                    }
+                }
+            }
         }
 
         SubscribeToCorruption();
-
         //behaviours = player.GetComponentInChildren<CharacterBehaviours>();
     }
+
 
     private void SubscribeToCorruption()
     {
@@ -117,36 +142,63 @@ public class CorruptionControl : MonoBehaviour
         float currentCorruption = faithOutput;
         currentCorruptionVal = Mathf.Lerp(currentCorruption, faithOutput, 2f * Time.deltaTime);
 
-        foreach (Material m in transform.GetComponentInChildren<Renderer>().sharedMaterials)
+        // Retrieve all Renderer components in this GameObject and its children
+        Renderer[] allRenderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer renderer in allRenderers)
         {
-            m.SetFloat("_Karma", currentCorruptionVal);
-
-            if (transform.CompareTag("Trees"))
+            foreach (Material m in renderer.sharedMaterials)
             {
-                if (rain != null && rain.drought)
+                if (m != null)
                 {
-                    if (!LeafManualOverrideActive)
+                    // Set _Karma if the material has this property
+                    if (m.HasProperty("_Karma"))
                     {
-                        StartCoroutine(LeafOverride(currentCorruptionVal, newMin, manualLeafLerpSpeed));
+                        m.SetFloat("_Karma", currentCorruptionVal);
                     }
 
-                    m.SetFloat("_LeafDensity", overrideModifer);
-                } else
-                {
-                    m.SetFloat("_LeafDensity", currentCorruptionVal);
-                }
-            }
-            else 
-            {
-                m.SetFloat("_LeafDensity", currentCorruptionVal);
-            }
+                    if (transform.CompareTag("Trees"))
+                    {
+                        if (rain != null && rain.drought)
+                        {
+                            if (!LeafManualOverrideActive)
+                            {
+                                StartCoroutine(LeafOverride(currentCorruptionVal, newMin, manualLeafLerpSpeed));
+                            }
 
-                
-            if (behaviours.isPsychdelicMode)
-            {
-                m.SetFloat("_WarpStrength", modifier);
+                            // Set _LeafDensity if the material has this property
+                            if (m.HasProperty("_LeafDensity"))
+                            {
+                                m.SetFloat("_LeafDensity", overrideModifer);
+                            }
+                        }
+                        else
+                        {
+                            if (m.HasProperty("_LeafDensity"))
+                            {
+                                m.SetFloat("_LeafDensity", currentCorruptionVal);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (m.HasProperty("_LeafDensity"))
+                        {
+                            m.SetFloat("_LeafDensity", currentCorruptionVal);
+                        }
+                    }
+
+                    if (behaviours != null && behaviours.isPsychdelicMode)
+                    {
+                        // Set _WarpStrength if the material has this property
+                        if (m.HasProperty("_WarpStrength"))
+                        {
+                            m.SetFloat("_WarpStrength", modifier);
+                        }
+                    }
+                }
             }
         }
     }
-    
+
+
 }

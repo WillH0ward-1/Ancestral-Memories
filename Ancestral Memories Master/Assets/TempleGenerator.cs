@@ -15,20 +15,27 @@ public class TempleGenerator : MonoBehaviour
     public Material smallPlatformMaterial;
 
     public int monolithCount = 8;
-    public float circleRadius = 10f;
-    public float platformSpacing = 5f;
+    public float baseCircleRadius = 10f;
+    public float basePlatformSpacing = 5f;
+    [SerializeField] private float sizeMultiplier = 1f; // Serialized property for size multiplier
 
     private bool isGenerated = false;
     private float raycastOffset = 10f;
+
     private LayerMask groundLayer;
+    private string waterTag = "Water";
 
     private GameObject templeColliderObject;
 
-    private void Awake()
+    float appliedCircleRadius;
+    float appliedPlatformSpacing;
+
+    private void OnEnable()
     {
         groundLayer = LayerMask.NameToLayer("Ground");
-
-        GenerateTemple();
+        appliedCircleRadius = baseCircleRadius * sizeMultiplier;
+        appliedPlatformSpacing = basePlatformSpacing * sizeMultiplier;
+        AddOrUpdateSphereCollider(appliedCircleRadius, appliedPlatformSpacing);
     }
 
     public void GenerateTemple()
@@ -38,63 +45,119 @@ public class TempleGenerator : MonoBehaviour
             ClearTemple();
         }
 
-        for (int i = 0; i < monolithCount; i++)
-        {
-            float angle = i * Mathf.PI * 2 / monolithCount;
-            Vector3 position = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * circleRadius;
-            CreateObject(monolithPrefab, position, monolithSize, monolithMaterial);
-        }
-
-        CreateObject(centerPlatformPrefab, Vector3.zero, centerPlatformSize, centerPlatformMaterial);
+        Vector3 appliedMonolithSize = monolithSize * sizeMultiplier;
+        Vector3 appliedCenterPlatformSize = centerPlatformSize * sizeMultiplier;
+        Vector3 appliedSmallPlatformSize = smallPlatformSize * sizeMultiplier;
 
         for (int i = 0; i < monolithCount; i++)
         {
             float angle = i * Mathf.PI * 2 / monolithCount;
-            Vector3 position = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * (circleRadius + platformSpacing);
-            CreateObject(smallPlatformPrefab, position, smallPlatformSize, smallPlatformMaterial);
+            Vector3 localPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * appliedCircleRadius;
+            Vector3 worldPosition = transform.position + localPosition;
+            CreateObject(monolithPrefab, worldPosition, appliedMonolithSize, monolithMaterial);
         }
 
-        AddOrUpdateSphereCollider();
+        CreateObject(centerPlatformPrefab, transform.position, appliedCenterPlatformSize, centerPlatformMaterial);
+
+        for (int i = 0; i < monolithCount; i++)
+        {
+            float angle = i * Mathf.PI * 2 / monolithCount;
+            Vector3 localPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * (appliedCircleRadius + appliedPlatformSpacing);
+            Vector3 worldPosition = transform.position + localPosition;
+            CreateObject(smallPlatformPrefab, worldPosition, appliedSmallPlatformSize, smallPlatformMaterial);
+        }
 
         isGenerated = true;
     }
 
     private void CreateObject(GameObject prefab, Vector3 position, Vector3 size, Material material)
     {
-        GameObject obj = Instantiate(prefab, position + Vector3.up * raycastOffset, Quaternion.identity, transform);
+        // Instantiate the object at the given position
+        GameObject obj = Instantiate(prefab, position + Vector3.up * 50, Quaternion.identity, transform);
         obj.transform.localScale = size;
+
         Renderer renderer = obj.GetComponentInChildren<Renderer>();
         if (renderer != null)
         {
             renderer.material = material;
         }
 
+        // Add ShaderLightColor component to each first-level child of the instantiated object
+        foreach (Transform child in obj.transform)
+        {
+            if (child.gameObject.GetComponent<ShaderLightColor>() == null)
+            {
+                child.gameObject.AddComponent<ShaderLightColor>();
+            }
+        }
+
+        // Perform ground check and adjustment only if in play mode
         if (Application.isPlaying)
         {
-            if (!GroundCheck(obj))
+            // Adjust the object's position upwards by the raycast offset
+            obj.transform.position += Vector3.up * 50;
+
+            // Perform the ground check and adjust position if necessary
+            GroundCheck(obj);
+        }
+    }
+
+
+
+    void GroundCheck(GameObject obj)
+    {
+        if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity))
+        {
+            if (hit.collider.CompareTag(waterTag) || hit.collider == null)
             {
-                Destroy(obj);
+                DestroyObject(obj);
             }
+            else
+            {
+                AnchorToGround(obj);
+            }
+        }
+        
+    }
+
+
+
+    private void DestroyObject(GameObject obj)
+    {
+        if (Application.isEditor)
+        {
+            DestroyImmediate(obj);
         }
         else
         {
-            obj.transform.position = position;
+            Destroy(obj);
         }
     }
 
-    private bool GroundCheck(GameObject obj)
+    void AnchorToGround(GameObject obj)
     {
-        RaycastHit hit;
-        if (Physics.Raycast(obj.transform.position, Vector3.down, out hit, Mathf.Infinity, groundLayer))
+        if (obj != null)
         {
-            float heightOffset = obj.transform.localScale.y / 2.0f;
-            obj.transform.position = hit.point + Vector3.up * heightOffset;
-            return true;
+            if (Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, groundLayer))
+            {
+                float distance = hitFloor.distance;
+
+                float x = obj.transform.position.x;
+                float y = obj.transform.position.y - distance;
+                float z = obj.transform.position.z;
+
+                Vector3 newPosition = new Vector3(x, y, z);
+
+                obj.transform.position = newPosition;
+
+                //Debug.Log("Clamped to Ground!");
+                //Debug.Log("Distance: " + distance);
+            }
         }
-        return false;
+
     }
 
-    private void AddOrUpdateSphereCollider()
+    private void AddOrUpdateSphereCollider(float circleRadius, float platformSpacing)
     {
         if (templeColliderObject == null)
         {
@@ -105,12 +168,18 @@ public class TempleGenerator : MonoBehaviour
         }
 
         SphereCollider collider = templeColliderObject.GetComponent<SphereCollider>();
-        collider.isTrigger = true;
-        collider.center = new Vector3(0, -25f, 0); // Adjust Y offset as needed
-        collider.radius = circleRadius + platformSpacing + 3; // Adjust radius as needed
+        collider.isTrigger = false;
 
+        // Calculate the radius to cover the small platforms, which are the furthest from the center
+        float smallPlatformOuterEdge = circleRadius + platformSpacing + (smallPlatformSize.x * sizeMultiplier) / 2;
+        float colliderRadius = Mathf.Max(smallPlatformOuterEdge, circleRadius + platformSpacing) + 1; // Adding an extra unit for buffer
+
+        collider.center = new Vector3(0, -50f, 0); // Adjust Y offset as needed
+        collider.radius = colliderRadius * colliderRadius / 2; // Adjust radius based on the farthest extent of the temple
         templeColliderObject.transform.position = transform.position;
     }
+
+
 
     public void ClearTemple()
     {

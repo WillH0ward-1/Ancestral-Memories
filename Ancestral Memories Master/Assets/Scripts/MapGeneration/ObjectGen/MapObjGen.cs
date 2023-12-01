@@ -48,7 +48,6 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] animals;
     [SerializeField] private GameObject[] fireWood;
     [SerializeField] private GameObject[] seaShells;
-    [SerializeField] private GameObject[] pedestals;
     [SerializeField] private GameObject[] cave;
     [SerializeField] private GameObject[] humans;
     [SerializeField] private GameObject[] proceduralTrees;
@@ -99,9 +98,6 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] Vector3 minSeaShellScale;
     [SerializeField] Vector3 maxSeaShellScale;
 
-    [SerializeField] Vector3 minPedestalScale;
-    [SerializeField] Vector3 maxPedestalScale;
-
     [SerializeField] Vector3 minCaveScale;
     [SerializeField] Vector3 maxCaveScale;
 
@@ -135,7 +131,6 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumAnimalRadius = 70;
     [SerializeField] float minimumFireWoodRadius = 70;
     [SerializeField] float minimumSeaShellRadius = 70;
-    [SerializeField] float minimumPedestalRadius = 70;
     [SerializeField] float minimumCaveRadius = 70;
     [SerializeField] float minimumHumanRadius = 70;
     [SerializeField] float minimumLimeStoneRadius = 70;
@@ -169,11 +164,10 @@ public class MapObjGen : MonoBehaviour
     private readonly string mushroomTag = "Mushrooms";
     private readonly string fireWoodTag = "FireWood";
     private readonly string seaShellTag = "SeaShell";
-    private readonly string pedestalTag = "Pedestal";
     private readonly string humanTag = "Human";
     private readonly string caveTag = "Cave";
     private readonly string limeStoneTag = "Limestone";
-    private readonly string templeTag = "Temple";
+    private readonly string structureTag = "Structure";
 
     [Header("========================================================================================================================")]
 
@@ -195,6 +189,13 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] int vertSampleFactor;
     [SerializeField] private bool invertSpreadOrigin = false;
     private Vector3 mapCenter;
+
+
+    [Header("========================================================================================================================")]
+    [Header("Terrain")]
+    [Space(10)]
+
+    [SerializeField] private LerpTerrain lerpTerrain;
 
     [Header("========================================================================================================================")]
     [Header("Seasons")]
@@ -273,12 +274,6 @@ public class MapObjGen : MonoBehaviour
     public List<GameObject> stoneList;
 
     [Header("========================================================================================================================")]
-    [Header("Terrain")]
-    [Space(10)]
-
-    [SerializeField] private LerpTerrain lerpTerrain;
-
-    [Header("========================================================================================================================")]
     [Header("NPC's")]
     [Space(10)]
 
@@ -340,6 +335,7 @@ public class MapObjGen : MonoBehaviour
     private DisasterManager disasterManager;
 
     private List<PTGrowing> ptGrowComponents = new List<PTGrowing>();
+
     private float randomTreeColourSeed = 0;
     public bool readyToGrow = false;
 
@@ -368,25 +364,6 @@ public class MapObjGen : MonoBehaviour
 
         yield break;
     }
-
-    public IEnumerator CheckOverWater(List<GameObject> list)
-    {
-        foreach (GameObject obj in list)
-        {
-            if (IsOverWater(obj, checkOffset, out float hitPointY))
-            {
-                // Adjust emitter position to the hit point Y-coordinate
-                obj.transform.position = new Vector3(obj.transform.position.x, hitPointY, obj.transform.position.z);
-            }
-            else
-            {
-                Destroy(obj);
-            }
-        }
-
-        yield break;
-    }
-
 
     public static bool IsOverWater(GameObject obj, float emitterYOffset, out float hitPointY)
     {
@@ -464,14 +441,19 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (GameObject g in npcList)
         {
-            AudioSFXManager audio = g.GetComponentInChildren<AudioSFXManager>();
-
-            if (audio != null) { 
-            audio.player = player;
-            audio.behaviours = playerBehaviours;
-            } else
+            if (g != null)
             {
-                continue;
+                AudioSFXManager audio = g.GetComponentInChildren<AudioSFXManager>();
+
+                if (audio != null)
+                {
+                    audio.player = player;
+                    audio.behaviours = playerBehaviours;
+                }
+                else
+                {
+                    continue;
+                }
             }
         }
 
@@ -530,7 +512,6 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler mushroomSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumMushroomRadius);
         PoissonDiscSampler fireWoodSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumFireWoodRadius);
         PoissonDiscSampler seaShellSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumSeaShellRadius);
-        PoissonDiscSampler pedestalSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumPedestalRadius);
         PoissonDiscSampler caveSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumCaveRadius);
         PoissonDiscSampler humanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumHumanRadius);
         PoissonDiscSampler limeStoneSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumLimeStoneRadius);
@@ -546,7 +527,6 @@ public class MapObjGen : MonoBehaviour
         MushroomPoissonDisc(mushroomSampler);
         //FireWoodPoissonDisc(fireWoodSampler);
         //SeaShellPoissonDisc(seaShellSampler);
-        //PedestalPoissonDisc(pedestalSampler);
         //CavePoissonDisc(caveSampler);
         SpawnPointsPoissonDisc(spawnPointsSampler);
         HumanPoissonDisc(humanSampler);
@@ -556,21 +536,12 @@ public class MapObjGen : MonoBehaviour
 
         SetOffset();
 
-        foreach (GameObject obj in mapObjectList)
-        {
-            if (!obj.CompareTag(limeStoneTag) && !obj.CompareTag(templeTag))
-            {
-                GroundCheck(obj);
-            }
-        }
+        GroundCheck(mapObjectList);
+        GroundCheck(spawnPointsList);
 
-        foreach (GameObject obj in spawnPointsList)
-        {
-            GroundCheck(obj);
-        }
-
-        StartCoroutine(WaterSFXEmitterGen());
         StartCoroutine(CheckOverWater(limeStoneList));
+        StartCoroutine(WaterSFXEmitterGen());
+        DestroyDeadZones();
 
         ListCleanup(spawnPointsList);
         ListCleanup(mapObjectList);
@@ -584,11 +555,11 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(limeStoneList);
         ListCleanup(templeList);
 
-        DestroyDeadZones();
+        GenerateTemples();
 
         mapObjectsGenerated = true;
 
-        SetupCorruptionControl(mapObjectList);
+        SetupCorruptionControl();
 
         InitAudioManager();
 
@@ -602,6 +573,7 @@ public class MapObjGen : MonoBehaviour
 
         SpawnPlayer();
 
+        SetupShaderLightColours();
         SetupDeformers();
         SetupDisasters();
         StartCoroutine(InitAllRelationships());
@@ -611,6 +583,88 @@ public class MapObjGen : MonoBehaviour
         //RandomizeTreecolours();
 
     }
+
+    void GroundCheck(List<GameObject> objectsList)
+    {
+        for (int i = objectsList.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = objectsList[i];
+            if (!obj.CompareTag(limeStoneTag))
+            {
+                if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity))
+                {
+                    if (hit.collider.CompareTag(waterTag) || hit.collider == null)
+                    {
+                        DestroyObject(obj);
+                        objectsList.RemoveAt(i);
+                    }
+                }
+                else
+                {
+                    // Object is either null or not properly positioned, remove from list
+                    objectsList.RemoveAt(i);
+                }
+            }
+
+
+            AnchorToGround(obj);
+        }
+    }
+
+    void DestroyObject(GameObject obj)
+    {
+        if (Application.isEditor)
+        {
+            DestroyImmediate(obj);
+        }
+        else
+        {
+            Destroy(obj);
+        }
+    }
+
+
+
+    public IEnumerator CheckOverWater(List<GameObject> list)
+    {
+        // Iterate in reverse order to safely remove items from the list
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = list[i];
+            if (obj != null && IsOverWater(obj, checkOffset, out float hitPointY))
+            {
+                // Adjust emitter position to the hit point Y-coordinate
+                obj.transform.position = new Vector3(obj.transform.position.x, hitPointY, obj.transform.position.z);
+            }
+            else
+            {
+                // Destroy the object and remove it from the list
+                list.RemoveAt(i);
+                Destroy(obj);
+            }
+        }
+
+        yield break;
+    }
+
+    void SetupShaderLightColours()
+    {
+        foreach (GameObject obj in mapObjectList)
+        {
+            if (obj != null)
+            {
+                // Get all ShaderLightColor components in the children of the object
+                ShaderLightColor[] shaderComponents = obj.GetComponentsInChildren<ShaderLightColor>();
+
+                // Iterate through each ShaderLightColor component and assign timeCycleManager
+                foreach (ShaderLightColor shader in shaderComponents)
+                {
+                    shader.timeCycleManager = timeCycleManager;
+                }
+            }
+        }
+    }
+
 
     private void SetupDisasters()
     {
@@ -643,19 +697,24 @@ public class MapObjGen : MonoBehaviour
         for (int i = 0; i < populationSize; i++)
         {
             GameObject human = humanPopulationList[i];
-            float skinToneValue = i * stepSize;
-            Renderer[] renderers = human.GetComponentsInChildren<Renderer>();
 
-            foreach (Renderer renderer in renderers)
+            if (human != null)
             {
-                Material[] materials = renderer.materials;
-                foreach (Material material in materials)
+                float skinToneValue = i * stepSize;
+                Renderer[] renderers = human.GetComponentsInChildren<Renderer>();
+
+                foreach (Renderer renderer in renderers)
                 {
-                    material.SetFloat("_SkinTone", skinToneValue);
+                    Material[] materials = renderer.materials;
+                    foreach (Material material in materials)
+                    {
+                        material.SetFloat("_SkinTone", skinToneValue);
+                    }
                 }
             }
         }
     }
+
     void ListCleanup(List<GameObject> list)
     {
         for (var i = list.Count - 1; i > -1; i--)
@@ -848,41 +907,6 @@ public class MapObjGen : MonoBehaviour
 
     }
 
-    void PedestalPoissonDisc(PoissonDiscSampler pedestalSampler)
-    {
-        foreach (Vector2 sample in pedestalSampler.Samples())
-        {
-            GameObject randomPedestal = GetRandomMapObject(pedestals);
-
-            GameObject pedestalInstance = Instantiate(randomPedestal, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
-
-            pedestalInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-
-            /*
-            new Vector3(
-            Random.Range(minTreeScale.x, maxTreeScale.x),
-            Random.Range(minTreeScale.y, maxTreeScale.y),
-            Random.Range(minTreeScale.z, maxTreeScale.z));
-            */
-
-            pedestalInstance.tag = pedestalTag;
-
-            //int pedestalLayer = LayerMask.NameToLayer("Pedestal");
-            //pedestalInstance.layer = pedestalLayer;
-
-            mapObjectList.Add(pedestalInstance);
-
-            pedestalInstance.transform.SetParent(hierarchyRoot.transform);
-
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
-
-            // GrowTrees(treeInstance);
-
-        }
-    }
-
     private float GetDistanceFromCenter(GameObject mapObject)
     {
         float distanceFromCenter = Vector3.Distance(mapObject.transform.position, mapCenter);
@@ -890,71 +914,32 @@ public class MapObjGen : MonoBehaviour
         return distanceFromCenter;
     }
 
-    void SeaShellPoissonDisc(PoissonDiscSampler seaShellSampler)
+    void SetupCorruptionControl()
     {
-        minDistanceFromCenter = sampleHeight / 2;
-
-        foreach (Vector2 sample in seaShellSampler.Samples())
+        foreach (GameObject mapObj in mapObjectList)
         {
-            GameObject randomSeaShell = GetRandomMapObject(seaShells);
-
-            GameObject seaShellInstance = Instantiate(randomSeaShell, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
-
-            seaShellInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-
-            float distanceFromCenter = GetDistanceFromCenter(seaShellInstance);
-
-            if (distanceFromCenter <= minDistanceFromCenter)
+            if (mapObj != null)
             {
-                if (Application.isEditor)
+                CorruptionControl corruptionControl = mapObj.transform.gameObject.GetComponentInChildren<CorruptionControl>();
+                if (corruptionControl == null)
                 {
-                    Debug.Log("Object destroyed in Editor.");
-                    DestroyImmediate(seaShellInstance);
-                }
-                else if (!Application.isEditor)
-                {
-                    Debug.Log("Object destroyed in game.");
-                    Destroy(seaShellInstance);
+                    corruptionControl = mapObj.transform.gameObject.AddComponent<CorruptionControl>();
                 }
 
-                continue;
+                corruptionControl.rain = rainControl;
+                corruptionControl.player = player;
+                corruptionControl.behaviours = playerBehaviours;
+
+                if (mapObj.transform.CompareTag("Animal"))
+                {
+                    corruptionControl.newMin = 1;
+                    corruptionControl.newMax = 0;
+                }
+
+                corruptionControl.CorruptionModifierActive = true;
+
+                corruptionControl.InitCorruption();
             }
-
-            if (distanceFromCenter >= minDistanceFromCenter)
-            {
-
-                seaShellInstance.transform.SetParent(hierarchyRoot.transform);
-
-                mapObjectList.Add(seaShellInstance);
-            }
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
-        }
-    }
-
-    void SetupCorruptionControl(List<GameObject> list)
-    {
-        foreach (GameObject mapObj in list)
-        {
-            CorruptionControl corruptionControl = mapObj.transform.gameObject.GetComponent<CorruptionControl>();
-            if (corruptionControl == null)
-            {
-                corruptionControl = mapObj.transform.gameObject.AddComponent<CorruptionControl>();
-            }
-
-            corruptionControl.rain = rainControl;
-            corruptionControl.player = player;
-            corruptionControl.behaviours = playerBehaviours;
-
-            if (mapObj.transform.CompareTag("Animal"))
-            {
-                corruptionControl.newMin = 1;
-                corruptionControl.newMax = 0;
-            }
-
-            corruptionControl.CorruptionModifierActive = true;
-
-            corruptionControl.InitCorruption();
         }
     }
 
@@ -1107,55 +1092,6 @@ public class MapObjGen : MonoBehaviour
 
     }
     
-    private IEnumerator StartTreeGrowth(List<GameObject> objectList)
-    {
-        ListCleanup(objectList);
-
-        foreach (GameObject growObject in objectList)
-        {
-            GrowTrees(growObject);
-        }
-
-        yield return null;
-    }
-
-
-    void AppleTreePoissonDisc(PoissonDiscSampler appleTreeSampler) {
-
-        foreach (Vector2 sample in appleTreeSampler.Samples())
-        {
-
-            GameObject randomAppleTree = GetRandomMapObject(appleTrees);
-
-            GameObject appleTreeInstance = Instantiate(randomAppleTree, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
-
-            appleTreeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-
-            /*
-            new Vector3(
-            Random.Range(minTreeScale.x, maxTreeScale.x),
-            Random.Range(minTreeScale.y, maxTreeScale.y),
-            Random.Range(minTreeScale.z, maxTreeScale.z));
-            */
-
-            //treeInstance.tag = treeTag;
-
-            int appleTreeLayer = LayerMask.NameToLayer("AppleTree");
-//            appleTreeInstance.layer = appleTreeLayer;
-
-            mapObjectList.Add(appleTreeInstance);
-
-            appleTreeInstance.transform.SetParent(hierarchyRoot.transform);
-
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
-
-            GrowTrees(appleTreeInstance);
-        }
-
-    }
-
     //private TreeAudioSFX treeAudio;
 
     public void GrowTrees(GameObject tree)
@@ -1332,8 +1268,7 @@ public class MapObjGen : MonoBehaviour
         foreach (Vector2 sample in limeStoneSamples.Samples())
         {
             GameObject randomLimeStone = GetRandomMapObject(limeStones);
-            float limeStoneYBoost = 35;
-            GameObject limeStoneInstance = Instantiate(randomLimeStone, new Vector3(sample.x, initY + limeStoneYBoost, sample.y), Quaternion.identity);
+            GameObject limeStoneInstance = Instantiate(randomLimeStone, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
             limeStoneInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
             limeStoneInstance.transform.localScale = new Vector3(
             Random.Range(minLimeStoneScale.x, minLimeStoneScale.x),
@@ -1352,7 +1287,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (Vector2 sample in templeSamples.Samples())
         {
-            GameObject randomTemple = GetRandomMapObject(limeStones);
+            GameObject randomTemple = GetRandomMapObject(temples);
             GameObject templeInstance = Instantiate(randomTemple, new Vector3(sample.x, initY, sample.y), Quaternion.identity);
             templeInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
 
@@ -1362,6 +1297,15 @@ public class MapObjGen : MonoBehaviour
             templeInstance.transform.SetParent(hierarchyRoot.transform);
             mapObjectList.Add(templeInstance);
             templeList.Add(templeInstance);
+        }
+    }
+
+    void GenerateTemples()
+    {
+        foreach(GameObject temple in templeList)
+        {
+            TempleGenerator templeGen = temple.GetComponentInChildren<TempleGenerator>();
+            templeGen.GenerateTemple();
         }
     }
 
@@ -1451,43 +1395,7 @@ public class MapObjGen : MonoBehaviour
             mapObjectList.Add(fireWoodInstance);
         }
     }
-    
-    void GroundCheck(GameObject obj)
-    {
-
-        if (Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit downHit, Mathf.Infinity))
-        {
-            //Debug.DrawRay(mapObject.transform.position, Vector3.down, Color.red);
-
-            if (downHit.collider.CompareTag(waterTag))
-            {
-                DestroyObject();
-                //Debug.Log("Water Ahoy!");
-            }
-
-            if (downHit.collider == null)
-            {
-                DestroyObject();
-                //Debug.Log("Nothing detected.");
-            }
-        }
-
-        void DestroyObject()
-        {
-            if (Application.isEditor)
-            {
-                DestroyImmediate(obj);
-                // Debug.Log("Object destroyed in Editor.");
-            }
-            else if (!Application.isEditor)
-            {
-                Destroy(obj);
-                // Debug.Log("Object destroyed in game.");
-            }
-        }
-
-        AnchorToGround(obj);
-    }
+   
 
     void AnchorToGround(GameObject obj)
     {
@@ -1515,36 +1423,38 @@ public class MapObjGen : MonoBehaviour
 
     void DestroyDeadZones()
     {
-        foreach (GameObject gameObject in mapObjectList)
+        for (int i = mapObjectList.Count - 1; i >= 0; i--)
         {
-            if (Physics.Raycast(gameObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+            GameObject gameObject = mapObjectList[i];
+            if (gameObject != null)
             {
-                if (hitFloor.collider.CompareTag("DeadZone"))
+                if (Physics.Raycast(gameObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
                 {
-                    //Debug.Log("DeadZone hit.");
-                    DestroyObject();
-                }
-
-                continue;
-            }
-
-
-            void DestroyObject()
-            {
-                if (Application.isEditor)
-                {
-                    Debug.Log("Object destroyed in Editor.");
-                    DestroyImmediate(mapObject);
-                }
-                else
-                {
-                    Debug.Log("Object destroyed in game.");
-                    Destroy(mapObject);
+                    if (hitFloor.collider.CompareTag("DeadZone") && !gameObject.CompareTag("Structure"))
+                    {
+                        mapObjectList.RemoveAt(i); // Remove from list to keep it updated
+                        DestroyObject(gameObject);
+                    }
                 }
             }
         }
-        
+
+        void DestroyObject(GameObject obj)
+        {
+            if (Application.isEditor)
+            {
+                Debug.Log("Object destroyed in Editor.");
+                DestroyImmediate(obj);
+            }
+            else
+            {
+                Debug.Log("Object destroyed in game.");
+                Destroy(obj);
+            }
+        }
     }
+
+
 
     void SetOffset()
     {
