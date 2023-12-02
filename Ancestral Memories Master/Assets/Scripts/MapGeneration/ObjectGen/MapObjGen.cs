@@ -62,6 +62,7 @@ public class MapObjGen : MonoBehaviour
 
     [SerializeField] private LayerMask caveLayerMask;
     [SerializeField] private LayerMask groundLayerMask;
+    [SerializeField] private LayerMask groundAndWaterLayerMask;
     [SerializeField] private LayerMask deadZoneLayerMask;
 
     [Header("========================================================================================================================")]
@@ -591,7 +592,7 @@ public class MapObjGen : MonoBehaviour
             GameObject obj = objectsList[i];
             if (!obj.CompareTag(limeStoneTag))
             {
-                if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity))
+                if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundAndWaterLayerMask))
                 {
                     if (hit.collider.CompareTag(waterTag) || hit.collider == null)
                     {

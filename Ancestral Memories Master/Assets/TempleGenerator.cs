@@ -19,10 +19,12 @@ public class TempleGenerator : MonoBehaviour
     public float basePlatformSpacing = 5f;
     [SerializeField] private float sizeMultiplier = 1f; // Serialized property for size multiplier
 
-    private bool isGenerated = false;
+    [SerializeField] private bool isGenerated = false;
     private float raycastOffset = 10f;
 
-    private LayerMask groundLayer;
+    [SerializeField] private LayerMask groundAndWaterLayerMask;
+    [SerializeField] private LayerMask groundLayer;
+
     private string waterTag = "Water";
 
     private GameObject templeColliderObject;
@@ -30,9 +32,8 @@ public class TempleGenerator : MonoBehaviour
     float appliedCircleRadius;
     float appliedPlatformSpacing;
 
-    private void OnEnable()
+    private void Awake()
     {
-        groundLayer = LayerMask.NameToLayer("Ground");
         appliedCircleRadius = baseCircleRadius * sizeMultiplier;
         appliedPlatformSpacing = basePlatformSpacing * sizeMultiplier;
         AddOrUpdateSphereCollider(appliedCircleRadius, appliedPlatformSpacing);
@@ -94,10 +95,6 @@ public class TempleGenerator : MonoBehaviour
         // Perform ground check and adjustment only if in play mode
         if (Application.isPlaying)
         {
-            // Adjust the object's position upwards by the raycast offset
-            obj.transform.position += Vector3.up * 50;
-
-            // Perform the ground check and adjust position if necessary
             GroundCheck(obj);
         }
     }
@@ -106,7 +103,9 @@ public class TempleGenerator : MonoBehaviour
 
     void GroundCheck(GameObject obj)
     {
-        if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity))
+        obj.transform.position += Vector3.up * 50;
+
+        if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundAndWaterLayerMask))
         {
             if (hit.collider.CompareTag(waterTag) || hit.collider == null)
             {
