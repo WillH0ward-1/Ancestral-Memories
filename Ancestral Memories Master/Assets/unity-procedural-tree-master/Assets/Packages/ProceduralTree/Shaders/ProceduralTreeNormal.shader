@@ -3,17 +3,19 @@
         _EnableNoise ("Enable Noise", Range(0, 1)) = 1.0
         _T ("Growing", Range(0.0, 1.0)) = 1.0
         _MainTex ("Albedo", 2D) = "white" {}
-        _LightColor ("Light Color", Color) = (1,1,1,1)
+        _LightColor ("Light Color", Color) = (1, 1, 1, 1)
         _NoiseScaleX ("Noise Scale X", Range(0.01, 10)) = 1.0
         _NoiseScaleY ("Noise Scale Y", Range(0.01, 10)) = 1.0
         _NoiseScaleZ ("Noise Scale Z", Range(0.01, 10)) = 1.0
         _NoiseAmount ("Noise Amount", Range(0.0, 1.0)) = 0.1
         _TimeScale ("Time Scale", Range(0.0, 2.0)) = 1.0
+        _ColorOverride ("Color Override", Color) = (0.5, 0.5, 0.5, 1)
+        _ColorOverrideAmount ("Color Override Amount", Range(0.0, 1.0)) = 1.0 // Added slider
     }
+
     SubShader {
         Tags { "RenderType"="Opaque" }
         LOD 100
-
         Cull Off 
 
         Pass {
@@ -28,6 +30,8 @@
             uniform float _EnableNoise;
             sampler2D _MainTex;
             float4 _LightColor;
+            float4 _ColorOverride; // New color override property
+            float _ColorOverrideAmount; // Added variable for color override amount
             float _NoiseScaleX, _NoiseScaleY, _NoiseScaleZ, _NoiseAmount, _TimeScale;
 
             struct appdata {
@@ -73,8 +77,9 @@
                 fixed4 albedo_back = tex2D(_MainTex, 1 - i.uv);
                 fixed4 albedo = lerp(albedo_front, albedo_back, step(0.5, i.uv.y));
                 
+                // Blend _ColorOverride with _LightColor and multiply with albedo.rgb
                 fixed4 c;
-                c.rgb = albedo.rgb * _LightColor.rgb;
+                c.rgb = albedo.rgb * lerp(_LightColor.rgb, _ColorOverride.rgb, _ColorOverride.a * _ColorOverrideAmount);
                 c.a = albedo.a;
                 
                 return c;

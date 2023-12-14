@@ -98,7 +98,7 @@ public class LightningStrike : MonoBehaviour
                 deathAnimationTrigger = () =>
                 {
                     var humanAI = target.GetComponentInChildren<HumanAI>();
-                    StartCoroutine(humanAI.DeathElectrocution());
+                    humanAI.ChangeState(HumanAI.AIState.Electrocution);
                 };
                 break;
 

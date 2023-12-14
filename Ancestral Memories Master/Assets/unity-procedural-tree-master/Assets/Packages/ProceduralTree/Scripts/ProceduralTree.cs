@@ -254,37 +254,57 @@ namespace ProceduralModeling
 				segmentedMesh.triangles = combinedSegmentMesh.triangles.ToArray();
 				meshFilter.mesh = segmentedMesh;
 
-				// Parent it under a common root for organization
-				segmentObj.transform.SetParent(transform);
+				// Create an empty parent GameObject with a name suffix
+				GameObject parentObj = new GameObject(objName + "Parent");
+
+				// Parent the segmentObj under the common root for organization
+				segmentObj.transform.SetParent(parentObj.transform);
 				segmentObj.transform.localPosition = Vector3.zero;
 				segmentObj.transform.localRotation = Quaternion.identity;
 				segmentObj.transform.localScale = Vector3.one;
 				segmentObj.AddComponent<CollisionNotifier>();
+
 				// Add the new GameObject to the list
-				segmentObjects.Add(segmentObj);
+				segmentObjects.Add(parentObj); // Add the parent to the list if needed
+
 			}
 		}
 
-		void HideSegments()
-        {
-			solidTreeRenderer.enabled = true;
-
-			foreach(GameObject segment in segmentObjects)
-            {
-				segment.transform.gameObject.SetActive(false);
-			}
-        }
-
-		void ShowSegments()
+		public void HideSegments()
 		{
+			if (!solidTreeRenderer.enabled)
+			{
+				return;
+			}
+
 			solidTreeRenderer.enabled = false;
 
 			foreach (GameObject segment in segmentObjects)
 			{
-				segment.transform.gameObject.SetActive(true);
+				if (segment.transform.gameObject.activeSelf)
+				{
+					segment.transform.gameObject.SetActive(false);
+				}
 			}
 		}
 
+		public void ShowSegments()
+		{
+			if (solidTreeRenderer.enabled)
+			{
+				return;
+			}
+
+			solidTreeRenderer.enabled = true;
+
+			foreach (GameObject segment in segmentObjects)
+			{
+				if (!segment.transform.gameObject.activeSelf)
+				{
+					segment.transform.gameObject.SetActive(true);
+				}
+			}
+		}
 
 		public void ClearSegmentObjects()
 		{
@@ -343,6 +363,47 @@ namespace ProceduralModeling
 				}
 			}
 		}
+
+		IEnumerator SmallBurstCoroutine()
+		{
+			if (ptGrow.ValidateTree())
+			{
+				ptGrow.KillTree();
+				ShowSegments();
+
+				int start = lastPhysicsEnabledIndex + 1;
+				int maxRange = segmentObjects.Count - start;
+
+				if (maxRange <= 0)
+				{
+					Debug.LogWarning("No more segments available to enable physics on.");
+					yield break;
+				}
+
+				int numSegments = UnityEngine.Random.Range(1, 4);
+
+				for (int i = start; i < start + numSegments && i < segmentObjects.Count; i++)
+				{
+					if (segmentObjects[i].name != "TreeRoot")
+					{
+						AssignPhysics(segmentObjects[i]);
+					}
+
+					lastPhysicsEnabledIndex = i;
+
+					// Optionally yield every few iterations to spread the load
+					if (i % 5 == 0)
+						yield return null;
+				}
+			}
+		}
+
+		// Call this method to enable physics on a random number of segments between 1 and 3 (small burst).
+		public void SmallBurst()
+		{
+			StartCoroutine(SmallBurstCoroutine());
+		}
+
 
 		public void EnablePhysicsInBurstMode()
 		{

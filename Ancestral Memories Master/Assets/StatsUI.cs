@@ -94,11 +94,11 @@ public class StatsUI : MonoBehaviour
 
     public float hideUIthreshold = 50;
 
-    private bool InRange()
+    private bool InRange(GameObject target)
     {
         bool inRange;
 
-        float distance = Vector3.Distance(transform.position, player.transform.position);
+        float distance = Vector3.Distance(transform.position, target.transform.position);
 
         if (distance >= hideUIthreshold)
         {
@@ -114,11 +114,13 @@ public class StatsUI : MonoBehaviour
 
     private void Update()
     {
-        if (!transform.CompareTag("Player") && InRange())
+        if (!transform.CompareTag("Player") && !transform.CompareTag("Animal") && InRange(player.gameObject))
         {
+            ShowUI();
             UpdateUI();
         } else if (transform.CompareTag("Player"))
         {
+            ShowUI();
             UpdateUI();
         } else
         {
@@ -128,22 +130,34 @@ public class StatsUI : MonoBehaviour
 
     public void HideUI()
     {
-        uiParent.SetActive(false);  // Deactivate the parent GameObject, which will hide all children
-        isUIVisible = false;        // Update the flag
+        if (uiParent.activeSelf)
+        {
+            uiParent.SetActive(false);  // Deactivate the parent GameObject, which will hide all children
+        }
+
+        if (isUIVisible)
+        {
+            isUIVisible = false;        // Update the flag
+        }
     }
 
     public void ShowUI()
     {
-        uiParent.SetActive(true);  // Activate the parent GameObject, which will show all children
-        isUIVisible = true;        // Update the flag
+        if (!uiParent.activeSelf)
+        {
+            uiParent.SetActive(true);  // Activate the parent GameObject, which will show all children
+        }
+
+        if (!isUIVisible)
+        {
+            isUIVisible = true;        // Update the flag
+        }
     }
 
 
     private void UpdateUI()
     {
-        if (!isUIVisible) {
-            isUIVisible = true;
-        }
+        ShowUI();
 
         float totalHeight = healthFillRect.rect.height;
         if (stats.useFaith)

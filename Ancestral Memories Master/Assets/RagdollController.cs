@@ -142,8 +142,6 @@ public class RagdollController : MonoBehaviour
 
     public void TriggerRagdoll()
     {
-        humanAI.RemoveFromPopulation();
-
         EnableRagdoll();
     }
 
@@ -272,8 +270,6 @@ public class RagdollController : MonoBehaviour
         {
             humanAI.StartCoroutine(humanAI.GetUp(false));
         }
-
-        humanAI.AddToPopulation();
 
         isRagdollActive = false;
     }

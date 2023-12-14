@@ -25,6 +25,10 @@ public class DisasterManager : MonoBehaviour
 
     private Transform lastStruckTarget = null; // Field to store the last target
 
+    private void Awake()
+    {
+        fireManager = GetComponentInChildren<FireManager>();
+    }
 
     public void InitDisasters()
     {
@@ -35,23 +39,26 @@ public class DisasterManager : MonoBehaviour
     {
         List<Transform> allTargets = new List<Transform>();
         allTargets.AddRange(humanTargets.ConvertAll(h => h.transform));
-        allTargets.AddRange(animalTargets.ConvertAll(a => a.transform));
+        //allTargets.AddRange(animalTargets.ConvertAll(a => a.transform));
         allTargets = allTargets.OrderBy(x => Random.value).ToList();
 
         float currentTime = Time.time;
-        foreach (Transform target in allTargets)
+        allTargets.RemoveAll(target =>
+            target == null || !IsValidTarget(target) ||
+            struckTargets.Any(st => st.TargetTransform == target && st.EligibleTime > currentTime) ||
+            target == lastStruckTarget ||
+            fireManager.IsAlreadyOnFire(target.gameObject)
+        );
+
+        if (allTargets.Count > 0)
         {
-            if (target != null && IsValidTarget(target)
-                && !struckTargets.Any(st => st.TargetTransform == target && st.EligibleTime > currentTime)
-                && target != lastStruckTarget) // Exclude the last struck target
-            {
-                return target;
-            }
+            return allTargets[Random.Range(0, allTargets.Count)];
         }
 
         Debug.Log("No valid target found for lightning strike.");
         return null;
     }
+
 
     private bool IsValidTarget(Transform target)
     {
@@ -77,6 +84,7 @@ public class DisasterManager : MonoBehaviour
 
     [SerializeField] float minCountdown = 10;
     [SerializeField] float maxCountdown = 30;
+    private FireManager fireManager;
 
     public IEnumerator DisasterCountdown()
     {
@@ -107,11 +115,10 @@ public class DisasterManager : MonoBehaviour
             lastStruckTarget = target; // Update the last struck target
 
             struckTargets.RemoveAll(st => st.EligibleTime <= Time.time);
+
         }
-        else
-        {
-            StartCoroutine(DisasterCoolDown());
-        }
+
+        StartCoroutine(DisasterCoolDown());
     }
     [SerializeField] float minDisasterRetrigger = 10;
     [SerializeField] float maxDisasterRetrigger = 30;

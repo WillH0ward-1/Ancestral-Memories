@@ -50,11 +50,14 @@ public class FireManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
         flammableLayerMask = LayerMask.GetMask("Trees", "Human", "Animals");
+
         InitializePool();
     }
 
     private Dictionary<GameObject, List<GameObject>> flammableObjectsToFirePoints = new Dictionary<GameObject, List<GameObject>>();
+
     private int firePointIndex;
 
     public void GenerateFirePoints()
@@ -98,49 +101,29 @@ public class FireManager : MonoBehaviour
         }
     }
 
-
-
-    private Transform FindRigInChildren(Transform parent)
-    {
-        Transform[] allChildren = parent.GetComponentsInChildren<Transform>();
-        foreach (Transform child in allChildren)
-        {
-            if (child.CompareTag("Rig"))
-            {
-                return child;
-            }
-        }
-        return null;
-    }
-
     [SerializeField] private int desiredNumberOfFirePoints = 10; // The target number of fire points you want
 
+    public Vector3 defaultMaxScale = new Vector3(35,35,35);
+    public Vector3 treeMaxScale = new Vector3(55, 55, 55);
+   
     private void CreateFirePoints(GameObject rigObject, List<GameObject> firePoints)
     {
         Transform[] allChildren = rigObject.GetComponentsInChildren<Transform>();
 
-        // Calculate dynamic resolution based on the desired number of fire points
         int dynamicResolution = Mathf.Max(1, allChildren.Length / desiredNumberOfFirePoints);
 
-        // Starting at 1 to skip the root object itself.
         for (int i = 1; i < allChildren.Length; i += dynamicResolution)
         {
-            // Skip the root 'rigObject' transform if you only want fire points on the children.
             if (allChildren[i] == rigObject.transform) continue;
 
-            // Check if the current child has a NonFlammable component.
             if (allChildren[i].GetComponent<NonFlammable>() != null) continue;
 
-            // We create a fire point for the current node.
             GameObject firePoint = new GameObject($"FirePoint_{firePointIndex++}");
             firePoint.transform.SetParent(allChildren[i], false);
             firePoint.transform.localPosition = Vector3.zero;
             firePoints.Add(firePoint);
         }
     }
-
-    private Coroutine fireCoroutine;
-    private Coroutine fireControlCoroutine;
 
     public IEnumerator StartFireOnObject(GameObject target)
     {
@@ -149,79 +132,161 @@ public class FireManager : MonoBehaviour
             yield break;
         }
 
+
+        ObjectOnFire(target, true);
+
+        if (!fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
+        {
+            coroutinesList = new List<Coroutine>();
+            fireCoroutines[target] = coroutinesList;
+        }
+
+        ParticleSystem fireParticles = null;
+
         HumanAI humanAI = null;
+
         if (target.CompareTag("Human"))
         {
             humanAI = target.GetComponentInChildren<HumanAI>();
-            humanAI.ChangeState(HumanAI.AIState.RunningPanic);
+            if (humanAI != null)
+            {
+                if (!humanAI.isElectrocuted || !humanAI.isGettingUp){
+                        humanAI.ChangeState(HumanAI.AIState.RunningPanic);
+                    }
+            }
         }
-
-        ObjectOnFire(target, true);
-        Coroutine controlCoroutine = null;
 
         if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
         {
             foreach (GameObject firePoint in firePoints)
             {
                 yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
+
                 GameObject fireInstance = GetFireFromPool();
                 if (fireInstance == null)
                 {
                     continue;
                 }
+
                 fireInstance.transform.position = firePoint.transform.position;
                 fireInstance.transform.SetParent(firePoint.transform);
+                fireParticles = fireInstance.GetComponent<ParticleSystem>();
 
-                controlCoroutine = StartCoroutine(ControlFire(fireInstance, target));
+                Coroutine controlCoroutine = StartCoroutine(ControlFire(fireInstance, target, humanAI, fireParticles, defaultMaxScale));
+                coroutinesList.Add(controlCoroutine);
             }
         }
 
-        Coroutine startFireCoroutine = StartCoroutine(CoolDown(target));
-        fireCoroutines[target] = (startFireCoroutine, controlCoroutine);
-
-        StartCoroutine(StartFireStopCountDown(target, humanAI));
+        StartCoroutine(StartFireStopCountDown(target, humanAI, coroutinesList, fireParticles));
     }
 
-    private void CheckForFlammableObjects(GameObject fireInstance, GameObject target)
+    public IEnumerator StartFireOnSegments(GameObject target)
+    {
+        if (coolDownDictionary.TryGetValue(target, out bool isCoolingDown) && isCoolingDown)
+        {
+            yield break;
+        }
+
+        List<GameObject> segmentObjects;
+        ProceduralTree proceduralTree = target.GetComponentInChildren<ProceduralTree>();
+        PTGrowing ptGrowing = target.GetComponentInChildren<PTGrowing>();
+
+        segmentObjects = proceduralTree.segmentObjects;
+
+        if (segmentObjects.Count == 0)
+        {
+            Debug.LogWarning("No segments found for starting fire.");
+            yield break;
+        }
+
+        StartCoroutine(ptGrowing.BurnEffectUp());
+
+        proceduralTree.ShowSegments();
+
+        ObjectOnFire(target, true);
+
+        if (!fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
+        {
+            coroutinesList = new List<Coroutine>();
+            fireCoroutines[target] = coroutinesList;
+        }
+
+        ParticleSystem fireParticles = null;
+
+
+        foreach (GameObject firePoint in segmentObjects)
+        {
+            yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
+
+            proceduralTree.SmallBurst();
+
+            GameObject fireInstance = GetFireFromPool();
+            if (fireInstance == null)
+            {
+                continue;
+            }
+
+            fireInstance.transform.position = firePoint.transform.position;
+            fireInstance.transform.SetParent(firePoint.transform);
+            fireParticles = fireInstance.GetComponent<ParticleSystem>();
+
+            Coroutine controlCoroutine = StartCoroutine(ControlFire(fireInstance, target, null, fireParticles, treeMaxScale));
+            coroutinesList.Add(controlCoroutine);
+        }
+        
+
+        StartCoroutine(StartFireStopCountDown(target, null, coroutinesList, fireParticles));
+    }
+
+    private void CheckForFlammableObjects(GameObject fireInstance, HumanAI humanAI)
     {
         Collider[] hitColliders = Physics.OverlapSphere(fireInstance.transform.position, checkRadius, flammableLayerMask);
 
         foreach (var hitCollider in hitColliders)
         {
             GameObject hitObj = hitCollider.gameObject;
+            Coroutine fireCoroutine = null; // Initialize to null
 
-            if (IsFlammable(hitObj) && !IsAlreadyOnFire(hitObj))
+            if (hitObj != null && IsFlammable(hitObj) && !IsAlreadyOnFire(hitObj))
             {
                 if (hitObj.CompareTag("Trees"))
                 {
                     if (!hitObj.GetComponentInChildren<PTGrowing>().ValidateTree()) continue;
+                    fireCoroutine = StartCoroutine(StartFireOnSegments(hitObj));
+                }
+                else if (hitObj.CompareTag("Human") && humanAI != null)
+                {
+                    if (humanAI.isElectrocuted || humanAI.isGettingUp)
+                    {
+                        return;
+                    }
                 }
 
-                // StartFireOnObject coroutine is started and tracked for each flammable object
-                Coroutine newFireCoroutine = StartCoroutine(StartFireOnObject(hitObj));
+                if (fireCoroutine == null) // Only assign if it wasn't assigned earlier
+                {
+                    fireCoroutine = StartCoroutine(StartFireOnObject(hitObj));
+                }
+
                 objectsOnFire.Add(hitObj);
 
-                // Update the dictionary with the new coroutine, keep the existing control coroutine if present
-                if (fireCoroutines.TryGetValue(hitObj, out var existingCoroutines))
+                if (!fireCoroutines.TryGetValue(hitObj, out List<Coroutine> coroutinesList))
                 {
-                    fireCoroutines[hitObj] = (newFireCoroutine, existingCoroutines.controlFireCoroutine);
+                    coroutinesList = new List<Coroutine>();
+                    fireCoroutines[hitObj] = coroutinesList;
                 }
-                else
-                {
-                    fireCoroutines[hitObj] = (newFireCoroutine, null);
-                }
+                coroutinesList.Add(fireCoroutine);
             }
         }
     }
 
-    private Dictionary<GameObject, (Coroutine startFireCoroutine, Coroutine controlFireCoroutine)> fireCoroutines = new Dictionary<GameObject, (Coroutine, Coroutine)>();
 
 
-    private IEnumerator ControlFire(GameObject fireInstance, GameObject target)
+    private Dictionary<GameObject, List<Coroutine>> fireCoroutines = new Dictionary<GameObject, List<Coroutine>>();
+
+    public LayerMask waterDetectLayer;
+
+    private IEnumerator ControlFire(GameObject fireInstance, GameObject target, HumanAI humanAI, ParticleSystem fireParticles, Vector3 maxScale)
     {
-        ParticleSystem fireParticles = fireInstance.GetComponent<ParticleSystem>();
-        Vector3 maxScale = new Vector3(35, 35, 35); // Adjust max scale if needed
-
         // Initial scale should be zero
         fireInstance.transform.localScale = Vector3.zero;
 
@@ -240,6 +305,7 @@ public class FireManager : MonoBehaviour
             }
 
             fireInstance.transform.localScale = scale;
+            fireInstance.transform.rotation = Quaternion.identity; // Keep the fire upright
 
             yield return null;
         }
@@ -250,17 +316,26 @@ public class FireManager : MonoBehaviour
         while (elapsedTime < randomFireDuration)
         {
             elapsedTime += checkInterval;
-            CheckForFlammableObjects(fireInstance, target);
+
+            CheckForFlammableObjects(fireInstance, humanAI);
+
+            fireInstance.transform.rotation = Quaternion.identity; // Keep the fire upright
             yield return new WaitForSeconds(checkInterval);
         }
 
-        // Begin to reduce the emission rate and scale down the GameObject
-        time = 0;
+        StartCoroutine(ShrinkFire(fireInstance, fireParticles));
+    }
+
+    private IEnumerator ShrinkFire(GameObject fireInstance, ParticleSystem fireParticles)
+    {
+        float time = 0;
+        Vector3 currentScale = fireInstance.transform.localScale;
+
         while (time < endFireDuration)
         {
             time += Time.deltaTime;
             float lerpFactor = time / endFireDuration;
-            Vector3 scale = Vector3.Lerp(maxScale, Vector3.zero, lerpFactor);
+            Vector3 scale = Vector3.Lerp(currentScale, Vector3.zero, lerpFactor);
 
             if (fireParticles)
             {
@@ -274,8 +349,56 @@ public class FireManager : MonoBehaviour
         }
 
         ReturnFireToPool(fireInstance);
-        ObjectOnFire(target, false);
     }
+
+
+    public void StopFireOnObject(GameObject target, HumanAI humanAI, ParticleSystem fireParticles )
+    {
+        // Check if the target is null at the very beginning
+        if (target == null)
+        {
+            Debug.LogError("StopFireOnObject called with a null target.");
+            return;
+        }
+
+        // Logic specific to human targets
+        if (target.CompareTag("Human") && humanAI != null)
+        {
+            humanAI.stats.isTerrified = false;
+        }
+
+        // Stop all fire coroutines associated with the target
+        if (fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
+        {
+            foreach (Coroutine coroutine in coroutinesList)
+            {
+                if (coroutine != null)
+                {
+                    StopCoroutine(coroutine);
+                }
+            }
+            fireCoroutines.Remove(target);
+        }
+
+        // Handle fire points associated with the target
+        if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
+        {
+            foreach (GameObject firePoint in firePoints)
+            {
+                if (firePoint.transform.childCount > 0)
+                {
+                    GameObject fireInstance = firePoint.transform.GetChild(0).gameObject;
+                    StartCoroutine(ShrinkFire(fireInstance, fireParticles));
+                }
+            }
+        }
+
+        // Additional logic to handle when a fire is stopped on an object
+        ObjectOnFire(target, false);
+        Debug.Log($"Fire stopped on {target.name}");
+    }
+
+
 
 
     [SerializeField] private float coolDownTime = 15f;
@@ -293,50 +416,40 @@ public class FireManager : MonoBehaviour
         coolDownDictionary[target] = false;
     }
 
-    public IEnumerator StartFireStopCountDown(GameObject target, HumanAI humanAI)
+    public IEnumerator StartFireStopCountDown(GameObject target, HumanAI humanAI, List<Coroutine> coroutinesList, ParticleSystem fireParticles)
     {
-        yield return new WaitForSeconds(maxTotalFireDuration);
+        float startTime = Time.time;
 
-        StopFireOnObject(target);
-
-        if (target.CompareTag("Human") && humanAI != null)
+        // Check for human targets and perform continuous checking for revival
+        if (target != null && target.CompareTag("Human") && humanAI != null)
         {
-            StartCoroutine(humanAI.StopPanic());
-        }
-
-        yield break;
-
-    }
-
-    public void StopFireOnObject(GameObject target)
-    {
-        if (fireCoroutines.TryGetValue(target, out var coroutines))
-        {
-            if (coroutines.startFireCoroutine != null)
+            while (Time.time - startTime < maxTotalFireDuration)
             {
-                StopCoroutine(coroutines.startFireCoroutine);
-            }
-            if (coroutines.controlFireCoroutine != null)
-            {
-                StopCoroutine(coroutines.controlFireCoroutine);
-            }
-            fireCoroutines.Remove(target);
-        }
-
-        if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
-        {
-            foreach (GameObject firePoint in firePoints)
-            {
-                if (firePoint.transform.childCount > 0)
+                if (humanAI.isReviving)
                 {
-                    GameObject fireInstance = firePoint.transform.GetChild(0).gameObject;
-                    StopAndReturnFire(fireInstance);
+                    StopFireOnObject(target, humanAI, fireParticles);
+                    Coroutine coolDownCoroutine = StartCoroutine(CoolDown(target));
+                    coroutinesList.Add(coolDownCoroutine);
+                    yield break;
                 }
+                yield return null;
             }
         }
-        ObjectOnFire(target, false);
-    }
+        else
+        {
+            // For non-human targets, simply wait for the maxTotalFireDuration
+            yield return new WaitForSeconds(maxTotalFireDuration);
 
+        }
+        if (target != null)
+        {
+            // Stop fire and initiate cooldown for all targets
+            StopFireOnObject(target, humanAI, fireParticles);
+            Coroutine finalCoolDownCoroutine = StartCoroutine(CoolDown(target));
+            coroutinesList.Add(finalCoolDownCoroutine);
+        }
+        yield break;
+    }
 
     private void StopAndReturnFire(GameObject fireInstance)
     {
@@ -369,32 +482,51 @@ public class FireManager : MonoBehaviour
 
     private GameObject GetFireFromPool()
     {
-        GameObject obj;
+        GameObject obj = null;
 
-        if (firePool.Count > 0)
+        // Try to get an inactive fire instance from the pool
+        while (firePool.Count > 0)
         {
             obj = firePool.Dequeue();
+            if (obj != null && !obj.activeInHierarchy)
+            {
+                break; // Found a valid, inactive object
+            }
+            // If obj is null or active, continue to the next one in the pool
         }
-        else if (activeFires.Count > 0)
+
+        // If the pool is empty, try to recycle the oldest active fire instance
+        if (obj == null && activeFires.Count > 0)
         {
             Debug.LogWarning("Fire pool is empty. Recycling the oldest active fire instance.");
-            // Take the oldest active fire instance
             obj = activeFires[0];
             activeFires.RemoveAt(0); // Remove it from the active fires list
 
-            // Reset the fire as needed before reusing
-            ResetFire(obj);
+            if (obj != null)
+            {
+                // Reset the fire as needed before reusing
+                ResetFire(obj);
+            }
+            else
+            {
+                Debug.LogError("Encountered a null object in active fires list.");
+                return null; // Exit as no valid fire instance is found
+            }
         }
-        else
+
+        // If no valid fire instance is found
+        if (obj == null)
         {
             Debug.LogWarning("No available fires to recycle. All fires are active.");
             return null;
         }
 
+        // Activate the fire instance and add it to the active fires list
         obj.SetActive(true);
-        activeFires.Add(obj); // Add the instance to the active fires list
+        activeFires.Add(obj);
         return obj;
     }
+
 
     private void ResetFire(GameObject fire)
     {
@@ -423,7 +555,7 @@ public class FireManager : MonoBehaviour
     public void StartFireAtPosition(Vector3 position)
     {
         GameObject fireInstance = GetFireFromPool();
-
+        ParticleSystem fireParticles = fireInstance.GetComponentInChildren<ParticleSystem>();
         // If the fire instance is null (meaning the pool was empty), exit the method.
         if (fireInstance == null)
         {
@@ -438,12 +570,20 @@ public class FireManager : MonoBehaviour
 
         fireInstance.transform.position = position;
 
-        StartCoroutine(ControlFire(fireInstance, null));
+        StartCoroutine(ControlFire(fireInstance, null, null, fireParticles, defaultMaxScale));
     }
 
-    private void FireCooldown()
+    private Transform FindRigInChildren(Transform parent)
     {
-
+        Transform[] allChildren = parent.GetComponentsInChildren<Transform>();
+        foreach (Transform child in allChildren)
+        {
+            if (child.CompareTag("Rig"))
+            {
+                return child;
+            }
+        }
+        return null;
     }
 
     private bool IsFlammable(GameObject obj)
@@ -452,7 +592,7 @@ public class FireManager : MonoBehaviour
         return ((flammableLayerMask.value & (1 << obj.layer)) > 0);
     }
 
-    private bool IsAlreadyOnFire(GameObject obj)
+    public bool IsAlreadyOnFire(GameObject obj)
     {
         // Check if the object is already in the set of objects on fire
         return objectsOnFire.Contains(obj);

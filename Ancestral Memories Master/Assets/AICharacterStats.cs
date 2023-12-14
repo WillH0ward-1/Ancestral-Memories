@@ -11,6 +11,7 @@ public class AICharacterStats : MonoBehaviour
     public string npcName;
     public int age = 0;
 
+    public bool isDying = false;
     public bool isDead = false;
 
     public float minStat = 0f;
@@ -76,6 +77,8 @@ public class AICharacterStats : MonoBehaviour
     public List<Relationship> relationships = new List<Relationship>();
 
     public MapObjGen mapObjGen;
+
+    private HumanAI humanAI;
 
 
     public virtual void OnAwake()
@@ -208,6 +211,11 @@ public class AICharacterStats : MonoBehaviour
 
     void Start()
     {
+        if (transform.CompareTag("Human"))
+        {
+            humanAI = GetComponentInChildren<HumanAI>();
+        }
+
         StartCoroutine(StartLifespanCheckWhenReady());
         GiveName();
     }
@@ -325,6 +333,11 @@ public class AICharacterStats : MonoBehaviour
         if (transform.CompareTag("Human"))
         {
             UpdateEvolution();
+
+            if (isDead && !isDying && humanAI != null)
+            {
+                humanAI.ChangeState(HumanAI.AIState.Die);
+            }
         }
     }
 

@@ -74,7 +74,7 @@ public class TempleGenerator : MonoBehaviour
     private void CreateObject(GameObject prefab, Vector3 position, Vector3 size, Material material)
     {
         // Instantiate the object at the given position
-        GameObject obj = Instantiate(prefab, position + Vector3.up * 50, Quaternion.identity, transform);
+        GameObject obj = Instantiate(prefab, position, Quaternion.identity, transform);
         obj.transform.localScale = size;
 
         Renderer renderer = obj.GetComponentInChildren<Renderer>();
@@ -92,7 +92,6 @@ public class TempleGenerator : MonoBehaviour
             }
         }
 
-        // Perform ground check and adjustment only if in play mode
         if (Application.isPlaying)
         {
             GroundCheck(obj);
@@ -118,8 +117,6 @@ public class TempleGenerator : MonoBehaviour
         }
         
     }
-
-
 
     private void DestroyObject(GameObject obj)
     {

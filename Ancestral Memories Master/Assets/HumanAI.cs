@@ -14,7 +14,7 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander, RunningPanic }
+    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander, RunningPanic, Die, Revive, Electrocution, GetUp }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -44,7 +44,7 @@ public class HumanAI : MonoBehaviour
     public CharacterBehaviours playerBehaviours;
 
     float timeStuck = 0;
-    [SerializeField] private bool shouldFlee = true;
+
     [SerializeField] private bool follow = false;
 
     public Player player;
@@ -69,7 +69,7 @@ public class HumanAI : MonoBehaviour
 
     public bool inRange = false;
 
-    private AICharacterStats stats;
+    public AICharacterStats stats;
 
     public enum EvolutionState { Neanderthal, MidSapien, Sapien }
     public EvolutionState currentEvolutionState;
@@ -79,6 +79,8 @@ public class HumanAI : MonoBehaviour
     public ResourcesManager resources;
 
     public Dictionary<AIState, Action<GameObject>> stateActions = new Dictionary<AIState, Action<GameObject>>();
+
+    private Seeker seeker;
 
     public void InitHuman()
     {
@@ -94,6 +96,7 @@ public class HumanAI : MonoBehaviour
         ragdollController = transform.GetComponentInChildren<RagdollController>();
         playerWalk = player.GetComponentInChildren<PlayerWalk>();
         stats = transform.GetComponentInChildren<AICharacterStats>();
+        seeker = transform.GetComponentInChildren<Seeker>();
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(Harvest(target));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
@@ -107,11 +110,6 @@ public class HumanAI : MonoBehaviour
 
     void Update()
     {
-        if (stats.isDead && !isDying)
-        {
-            StartCoroutine(Die());
-        }
-
         if (!stats.isDead)
         {
             switch (stats.evolution)
@@ -134,19 +132,42 @@ public class HumanAI : MonoBehaviour
         }
     }
 
-    private bool isDying = false;
+    public void DisableLookAt()
+    {
+        if (lookAnimator.enabled)
+        {
+            lookAnimator.enabled = false;
+        }
+    }
+
+    public void EnableLookAt()
+    {
+        if (!lookAnimator.enabled)
+        {
+            lookAnimator.enabled = true;
+        }
+    }
 
     public IEnumerator Die()
     {
-        isDying = true;
+        DisableLookAt();
+
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        stats.isDying = true;
         behaviourIsActive = true;
 
+        RemoveFromPopulation();
+
         ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallBackwards);
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
 
         if (stats.faith >= stats.maxStat / 2)
         {
-            StartCoroutine(Revive(false));
+            AddToPopulation();
+            ChangeState(AIState.Revive);
         } else
         {
             yield break;
@@ -155,8 +176,15 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
+    public bool isReviving = false;
+
     public IEnumerator Revive(bool onFront)
     {
+        behaviourIsActive = true;
+        isReviving = true;
+
+        stats.isDead = false;
+        stats.MaxAllStats();
 
         if (onFront)
         {
@@ -167,10 +195,12 @@ public class HumanAI : MonoBehaviour
             ChangeAnimationState(HumanControllerAnimations.OnBack_GetUp01);
         }
 
-        yield return new WaitForSeconds(GetAnimLength());
+        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
 
-        isDying = false;
-        behaviourIsActive = false;
+        stats.isDying = false;
+        isReviving = false;
+
+        ChangeState(AIState.Idle);
 
         yield break;
     }
@@ -190,16 +220,23 @@ public class HumanAI : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        RemoveFromPopulation();
+    }
 
     [SerializeField] float time;
     [SerializeField] float minActionBuffer = 3;
     [SerializeField] float maxActionBuffer = 10;
+    public bool isGettingUp = false;
 
     private bool overriden = false;
 
 
     public IEnumerator GetUp(bool isFacingUp)
     {
+        isGettingUp = true;
+
         if (!aiPath.enabled)
         {
             aiPath.enabled = true;
@@ -223,28 +260,28 @@ public class HumanAI : MonoBehaviour
         }
 
         float time = 0;
-        float duration = GetAnimLength();
+        float duration = AnimationUtilities.GetAnimLength(animator);
 
         while (time <= duration)
         {
+
             time += Time.deltaTime / duration;
 
             yield return null;
         }
 
+        isGettingUp = false;
+
         if (!stats.isTerrified)
         {
             ChangeState(AIState.Idle);
-        } else
-        {
-            ChangeState(AIState.RunningPanic);
-        }
+        } 
 
         yield break;
 
     }
 
-    private void KillToRagdoll()
+    private void TriggerRagdoll()
     {
         ragdollController.TriggerRagdoll();
     }
@@ -286,7 +323,7 @@ public class HumanAI : MonoBehaviour
 
             while (time >= 0)
             {
-                if (!inRange && (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive))
+                if (!inRange && fluteControl.fluteActive)
                 {
                     ChangeState(AIState.Following);
                 }
@@ -312,16 +349,10 @@ public class HumanAI : MonoBehaviour
     }
 
     public float timeSinceLastShock = 0;
-    private Coroutine shockTimerCoroutine;
     public float shockCooldownTime = 30f; // You can adjust this value as needed
 
     public IEnumerator DeathElectrocution()
     {
-        if (shockTimerCoroutine != null)
-        {
-            StopCoroutine(shockTimerCoroutine);
-        }
-
         isElectrocuted = true;
 
         aiPath.maxSpeed = 0f;
@@ -334,28 +365,37 @@ public class HumanAI : MonoBehaviour
         float chance = UnityEngine.Random.value; // Random value between 0 and 1
         float threshold = 0.5f; // Adjust threshold as needed, 0.5 implies 50% chance for each
 
+        /*
         if (chance <= threshold)
         {
-            // Play Electrocution animation
-            ChangeAnimationState(HumanControllerAnimations.Death_Standing_Electrocution);
+        */
 
-            // Wait for the length of the Electrocution animation
-            Animator animator = GetComponent<Animator>(); // Assuming an Animator component is attached
-            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // Layer 0
-            yield return new WaitForSeconds(stateInfo.length);
+        // Play Electrocution animation
+        ChangeAnimationState(HumanControllerAnimations.Death_Standing_Electrocution);
 
-            // Now get up
-            StartCoroutine(GetUp(true));
+        // Wait for the length of the Electrocution animation
+        Animator animator = GetComponentInChildren<Animator>(); // Assuming an Animator component is attached
+        float animLength = AnimationUtilities.GetAnimLength(animator);
+
+        yield return new WaitForSeconds(animLength);
+
+        // Now get up
+
+        isElectrocuted = false;
+        ChangeState(AIState.GetUp);
+
+        /*
         }
         else
         {
-            StartCoroutine(DeathKnockout());
+            DeathKnockout();
         }
+            */
 
-        isElectrocuted = false;
+
     }
 
-    private IEnumerator DeathKnockout()
+    private void DeathKnockout()
     {
         aiPath.maxSpeed = 0f;
         aiPath.destination = transform.position;
@@ -365,17 +405,12 @@ public class HumanAI : MonoBehaviour
 
         behaviourIsActive = true;
 
-        while (behaviourIsActive)
-        {
-            KillToRagdoll();
-
-            yield return null;
-        }
+        TriggerRagdoll();
     }
 
     private bool CheckIsConcious()
     {
-        if (stats.isDead && stats.isKnockedOut)
+        if (stats.isDead || stats.isKnockedOut)
         {
             return false;
         } else
@@ -453,43 +488,6 @@ public class HumanAI : MonoBehaviour
 
         ChangeState(AIState.Idle);
     }
-
-
-    private Vector3? FindRandomPointWithinRadius(float radius)
-    {
-        int maxAttempts = 50; // Limit the number of attempts to prevent an infinite loop
-        for (int i = 0; i < maxAttempts; i++)
-        {
-            float minDistance = radius / 2;
-            float maxDistance = radius * 2;
-
-            Vector2 randomDirection2D = UnityEngine.Random.insideUnitCircle * radius;
-            Vector3 randomPoint = new Vector3(randomDirection2D.x, 0, randomDirection2D.y) + transform.position;
-            Debug.DrawLine(transform.position, randomPoint, Color.red, 5f); // For visualization
-
-            Vector3 elevatedPosition = new Vector3(randomPoint.x, 50f, randomPoint.z);
-            Debug.DrawRay(elevatedPosition, Vector3.down * 100f, Color.blue, 5f); // For visualization
-
-            RaycastHit hit;
-            int layerMask = LayerMask.GetMask("Ground", "Water");
-
-            if (Physics.Raycast(elevatedPosition, Vector3.down, out hit, Mathf.Infinity, layerMask))
-            {
-                float distanceToFinalPosition = Vector3.Distance(transform.position, hit.point);
-
-                if (distanceToFinalPosition >= minDistance && distanceToFinalPosition <= maxDistance)
-                {
-                    return hit.point;
-                }
-            }
-        }
-
-        return null; // Return null if a valid point is not found within the maximum attempts
-    }
-
-
-
-
 
     private void SetWalkingAnimation(EvolutionState state)
     {
@@ -618,72 +616,101 @@ public class HumanAI : MonoBehaviour
                 followManager.RemoveFollower(transform.gameObject);
             }
 
-            switch (state)
+            if (isGettingUp)
             {
-                case AIState.Idle:
-                    StartCoroutine(Idle());
-                    break;
-                case AIState.Wander:
-                    StartCoroutine(Wander());
-                    break;
-                case AIState.Conversate:
-                    StartCoroutine(EnterConversation());
-                    break;
-                case AIState.Harvest:
+                isGettingUp = false;
+            }
 
-                    GameObject tree = null;
+            if (!stats.isDead)
+            {
+                switch (state)
+                {
 
-                    tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
 
-                    if (tree != null)
-                    {
-                        // For example, make the agent walk towards a tree in a circle formation of size 5
-                        target = tree.transform;
-                        StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
-                    }
-                    else
-                    {
-                        tree = GetClosest(mapObjGen.treeGrowingList, aiBehaviours.ValidateTree);
+                    case AIState.Idle:
+                        StartCoroutine(Idle());
+                        break;
+                    case AIState.Wander:
+                        StartCoroutine(Wander());
+                        break;
+                    case AIState.Conversate:
+                        StartCoroutine(EnterConversation());
+                        break;
+                    case AIState.Harvest:
+
+                        GameObject tree = null;
+
+                        tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
 
                         if (tree != null)
                         {
+                            // For example, make the agent walk towards a tree in a circle formation of size 5
                             target = tree.transform;
                             StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
-                        } else
-                        {
-                            ChangeState(AIState.Idle);
-                            Debug.Log("No valid tree found. Can't start WalkToward.");
                         }
-                    }
+                        else
+                        {
+                            tree = GetClosest(mapObjGen.treeGrowingList, aiBehaviours.ValidateTree);
 
-                    break;
+                            if (tree != null)
+                            {
+                                target = tree.transform;
+                                StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
+                            }
+                            else
+                            {
+                                ChangeState(AIState.Idle);
+                                Debug.Log("No valid tree found. Can't start WalkToward.");
+                            }
+                        }
 
-                case AIState.Walking:
-                    StartCoroutine(Walk(aiPath.destination));
-                    break;
-                case AIState.Running:
-                    StartCoroutine(Run());
-                    break;
-                case AIState.Following:
-                    StartCoroutine(Follow(player.transform));
-                    break;
-                case AIState.Dialogue:
-                    StartCoroutine(DialogueActive());
-                    break;
-                case AIState.HuntFood:
-                    GameObject fruit = GetClosest(mapObjGen.foodSourcesList, aiBehaviours.ValidateFruit);
-                    StartCoroutine(WalkTowards(fruit, formationController, FormationManager.FormationType.None, 0f, stateActions[AIState.Eat], treeHarvestDistance));
-                    break;
-                case AIState.HuntMeat:
-                    GameObject animal = GetClosest(mapObjGen.huntableAnimalsList, aiBehaviours.ValidateAnimal);
-                    target = animal.transform;
-                    StartCoroutine(WalkTowards(animal, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Attack], attackStoppingDistance));
-                    break;
-                case AIState.RunningPanic:
-                    StartCoroutine(PanicRunning());
-                    break;
-                default:
-                    break;
+                        break;
+                    case AIState.Walking:
+                        StartCoroutine(Walk(aiPath.destination));
+                        break;
+                    case AIState.Running:
+                        StartCoroutine(Run());
+                        break;
+                    case AIState.Following:
+                        StartCoroutine(Follow(player.transform));
+                        break;
+                    case AIState.Dialogue:
+                        StartCoroutine(DialogueActive());
+                        break;
+                    case AIState.HuntFood:
+                        GameObject fruit = GetClosest(mapObjGen.foodSourcesList, aiBehaviours.ValidateFruit);
+                        StartCoroutine(WalkTowards(fruit, formationController, FormationManager.FormationType.None, 0f, stateActions[AIState.Eat], treeHarvestDistance));
+                        break;
+                    case AIState.HuntMeat:
+                        GameObject animal = GetClosest(mapObjGen.huntableAnimalsList, aiBehaviours.ValidateAnimal);
+                        target = animal.transform;
+                        StartCoroutine(WalkTowards(animal, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Attack], attackStoppingDistance));
+                        break;
+                    case AIState.RunningPanic:
+                        StartCoroutine(PanicRunning());
+                        break;
+                    case AIState.Electrocution:
+                        StartCoroutine(DeathElectrocution());
+                        break;
+                    case AIState.GetUp:
+                        StartCoroutine(GetUp(true));
+                        break;
+                    default:
+                        break;
+                }
+            } else
+            {
+                switch (state)
+                {
+                    case AIState.Die:
+                        StartCoroutine(Die());
+                        break;
+                    case AIState.Revive:
+                        StartCoroutine(Revive(false));
+                        break;
+                    default:
+                        break;
+                }
             }
 
 //            Debug.Log(currentAIState);
@@ -692,46 +719,97 @@ public class HumanAI : MonoBehaviour
 
     public float minDirectionChangeInterval = 1f;
     public float maxDirectionChangeInterval = 10f;
-    public float panicRadius = 25f;
+    public float panicRadius = 1000f;
 
-    public IEnumerator StopPanic()
+
+    public IEnumerator PanicRunning()
     {
-        stats.isTerrified = false;
+        behaviourIsActive = true;
+        stats.isTerrified = true;
+
+        aiPath.maxSpeed = runningSpeed;
+        aiPath.canMove = true;
+        aiPath.isStopped = false;
+        ChangeAnimationState("Run_Scared_Terrified"); // Placeholder for panic animation
+
+        float nextDirectionChangeTime = Time.time;
+
+        while (stats.isTerrified)
+        {
+            if (!CheckIsConcious())
+            {
+                yield return null;
+            }
+
+            if (Time.time >= nextDirectionChangeTime)
+            {
+                nextDirectionChangeTime = Time.time + UnityEngine.Random.Range(minDirectionChangeInterval, maxDirectionChangeInterval);
+                Vector3? newDestination = FindRandomPointWithinRadius(panicRadius);
+
+                if (newDestination.HasValue)
+                {
+                    aiPath.destination = newDestination.Value;
+                    Debug.Log($"New destination set: {newDestination.Value}");
+                }
+                else
+                {
+                    Debug.LogWarning("Failed to find a new destination point.");
+                }
+            }
+
+            if (!aiPath.pathPending && aiPath.reachedEndOfPath)
+            {
+                Debug.Log("Reached destination, looking for a new point.");
+                nextDirectionChangeTime = Time.time; // Immediate direction change
+            }
+
+            yield return null;
+        }
+
+        if (stats.isTerrified) {
+            stats.isTerrified = false;
+        }
+
+        ChangeState(AIState.Idle);
 
         yield break;
     }
 
-    public IEnumerator PanicRunning()
+
+
+    public Vector3? FindRandomPointWithinRadius(float radius)
     {
-        if (CheckIsConcious())
+        if (AstarPath.active == null || AstarPath.active.data == null || AstarPath.active.data.navmesh == null)
         {
-            behaviourIsActive = true;
-            stats.isTerrified = true;
-
-            aiPath.maxSpeed = runningSpeed;
-            aiPath.isStopped = false;
-            ChangeAnimationState("Run_Scared_Terrified"); // Placeholder for panic animation
-
-            float nextDirectionChangeTime = 0;
-
-            while (stats.isTerrified && CheckIsConcious())
-            {
-                if (Time.time >= nextDirectionChangeTime)
-                {
-                    nextDirectionChangeTime = Time.time + UnityEngine.Random.Range(minDirectionChangeInterval, maxDirectionChangeInterval);
-                    aiPath.destination = (Vector3)FindRandomPointWithinRadius(panicRadius);
-                }
-
-                yield return null;
-            }
-
-            if (CheckIsConcious())
-            {
-                ChangeState(AIState.Idle); // Placeholder for returning to idle state
-            }
+            Debug.LogError("A* Pathfinding Project is not properly initialized or Navmesh Graph is not set up.");
+            return null;
         }
 
-        yield break;
+        int layerMask = LayerMask.GetMask("Water", "Ground");
+        float checkHeight = 100f; // Adjust as needed
+
+        int maxAttempts = 1000; // Increased sample size
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * radius;
+            randomDirection.y = 0; // Ensure the random point is on the same horizontal plane
+            Vector3 randomPoint = transform.position + randomDirection;
+            Vector3 rayStartPoint = randomPoint + Vector3.up * checkHeight;
+
+            if (Physics.Raycast(rayStartPoint, Vector3.down, out RaycastHit hit, checkHeight + 100, layerMask))
+            {
+                if (hit.collider.gameObject.layer != LayerMask.NameToLayer("Water"))
+                {
+                    return hit.point;
+                }
+            }
+
+            // Increase radius slightly for next attempt
+            radius *= 1.05f;
+        }
+
+        Debug.LogError("Failed to find a valid point within the radius after multiple attempts.");
+        return null;
     }
 
     private GameObject GetClosest(List<GameObject> objects, AIBehaviours.ValidateObject validate)
@@ -1101,7 +1179,7 @@ public class HumanAI : MonoBehaviour
         StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
 
         // Adjust the duration of the animation based on the speed it's being played at
-        float duration = GetAnimLength() / randomAnimationSpeed;
+        float duration = AnimationUtilities.GetAnimLength(animator) / randomAnimationSpeed;
 
         float time = 0;
         while (time <= duration)
@@ -1189,7 +1267,7 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
 
         time = 0;
-        duration = GetAnimLength();
+        duration = AnimationUtilities.GetAnimLength(animator);
 
         while (time <= duration)
         {
@@ -1201,7 +1279,7 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog02);
 
         time = 0;
-        duration = GetAnimLength();
+        duration = AnimationUtilities.GetAnimLength(animator);
 
         while (time <= duration)
         {
@@ -1400,14 +1478,6 @@ public class HumanAI : MonoBehaviour
     public virtual void AdjustAnimationSpeed(float newSpeed)
     {
         animator.speed = newSpeed;
-    }
-
-    public float animLength;
-
-    private float GetAnimLength()
-    {
-        animLength = animator.GetCurrentAnimatorStateInfo(0).length / animator.speed;
-        return animLength;
     }
 
     private IEnumerator WaitForAnimationCompletion(Animator animator)

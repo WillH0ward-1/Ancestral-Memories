@@ -82,6 +82,7 @@ namespace ProceduralModeling
             material = GetComponentInChildren<Renderer>().material;
             treeData = proceduralTree.Data;
             material.SetFloat(kGrowingKey, 0);
+            material.SetFloat("_ColorOverrideAmount", 0); // Update the shader property
             leafMaterial = proceduralTree.leafMat;
 
             leafScaler = gameObject.GetComponent<LeafScaler>();
@@ -229,11 +230,64 @@ namespace ProceduralModeling
 
         public void KillTree()
         {
+
             if (!isDead)
             {
                 isDead = true;
             }
+
+            interactable.enabled = false;
+            leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+            treeFruitManager.ClearFruits(); // Clear fruits during CutDown
         }
+
+        private float currentColorOverrideAmount = 0f; 
+        private float lerpDuration = 10f; 
+        private bool lerping = false; 
+
+        public IEnumerator BurnEffectUp()
+        {
+            lerping = true;
+            float startTime = Time.time;
+            float endTime = startTime + lerpDuration;
+
+            float startValue = currentColorOverrideAmount;
+            float endValue = 0.25f; // The target value when lerping up
+
+            while (Time.time < endTime)
+            {
+                float t = (Time.time - startTime) / lerpDuration;
+                currentColorOverrideAmount = Mathf.Lerp(startValue, endValue, t);
+                material.SetFloat("_ColorOverrideAmount", currentColorOverrideAmount); // Update the shader property
+                yield return null;
+            }
+
+            currentColorOverrideAmount = endValue;
+            lerping = false;
+        }
+
+        public IEnumerator BurnEffectDown()
+        {
+            lerping = true;
+            float startTime = Time.time;
+            float endTime = startTime + lerpDuration;
+
+            float startValue = currentColorOverrideAmount;
+            float endValue = 0f; // The target value when lerping down
+
+            while (Time.time < endTime)
+            {
+                float t = (Time.time - startTime) / lerpDuration;
+                currentColorOverrideAmount = Mathf.Lerp(startValue, endValue, t);
+                material.SetFloat("_ColorOverrideAmount", currentColorOverrideAmount); // Update the shader property
+                yield return null;
+            }
+
+            currentColorOverrideAmount = endValue;
+            lerping = false;
+        }
+
+
 
         private IEnumerator Lifetime()
         {
