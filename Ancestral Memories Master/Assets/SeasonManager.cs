@@ -78,7 +78,7 @@ public class SeasonManager : MonoBehaviour
         return GetNumberOfSeasons() * timeCycle.daysPerSeason; // Access through TimeCycleManager
     }
 
-    private TimeCycleManager timeCycle;
+    public TimeCycleManager timeCycle;
 
     private int GetNumberOfSeasons()
     {

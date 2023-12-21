@@ -14,7 +14,7 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander, RunningPanic, Die, Revive, Electrocution, GetUp }
+    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander, RunningPanic, Die, Revive, Electrocution, GetUp, Carry }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -590,6 +590,8 @@ public class HumanAI : MonoBehaviour
     public float followDistance = 15f;
     public FormationManager.FormationType Formation { get; set; }
 
+    public List<GameObject> resourceToFind;
+
     public void ChangeState(AIState newState)
     {
         if (!ragdollController.isRagdollActive)
@@ -694,6 +696,12 @@ public class HumanAI : MonoBehaviour
                         break;
                     case AIState.GetUp:
                         StartCoroutine(GetUp(true));
+                        break;
+                    case AIState.Carry:
+                        resourceToFind = resources.WoodList;
+                        List<GameObject> resourceTarget = resourceToFind;
+                        GameObject wood = GetClosest(resourceToFind, aiBehaviours.ValidateWood);
+                        StartCoroutine(CarryTo(wood, Vector3.zero)); // placeholder, carry to base
                         break;
                     default:
                         break;
@@ -855,6 +863,18 @@ public class HumanAI : MonoBehaviour
     private bool isSphereCastVisualizerEnabled = false;
 
     private AIBehaviours aiBehaviours;
+
+    private IEnumerator CarryTo(GameObject carryObject, Vector3 carryTarget)
+    {
+        aiPath.maxSpeed = walkingSpeed;
+        aiPath.destination = carryTarget;
+        aiPath.canMove = true;
+
+        behaviourIsActive = true;
+        ChangeAnimationState(HumanControllerAnimations.Walk_CarryFront);
+
+        yield break;
+    }
 
     private IEnumerator WalkTowards(GameObject target, FormationController formationController, FormationManager.FormationType formationType, float formationSize, Action<GameObject> action, float stoppingDistance)
     {

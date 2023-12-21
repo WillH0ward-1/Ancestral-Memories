@@ -41,6 +41,12 @@ public class ShaderLightColor : MonoBehaviour
 
     private void UpdateLightColor()
     {
+        if (rend == null || !rend.enabled)
+        {
+            // Renderer is missing or disabled, so skip updating
+            return;
+        }
+
         float timePercent = timeCycleManager.TimeOfDay / 24f;
 
         int currentColorIndex = Mathf.FloorToInt(timePercent * timeCycleManager.timeColors.Length) % timeCycleManager.timeColors.Length;

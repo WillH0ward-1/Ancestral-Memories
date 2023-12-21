@@ -38,9 +38,11 @@ namespace ProceduralModeling
 
 		private PTGrowing ptGrow;
 
-		private LayerMask hitGroundLayer;
+		public LayerMask hitGroundLayer;
 
 		public ResourcesManager resources;
+
+		public FireManager fireManager;
 
 		void OnEnable()
 		{
@@ -56,9 +58,11 @@ namespace ProceduralModeling
 			}
 
 			leafRoot = transform.Find("LeafRoot");
-			leafRoot.transform.AddComponent<NonFlammable>();
+			if (!leafRoot.transform.GetComponent<NonFlammable>())
+			{
+				leafRoot.transform.AddComponent<NonFlammable>();
+			}
 			solidTreeRenderer = transform.GetComponent<Renderer>();
-			hitGroundLayer = LayerMask.GetMask("Ground", "Water", "Rocks", "Cave");
 		}
 
 		void OnDisable()
@@ -235,11 +239,25 @@ namespace ProceduralModeling
 				string objName = (i + segmentsPerGroup >= totalSegments) ? "TreeRoot" : $"TreeSegment_{i / segmentsPerGroup + 1}";
 				GameObject segmentObj = new GameObject(objName);
 
-				// Adding components to the GameObject
-				var meshFilter = segmentObj.AddComponent<MeshFilter>();
-				var meshRenderer = segmentObj.AddComponent<MeshRenderer>();
-				ShaderLightColor lighting = segmentObj.AddComponent<ShaderLightColor>();
+				MeshFilter meshFilter = segmentObj.GetComponent<MeshFilter>();
+				if (meshFilter == null)
+				{
+					meshFilter = segmentObj.AddComponent<MeshFilter>();
+				}
+
+				MeshRenderer meshRenderer = segmentObj.GetComponent<MeshRenderer>();
+				if (meshRenderer == null)
+				{
+					meshRenderer = segmentObj.AddComponent<MeshRenderer>();
+				}
+
+				ShaderLightColor lighting = segmentObj.GetComponent<ShaderLightColor>();
+				if (lighting == null)
+				{
+					lighting = segmentObj.AddComponent<ShaderLightColor>();
+				}
 				lighting.enabled = true;
+				lighting.timeCycleManager = ptGrow.seasonManager.timeCycle;
 				segmentObj.isStatic = true;
 
 				// Assign material
@@ -254,60 +272,88 @@ namespace ProceduralModeling
 				segmentedMesh.triangles = combinedSegmentMesh.triangles.ToArray();
 				meshFilter.mesh = segmentedMesh;
 
-				// Create an empty parent GameObject with a name suffix
-				GameObject parentObj = new GameObject(objName + "Parent");
-
-				// Parent the segmentObj under the common root for organization
-				segmentObj.transform.SetParent(parentObj.transform);
+				// Parent it under a common root for organization
+				segmentObj.transform.SetParent(transform);
 				segmentObj.transform.localPosition = Vector3.zero;
 				segmentObj.transform.localRotation = Quaternion.identity;
 				segmentObj.transform.localScale = Vector3.one;
-				segmentObj.AddComponent<CollisionNotifier>();
 
+				if (!segmentObj.GetComponent<CollisionNotifier>())
+				{
+					segmentObj.AddComponent<CollisionNotifier>();
+				}
 				// Add the new GameObject to the list
-				segmentObjects.Add(parentObj); // Add the parent to the list if needed
+				segmentObjects.Add(segmentObj);
 
 			}
 		}
 
+		public bool showingSegments = false;
+		public bool showingSolidTree = false;
+
+
+		// Coroutine to gradually activate segments
+		private IEnumerator ActivateSegmentsGradually()
+		{
+			foreach (GameObject segment in segmentObjects)
+			{
+				if (!segment.activeInHierarchy)
+				{
+					segment.SetActive(true);
+					yield return null; // Wait for the next frame
+				}
+			}
+			showingSegments = true;
+			showingSolidTree = false;
+		}
+
+		// Coroutine to gradually deactivate segments
+		private IEnumerator DeactivateSegmentsGradually()
+		{
+			foreach (GameObject segment in segmentObjects)
+			{
+				if (segment.activeInHierarchy)
+				{
+					segment.SetActive(false);
+					yield return null; // Wait for the next frame
+				}
+			}
+			showingSegments = false;
+			showingSolidTree = true;
+		}
+
+		// Method to start the coroutine for showing segments and then disable the solid tree renderer
+		public void ShowSegments()
+		{
+			StartCoroutine(ShowSegmentsCoroutine());
+		}
+
+		private IEnumerator ShowSegmentsCoroutine()
+		{
+			// Start activating segments gradually
+			yield return StartCoroutine(ActivateSegmentsGradually());
+
+			// Once all segments are activated, disable the solid tree renderer
+			solidTreeRenderer.enabled = false;
+		}
+
+
+		// Method to start the coroutine for hiding segments
 		public void HideSegments()
 		{
 			if (!solidTreeRenderer.enabled)
 			{
-				return;
+				solidTreeRenderer.enabled = true;
 			}
-
-			solidTreeRenderer.enabled = false;
-
-			foreach (GameObject segment in segmentObjects)
-			{
-				if (segment.transform.gameObject.activeSelf)
-				{
-					segment.transform.gameObject.SetActive(false);
-				}
-			}
+			StartCoroutine(DeactivateSegmentsGradually());
 		}
 
-		public void ShowSegments()
-		{
-			if (solidTreeRenderer.enabled)
-			{
-				return;
-			}
-
-			solidTreeRenderer.enabled = true;
-
-			foreach (GameObject segment in segmentObjects)
-			{
-				if (!segment.transform.gameObject.activeSelf)
-				{
-					segment.transform.gameObject.SetActive(true);
-				}
-			}
-		}
 
 		public void ClearSegmentObjects()
 		{
+			showingSegments = false;
+			showingSolidTree = true;
+
 			foreach (var obj in segmentObjects)
 			{
 				if (obj != null)
@@ -334,7 +380,11 @@ namespace ProceduralModeling
 			if (ptGrow.ValidateTree())
 			{
 				ptGrow.KillTree();
-				ShowSegments();
+
+				if (!showingSegments)
+				{
+					ShowSegments();
+				}
 
 				int start = lastPhysicsEnabledIndex + 1;
 				int maxRange = segmentObjects.Count - start;
@@ -352,8 +402,8 @@ namespace ProceduralModeling
 				{
 					if (segmentObjects[i].name != "TreeRoot")
 					{
-						AssignPhysics(segmentObjects[i]);
-					}
+                        StartCoroutine(AssignPhysics(segmentObjects[i]));
+                    }
 
 					lastPhysicsEnabledIndex = i;
 
@@ -363,47 +413,6 @@ namespace ProceduralModeling
 				}
 			}
 		}
-
-		IEnumerator SmallBurstCoroutine()
-		{
-			if (ptGrow.ValidateTree())
-			{
-				ptGrow.KillTree();
-				ShowSegments();
-
-				int start = lastPhysicsEnabledIndex + 1;
-				int maxRange = segmentObjects.Count - start;
-
-				if (maxRange <= 0)
-				{
-					Debug.LogWarning("No more segments available to enable physics on.");
-					yield break;
-				}
-
-				int numSegments = UnityEngine.Random.Range(1, 4);
-
-				for (int i = start; i < start + numSegments && i < segmentObjects.Count; i++)
-				{
-					if (segmentObjects[i].name != "TreeRoot")
-					{
-						AssignPhysics(segmentObjects[i]);
-					}
-
-					lastPhysicsEnabledIndex = i;
-
-					// Optionally yield every few iterations to spread the load
-					if (i % 5 == 0)
-						yield return null;
-				}
-			}
-		}
-
-		// Call this method to enable physics on a random number of segments between 1 and 3 (small burst).
-		public void SmallBurst()
-		{
-			StartCoroutine(SmallBurstCoroutine());
-		}
-
 
 		public void EnablePhysicsInBurstMode()
 		{
@@ -416,104 +425,116 @@ namespace ProceduralModeling
 
 			foreach (var segment in segmentObjects)
 			{
-				AssignPhysics(segment);
+				StartCoroutine(AssignPhysics(segment));
 			}
+		}
+
+		public void SmallBurst(GameObject segment)
+		{
+			StartCoroutine(SmallBurstCoroutine(segment));
+		}
+
+
+		IEnumerator SmallBurstCoroutine(GameObject segment)
+		{
+			if (!ptGrow.ValidateIsFullyGrown())
+			{
+				yield break;
+			}
+
+			if (!ptGrow.isDead)
+			{
+				ptGrow.KillTree();
+			}
+
+			if (!showingSegments)
+			{
+				ShowSegments();
+			}
+
+			float delay = UnityEngine.Random.Range(4f, 8f);
+			yield return new WaitForSeconds(delay);
+
+			StartCoroutine(AssignPhysics(segment));
+
 		}
 
 		public List<GameObject> stickList;
 
-		public void AssignPhysics(GameObject segment)
+		[Header("Trajectory Settings")]
+		[SerializeField] private float minTrajectoryRadius = 5f;
+		[SerializeField] private float maxTrajectoryRadius = 10f;
+		[SerializeField] private float trajectoryDuration = 2.0f;
+		[SerializeField] private float rotationSpeed = 90f; // Rotation speed in degrees per second
+
+		public IEnumerator AssignPhysics(GameObject segment)
 		{
 			if (segment == null)
 			{
 				Debug.LogError("Segment object is null. Cannot add physics components.");
-				return;
+				yield break;
 			}
 
-			if (segment.name != "TreeRoot")
+			if (segment.name == "TreeRoot")
 			{
-				segment.transform.SetParent(null);
-
-				Rigidbody rb = segment.AddComponent<Rigidbody>();
-				rb.useGravity = true;
-				rb.automaticCenterOfMass = true;
-				rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-				rb.mass = 500f;
-
-				MeshCollider collider = segment.AddComponent<MeshCollider>();
-				collider.convex = true;
-				collider.includeLayers = physicsLayers;
-				collider.providesContacts = true;
-				collider.includeLayers = hitGroundLayer;
-
-				MeshFilter meshFilter = segment.GetComponent<MeshFilter>();
-				if (meshFilter != null && meshFilter.sharedMesh != null)
-				{
-					collider.sharedMesh = meshFilter.sharedMesh;
-				}
-				else
-				{
-					Debug.LogWarning("Segment does not have a MeshFilter with a mesh assigned. MeshCollider may not function correctly.");
-				}
-
-				CheckSegmentCollision(segment);
+				yield break; // Skip if the segment is the root
 			}
-		}
 
-		private void CheckSegmentCollision(GameObject segment)
-		{
-			// Temporarily change the layer to ignore raycasts
-			segment.layer = LayerMask.NameToLayer("Ignore Raycast");
+			// Create an empty parent object named 'TreeBranch'
+			GameObject treeBranch = new GameObject("TreeBranch");
 
-			CollisionNotifier collisionNotifier = segment.GetComponent<CollisionNotifier>();
-
-			if (collisionNotifier == null)
+			// Get the center of the mesh's bounding box in world space
+			Renderer renderer = segment.GetComponent<Renderer>();
+			if (renderer == null)
 			{
-				collisionNotifier = segment.AddComponent<CollisionNotifier>();
-				if (collisionNotifier == null)
-				{
-					Debug.LogError("Failed to add CollisionNotifier component.");
-					return;
-				}
+				Debug.LogError("Renderer not found on the segment.");
+				yield break;
 			}
 
-			collisionNotifier.OnCollisionEnterEvent.AddListener(OnCollision);
+			Vector3 meshCenter = renderer.bounds.center;
 
-            void OnCollision(Collision collision)
-            {
-				if (IsCollisionWithGround(collision))
-				{
-					DisableSegmentGravity(segment);
-					
-					collisionNotifier.OnCollisionEnterEvent.RemoveListener(OnCollision); // Unsubscribe from event
-					segment.layer = LayerMask.NameToLayer("Stick");
-					resources.AddResourceObject("Wood", segment);
-				}
-			}
-		}
+			// Set the parent's position to the mesh center
+			treeBranch.transform.position = meshCenter;
 
+			// Set the segment as a child of 'TreeBranch'
+			segment.transform.SetParent(treeBranch.transform);
 
-		private bool IsCollisionWithGround(Collision collision)
-		{
-			foreach (ContactPoint contact in collision.contacts)
+			Vector3 raycastDirection = Vector3.down;
+			bool hitSuccessful = Physics.Raycast(treeBranch.transform.position, raycastDirection, out RaycastHit hit, Mathf.Infinity, hitGroundLayer);
+
+			// Draw the ray for visualization
+			Color rayColor = hitSuccessful ? Color.green : Color.red;
+			Vector3 rayEnd = treeBranch.transform.position + raycastDirection;
+			Debug.DrawLine(treeBranch.transform.position, rayEnd, rayColor, 30f);
+
+			if (!hitSuccessful)
 			{
-				if (hitGroundLayer == (hitGroundLayer | (1 << contact.otherCollider.gameObject.layer)))
-				{
-					return true;
-				}
+				Debug.LogError("Raycast did not hit any ground layer.");
+				yield break;
 			}
-			return false;
-		}
 
-		private void DisableSegmentGravity(GameObject segment)
-		{
-			Rigidbody rb = segment.GetComponent<Rigidbody>();
-			if (rb != null)
+			// Calculate a random position within a radius
+			Vector3 randomDirection = UnityEngine.Random.rotation * Vector3.forward;
+			float randomRadius = UnityEngine.Random.Range(minTrajectoryRadius, maxTrajectoryRadius);
+			Vector3 end = hit.point + randomDirection * randomRadius;
+
+//			Debug.Log("Start position: " + meshCenter + ", End position: " + end);
+
+			float startTime = Time.time;
+
+			while (Time.time - startTime < trajectoryDuration)
 			{
-				rb.useGravity = false;
-				rb.isKinematic = true; // Make the Rigidbody kinematic
+				float fractionOfJourney = (Time.time - startTime) / trajectoryDuration;
+				treeBranch.transform.position = Vector3.Lerp(meshCenter, end, fractionOfJourney);
 
+				// Add rotation around the forward axis
+				treeBranch.transform.Rotate(Vector3.forward, rotationSpeed * Time.deltaTime);
+
+				yield return null; // Wait for the next frame
 			}
+
+			// Ensure the final position is exactly the end position
+			treeBranch.transform.position = end;
 		}
 
 		public int minGenerations = 1;

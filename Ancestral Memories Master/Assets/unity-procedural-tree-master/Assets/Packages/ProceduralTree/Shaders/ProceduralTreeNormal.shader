@@ -9,8 +9,7 @@
         _NoiseScaleZ ("Noise Scale Z", Range(0.01, 10)) = 1.0
         _NoiseAmount ("Noise Amount", Range(0.0, 1.0)) = 0.1
         _TimeScale ("Time Scale", Range(0.0, 2.0)) = 1.0
-        _ColorOverride ("Color Override", Color) = (0.5, 0.5, 0.5, 1)
-        _ColorOverrideAmount ("Color Override Amount", Range(0.0, 1.0)) = 1.0 // Added slider
+        _Saturation ("Saturation", Range(0.0, 2.0)) = 1.0 // Added slider for saturation
     }
 
     SubShader {
@@ -30,8 +29,7 @@
             uniform float _EnableNoise;
             sampler2D _MainTex;
             float4 _LightColor;
-            float4 _ColorOverride; // New color override property
-            float _ColorOverrideAmount; // Added variable for color override amount
+            float _Saturation; // Added variable for saturation
             float _NoiseScaleX, _NoiseScaleY, _NoiseScaleZ, _NoiseAmount, _TimeScale;
 
             struct appdata {
@@ -51,6 +49,12 @@
 
             float perlinNoise(float3 pos) {
                 return frac(sin(dot(pos ,float3(12.9898,78.233,37.719))) * 43758.5453);
+            }
+
+            // Function to adjust saturation while maintaining brightness
+            float3 AdjustSaturation(float3 color, float saturation) {
+                float grey = dot(color.rgb, float3(0.3, 0.59, 0.11));
+                return lerp(grey.xxx, color.rgb, saturation);
             }
 
             v2f vert (appdata v) {
@@ -77,10 +81,13 @@
                 fixed4 albedo_back = tex2D(_MainTex, 1 - i.uv);
                 fixed4 albedo = lerp(albedo_front, albedo_back, step(0.5, i.uv.y));
                 
-                // Blend _ColorOverride with _LightColor and multiply with albedo.rgb
+                // Adjust the saturation of the albedo color
+                float3 saturatedColor = AdjustSaturation(albedo.rgb, _Saturation);
+                
+                // Multiply the saturated color with the light color
                 fixed4 c;
-                c.rgb = albedo.rgb * lerp(_LightColor.rgb, _ColorOverride.rgb, _ColorOverride.a * _ColorOverrideAmount);
-                c.a = albedo.a;
+                c.rgb = saturatedColor * _LightColor.rgb;
+                c.a = 1.0; // Set alpha to fully opaque
                 
                 return c;
             }

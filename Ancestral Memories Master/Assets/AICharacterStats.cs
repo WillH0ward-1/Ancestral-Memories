@@ -329,7 +329,7 @@ public class AICharacterStats : MonoBehaviour
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
         OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
-
+       
         if (transform.CompareTag("Human"))
         {
             UpdateEvolution();

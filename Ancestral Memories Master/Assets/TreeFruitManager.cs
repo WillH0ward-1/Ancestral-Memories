@@ -16,6 +16,8 @@ public class TreeFruitManager : MonoBehaviour
     public Vector3 maxFruitScale = Vector3.one;
 
     private LayerMask hitGroundLayer;
+    public LayerMask waterLayer;
+
     private Queue<GameObject> fruitPool; // Pool of inactive fruit game objects
 
     public MapObjGen mapObjGen;
@@ -33,6 +35,7 @@ public class TreeFruitManager : MonoBehaviour
         ptGrow = GetComponent<PTGrowing>();
 
         hitGroundLayer = LayerMask.GetMask("Ground", "Water", "Rocks", "Cave");
+        waterLayer = LayerMask.GetMask("Water");
         fruitPool = new Queue<GameObject>();
     }
 
@@ -106,9 +109,6 @@ public class TreeFruitManager : MonoBehaviour
         }
     }
 
-
-
-
     private void ReturnActiveFruitsToPool()
     {
         foreach (GameObject fruit in fruits)
@@ -166,101 +166,89 @@ public class TreeFruitManager : MonoBehaviour
         StartCoroutine(Fall(fruit));
     }
 
+    [Header("Fall Settings")]
+    [SerializeField] private float fallDuration = 1.0f; // Duration of the fall animation
+
     public IEnumerator Fall(GameObject fruit)
     {
         fruit.transform.SetParent(null);
 
-        Collider collider = fruit.transform.GetComponent<Collider>();
-        Rigidbody rigidBody = fruit.transform.GetComponent<Rigidbody>();
+        Vector3 startPosition = fruit.transform.position;
+        Vector3 endPosition;
 
-        collider.providesContacts = true;
-
-        if (!rigidBody.useGravity)
+        // Raycast to find the ground position
+        if (Physics.Raycast(startPosition, Vector3.down, out RaycastHit hit, Mathf.Infinity, hitGroundLayer))
         {
-            EnableFruitGravity(fruit);
-
-            // Start checking collision with ground or water
-            CheckCollision(fruit, collider);
+            endPosition = hit.point;
+        }
+        else
+        {
+            Debug.LogError("Raycast did not hit any ground layer.");
+            yield break;
         }
 
-        yield break;
+        // Smoothly move the fruit to the ground position with an exponential curve
+        float startTime = Time.time;
+        while (Time.time - startTime < fallDuration)
+        {
+            float fractionOfJourney = (Time.time - startTime) / fallDuration;
+            // Apply an easing function for a more realistic effect
+            float easedFraction = 1 - Mathf.Pow(2, -10 * fractionOfJourney);
+            fruit.transform.position = Vector3.Lerp(startPosition, endPosition, easedFraction);
+            yield return null;
+        }
+
+        // Ensure the final position is exactly the end position
+        fruit.transform.position = endPosition;
+
+        // Perform any additional operations after the fruit has fallen
+        OnFruitFallen(fruit);
     }
 
-    private void CheckCollision(GameObject fruit, Collider fruitCollider)
+    private void OnFruitFallen(GameObject fruit)
     {
-        fruitCollider.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); // Temporarily change the layer to ignore raycasts
+        mapObjGen.foodSourcesList.Add(fruit);
+        AddToResources(fruit);
+        StartCoroutine(Decay(fruit));
 
-        // Add the CollisionNotifier component if it doesn't exist
-        CollisionNotifier collisionNotifier = fruitCollider.gameObject.GetComponent<CollisionNotifier>();
-        if (collisionNotifier == null)
-        {
-            collisionNotifier = fruitCollider.gameObject.AddComponent<CollisionNotifier>();
-        }
-
-        // Subscribe to the collision event
-        collisionNotifier.OnCollisionEnterEvent.AddListener(OnCollision);
-
-        // Unsubscribe from the collision event
-        void OnCollision(Collision collision)
-        {
-            if (IsCollisionWithGround(collision))
-            {
-                DisableFruitGravity(fruit);
-                mapObjGen.foodSourcesList.Add(fruit);
-                AddToResources(fruit);
-                StartCoroutine(Decay(fruit));
-
-                if (collision.collider.CompareTag("Water"))
-                {
-                    CheckWaterDepth(fruit);
-                }
-
-                // Unsubscribe from the collision event
-                collisionNotifier.OnCollisionEnterEvent.RemoveListener(OnCollision);
-                fruitCollider.gameObject.layer = LayerMask.NameToLayer("Food"); // Restore the original layer
-            }
-        }
+        // Check if the fruit is in water (if necessary)
+        CheckWaterDepth(fruit);
     }
 
-    private bool IsCollisionWithGround(Collision collision)
-    {
-        foreach (ContactPoint contact in collision.contacts)
-        {
-            if (hitGroundLayer == (hitGroundLayer | (1 << contact.otherCollider.gameObject.layer)))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     private void CheckWaterDepth(GameObject fruit)
     {
         float floatDepthThreshold = 1f;
 
-        if (Physics.Raycast(fruit.transform.position, -fruit.transform.up, out RaycastHit hit, Mathf.Infinity, hitGroundLayer))
+        WaterFloat floating = fruit.GetComponent<WaterFloat>();
+        if (floating == null)
         {
-            float distanceToGround = hit.distance;
+            return; // Exit if there is no WaterFloat component
+        }
 
-            if (distanceToGround >= floatDepthThreshold)
+        if (Physics.Raycast(fruit.transform.position, -fruit.transform.up, out RaycastHit hit, Mathf.Infinity, waterLayer))
+        {
+            float distanceToWater = hit.distance;
+
+            if (distanceToWater >= floatDepthThreshold && !floating.enabled)
             {
-                WaterFloat floating = fruit.GetComponent<WaterFloat>();
-                if (floating != null)
-                {
-                    floating.enabled = true;
-                    StartCoroutine(floating.Float(fruit));
-                }
+                floating.enabled = true;
+                StartCoroutine(floating.Float(fruit));
             }
-            else
+            else if (distanceToWater < floatDepthThreshold && floating.enabled)
             {
-                WaterFloat floating = fruit.GetComponent<WaterFloat>();
-                if (floating != null)
-                {
-                    floating.enabled = false;
-                }
+                floating.StopFloating(); // Stop floating if the fruit is no longer in deep water
+                floating.enabled = false;
             }
         }
+        else
+        {
+            floating.StopFloating(); // Stop floating if the raycast doesn't hit anything
+            floating.enabled = false;
+        }
     }
+
 
     public float minDecayMultiplier = 0.5f; // Faster decay (half the base decay time)
     public float maxDecayMultiplier = 2.0f; // Slower decay (double the base decay time)

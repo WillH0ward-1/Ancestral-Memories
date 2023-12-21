@@ -34,6 +34,12 @@ public class AIBehaviours : MonoBehaviour
         return foodAttributes != null && !foodAttributes.isDead;
     }
 
+    public bool ValidateWood(GameObject wood)
+    {
+        FoodAttributes foodAttributes = wood.GetComponentInChildren<FoodAttributes>();
+        return foodAttributes != null && !foodAttributes.isDead;
+    }
+
     public bool ValidateAnimal(GameObject animal)
     {
         AICharacterStats animalAI = animal.GetComponentInChildren<AICharacterStats>();

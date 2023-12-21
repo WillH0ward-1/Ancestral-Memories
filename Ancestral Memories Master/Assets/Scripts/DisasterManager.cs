@@ -47,7 +47,7 @@ public class DisasterManager : MonoBehaviour
             target == null || !IsValidTarget(target) ||
             struckTargets.Any(st => st.TargetTransform == target && st.EligibleTime > currentTime) ||
             target == lastStruckTarget ||
-            fireManager.IsAlreadyOnFire(target.gameObject)
+            fireManager.IsOnFire(target.gameObject)
         );
 
         if (allTargets.Count > 0)

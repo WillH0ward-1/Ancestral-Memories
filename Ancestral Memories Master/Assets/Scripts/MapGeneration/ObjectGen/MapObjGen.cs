@@ -982,6 +982,7 @@ public class MapObjGen : MonoBehaviour
 
             ProceduralTree pt = treeInstance.GetComponentInChildren<ProceduralTree>();
             pt.resources = resources;
+            pt.fireManager = fireManager;
 
             int treeLayer = LayerMask.NameToLayer("Trees");
             treeInstance.layer = treeLayer;

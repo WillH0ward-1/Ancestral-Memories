@@ -5,6 +5,7 @@ using System.Linq;
 using ProceduralModeling;
 using UnityEngine;
 
+
 public class FireManager : MonoBehaviour
 {
     public static FireManager Instance;
@@ -21,8 +22,8 @@ public class FireManager : MonoBehaviour
     [SerializeField] private float startFireEmissionRateTarget = 20;
     [SerializeField] private float startFireDuration = 10f;
     [SerializeField] private float minFireDuration = 8f;
-    [SerializeField] private float maxFireDuration = 16f;
-    [SerializeField] private float maxTotalFireDuration = 20f;
+    [SerializeField] private float maxNpcBurnTime = 20f;
+    [SerializeField] private float maxTreeBurnTime = 30f;
     [SerializeField] private float endFireDuration = 5f;
     [SerializeField] private float minFireSpreadDelay = 2;
     [SerializeField] private float maxFireSpreadDelay = 3f;
@@ -52,7 +53,6 @@ public class FireManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         flammableLayerMask = LayerMask.GetMask("Trees", "Human", "Animals");
-
         InitializePool();
     }
 
@@ -132,7 +132,6 @@ public class FireManager : MonoBehaviour
             yield break;
         }
 
-
         ObjectOnFire(target, true);
 
         if (!fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
@@ -156,12 +155,12 @@ public class FireManager : MonoBehaviour
             }
         }
 
+        StartCoroutine(StartFireStopCountDown(target, humanAI, coroutinesList, maxNpcBurnTime, null));
+
         if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
         {
             foreach (GameObject firePoint in firePoints)
             {
-                yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
-
                 GameObject fireInstance = GetFireFromPool();
                 if (fireInstance == null)
                 {
@@ -174,18 +173,22 @@ public class FireManager : MonoBehaviour
 
                 Coroutine controlCoroutine = StartCoroutine(ControlFire(fireInstance, target, humanAI, fireParticles, defaultMaxScale));
                 coroutinesList.Add(controlCoroutine);
+
+                yield return new WaitForSeconds(UnityEngine.Random.Range(3f, 5f));
             }
         }
 
-        StartCoroutine(StartFireStopCountDown(target, humanAI, coroutinesList, fireParticles));
+        yield break;
     }
 
-    public IEnumerator StartFireOnSegments(GameObject target)
+    public IEnumerator StartFireOnSegments(GameObject target, SaturationControl saturation)
     {
         if (coolDownDictionary.TryGetValue(target, out bool isCoolingDown) && isCoolingDown)
         {
             yield break;
         }
+
+        ObjectOnFire(target, true);
 
         List<GameObject> segmentObjects;
         ProceduralTree proceduralTree = target.GetComponentInChildren<ProceduralTree>();
@@ -199,11 +202,12 @@ public class FireManager : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(ptGrowing.BurnEffectUp());
+        saturation.LerpSaturationToMin();
 
-        proceduralTree.ShowSegments();
-
-        ObjectOnFire(target, true);
+        if (proceduralTree.showingSegments)
+        {
+            proceduralTree.ShowSegments();
+        }
 
         if (!fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
         {
@@ -211,14 +215,28 @@ public class FireManager : MonoBehaviour
             fireCoroutines[target] = coroutinesList;
         }
 
-        ParticleSystem fireParticles = null;
+        // Start both coroutines simultaneously
+        Coroutine branchFallCoroutine = StartCoroutine(ApplySmallBursts(segmentObjects, proceduralTree));
+        Coroutine fireSetupCoroutine = StartCoroutine(SetUpFires(segmentObjects, coroutinesList, target));
 
+        coroutinesList.Add(branchFallCoroutine);
+        coroutinesList.Add(fireSetupCoroutine);
 
-        foreach (GameObject firePoint in segmentObjects)
+        StartCoroutine(StartFireStopCountDown(target, null, coroutinesList, maxTreeBurnTime, segmentObjects));
+
+        yield break;
+    }
+
+    private IEnumerator SetUpFires(List<GameObject> segmentObjects, List<Coroutine> coroutinesList, GameObject target)
+    {
+        for (int i = segmentObjects.Count - 1; i >= 0; i--)
         {
-            yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
+            GameObject segment = segmentObjects[i];
 
-            proceduralTree.SmallBurst();
+            if (segment.name == "TreeRoot")
+            {
+                continue;
+            }
 
             GameObject fireInstance = GetFireFromPool();
             if (fireInstance == null)
@@ -226,17 +244,45 @@ public class FireManager : MonoBehaviour
                 continue;
             }
 
-            fireInstance.transform.position = firePoint.transform.position;
-            fireInstance.transform.SetParent(firePoint.transform);
-            fireParticles = fireInstance.GetComponent<ParticleSystem>();
+            MeshRenderer meshRenderer = segment.GetComponent<MeshRenderer>();
+            Vector3 centerPosition = meshRenderer != null ? meshRenderer.bounds.center : Vector3.zero;
+            fireInstance.transform.position = centerPosition;
+            fireInstance.transform.rotation = Quaternion.identity;
+            fireInstance.transform.SetParent(segment.transform);
+            ParticleSystem fireParticles = fireInstance.GetComponent<ParticleSystem>();
 
-            Coroutine controlCoroutine = StartCoroutine(ControlFire(fireInstance, target, null, fireParticles, treeMaxScale));
+            Vector3 maxFireScale;
+            if (meshRenderer != null)
+            {
+                float largestDimension = Mathf.Max(meshRenderer.bounds.size.x, meshRenderer.bounds.size.y, meshRenderer.bounds.size.z);
+                maxFireScale = new Vector3(largestDimension, largestDimension, largestDimension) * 10f;
+            }
+            else
+            {
+                maxFireScale = treeMaxScale;
+            }
+
+            Coroutine controlCoroutine = StartCoroutine(ControlFire(fireInstance, target, null, fireParticles, maxFireScale));
             coroutinesList.Add(controlCoroutine);
-        }
-        
 
-        StartCoroutine(StartFireStopCountDown(target, null, coroutinesList, fireParticles));
+            yield return new WaitForSeconds(UnityEngine.Random.Range(3f, 5f));
+        }
+
+ 
+        yield break;
     }
+
+
+    private IEnumerator ApplySmallBursts(List<GameObject> segments, ProceduralTree proceduralTree)
+    {
+        foreach (GameObject segment in segments)
+        {
+            yield return new WaitForSeconds(UnityEngine.Random.Range(minFireSpreadDelay, maxFireSpreadDelay));
+            proceduralTree.SmallBurst(segment);
+        }
+    }
+
+
 
     private void CheckForFlammableObjects(GameObject fireInstance, HumanAI humanAI)
     {
@@ -247,12 +293,13 @@ public class FireManager : MonoBehaviour
             GameObject hitObj = hitCollider.gameObject;
             Coroutine fireCoroutine = null; // Initialize to null
 
-            if (hitObj != null && IsFlammable(hitObj) && !IsAlreadyOnFire(hitObj))
+            if (hitObj != null && IsFlammable(hitObj) && !IsOnFire(hitObj))
             {
                 if (hitObj.CompareTag("Trees"))
                 {
                     if (!hitObj.GetComponentInChildren<PTGrowing>().ValidateTree()) continue;
-                    fireCoroutine = StartCoroutine(StartFireOnSegments(hitObj));
+                    SaturationControl saturationControl = hitObj.GetComponentInChildren<SaturationControl>();
+                    fireCoroutine = StartCoroutine(StartFireOnSegments(hitObj, saturationControl));
                 }
                 else if (hitObj.CompareTag("Human") && humanAI != null)
                 {
@@ -268,6 +315,8 @@ public class FireManager : MonoBehaviour
                 }
 
                 objectsOnFire.Add(hitObj);
+
+                Debug.Log(hitObj + " is on fire!");
 
                 if (!fireCoroutines.TryGetValue(hitObj, out List<Coroutine> coroutinesList))
                 {
@@ -311,7 +360,7 @@ public class FireManager : MonoBehaviour
         }
 
         // Fire at full intensity for a random duration between min and max fire duration
-        float randomFireDuration = UnityEngine.Random.Range(minFireDuration, maxFireDuration);
+        float randomFireDuration = UnityEngine.Random.Range(minFireDuration, maxNpcBurnTime);
         float elapsedTime = 0;
         while (elapsedTime < randomFireDuration)
         {
@@ -323,14 +372,14 @@ public class FireManager : MonoBehaviour
             yield return new WaitForSeconds(checkInterval);
         }
 
-        StartCoroutine(ShrinkFire(fireInstance, fireParticles));
+        StartCoroutine(ShrinkFire(fireInstance));
     }
 
-    private IEnumerator ShrinkFire(GameObject fireInstance, ParticleSystem fireParticles)
+    private IEnumerator ShrinkFire(GameObject fireInstance)
     {
         float time = 0;
         Vector3 currentScale = fireInstance.transform.localScale;
-
+        ParticleSystem fireParticles = fireInstance.GetComponent<ParticleSystem>();
         while (time < endFireDuration)
         {
             time += Time.deltaTime;
@@ -352,52 +401,61 @@ public class FireManager : MonoBehaviour
     }
 
 
-    public void StopFireOnObject(GameObject target, HumanAI humanAI, ParticleSystem fireParticles )
+    public void StopFireOnObject(GameObject target, HumanAI humanAI, List<GameObject> segments)
     {
-        // Check if the target is null at the very beginning
         if (target == null)
         {
             Debug.LogError("StopFireOnObject called with a null target.");
             return;
         }
 
-        // Logic specific to human targets
         if (target.CompareTag("Human") && humanAI != null)
         {
             humanAI.stats.isTerrified = false;
         }
 
-        // Stop all fire coroutines associated with the target
         if (fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
         {
             foreach (Coroutine coroutine in coroutinesList)
             {
-                if (coroutine != null)
-                {
-                    StopCoroutine(coroutine);
-                }
+                if (coroutine != null) StopCoroutine(coroutine);
             }
             fireCoroutines.Remove(target);
         }
 
-        // Handle fire points associated with the target
-        if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
+        if (segments != null && target.CompareTag("Trees"))
         {
+            foreach (GameObject segment in segments)
+            {
+                HandleFirePoints(segment);
+            }
+        }
+        else if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
+        {
+            if (firePoints.Count == 0)
+            {
+                Debug.LogWarning($"No fire points found for target: {target.name}");
+            }
+
             foreach (GameObject firePoint in firePoints)
             {
-                if (firePoint.transform.childCount > 0)
-                {
-                    GameObject fireInstance = firePoint.transform.GetChild(0).gameObject;
-                    StartCoroutine(ShrinkFire(fireInstance, fireParticles));
-                }
+                HandleFirePoints(firePoint);
             }
         }
 
-        // Additional logic to handle when a fire is stopped on an object
         ObjectOnFire(target, false);
         Debug.Log($"Fire stopped on {target.name}");
     }
 
+    private void HandleFirePoints(GameObject firePoint)
+    {
+        ParticleSystem[] particleSystems = firePoint.GetComponentsInChildren<ParticleSystem>();
+        foreach (ParticleSystem ps in particleSystems)
+        {
+            GameObject fireInstance = ps.gameObject;
+            StartCoroutine(ShrinkFire(fireInstance));
+        }
+    }
 
 
 
@@ -416,18 +474,18 @@ public class FireManager : MonoBehaviour
         coolDownDictionary[target] = false;
     }
 
-    public IEnumerator StartFireStopCountDown(GameObject target, HumanAI humanAI, List<Coroutine> coroutinesList, ParticleSystem fireParticles)
+    public IEnumerator StartFireStopCountDown(GameObject target, HumanAI humanAI, List<Coroutine> coroutinesList, float maxBurnTime, List<GameObject> segments)
     {
         float startTime = Time.time;
 
         // Check for human targets and perform continuous checking for revival
         if (target != null && target.CompareTag("Human") && humanAI != null)
         {
-            while (Time.time - startTime < maxTotalFireDuration)
+            while (Time.time - startTime < maxBurnTime)
             {
                 if (humanAI.isReviving)
                 {
-                    StopFireOnObject(target, humanAI, fireParticles);
+                    StopFireOnObject(target, humanAI, null);
                     Coroutine coolDownCoroutine = StartCoroutine(CoolDown(target));
                     coroutinesList.Add(coolDownCoroutine);
                     yield break;
@@ -437,18 +495,17 @@ public class FireManager : MonoBehaviour
         }
         else
         {
-            // For non-human targets, simply wait for the maxTotalFireDuration
-            yield return new WaitForSeconds(maxTotalFireDuration);
+            while (Time.time - startTime < maxBurnTime)
+            {
+                yield return null;
+            }
 
-        }
-        if (target != null)
-        {
-            // Stop fire and initiate cooldown for all targets
-            StopFireOnObject(target, humanAI, fireParticles);
+            StopFireOnObject(target, null, segments);
             Coroutine finalCoolDownCoroutine = StartCoroutine(CoolDown(target));
             coroutinesList.Add(finalCoolDownCoroutine);
+            yield break;
+
         }
-        yield break;
     }
 
     private void StopAndReturnFire(GameObject fireInstance)
@@ -530,17 +587,12 @@ public class FireManager : MonoBehaviour
 
     private void ResetFire(GameObject fire)
     {
-        // If the fire has any specific state or effects that need to be reset, do it here
-        // For example, resetting particle systems, timers, etc.
-        // Example for a particle system reset:
         var fireParticles = fire.GetComponent<ParticleSystem>();
         if (fireParticles)
         {
             fireParticles.Clear();
             fireParticles.Play();
         }
-
-        // Any other reset logic would go here
     }
 
     private void ReturnFireToPool(GameObject fire)
@@ -592,7 +644,7 @@ public class FireManager : MonoBehaviour
         return ((flammableLayerMask.value & (1 << obj.layer)) > 0);
     }
 
-    public bool IsAlreadyOnFire(GameObject obj)
+    public bool IsOnFire(GameObject obj)
     {
         // Check if the object is already in the set of objects on fire
         return objectsOnFire.Contains(obj);
