@@ -31,13 +31,14 @@ public class AIBehaviours : MonoBehaviour
     public bool ValidateFruit(GameObject fruit)
     {
         FoodAttributes foodAttributes = fruit.GetComponentInChildren<FoodAttributes>();
-        return foodAttributes != null && !foodAttributes.isDead;
+        return foodAttributes != null && !foodAttributes.isAvaliable;
     }
 
     public bool ValidateWood(GameObject wood)
     {
-        FoodAttributes foodAttributes = wood.GetComponentInChildren<FoodAttributes>();
-        return foodAttributes != null && !foodAttributes.isDead;
+
+        TreeBranchAttributes treeBranchAttributes = wood.GetComponentInChildren<TreeBranchAttributes>();
+        return treeBranchAttributes != null && treeBranchAttributes.isAvaliable;
     }
 
     public bool ValidateAnimal(GameObject animal)

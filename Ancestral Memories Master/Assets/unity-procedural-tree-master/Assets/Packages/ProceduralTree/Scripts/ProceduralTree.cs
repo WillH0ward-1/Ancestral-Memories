@@ -480,10 +480,7 @@ namespace ProceduralModeling
 				yield break; // Skip if the segment is the root
 			}
 
-			// Create an empty parent object named 'TreeBranch'
 			GameObject treeBranch = new GameObject("TreeBranch");
-
-			// Get the center of the mesh's bounding box in world space
 			Renderer renderer = segment.GetComponent<Renderer>();
 			if (renderer == null)
 			{
@@ -492,50 +489,41 @@ namespace ProceduralModeling
 			}
 
 			Vector3 meshCenter = renderer.bounds.center;
-
-			// Set the parent's position to the mesh center
 			treeBranch.transform.position = meshCenter;
-
-			// Set the segment as a child of 'TreeBranch'
 			segment.transform.SetParent(treeBranch.transform);
 
-			Vector3 raycastDirection = Vector3.down;
-			bool hitSuccessful = Physics.Raycast(treeBranch.transform.position, raycastDirection, out RaycastHit hit, Mathf.Infinity, hitGroundLayer);
+			// Calculate a random direction and end position within a radius
+			Vector3 randomDirection = UnityEngine.Random.rotation * Vector3.forward;
+			float randomRadius = UnityEngine.Random.Range(minTrajectoryRadius, maxTrajectoryRadius);
+			Vector3 randomEndPosition = meshCenter + randomDirection * randomRadius;
 
-			// Draw the ray for visualization
-			Color rayColor = hitSuccessful ? Color.green : Color.red;
-			Vector3 rayEnd = treeBranch.transform.position + raycastDirection;
-			Debug.DrawLine(treeBranch.transform.position, rayEnd, rayColor, 30f);
-
-			if (!hitSuccessful)
+			// Raycast down from the random end position to find the ground
+			if (Physics.Raycast(randomEndPosition + Vector3.up * 100, Vector3.down, out RaycastHit hit, Mathf.Infinity, hitGroundLayer))
+			{
+				randomEndPosition = hit.point;
+			}
+			else
 			{
 				Debug.LogError("Raycast did not hit any ground layer.");
 				yield break;
 			}
 
-			// Calculate a random position within a radius
-			Vector3 randomDirection = UnityEngine.Random.rotation * Vector3.forward;
-			float randomRadius = UnityEngine.Random.Range(minTrajectoryRadius, maxTrajectoryRadius);
-			Vector3 end = hit.point + randomDirection * randomRadius;
-
-//			Debug.Log("Start position: " + meshCenter + ", End position: " + end);
-
 			float startTime = Time.time;
-
 			while (Time.time - startTime < trajectoryDuration)
 			{
 				float fractionOfJourney = (Time.time - startTime) / trajectoryDuration;
-				treeBranch.transform.position = Vector3.Lerp(meshCenter, end, fractionOfJourney);
-
-				// Add rotation around the forward axis
+				treeBranch.transform.position = Vector3.Lerp(meshCenter, randomEndPosition, fractionOfJourney);
 				treeBranch.transform.Rotate(Vector3.forward, rotationSpeed * Time.deltaTime);
-
-				yield return null; // Wait for the next frame
+				yield return null;
 			}
 
-			// Ensure the final position is exactly the end position
-			treeBranch.transform.position = end;
+			treeBranch.transform.position = randomEndPosition;
+			TreeBranchAttributes treeBranchAttributes = treeBranch.AddComponent<TreeBranchAttributes>();
+			treeBranchAttributes.resources = resources;
+			AddToResources(treeBranch);
+			treeBranchAttributes.isAvaliable = true;
 		}
+
 
 		public int minGenerations = 1;
 		public int maxGenerations = 8;
@@ -563,6 +551,16 @@ namespace ProceduralModeling
 			HideSegments();
 
 			return treeMesh;
+		}
+
+		private void AddToResources(GameObject wood)
+		{
+			resources.AddResourceObject("Wood", wood);
+		}
+
+		private void RemoveFromResources(GameObject wood)
+		{
+			resources.RemoveResourceObject("Wood", wood);
 		}
 
 

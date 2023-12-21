@@ -98,7 +98,8 @@ public class HumanAI : MonoBehaviour
         stats = transform.GetComponentInChildren<AICharacterStats>();
         seeker = transform.GetComponentInChildren<Seeker>();
 
-        stateActions[AIState.Harvest] = (target) => StartCoroutine(Harvest(target));
+        stateActions[AIState.Harvest] = (target) => StartCoroutine(StartHarvest(target));
+        stateActions[AIState.Carry] = (target) => StartCoroutine(CarryTo(carryingObject, Vector3.zero));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
         stateActions[AIState.Attack] = (target) => StartCoroutine(Attack(target));
 
@@ -592,6 +593,9 @@ public class HumanAI : MonoBehaviour
 
     public List<GameObject> resourceToFind;
 
+    public bool isCarrying = false;
+    public bool isCarryingObject = false;
+
     public void ChangeState(AIState newState)
     {
         if (!ragdollController.isRagdollActive)
@@ -600,6 +604,15 @@ public class HumanAI : MonoBehaviour
             behaviourIsActive = false;
             currentAIState = newState;
             state = currentAIState;
+
+            if (isCarryingObject && carryingObject != null)
+            {
+                TreeBranchAttributes attributes = carryingObject.GetComponent<TreeBranchAttributes>();
+                attributes.LaunchBranch();
+                carryingObject = null;
+                isCarryingObject = false;
+                isCarrying = false;
+            }
 
             if (state == AIState.Following)
             {
@@ -627,8 +640,6 @@ public class HumanAI : MonoBehaviour
             {
                 switch (state)
                 {
-
-
                     case AIState.Idle:
                         StartCoroutine(Idle());
                         break;
@@ -639,34 +650,48 @@ public class HumanAI : MonoBehaviour
                         StartCoroutine(EnterConversation());
                         break;
                     case AIState.Harvest:
-
                         GameObject tree = null;
+                        GameObject resource = null;
 
-                        tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
+                        // Attempt to find the closest valid wood resource
+                        isCarrying = false;
+                        resource = GetClosest(resources.WoodList, aiBehaviours.ValidateWood);
 
-                        if (tree != null)
+                        if (resource != null)
                         {
-                            // For example, make the agent walk towards a tree in a circle formation of size 5
-                            target = tree.transform;
-                            StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
+                            // If a valid resource is found, walk towards it and perform carry action
+                            carryingObject = resource;
+                            isCarrying = true;
+                            StartCoroutine(WalkTowards(resource, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Carry], treeHarvestDistance));
                         }
                         else
                         {
-                            tree = GetClosest(mapObjGen.treeGrowingList, aiBehaviours.ValidateTree);
+                            isCarrying = false;
+                            // If no resource is found, try to find a valid tree
+                            tree = GetClosest(mapObjGen.treeList, aiBehaviours.ValidateTree);
+
+                            // If no tree is found in the first list, try the tree growing list
+                            if (tree == null)
+                            {
+                                tree = GetClosest(mapObjGen.treeGrowingList, aiBehaviours.ValidateTree);
+                            }
 
                             if (tree != null)
                             {
+                                // If a valid tree is found, walk towards it and perform harvest action
                                 target = tree.transform;
                                 StartCoroutine(WalkTowards(tree, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Harvest], treeHarvestDistance));
                             }
                             else
                             {
+                                // If no valid tree is found in either list, change to idle state
                                 ChangeState(AIState.Idle);
                                 Debug.Log("No valid tree found. Can't start WalkToward.");
                             }
                         }
 
                         break;
+
                     case AIState.Walking:
                         StartCoroutine(Walk(aiPath.destination));
                         break;
@@ -696,12 +721,6 @@ public class HumanAI : MonoBehaviour
                         break;
                     case AIState.GetUp:
                         StartCoroutine(GetUp(true));
-                        break;
-                    case AIState.Carry:
-                        resourceToFind = resources.WoodList;
-                        List<GameObject> resourceTarget = resourceToFind;
-                        GameObject wood = GetClosest(resourceToFind, aiBehaviours.ValidateWood);
-                        StartCoroutine(CarryTo(wood, Vector3.zero)); // placeholder, carry to base
                         break;
                     default:
                         break;
@@ -856,6 +875,7 @@ public class HumanAI : MonoBehaviour
     public float inRangeThreshold = 5f;
     public float sphereCastRadius = 10f;
     public float treeHarvestDistance = 15f;
+    public float carryDistance = 2f;
     public float attackStoppingDistance = 5f;
 
     [SerializeField] private List<Transform> hitObjects;
@@ -864,17 +884,75 @@ public class HumanAI : MonoBehaviour
 
     private AIBehaviours aiBehaviours;
 
+    [SerializeField] private LayerMask groundAndWaterLayer;
+
     private IEnumerator CarryTo(GameObject carryObject, Vector3 carryTarget)
     {
+        resources.RemoveResourceObject("Wood", carryObject);
+
+        isCarrying = true;
+        isCarryingObject = true;
+
+        TreeBranchAttributes treeBranchAttributes = carryObject.GetComponentInChildren<TreeBranchAttributes>();
+        treeBranchAttributes.isAvaliable = false;
+
+        behaviourIsActive = true;
+
         aiPath.maxSpeed = walkingSpeed;
+        aiPath.endReachedDistance = carryDistance;
         aiPath.destination = carryTarget;
         aiPath.canMove = true;
 
-        behaviourIsActive = true;
         ChangeAnimationState(HumanControllerAnimations.Walk_CarryFront);
+        carryObject.transform.position = transform.position;
+        Vector3 offset = new Vector3(0.5f, 8f, 3.5f);
+        carryObject.transform.position = transform.position + offset;
+        carryObject.transform.SetParent(transform);
 
-        yield break;
+
+        while (behaviourIsActive)
+        {
+            if (aiPath.reachedDestination)
+            {
+                RaycastHit hit;
+                // Perform a raycast downwards from the carryObject's position
+                if (Physics.Raycast(carryObject.transform.position, Vector3.down, out hit, Mathf.Infinity, groundAndWaterLayer))
+                {
+                    // Start the lerp process to the hit point
+                    float timeToLerp = 1.0f; // Duration of the lerp (in seconds)
+                    float lerpStartTime = Time.time;
+                    Vector3 startPosition = carryObject.transform.position;
+                    Vector3 endPosition = hit.point;
+
+                    while (Time.time < lerpStartTime + timeToLerp)
+                    {
+                        float lerpProgress = (Time.time - lerpStartTime) / timeToLerp;
+                        carryObject.transform.position = Vector3.Lerp(startPosition, endPosition, lerpProgress);
+                        yield return null; // Wait for the next frame
+                    }
+
+                    // Ensure the object is exactly at the end position after lerp completes
+                    carryObject.transform.position = endPosition;
+                }
+
+                carryObject.transform.SetParent(null); // Unparent the object
+
+                treeBranchAttributes.isAvaliable = false;
+
+                isCarrying = false;
+                isCarryingObject = false;
+
+                ChangeState(AIState.Harvest);
+
+                behaviourIsActive = false;
+            }
+
+            yield return null; // Ensure the coroutine continues on the next frame
+        }
     }
+
+
+    public GameObject carryingObject;
 
     private IEnumerator WalkTowards(GameObject target, FormationController formationController, FormationManager.FormationType formationType, float formationSize, Action<GameObject> action, float stoppingDistance)
     {
@@ -909,19 +987,32 @@ public class HumanAI : MonoBehaviour
         {
             if (action == stateActions[AIState.Harvest])
             {
-                // Only get the component if it's null or hasn't been fetched before
-                if (ptGrow == null)
+                if (isCarrying)
                 {
-                    ptGrow = target.GetComponentInChildren<PTGrowing>();
-                }
-
-                if (ptGrow != null && (ptGrow.isDead || !ptGrow.isFullyGrown))
-                {
-                    ChangeState(AIState.Harvest);
+                    if (!aiBehaviours.ValidateWood(target))
+                    {
+                        ChangeState(AIState.Carry);
+                    }
 
                     yield break;
                 }
+                else
+                {
+                    if (ptGrow == null)
+                    {
+                        ptGrow = target.GetComponentInChildren<PTGrowing>();
+                    }
+
+                    if (ptGrow != null && (ptGrow.isDead || !ptGrow.isFullyGrown))
+                    {
+                        ChangeState(AIState.Harvest);
+
+                        yield break;
+                    }
+                }
+
             }
+
 
             UpdateRange(target.transform);
 
@@ -1014,7 +1105,7 @@ public class HumanAI : MonoBehaviour
 
     TreeInteractions treeInteract;
 
-    private IEnumerator Harvest(GameObject target)
+    private IEnumerator StartHarvest(GameObject target)
     {
         PTGrowing ptGrow = target.GetComponentInChildren<PTGrowing>();
         treeInteract = target.GetComponentInChildren<TreeInteractions>();

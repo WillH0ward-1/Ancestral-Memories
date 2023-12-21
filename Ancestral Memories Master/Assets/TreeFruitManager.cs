@@ -54,6 +54,7 @@ public class TreeFruitManager : MonoBehaviour
             fruit.SetActive(false);
             FoodAttributes foodAttributes = fruit.GetComponentInChildren<FoodAttributes>();
             foodAttributes.treeFruitManager = this;
+            foodAttributes.isAvaliable = false;
             DisableFruitGravity(fruit);
             fruits.Add(fruit);
             fruitPool.Enqueue(fruit);
@@ -102,10 +103,12 @@ public class TreeFruitManager : MonoBehaviour
                 break;
             }
             GameObject fruit = fruitPool.Dequeue();
-            fruitAttributesDict[fruit].isDead = false;
+            fruitAttributesDict[fruit].isAvaliable = false;
+
+            FoodAttributes fruitAttributes = fruitAttributesDict[fruit];
             ResetFruit(fruit, fruitPoints[i]);
             fruit.SetActive(true);
-            growCoroutines[fruit] = StartCoroutine(GrowFruit(fruit, i, fruitsToFall));
+            growCoroutines[fruit] = StartCoroutine(GrowFruit(fruit, i, fruitsToFall, fruitAttributes));
         }
     }
 
@@ -128,8 +131,10 @@ public class TreeFruitManager : MonoBehaviour
     }
 
 
-    private IEnumerator GrowFruit(GameObject fruit, int index, int fruitCount)
+    private IEnumerator GrowFruit(GameObject fruit, int index, int fruitCount, FoodAttributes fruitAttributes)
     {
+        fruitAttributes.isAvaliable = false;
+
         float timeElapsed = 0;
         Vector3 initialScale = Vector3.zero;
         Vector3 targetScale = maxFruitScale;
@@ -145,10 +150,10 @@ public class TreeFruitManager : MonoBehaviour
 
         fruit.transform.localScale = targetScale;
 
-        yield return StartCoroutine(Lifetime(fruit, index, fruitCount));
+        yield return StartCoroutine(Lifetime(fruit, index, fruitCount, fruitAttributes));
     }
 
-    private IEnumerator Lifetime(GameObject fruit, int index, int totalFruits)
+    private IEnumerator Lifetime(GameObject fruit, int index, int totalFruits, FoodAttributes fruitAttributes)
     {
         // Get the remaining lifetime of the tree
         float remainingLifetime = ptGrow.GetRemainingLifetime();
@@ -163,14 +168,17 @@ public class TreeFruitManager : MonoBehaviour
         yield return new WaitForSeconds(fallTime);
 
         // Start the fall coroutine
-        StartCoroutine(Fall(fruit));
+        StartCoroutine(Fall(fruit, fruitAttributes));
     }
+
 
     [Header("Fall Settings")]
     [SerializeField] private float fallDuration = 1.0f; // Duration of the fall animation
 
-    public IEnumerator Fall(GameObject fruit)
+    public IEnumerator Fall(GameObject fruit, FoodAttributes fruitAttributes)
     {
+        fruitAttributes.isAvaliable = false;
+
         fruit.transform.SetParent(null);
 
         Vector3 startPosition = fruit.transform.position;
@@ -202,14 +210,16 @@ public class TreeFruitManager : MonoBehaviour
         fruit.transform.position = endPosition;
 
         // Perform any additional operations after the fruit has fallen
-        OnFruitFallen(fruit);
+        OnFruitFallen(fruit, fruitAttributes);
     }
 
-    private void OnFruitFallen(GameObject fruit)
+    private void OnFruitFallen(GameObject fruit, FoodAttributes fruitAttributes)
     {
+        fruitAttributes.isAvaliable = true;
+
         mapObjGen.foodSourcesList.Add(fruit);
         AddToResources(fruit);
-        StartCoroutine(Decay(fruit));
+        StartCoroutine(Decay(fruit, fruitAttributes));
 
         // Check if the fruit is in water (if necessary)
         CheckWaterDepth(fruit);
@@ -264,10 +274,27 @@ public class TreeFruitManager : MonoBehaviour
     }
 
 
-    public IEnumerator Decay(GameObject fruit)
+    public IEnumerator Decay(GameObject fruit, FoodAttributes foodAttributes)
     {
-        // Wait for a delay before starting the decay process
-        yield return new WaitForSeconds(DetermineFruitDecay());
+        float decayDelay = DetermineFruitDecay();
+        float decayDelayTimeElapsed = 0;
+
+        // Delay loop before starting the decay process
+
+        while (decayDelayTimeElapsed < decayDelay)
+        {
+            if (!fruit.activeSelf)
+            {
+                yield break;
+            }
+
+            decayDelayTimeElapsed += Time.deltaTime;
+            // Optional: Insert any additional checks or operations you want to perform during the delay
+            yield return null;
+        }
+
+        foodAttributes.isAvaliable = false;
+
 
         // Reset the timeElapsed for the decay process
         float timeElapsed = 0;
@@ -293,6 +320,7 @@ public class TreeFruitManager : MonoBehaviour
         fruit.SetActive(false);
         fruitPool.Enqueue(fruit);
     }
+
 
 
 

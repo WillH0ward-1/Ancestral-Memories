@@ -330,10 +330,7 @@ namespace ProceduralModeling
 
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
 
-                foreach (GameObject fruit in treeFruitManager.fruits)
-                {
-                    StartCoroutine(treeFruitManager.Fall(fruit));
-                }
+                KillAllFruits();
 
                 treeAudioSFX.StartTreeGrowthSFX(State.Dying);
 
@@ -451,7 +448,8 @@ namespace ProceduralModeling
         {
             foreach (GameObject fruit in treeFruitManager.fruits)
             {
-                StartCoroutine(treeFruitManager.Fall(fruit));
+                FoodAttributes foodAttributes = fruit.GetComponent<FoodAttributes>();
+                StartCoroutine(treeFruitManager.Fall(fruit, foodAttributes));
             }
         }
 

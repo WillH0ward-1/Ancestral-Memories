@@ -6,6 +6,7 @@ public class FoodAttributes : MonoBehaviour
 {
 
     public TreeFruitManager treeFruitManager;
-    public bool isDead = true;
+    public bool isAvaliable = false;
+    public float hungerReplenishFactor = 0.25f;
 
 }

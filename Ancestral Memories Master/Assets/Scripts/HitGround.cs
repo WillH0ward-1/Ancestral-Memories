@@ -35,10 +35,7 @@ public class HitGround : MonoBehaviour
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
             rigidBody.velocity = Vector3.zero;
-            StartCoroutine(
-
-                        // Start decay
-            fruitManager.Decay(gameObject));
+            //StartCoroutine(fruitManager.Decay(gameObject));
             if (other.CompareTag("Water"))
             {
                 CheckWaterDepth(other);
