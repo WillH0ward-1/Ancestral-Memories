@@ -34,6 +34,13 @@ public class AIBehaviours : MonoBehaviour
         return foodAttributes != null && !foodAttributes.isAvaliable;
     }
 
+
+    public bool ValidateTemple(GameObject temple)
+    {
+        return temple != null;
+    }
+
+
     public bool ValidateWood(GameObject wood)
     {
 

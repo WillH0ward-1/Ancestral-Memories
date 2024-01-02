@@ -8,7 +8,7 @@ public class RainControl : MonoBehaviour
     public ParticleSystem rainParticles;
     [SerializeField] private AreaManager areaManager;
     public LerpTerrain lerpTerrain;
-    public ParticleSystem.EmissionModule emission;
+    private ParticleSystem.EmissionModule emission;
     public float emissionMultiplier = 128f;
     public SeasonManager seasons;
     public Material rainMaterial; // Material with the 'Tint' parameter
@@ -20,8 +20,6 @@ public class RainControl : MonoBehaviour
     public float minRainDuration = 10f;
     public float maxRainDuration = 60f;
 
-    [SerializeField] private float rainStrengthTarget;
-    [SerializeField] private float emissionRateOverTime;
     [SerializeField] private CloudControl clouds;
     public float rainDanceMultiplier = 1f;
     public float minRainDanceMultiplier = 1f;
@@ -40,13 +38,17 @@ public class RainControl : MonoBehaviour
     private float droughtThreshold = 0;
     [SerializeField] private float droughtThresholdDivisor = 2;
 
-    private new Renderer renderer;
+    private Renderer renderer;
     private MaterialPropertyBlock propBlock;
+
+    private Coroutine rainCheckCoroutine;
+    private Coroutine rainCoroutine;
+    private Coroutine droughtCoroutine;
 
     private void Awake()
     {
-        transform.parent.SetParent(player.transform);
-        behaviours = player.transform.GetComponentInChildren<CharacterBehaviours>();
+        transform.SetParent(player.transform);
+        behaviours = player.GetComponentInChildren<CharacterBehaviours>();
         mapObjGen = FindObjectOfType<MapObjGen>();
         droughtThreshold = player.maxStat / droughtThresholdDivisor;
 
@@ -58,30 +60,40 @@ public class RainControl : MonoBehaviour
     {
         emission = rainParticles.emission;
         emission.enabled = false;
-        StartCoroutine(ChanceOfRain());
+        rainCheckCoroutine = StartCoroutine(ChanceOfRain());
     }
 
     public IEnumerator ChanceOfRain()
     {
-        if (!isRaining)
+        while (true) // Repeat indefinitely
         {
-            float time = 0;
-            float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
+            if (!isRaining)
+            {
+                float time = 0;
+                float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
 
-            while (time < rainWaitDuration)
-            {
-                time += Time.deltaTime;
-                yield return null;
-            }
+                while (time < rainWaitDuration)
+                {
+                    time += Time.deltaTime;
+                    yield return null;
+                }
 
-            if (!isRaining && player.faith >= droughtThreshold && areaManager.currentRoom == "Outside")
-            {
-                StartCoroutine(StartRaining());
+                if (player.faith >= droughtThreshold && areaManager.currentRoom == "Outside")
+                {
+                    if (rainCoroutine != null)
+                        StopCoroutine(rainCoroutine);
+                    rainCoroutine = StartCoroutine(StartRaining());
+                    yield break; // Exit the coroutine after starting the rain
+                }
+                else if (player.faith <= droughtThreshold && triggerDrought)
+                {
+                    if (droughtCoroutine != null)
+                        StopCoroutine(droughtCoroutine);
+                    droughtCoroutine = StartCoroutine(Drought());
+                    yield break; // Exit the coroutine after starting the drought
+                }
             }
-            else if (player.faith <= droughtThreshold && triggerDrought)
-            {
-                StartCoroutine(Drought());
-            }
+            yield return null; // Wait for the next frame before continuing
         }
     }
 
@@ -101,14 +113,12 @@ public class RainControl : MonoBehaviour
         }
 
         drought = false;
-        StartCoroutine(ChanceOfRain());
+        rainCheckCoroutine = StartCoroutine(ChanceOfRain());
     }
 
     public IEnumerator StartRaining()
     {
         clouds.OverrideCloudPower(clouds.cloudPersistanceMax);
-        emissionRateOverTime = 0;
-        emission.rateOverTime = emissionRateOverTime * rainDanceMultiplier;
         isRaining = true;
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 
@@ -135,18 +145,19 @@ public class RainControl : MonoBehaviour
             yield return null;
         }
 
-        StartCoroutine(StopRaining());
+        if (rainCoroutine != null)
+            StopCoroutine(rainCoroutine);
+        rainCoroutine = StartCoroutine(StopRaining());
     }
 
     public IEnumerator StopRaining()
     {
         clouds.StopCloudPowerOverride();
-        emissionRateOverTime = 0;
         emission.enabled = false;
         isRaining = false;
         rainParticles.Stop();
 
-        StartCoroutine(ChanceOfRain());
+        rainCheckCoroutine = StartCoroutine(ChanceOfRain());
 
         yield break;
     }
@@ -158,6 +169,9 @@ public class RainControl : MonoBehaviour
         main.startSizeX = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
         main.startSizeY = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
         main.startSizeZ = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
+        // Apply without stopping the particle system
+        rainParticles.Stop(withChildren: true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        rainParticles.Play();
     }
 
     private void RainShape()
@@ -167,6 +181,9 @@ public class RainControl : MonoBehaviour
         main.startSizeX = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
         main.startSizeY = new ParticleSystem.MinMaxCurve(1f, 2f);
         main.startSizeZ = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
+        // Apply without stopping the particle system
+        rainParticles.Stop(withChildren: true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        rainParticles.Play();
     }
 
     private IEnumerator LerpMaterialColor(Color targetColor)

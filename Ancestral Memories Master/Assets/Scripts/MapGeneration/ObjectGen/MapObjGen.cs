@@ -468,14 +468,14 @@ public class MapObjGen : MonoBehaviour
         foreach(GameObject g in npcList)
         {
             LerpDeformation npcDeform = g.GetComponentInChildren<LerpDeformation>();
-            npcDeform.player = player;
+            npcDeform.stats = player;
             npcDeform.SubscribeToHunger();
             //DeformableManager npcDeformManager = npcDeform.transform.gameObject.AddComponent<DeformableManager>();
             //npcDeformManager.update = true;
         }
 
         LerpDeformation playerDeform = player.GetComponentInChildren<LerpDeformation>();
-        playerDeform.player = player;
+        playerDeform.stats = player;
         playerDeform.SubscribeToHunger();
 
         //DeformableManager playerDeformManager = playerDeform.transform.gameObject.AddComponent<DeformableManager>();

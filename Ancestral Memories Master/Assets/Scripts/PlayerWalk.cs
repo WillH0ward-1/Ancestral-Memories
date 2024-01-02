@@ -564,7 +564,7 @@ public class PlayerWalk : MonoBehaviour
             Debug.Log("Arrived.");
             transform.LookAt(hitObject.transform.position);
 
-            behaviours.ChooseBehaviour(selectedChoice, hitObject);
+            behaviours.ChangeState(selectedChoice, hitObject);
             yield break;
         } else if (areaManager.traversing)
         {
@@ -597,18 +597,21 @@ public class PlayerWalk : MonoBehaviour
     {
         player.AdjustAnimationSpeed(defaultAnimSpeed);
 
-        if (!behaviours.isPsychdelicMode && !player.isStarving)
+        if (!behaviours.isDying)
         {
-            ChangeState(HumanControllerAnimations.Idle_Neanderthal);
-        }
-        if (!behaviours.isPsychdelicMode && player.isStarving)
-        {
-            ChangeState(HumanControllerAnimations.Idle_MidSapien01);
+            if (!behaviours.isPsychdelicMode && !player.isStarving)
+            {
+                ChangeState(HumanControllerAnimations.Idle_Neanderthal);
+            }
+            if (!behaviours.isPsychdelicMode && player.isStarving)
+            {
+                ChangeState(HumanControllerAnimations.Idle_MidSapien01);
 
-        }
-        else if (behaviours.isPsychdelicMode)
-        {
-            ChangeState(HumanControllerAnimations.Idle_Elder);
+            }
+            else if (behaviours.isPsychdelicMode)
+            {
+                ChangeState(HumanControllerAnimations.Idle_Elder);
+            }
         }
 
         //agent.ResetPath();

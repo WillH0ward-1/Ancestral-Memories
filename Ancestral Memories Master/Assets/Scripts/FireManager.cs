@@ -103,9 +103,9 @@ public class FireManager : MonoBehaviour
 
     [SerializeField] private int desiredNumberOfFirePoints = 10; // The target number of fire points you want
 
-    public Vector3 defaultMaxScale = new Vector3(35,35,35);
+    public Vector3 defaultMaxScale = new Vector3(35, 35, 35);
     public Vector3 treeMaxScale = new Vector3(55, 55, 55);
-   
+
     private void CreateFirePoints(GameObject rigObject, List<GameObject> firePoints)
     {
         Transform[] allChildren = rigObject.GetComponentsInChildren<Transform>();
@@ -155,7 +155,14 @@ public class FireManager : MonoBehaviour
             }
         }
 
-        StartCoroutine(StartFireStopCountDown(target, humanAI, coroutinesList, maxNpcBurnTime, null));
+        if (humanAI != null)
+        {
+            StartCoroutine(StartFireStopCountDown(target, humanAI, coroutinesList, maxNpcBurnTime, null));
+        }
+        else
+        {
+            StartCoroutine(StartFireStopCountDown(target, null, coroutinesList, maxNpcBurnTime, null));
+        }
 
         if (flammableObjectsToFirePoints.TryGetValue(target, out List<GameObject> firePoints))
         {
@@ -268,10 +275,9 @@ public class FireManager : MonoBehaviour
             yield return new WaitForSeconds(UnityEngine.Random.Range(3f, 5f));
         }
 
- 
+
         yield break;
     }
-
 
     private IEnumerator ApplySmallBursts(List<GameObject> segments, ProceduralTree proceduralTree)
     {
@@ -281,8 +287,6 @@ public class FireManager : MonoBehaviour
             proceduralTree.SmallBurst(segment);
         }
     }
-
-
 
     private void CheckForFlammableObjects(GameObject fireInstance, HumanAI humanAI)
     {
@@ -327,8 +331,6 @@ public class FireManager : MonoBehaviour
             }
         }
     }
-
-
 
     private Dictionary<GameObject, List<Coroutine>> fireCoroutines = new Dictionary<GameObject, List<Coroutine>>();
 
@@ -409,19 +411,31 @@ public class FireManager : MonoBehaviour
             return;
         }
 
-        if (target.CompareTag("Human") && humanAI != null)
+        if (target.CompareTag("Human"))
         {
-            humanAI.stats.isTerrified = false;
+            if (humanAI != null)
+            {
+                humanAI.stats.isTerrified = false;
+                Debug.Log("Is terrified?: " + humanAI.stats.isTerrified);
+            } else
+            {
+                Debug.LogError("FireManager.StopFireOnObject(): HumanAI -" + humanAI + "- is null! ");
+            }
         }
 
         if (fireCoroutines.TryGetValue(target, out List<Coroutine> coroutinesList))
         {
             foreach (Coroutine coroutine in coroutinesList)
             {
-                if (coroutine != null) StopCoroutine(coroutine);
+                if (coroutine != null)
+                {
+                    StopCoroutine(coroutine);
+                }
             }
-            fireCoroutines.Remove(target);
+            coroutinesList.Clear(); // Clears all entries in the list
+            fireCoroutines.Remove(target); // Removes the entry for the target from the dictionary
         }
+
 
         if (segments != null && target.CompareTag("Trees"))
         {
@@ -457,8 +471,6 @@ public class FireManager : MonoBehaviour
         }
     }
 
-
-
     [SerializeField] private float coolDownTime = 15f;
     private Dictionary<GameObject, bool> coolDownDictionary = new Dictionary<GameObject, bool>();
 
@@ -476,12 +488,18 @@ public class FireManager : MonoBehaviour
 
     public IEnumerator StartFireStopCountDown(GameObject target, HumanAI humanAI, List<Coroutine> coroutinesList, float maxBurnTime, List<GameObject> segments)
     {
+        if (target == null)
+        {
+            Debug.LogError("StartFireStopCountDown called with a null target.");
+            yield break;
+        }
+
         float startTime = Time.time;
 
-        // Check for human targets and perform continuous checking for revival
-        if (target != null && target.CompareTag("Human") && humanAI != null)
+        while (Time.time - startTime < maxBurnTime)
         {
-            while (Time.time - startTime < maxBurnTime)
+            // Check conditions specific to Humans
+            if (target.CompareTag("Human") && humanAI != null)
             {
                 if (humanAI.isReviving)
                 {
@@ -490,23 +508,23 @@ public class FireManager : MonoBehaviour
                     coroutinesList.Add(coolDownCoroutine);
                     yield break;
                 }
-                yield return null;
             }
-        }
-        else
-        {
-            while (Time.time - startTime < maxBurnTime)
+
+            // Check for Trees and Animals after the Human check, to avoid unnecessary processing
+            else if (target.CompareTag("Animal") || (target.CompareTag("Trees") && segments != null))
             {
-                yield return null;
+                // No additional checks for Animals and Trees in this loop
             }
 
-            StopFireOnObject(target, null, segments);
-            Coroutine finalCoolDownCoroutine = StartCoroutine(CoolDown(target));
-            coroutinesList.Add(finalCoolDownCoroutine);
-            yield break;
-
+            yield return null;
         }
+
+        // After the loop, stop fire on the target
+        StopFireOnObject(target, (target.CompareTag("Human") ? humanAI : null), (target.CompareTag("Trees") ? segments : null));
+        Coroutine finalCoolDownCoroutine = StartCoroutine(CoolDown(target));
+        coroutinesList.Add(finalCoolDownCoroutine);
     }
+
 
     private void StopAndReturnFire(GameObject fireInstance)
     {
@@ -557,28 +575,25 @@ public class FireManager : MonoBehaviour
         {
             Debug.LogWarning("Fire pool is empty. Recycling the oldest active fire instance.");
             obj = activeFires[0];
-            activeFires.RemoveAt(0); // Remove it from the active fires list
+            activeFires.RemoveAt(0);
 
             if (obj != null)
             {
-                // Reset the fire as needed before reusing
                 ResetFire(obj);
             }
             else
             {
                 Debug.LogError("Encountered a null object in active fires list.");
-                return null; // Exit as no valid fire instance is found
+                return null; 
             }
         }
 
-        // If no valid fire instance is found
         if (obj == null)
         {
             Debug.LogWarning("No available fires to recycle. All fires are active.");
             return null;
         }
 
-        // Activate the fire instance and add it to the active fires list
         obj.SetActive(true);
         activeFires.Add(obj);
         return obj;
@@ -655,7 +670,8 @@ public class FireManager : MonoBehaviour
         if (isOnFire)
         {
             objectsOnFire.Add(obj);
-        } else
+        }
+        else
         {
             objectsOnFire.Remove(obj);
         }

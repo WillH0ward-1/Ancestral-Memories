@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 public class LerpDeformation : MonoBehaviour
 {
-    public Player player;
+    public AICharacterStats stats;
 
     public float maxVal = 0f;
     public float minVal = -0.02f;
@@ -17,27 +17,30 @@ public class LerpDeformation : MonoBehaviour
     [SerializeField] private List<Deform.InflateDeformer> inflateDeformers;
     [SerializeField] private List<Deform.InflateDeformer> nonAuraDeformers;
     [SerializeField] private List<Deform.InflateDeformer> auraDeformers;
-   
+    [SerializeField] private List<Deform.InflateDeformer> bodyHairDeformers;
+
     private float auraDeformationOffset = 0.00006f;
+    private float bodyHairDeformationOffset = 0.0006f;
 
     public void SubscribeToHunger()
     {
-        if (player != null)
+        if (stats != null)
         {
-            player.OnHungerChanged += HungerChanged;
+            stats.OnHungerChanged += HungerChanged;
         }
     }
 
     private void OnDisable()
     {
-        if (player != null)
+        if (stats != null)
         {
-            player.OnHungerChanged -= HungerChanged;
+            stats.OnHungerChanged -= HungerChanged;
         }
     }
 
     private void Awake()
     {
+        stats = GetComponentInChildren<AICharacterStats>();
         InitDeformers();
     }
 
@@ -45,6 +48,7 @@ public class LerpDeformation : MonoBehaviour
     {
         inflateDeformers = new List<Deform.InflateDeformer>(transform.GetComponentsInChildren<Deform.InflateDeformer>());
         auraDeformers = new List<Deform.InflateDeformer>();
+        bodyHairDeformers = new List<Deform.InflateDeformer>();
 
         foreach (Deform.InflateDeformer deformer in inflateDeformers)
         {
@@ -60,7 +64,10 @@ public class LerpDeformation : MonoBehaviour
             if (deformer.gameObject.CompareTag("Aura"))
             {
                 auraDeformers.Add(deformer);
-            } else
+            } else if (deformer.gameObject.CompareTag("BodyHair"))
+            {
+                bodyHairDeformers.Add(deformer);
+            } else 
             {
                 nonAuraDeformers.Add(deformer);
             }
@@ -86,6 +93,11 @@ public class LerpDeformation : MonoBehaviour
         foreach (Deform.InflateDeformer auraDeformer in auraDeformers)
         {
             auraDeformer.Factor = currentDeform + auraDeformationOffset;
+        }
+
+        foreach (Deform.InflateDeformer bodyHairDeformer in bodyHairDeformers)
+        {
+            bodyHairDeformer.Factor = currentDeform + bodyHairDeformationOffset;
         }
     }
 }

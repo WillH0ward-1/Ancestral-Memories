@@ -1,69 +1,78 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class AuraControl : MonoBehaviour
 {
-
-    public Material auraMaterial;
-
-    private Player player;
+    private AICharacterStats characterStats;
 
     public int maxAura = 1;
     public int minAura = 0;
 
-    public Renderer[] auraRenderers = new Renderer[0];
+    private List<Renderer> auraRenderers = new List<Renderer>(); // Use a list to dynamically add renderers
 
     private float targetAuraVal = 1f;
     private float currentAuraVal = 1f;
 
-    public float auraIntensity;
-
     private void Awake()
     {
-        auraRenderers = GetComponentsInChildren<Renderer>();
+        // Recursively search and add renderers with the 'Aura' tag and _AuraIntensity property
+        FindRenderersWithProperty(transform, "Aura", "_AuraIntensity", auraRenderers);
+
+        characterStats = GetComponentInParent<AICharacterStats>();
+    }
+
+    private void FindRenderersWithProperty(Transform parent, string tag, string propertyName, List<Renderer> renderersList)
+    {
+        foreach (Transform child in parent)
+        {
+            Renderer renderer = child.GetComponent<Renderer>();
+            if (renderer != null && renderer.gameObject.CompareTag(tag) && renderer.sharedMaterial.HasProperty(propertyName))
+            {
+                renderersList.Add(renderer);
+            }
+
+            // Recursively search in children
+            FindRenderersWithProperty(child, tag, propertyName, renderersList);
+        }
     }
 
     private void OnEnable()
     {
-        if (player == null)
+        if (characterStats == null)
         {
-            player = FindObjectOfType<Player>();
+            characterStats = GetComponentInParent<AICharacterStats>();
         }
 
-        player.OnFaithChanged += FaithChanged;
+        characterStats.OnFaithChanged += FaithChanged;
     }
 
     private void OnDisable()
     {
-        player.OnFaithChanged -= FaithChanged;
+        if (characterStats != null)
+        {
+            characterStats.OnFaithChanged -= FaithChanged;
+        }
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        //auraShader = GetComponent<SkinnedMeshRenderer>().sharedMaterial;
-        player = FindObjectOfType<Player>();
-        auraIntensity = auraMaterial.GetFloat("_AuraIntensity");
-        auraIntensity = maxAura;
-
+        targetAuraVal = maxAura;
     }
 
-    // Update is called once per frame
     void Update()
     {
         currentAuraVal = Mathf.Lerp(currentAuraVal, targetAuraVal, 2f * Time.deltaTime);
 
-        foreach (Renderer renderer in auraRenderers)
+        // Update only those renderers that have the _AuraIntensity property
+        foreach (var renderer in auraRenderers)
         {
             renderer.sharedMaterial.SetFloat("_AuraIntensity", currentAuraVal);
         }
-
     }
 
-    private void FaithChanged(float faith, float minFaith, float maxFaith)
+    private void FaithChanged(float faithFraction, float minStat, float maxStat)
     {
-        targetAuraVal = (float)faith / maxFaith;
+        targetAuraVal = Mathf.Lerp(minAura, maxAura, faithFraction);
     }
 }

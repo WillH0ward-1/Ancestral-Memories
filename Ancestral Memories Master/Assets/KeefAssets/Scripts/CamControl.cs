@@ -140,6 +140,11 @@ public class CamControl : MonoBehaviour
                 camFollowTarget = true;
                 camRotateAround = true;
             }
+            else if (behaviours.behaviourIsActive && behaviours.isDying)
+            {
+                camFollowTarget = true;
+                camRotateAround = true;
+            }
             else
             {
                 camFollowTarget = false;

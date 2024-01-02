@@ -521,6 +521,7 @@ namespace ProceduralModeling
 			TreeBranchAttributes treeBranchAttributes = treeBranch.AddComponent<TreeBranchAttributes>();
 			treeBranchAttributes.resources = resources;
 			AddToResources(treeBranch);
+			treeBranch.tag = "TreeBranch";
 			treeBranchAttributes.isAvaliable = true;
 		}
 

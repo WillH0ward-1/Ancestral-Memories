@@ -99,7 +99,7 @@ public class HumanAI : MonoBehaviour
         seeker = transform.GetComponentInChildren<Seeker>();
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(StartHarvest(target));
-        stateActions[AIState.Carry] = (target) => StartCoroutine(CarryTo(carryingObject, Vector3.zero));
+        stateActions[AIState.Carry] = (target) => StartCoroutine(CarryTo(carryingObject, GetClosest(mapObjGen.templeList, aiBehaviours.ValidateTemple).transform.position));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
         stateActions[AIState.Attack] = (target) => StartCoroutine(Attack(target));
 
@@ -651,19 +651,19 @@ public class HumanAI : MonoBehaviour
                         break;
                     case AIState.Harvest:
                         GameObject tree = null;
-                        GameObject resource = null;
+                        carryingObject = null;
 
                         // Attempt to find the closest valid wood resource
-                        isCarrying = false;
-                        resource = GetClosest(resources.WoodList, aiBehaviours.ValidateWood);
 
-                        if (resource != null)
+                        carryingObject = GetClosest(resources.WoodList, aiBehaviours.ValidateWood);
+
+                        if (carryingObject != null)
                         {
-                            // If a valid resource is found, walk towards it and perform carry action
-                            carryingObject = resource;
-                            isCarrying = true;
-                            StartCoroutine(WalkTowards(resource, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Carry], treeHarvestDistance));
-                        }
+                            TreeBranchAttributes attributes = carryingObject.GetComponent<TreeBranchAttributes>();
+                            attributes.isAvaliable = false;
+
+                            StartCoroutine(WalkTowards(carryingObject, formationController, FormationManager.FormationType.Circle, 5f, stateActions[AIState.Carry], treeHarvestDistance));
+                        } 
                         else
                         {
                             isCarrying = false;
@@ -691,7 +691,6 @@ public class HumanAI : MonoBehaviour
                         }
 
                         break;
-
                     case AIState.Walking:
                         StartCoroutine(Walk(aiPath.destination));
                         break;
@@ -935,16 +934,27 @@ public class HumanAI : MonoBehaviour
                     carryObject.transform.position = endPosition;
                 }
 
-                carryObject.transform.SetParent(null); // Unparent the object
+                if (carryObject.transform.parent != null)
+                {
+                    carryObject.transform.SetParent(null);
+                }
+                if (treeBranchAttributes.isAvaliable)
+                {
+                    treeBranchAttributes.isAvaliable = false;
+                }
+                if (isCarrying)
+                {
+                    isCarrying = false;
+                }
+                if (isCarryingObject)
+                {
+                    isCarryingObject = false;
+                }
 
-                treeBranchAttributes.isAvaliable = false;
-
-                isCarrying = false;
-                isCarryingObject = false;
+                resources.RemoveResourceObject("Wood", carryObject);
 
                 ChangeState(AIState.Harvest);
 
-                behaviourIsActive = false;
             }
 
             yield return null; // Ensure the coroutine continues on the next frame
@@ -987,16 +997,16 @@ public class HumanAI : MonoBehaviour
         {
             if (action == stateActions[AIState.Harvest])
             {
-                if (isCarrying)
+                if (target.CompareTag("TreeBranch"))
                 {
                     if (!aiBehaviours.ValidateWood(target))
                     {
-                        ChangeState(AIState.Carry);
+                        ChangeState(AIState.Harvest);
                     }
 
                     yield break;
                 }
-                else
+                else if (target.CompareTag("Trees"))
                 {
                     if (ptGrow == null)
                     {

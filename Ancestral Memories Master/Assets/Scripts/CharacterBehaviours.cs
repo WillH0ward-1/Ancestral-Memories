@@ -52,6 +52,10 @@ public class CharacterBehaviours : MonoBehaviour
 
     private Animator animator;
 
+    public LayerMask groundLayer;
+
+    public string lastState;
+
     //EVENT_CALLBACK callbackDelegate;
 
     void Start()
@@ -66,17 +70,21 @@ public class CharacterBehaviours : MonoBehaviour
         pickUpManager = player.GetComponentInChildren<PickUpObject>();
         animator = GetComponentInChildren<Animator>();
 
+        groundLayer = LayerMask.GetMask("Ground");
+
         //animSpeed = player.activeAnimator.speed;
     }
 
     HumanAI humanAI;
 
-    public void ChooseBehaviour(string selected, GameObject hitObject)
+    public void ChangeState(string selected, GameObject hitObject)
     {
+        lastState = selected;
+
         animSpeed = defaultAnimSpeed;
         player.AdjustAnimationSpeed(animSpeed);
 
-        if (hitObject.CompareTag("Human"))
+        if (hitObject != null && hitObject.CompareTag("Human"))
         {
              humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
         }
@@ -157,6 +165,9 @@ public class CharacterBehaviours : MonoBehaviour
             case "ResetGame":
                 StartCoroutine(ResetGame());
                 break;
+            case "Die":
+                StartCoroutine(Die());
+                break;
             //Look();
             default:
                 Debug.Log("No such behaviour.");
@@ -168,13 +179,13 @@ public class CharacterBehaviours : MonoBehaviour
         return;
     }
 
-    private bool isDying = false;
+    public bool isDying = false;
 
     private void Update()
     {
         if (player.isDead && !isDying)
         {
-            StartCoroutine(Die());
+            ChangeState("Die", null);
         }
     }
 
@@ -235,53 +246,38 @@ public class CharacterBehaviours : MonoBehaviour
             int randomIndex = Random.Range(0, mapObjGen.spawnPointsList.Count);
             Vector3 spawnPointPosition = mapObjGen.spawnPointsList[randomIndex].transform.position;
 
-            // Get the collider bounds and calculate the bottom point
             Collider playerCollider = player.GetComponentInChildren<CapsuleCollider>();
-            Vector3 colliderBottom = playerCollider.bounds.min;
-
             Vector3 undergroundPosition = new Vector3(spawnPointPosition.x, spawnPointPosition.y - 20f, spawnPointPosition.z);
             player.transform.position = undergroundPosition;
 
             player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
 
-            float animLength = AnimationUtilities.GetAnimLength(animator);
-            float time = 0f;
-
-            while (time < animLength)
+            RaycastHit hit;
+            while (!Physics.Raycast(playerCollider.bounds.min, Vector3.down, out hit, Mathf.Infinity, groundLayer) || hit.distance > playerCollider.bounds.extents.y)
             {
-                time += Time.deltaTime;
-                float lerpFactor = time / animLength;
-
-                // Perform a raycast downwards from the bottom of the player's collider
-                RaycastHit hit;
-                if (Physics.Raycast(colliderBottom, Vector3.down, out hit))
-                {
-                    spawnPointPosition.y = hit.point.y; // Update the y-position target based on the raycast
-                }
-
-                // Interpolate only the y-position
+                // Move player up slightly each frame
                 Vector3 currentPosition = player.transform.position;
-                currentPosition.y = Mathf.Lerp(undergroundPosition.y, spawnPointPosition.y, lerpFactor);
+                currentPosition.y += Time.deltaTime * 5f; // Adjust the speed as needed
                 player.transform.position = currentPosition;
 
                 // Update the bottom point of the collider for the next iteration
-                colliderBottom = playerCollider.bounds.min;
+                playerCollider = player.GetComponentInChildren<CapsuleCollider>();
 
                 yield return null;
             }
 
-            // Ensure the player is positioned exactly at the ground level after interpolation
+            // Correct the final position to ensure player is exactly at ground level
             Vector3 finalPosition = player.transform.position;
-            finalPosition.y = spawnPointPosition.y;
+            finalPosition.y = hit.point.y + playerCollider.bounds.extents.y;
             player.transform.position = finalPosition;
 
             player.ChangeAnimationState(HumanControllerAnimations.Emotion_Scared_LookAround);
 
             yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
 
-            playerWalk.CancelAgentOverride();
-
             isDying = false;
+            playerWalk.CancelAgentOverride();
+            behaviourIsActive = false;
         }
         else
         {
@@ -290,6 +286,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield break;
     }
+
 
 
     public IEnumerator ExitGame()

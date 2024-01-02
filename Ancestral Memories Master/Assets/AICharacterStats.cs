@@ -67,6 +67,14 @@ public class AICharacterStats : MonoBehaviour
 
     public enum RelationshipType { Friend, Stranger, Enemy }
 
+    public enum NpcType { Human, Animal }
+
+    public enum NpcGender { Male, Animal }
+
+    public enum HumanEvolutionState { Neanderthal, MidSapien, Sapien }
+
+    private HumanEvolutionState evolutionState;
+
     [Serializable]
     public struct Relationship
     {
@@ -89,6 +97,7 @@ public class AICharacterStats : MonoBehaviour
         hunger = maxStat;
         faith = minStat;
         psych = minStat;
+        evolution = minStat;
         isDiseased = false;
 
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
@@ -136,12 +145,26 @@ public class AICharacterStats : MonoBehaviour
         if (NameDictionary.Instance != null)
         {
             npcName = NameDictionary.Instance.GetRandomMaleName();
+
+            // Check the tag and prepend the string accordingly
+            string typeIdentifier = "";
+            if (gameObject.CompareTag("Human"))
+            {
+                typeIdentifier = "Citizen: ";
+            }
+            else if (gameObject.CompareTag("Animal"))
+            {
+                typeIdentifier = "Animal: "; // Or any other identifier you want to use for animals
+            }
+
+            transform.gameObject.name = typeIdentifier + npcName;
         }
         else
         {
             Debug.LogError("NameDictionary instance is not found.");
         }
     }
+
 
     public void UpdateRelationshipStatus(GameObject npc, RelationshipType newRelation)
     {
@@ -338,6 +361,10 @@ public class AICharacterStats : MonoBehaviour
             {
                 humanAI.ChangeState(HumanAI.AIState.Die);
             }
+
+        } else if (transform.CompareTag("Player"))
+        {
+            UpdateEvolution();
         }
     }
 
@@ -347,18 +374,30 @@ public class AICharacterStats : MonoBehaviour
     {
         if (!isDead)
         {
-            float previousEvolution = evolution;  // Store the current evolution value
-
-            float targetEvolution = FaithFraction;
+            float previousEvolution = evolution;
+            float targetEvolution = FaithFraction; // Ensure this is a value between 0 and 1
             float interpolationFactor = Mathf.Lerp(0.01f, evolutionSpeedFactor, FaithFraction);
             evolution = Mathf.Lerp(evolution, targetEvolution, interpolationFactor * Time.deltaTime);
 
-            if (evolution != previousEvolution)  // Check if evolution has effectively changed
+            // Update the evolution state based on the current evolution value
+            evolutionState = EvolutionState;
+
+            // Check for significant change before invoking the event
+            if (Mathf.Abs(evolution - previousEvolution) > Mathf.Epsilon)
             {
                 OnEvolutionChanged?.Invoke(EvolutionFraction, minStat, maxStat);
             }
         }
-        
+    }
+
+    public HumanEvolutionState EvolutionState
+    {
+        get
+        {
+            if (evolution < 0.33f) return HumanEvolutionState.Neanderthal;
+            else if (evolution < 0.66f) return HumanEvolutionState.MidSapien;
+            else return HumanEvolutionState.Sapien;
+        }
     }
 
     public void Heal(float healFactor)
@@ -382,14 +421,14 @@ public class AICharacterStats : MonoBehaviour
     {
         faith = value;
         faith = Mathf.Clamp(faith, minStat, maxStat);
-        OnHealthChanged?.Invoke(FaithFraction, minStat, maxStat);
+        OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
     }
 
     public void SetHunger(float value)
     {
         hunger = value;
         hunger = Mathf.Clamp(hunger, minStat, maxStat);
-        OnHealthChanged?.Invoke(HungerFraction, minStat, maxStat);
+        OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
     }
 
     public void ReinitializeAll()
