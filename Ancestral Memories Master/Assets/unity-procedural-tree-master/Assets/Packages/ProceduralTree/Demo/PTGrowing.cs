@@ -448,10 +448,32 @@ namespace ProceduralModeling
         {
             foreach (GameObject fruit in treeFruitManager.fruits)
             {
+                if (fruit == null || !fruit.activeSelf)
+                {
+                    continue; // Skip null or inactive fruits
+                }
+
                 FoodAttributes foodAttributes = fruit.GetComponent<FoodAttributes>();
-                StartCoroutine(treeFruitManager.Fall(fruit, foodAttributes));
+                if (foodAttributes == null)
+                {
+                    continue; // Skip if FoodAttributes is missing
+                }
+
+                // Stop any ongoing coroutines related to this fruit
+                if (treeFruitManager.growCoroutines.TryGetValue(fruit, out Coroutine growCoroutine))
+                {
+                    treeFruitManager.StopCoroutine(growCoroutine);
+                    treeFruitManager.growCoroutines.Remove(fruit);
+                }
+
+                // Temporarily disable fruit gravity or other physics interactions if needed
+                // DisableFruitGravity(fruit);
+
+                // Start the Fall coroutine
+                treeFruitManager.StartCoroutine(treeFruitManager.Fall(fruit, foodAttributes));
             }
         }
+
 
 
         // Internal method to enable NavmeshCut

@@ -73,6 +73,26 @@ public class AuraControl : MonoBehaviour
 
     private void FaithChanged(float faithFraction, float minStat, float maxStat)
     {
-        targetAuraVal = Mathf.Lerp(minAura, maxAura, faithFraction);
+        // Normalize faithFraction to a range of 0 to 1
+        float normalizedFaith = (faithFraction - minStat) / (maxStat - minStat);
+
+        // Define the threshold as a percentage of maxStat
+        float thresholdPercentage = 0.75f; // 75% threshold
+        float thresholdValue = thresholdPercentage * maxStat;
+
+        // Apply exponential curve, making it more effective after reaching the threshold
+        // Adjust the exponent (2 in this case) to control how steep the curve is
+        float exponentialEffect = Mathf.Pow(normalizedFaith, 2);
+
+        // Check if faithFraction exceeds the threshold
+        if (faithFraction > thresholdValue)
+        {
+            targetAuraVal = Mathf.Lerp(minAura, maxAura, exponentialEffect);
+        }
+        else
+        {
+            targetAuraVal = minAura;
+        }
     }
+
 }

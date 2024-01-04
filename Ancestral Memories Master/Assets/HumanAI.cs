@@ -82,6 +82,8 @@ public class HumanAI : MonoBehaviour
 
     private Seeker seeker;
 
+    private EyeBlink eyeBlink;
+
     public void InitHuman()
     {
 
@@ -97,6 +99,7 @@ public class HumanAI : MonoBehaviour
         playerWalk = player.GetComponentInChildren<PlayerWalk>();
         stats = transform.GetComponentInChildren<AICharacterStats>();
         seeker = transform.GetComponentInChildren<Seeker>();
+        eyeBlink = FindEyes(transform);
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(StartHarvest(target));
         stateActions[AIState.Carry] = (target) => StartCoroutine(CarryTo(carryingObject, GetClosest(mapObjGen.templeList, aiBehaviours.ValidateTemple).transform.position));
@@ -107,6 +110,26 @@ public class HumanAI : MonoBehaviour
 
         ChangeState(AIState.Idle);
 
+    }
+
+    private EyeBlink FindEyes(Transform parent)
+    {
+        EyeBlink eyeBlink = parent.GetComponent<EyeBlink>();
+        if (eyeBlink != null)
+        {
+            return eyeBlink;
+        }
+
+        foreach (Transform child in parent)
+        {
+            eyeBlink = FindEyes(child);
+            if (eyeBlink != null)
+            {
+                return eyeBlink;
+            }
+        }
+
+        return null;
     }
 
     void Update()
@@ -153,6 +176,11 @@ public class HumanAI : MonoBehaviour
     {
         DisableLookAt();
 
+        if (eyeBlink != null)
+        {
+            eyeBlink.StopBlinking();
+        }
+
         aiPath.maxSpeed = 0f;
         aiPath.destination = transform.position;
         aiPath.canMove = false;
@@ -186,6 +214,11 @@ public class HumanAI : MonoBehaviour
 
         stats.isDead = false;
         stats.MaxAllStats();
+
+        if (eyeBlink != null)
+        {
+            eyeBlink.StartBlinking();
+        }
 
         if (onFront)
         {

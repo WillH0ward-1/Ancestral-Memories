@@ -24,7 +24,7 @@ public class TreeFruitManager : MonoBehaviour
 
     public bool isBearingFruit = false;
 
-    private Dictionary<GameObject, Coroutine> growCoroutines = new Dictionary<GameObject, Coroutine>();
+    public Dictionary<GameObject, Coroutine> growCoroutines = new Dictionary<GameObject, Coroutine>();
 
     private PTGrowing ptGrow;
 

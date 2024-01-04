@@ -5,59 +5,73 @@ using UnityEngine;
 public class EyeBlink : MonoBehaviour
 {
     [SerializeField] private Renderer[] eyeRenderers;
-
     public GameObject root;
 
     public float minBlinkSpeed = 0.1f;
     public float maxBlinkSpeed = 0.2f;
-
     public float min = 1;
     public float max = 4;
 
     private float randomRetrigger;
+    private bool allowBlinking = true; // Flag to control blinking
 
     private void Awake()
     {
-        randomRetrigger = Random.Range(min, max);
         eyeRenderers = root.GetComponentsInChildren<Renderer>();
+        StartBlinking();
+    }
+
+    public void StartBlinking()
+    {
+        if (!allowBlinking) return;
+
+        randomRetrigger = Random.Range(min, max);
         Invoke(nameof(EyeOpen), randomRetrigger);
     }
 
     void Blink()
     {
+        if (!allowBlinking) return;
+
         randomRetrigger = Random.Range(min, max);
-        CloseEyes(root);
+        CloseEyes();
         Invoke(nameof(EyeOpen), randomRetrigger);
-        return;
     }
 
     void EyeOpen()
     {
+        if (!allowBlinking) return;
+
         randomRetrigger = Random.Range(minBlinkSpeed, maxBlinkSpeed);
-        OpenEyes(root);
+        OpenEyes();
         Invoke(nameof(Blink), randomRetrigger);
-        return;
     }
 
-    public void CloseEyes(GameObject state)
+    public void CloseEyes()
     {
-
-        MeshRenderer[] meshRenderers = state.transform.GetComponentsInChildren<MeshRenderer>();
-
-        foreach (MeshRenderer meshRenderer in meshRenderers)
+        // Enabling the renderers to 'close' the eyes
+        foreach (Renderer renderer in eyeRenderers)
         {
-            meshRenderer.enabled = false;
+            renderer.enabled = true;
         }
-
     }
 
-    public void OpenEyes(GameObject state)
+    public void OpenEyes()
     {
-        MeshRenderer[] meshRenderers = state.transform.GetComponentsInChildren<MeshRenderer>();
-
-        foreach (MeshRenderer meshRenderer in meshRenderers)
+        // Disabling the renderers to 'open' the eyes
+        foreach (Renderer renderer in eyeRenderers)
         {
-            meshRenderer.enabled = true;
+            renderer.enabled = false;
         }
+    }
+
+    public void StopBlinking()
+    {
+        if (!allowBlinking) return;
+
+        allowBlinking = false;
+        CancelInvoke(nameof(Blink));
+        CancelInvoke(nameof(EyeOpen));
+        CloseEyes();
     }
 }
