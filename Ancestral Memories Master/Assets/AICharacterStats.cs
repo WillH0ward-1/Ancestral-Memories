@@ -285,7 +285,7 @@ public class AICharacterStats : MonoBehaviour
         // Clamping the lifespan between minLifeSpan and maxLifeSpan
         calculatedLifespan = Mathf.Clamp(calculatedLifespan, minLifeSpan, maxLifeSpan);
 
-        Debug.Log($"Total Stat Sum: {totalStatSum}, Normalized Lifespan: {normalizedLifespan}, Calculated Lifespan: {calculatedLifespan}");
+//        Debug.Log($"Total Stat Sum: {totalStatSum}, Normalized Lifespan: {normalizedLifespan}, Calculated Lifespan: {calculatedLifespan}");
 
         return calculatedLifespan;
     }
@@ -478,7 +478,7 @@ public class AICharacterStats : MonoBehaviour
             if (faith >= maxStat)
             {
                 faith = maxStat;
-                Debug.Log("Player has max faith!");
+//                Debug.Log("Player has max faith!");
 
                 if (!isBlessed)
                 {

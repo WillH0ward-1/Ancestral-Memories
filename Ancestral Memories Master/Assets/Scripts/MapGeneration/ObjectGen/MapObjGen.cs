@@ -1307,6 +1307,8 @@ public class MapObjGen : MonoBehaviour
         foreach(GameObject temple in templeList)
         {
             TempleGenerator templeGen = temple.GetComponentInChildren<TempleGenerator>();
+            templeGen.player = player;
+            templeGen.playerStats = player.GetComponentInChildren<AICharacterStats>();
             templeGen.GenerateTemple();
         }
     }
@@ -1445,12 +1447,12 @@ public class MapObjGen : MonoBehaviour
         {
             if (Application.isEditor)
             {
-                Debug.Log("Object destroyed in Editor.");
+//              Debug.Log("Object destroyed in Editor.");
                 DestroyImmediate(obj);
             }
             else
             {
-                Debug.Log("Object destroyed in game.");
+//               Debug.Log("Object destroyed in game.");
                 Destroy(obj);
             }
         }

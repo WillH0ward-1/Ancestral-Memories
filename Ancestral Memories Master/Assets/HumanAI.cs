@@ -191,7 +191,7 @@ public class HumanAI : MonoBehaviour
         RemoveFromPopulation();
 
         ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallBackwards);
-        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
+        yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
         if (stats.faith >= stats.maxStat / 2)
         {
@@ -229,7 +229,7 @@ public class HumanAI : MonoBehaviour
             ChangeAnimationState(HumanControllerAnimations.OnBack_GetUp01);
         }
 
-        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
+        yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
         stats.isDying = false;
         isReviving = false;
@@ -294,7 +294,7 @@ public class HumanAI : MonoBehaviour
         }
 
         float time = 0;
-        float duration = AnimationUtilities.GetAnimLength(animator);
+        float duration = AnimationUtilities.GetCurrentAnimLength(animator);
 
         while (time <= duration)
         {
@@ -409,7 +409,7 @@ public class HumanAI : MonoBehaviour
 
         // Wait for the length of the Electrocution animation
         Animator animator = GetComponentInChildren<Animator>(); // Assuming an Animator component is attached
-        float animLength = AnimationUtilities.GetAnimLength(animator);
+        float animLength = AnimationUtilities.GetCurrentAnimLength(animator);
 
         yield return new WaitForSeconds(animLength);
 
@@ -1333,7 +1333,7 @@ public class HumanAI : MonoBehaviour
         StartCoroutine(SmoothlyChangeAnimationSpeed(randomAnimationSpeed, randomInterval));
 
         // Adjust the duration of the animation based on the speed it's being played at
-        float duration = AnimationUtilities.GetAnimLength(animator) / randomAnimationSpeed;
+        float duration = AnimationUtilities.GetCurrentAnimLength(animator) / randomAnimationSpeed;
 
         float time = 0;
         while (time <= duration)
@@ -1421,7 +1421,7 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
 
         time = 0;
-        duration = AnimationUtilities.GetAnimLength(animator);
+        duration = AnimationUtilities.GetCurrentAnimLength(animator);
 
         while (time <= duration)
         {
@@ -1433,7 +1433,7 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog02);
 
         time = 0;
-        duration = AnimationUtilities.GetAnimLength(animator);
+        duration = AnimationUtilities.GetCurrentAnimLength(animator);
 
         while (time <= duration)
         {

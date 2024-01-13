@@ -35,7 +35,7 @@ public static class AnimationUtilities
             animator.Play(selectedAnimation);
 
             // Calculate duration based on the current animation's length
-            float animLength = GetAnimLength(animator);
+            float animLength = GetCurrentAnimLength(animator);
             float randomDuration = animLength * Random.Range(minDurationFactor, maxDurationFactor);
 
             // Wait for the duration of the animation
@@ -43,9 +43,23 @@ public static class AnimationUtilities
         }
     }
 
-    public static float GetAnimLength(Animator animator)
+    public static float GetCurrentAnimLength(Animator animator)
     {
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
         return stateInfo.length / (stateInfo.speed != 0 ? stateInfo.speed : 1);
+    }
+
+    public static float GetAnimLength(Animator animator, string animationName)
+    {
+        AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+        foreach (AnimationClip clip in clips)
+        {
+            if (clip.name.Equals(animationName))
+            {
+                return clip.length;
+            }
+        }
+        Debug.LogWarning("Animation not found: " + animationName);
+        return 0f;
     }
 }

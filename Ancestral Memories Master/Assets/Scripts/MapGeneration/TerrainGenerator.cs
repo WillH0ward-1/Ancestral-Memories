@@ -165,7 +165,7 @@ public class TerrainGenerator : MonoBehaviour {
 
 			MeshFilter meshFilter = terrainObj.GetComponentInChildren<MeshFilter>();
 
-			Debug.Log("MESHFILTER:" + meshFilter);
+//			Debug.Log("MESHFILTER:" + meshFilter);
 
 			StartCoroutine(GetMesh(terrainObj));
 

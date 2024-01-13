@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
+using System;
 
 public class TempleGenerator : MonoBehaviour
 {
@@ -20,7 +22,6 @@ public class TempleGenerator : MonoBehaviour
     public Material centerPlatformMaterial;
     public Material seatPlatformMaterial;
 
-    public int monolithCount = 8;
     public float seatPlatformRadius = 10f;
     public float monolithSpacing = 5f;
 
@@ -42,59 +43,288 @@ public class TempleGenerator : MonoBehaviour
 
     [SerializeField] private float distanceInFrontOfSeat = 0.5f; // This can now be adjusted in the editor
 
+    public Player player;
+    public AICharacterStats playerStats;
+
+    [SerializeField] private float faithFactor = 0f;
+
+    [SerializeField] private int maxMonoliths = 12;
+    [SerializeField] private int minMonoliths = 3;
+
+    private Coroutine faithCheckCoroutine;
 
     public void GenerateTemple()
     {
-        if (isGenerated)
+        Debug.Log("GenerateTemple called: " + Environment.StackTrace);
+
+
+        if (!isGenerated)
         {
-            ClearTemple();
-        }
+            monoliths = new List<GameObject>();
+            seatPlatforms = new List<GameObject>();
+            seatAvailability = new Dictionary<GameObject, bool>();
 
-        monoliths = new List<GameObject>();
-        seatPlatforms = new List<GameObject>();
-
-        seatAvailability = new Dictionary<GameObject, bool>();
-
-        float appliedMonolithRadius = seatPlatformRadius * sizeMultiplier;
-        float appliedMonolithSpacing = monolithSpacing * sizeMultiplier;
-        AddOrUpdateSphereCollider(appliedMonolithRadius, appliedMonolithSpacing);
-
-        Vector3 appliedMonolithSize = monolithSize * sizeMultiplier;
-        Vector3 appliedCenterPlatformSize = centerPlatformSize * sizeMultiplier;
-        Vector3 appliedSeatPlatformSize = seatPlatformSize * sizeMultiplier;
-
-        defaultMonolithSize = appliedMonolithSize;
-        defaultCenterPlatformSize = appliedCenterPlatformSize;
-        defaultSeatPlatformSize = appliedSeatPlatformSize;
-
-        centerPlatform = CreateObject(centerPlatformPrefab, transform.position, appliedCenterPlatformSize, centerPlatformMaterial);
-        isCenterPlatformAvailable = false; // Center platform is not available initially
-
-        for (int i = 0; i < monolithCount; i++)
-        {
-            float angle = i * Mathf.PI * 2 / monolithCount;
-            Vector3 monolithPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * (appliedMonolithRadius + appliedMonolithSpacing);
-            Vector3 worldMonolithPosition = transform.position + monolithPosition;
-            monoliths.Add(CreateObject(monolithPrefab, worldMonolithPosition, appliedMonolithSize, monolithMaterial));
-        }
-
-        for (int i = 0; i < monolithCount; i++)
-        {
-            float angle = i * Mathf.PI * 2 / monolithCount;
-            Vector3 seatPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * appliedMonolithRadius;
-            Vector3 worldSeatPosition = transform.position + seatPosition;
-            GameObject seat = CreateObject(seatPlatformPrefab, worldSeatPosition, appliedSeatPlatformSize, seatPlatformMaterial);
-            if (seat != null)
+            // Instantiate and set up the center platform first
+            if (centerPlatformPrefab != null)
             {
-                seatPlatforms.Add(seat);
-                seatAvailability[seat] = false; // Seats are not available initially
+                centerPlatform = Instantiate(centerPlatformPrefab, transform.position, Quaternion.identity, transform);
+                centerPlatform.transform.localScale = centerPlatformSize * sizeMultiplier;
 
+                // Apply material to the centerPlatform
+                Renderer centerPlatformRenderer = centerPlatform.GetComponentInChildren<Renderer>();
+                if (centerPlatformRenderer != null && centerPlatformMaterial != null)
+                {
+                    centerPlatformRenderer.material = centerPlatformMaterial;
+                }
+            }
+
+
+            for (int i = 0; i < maxMonoliths; i++)
+            {
+                GameObject monolith = CreateMonolithOrSeat(monolithPrefab, monolithSize, monolithMaterial, i, true);
+                GameObject seat = CreateMonolithOrSeat(seatPlatformPrefab, seatPlatformSize, seatPlatformMaterial, i, false);
+
+                if (monolith == null || seat == null)
+                {
+                    Debug.LogError("Monolith or Seat is null in GenerateTemple");
+                    continue; // Skip this iteration as we can't proceed with null objects
+                }
+
+                // Ensure the center platform is created before calling this
                 CreateNPCApproachPosition(seat);
+
+                monoliths.Add(monolith);
+                seatPlatforms.Add(seat);
+                seatAvailability[seat] = false;
+
+                if (i >= GetCurrentMonolithCount())
+                {
+                    monolith.SetActive(false);
+                    seat.SetActive(false);
+                }
+            }
+
+            isGenerated = true;
+
+            if (faithCheckCoroutine != null)
+            {
+                StopCoroutine(faithCheckCoroutine);
+            }
+
+            faithCheckCoroutine = StartCoroutine(CheckFaithChanges());
+        }
+        else
+        {
+            UpdateMonolithsAndSeats();
+        }
+    }
+
+    private IEnumerator CheckFaithChanges()
+    {
+        int previousMonolithCount = GetCurrentMonolithCount();
+        while (true)
+        {
+            yield return new WaitForSeconds(1f); // Check interval
+            int currentMonolithCount = GetCurrentMonolithCount();
+
+            // Only log and access player faith if in game mode
+            if (Application.isPlaying)
+            {
+                // Debugging: Log the current faith and monolith count
+                Debug.Log($"Current Faith: {player.faith}, Current Monolith Count: {currentMonolithCount}");
+            }
+
+            if (currentMonolithCount != previousMonolithCount)
+            {
+                Debug.Log("Updating Monoliths and Seats due to faith change.");
+                UpdateMonolithsAndSeats();
+                previousMonolithCount = currentMonolithCount;
             }
         }
-
-        isGenerated = true;
     }
+
+    private GameObject CreateMonolithOrSeat(GameObject prefab, Vector3 size, Material material, int index, bool isMonolith)
+    {
+        // Check if the prefab or material is null
+        if (prefab == null)
+        {
+            Debug.LogError("Prefab is null in CreateMonolithOrSeat");
+            return null;
+        }
+
+        if (material == null)
+        {
+            Debug.LogError("Material is null in CreateMonolithOrSeat");
+            return null;
+        }
+
+        float angle = index * Mathf.PI * 2 / maxMonoliths;
+        float radius = isMonolith ? seatPlatformRadius * sizeMultiplier + monolithSpacing * sizeMultiplier : seatPlatformRadius * sizeMultiplier;
+        Vector3 position = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius;
+        Vector3 worldPosition = transform.position + position;
+
+        GameObject obj = Instantiate(prefab, worldPosition, Quaternion.identity, transform);
+
+        // Check if the object is null after instantiation
+        if (obj == null)
+        {
+            Debug.LogError("Instantiated GameObject is null in CreateMonolithOrSeat");
+            return null;
+        }
+
+        // Set scale
+        obj.transform.localScale = size * sizeMultiplier;
+
+        // Set material
+        Renderer renderer = obj.GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material = material;
+        }
+        else
+        {
+            Debug.LogWarning("Renderer not found on the instantiated GameObject in CreateMonolithOrSeat");
+        }
+
+        // Ground check and position adjustment
+        if (Application.isPlaying)
+        {
+            GroundCheck(obj);
+        }
+        else
+        {
+            Vector3 editorPosition = obj.transform.position;
+            editorPosition.y = 0; // Adjust height in editor mode
+            obj.transform.position = editorPosition;
+        }
+
+        // Rotate the monolith/seat to face the center, ensuring obj is not destroyed
+        if (isMonolith && obj != null)
+        {
+            Vector3 directionToCenter = (transform.position - obj.transform.position).normalized;
+            obj.transform.rotation = Quaternion.LookRotation(directionToCenter);
+        }
+
+        return obj;
+    }
+
+
+
+    private void AnimateRising(GameObject obj)
+    {
+        Vector3 defaultSize = obj == monolithPrefab ? monolithPrefab.transform.localScale : seatPlatformPrefab.transform.localScale;
+        Vector3 startScale = new Vector3(obj.transform.localScale.x, 0, obj.transform.localScale.z);
+        Vector3 endScale = new Vector3(obj.transform.localScale.x, defaultSize.y, obj.transform.localScale.z);
+        StartCoroutine(ScaleObject(obj, startScale, endScale, 1f));
+    }
+
+    IEnumerator ScaleObject(GameObject obj, Vector3 startScale, Vector3 endScale, float duration)
+    {
+        float time = 0;
+        while (time < duration)
+        {
+            float newYScale = Mathf.Lerp(startScale.y, endScale.y, time / duration);
+            obj.transform.localScale = new Vector3(startScale.x, newYScale, startScale.z);
+            time += Time.deltaTime;
+            yield return null;
+        }
+        obj.transform.localScale = endScale;
+    }
+
+    private void RepositionMonolithAndSeat(int index)
+    {
+        float angle = index * Mathf.PI * 2 / GetCurrentMonolithCount();
+        float monolithRadius = seatPlatformRadius * sizeMultiplier + monolithSpacing * sizeMultiplier;
+        float seatRadius = seatPlatformRadius * sizeMultiplier;
+
+        Vector3 monolithPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * monolithRadius;
+        Vector3 seatPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * seatRadius;
+
+        Vector3 worldMonolithPosition = transform.position + monolithPosition;
+        Vector3 worldSeatPosition = transform.position + seatPosition;
+
+        if (index < monoliths.Count)
+        {
+            StartCoroutine(MoveObject(monoliths[index], worldMonolithPosition, 1f));
+        }
+
+        if (index < seatPlatforms.Count)
+        {
+            StartCoroutine(MoveObject(seatPlatforms[index], worldSeatPosition, 1f));
+        }
+    }
+
+    IEnumerator MoveObject(GameObject obj, Vector3 targetPosition, float duration)
+    {
+        Vector3 startPosition = obj.transform.position;
+        float time = 0;
+
+        while (time < duration)
+        {
+            obj.transform.position = Vector3.Lerp(startPosition, targetPosition, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        obj.transform.position = targetPosition;
+    }
+    private int GetCurrentMonolithCount()
+    {
+        float currentFaith;
+
+        float minStat, maxStat;
+
+        if (Application.isPlaying)
+        {
+            currentFaith = player.faith;
+            minStat = playerStats.minStat;
+            maxStat = playerStats.maxStat;
+        }
+        else
+        {
+            currentFaith = faithFactor;
+            minStat = 0f; // Default minimum stat
+            maxStat = 1f; // Default maximum stat
+        }
+
+        float faithRatio = Mathf.Clamp((currentFaith - minStat) / (maxStat - minStat), 0f, 1f);
+        return Mathf.RoundToInt(minMonoliths + (maxMonoliths - minMonoliths) * faithRatio);
+    }
+
+
+
+    private void UpdateMonolithsAndSeats()
+    {
+        int currentCount = GetCurrentMonolithCount();
+
+        // Check for null or empty lists
+        if (monoliths == null || seatPlatforms == null)
+            return;
+
+        for (int i = 0; i < monoliths.Count; i++)
+        {
+            if (i < currentCount)
+            {
+                if (monoliths[i] != null && !monoliths[i].activeSelf)
+                {
+                    monoliths[i].SetActive(true);
+                    seatPlatforms[i].SetActive(true);
+                    AnimateRising(monoliths[i]);
+                    AnimateRising(seatPlatforms[i]);
+                }
+
+                // Reposition monoliths and seats
+                RepositionMonolithAndSeat(i);
+            }
+            else if (monoliths[i] != null && monoliths[i].activeSelf)
+            {
+                monoliths[i].SetActive(false);
+                seatPlatforms[i].SetActive(false);
+            }
+        }
+    }
+
+
 
     private void CreateNPCApproachPosition(GameObject seat)
     {
@@ -263,10 +493,18 @@ public class TempleGenerator : MonoBehaviour
         isGenerated = false;
     }
 
+    private void OnDisable()
+    {
+        // Stop coroutine if it's running
+        if (faithCheckCoroutine != null)
+        {
+            StopCoroutine(faithCheckCoroutine);
+            faithCheckCoroutine = null;
+        }
 
-
-
-
+        // Clear generated temples
+        ClearTemple();
+    }
 
     public bool CheckSeatAvailability(GameObject seat)
     {

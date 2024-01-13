@@ -198,9 +198,9 @@ public class CharacterBehaviours : MonoBehaviour
         playerWalk.StopAgentOverride();
         player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallForwards01);
 
-        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
+        yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
-        float timeOnFloor = Random.Range(AnimationUtilities.GetAnimLength(animator), AnimationUtilities.GetAnimLength(animator) + Random.Range(0, 2));
+        float timeOnFloor = Random.Range(AnimationUtilities.GetCurrentAnimLength(animator), AnimationUtilities.GetCurrentAnimLength(animator) + Random.Range(0, 2));
         yield return new WaitForSeconds(timeOnFloor);
 
         // Start pulling the player underground
@@ -250,30 +250,36 @@ public class CharacterBehaviours : MonoBehaviour
             Vector3 undergroundPosition = new Vector3(spawnPointPosition.x, spawnPointPosition.y - 20f, spawnPointPosition.z);
             player.transform.position = undergroundPosition;
 
-            player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
+            // Declare climbAnimationLength here
+            float climbAnimationLength = AnimationUtilities.GetAnimLength(player.animator, HumanControllerAnimations.Climb_ClimbUp01);
 
             RaycastHit hit;
-            while (!Physics.Raycast(playerCollider.bounds.min, Vector3.down, out hit, Mathf.Infinity, groundLayer) || hit.distance > playerCollider.bounds.extents.y)
+            if (Physics.Raycast(playerCollider.bounds.min, Vector3.down, out hit, Mathf.Infinity, groundLayer))
             {
-                // Move player up slightly each frame
-                Vector3 currentPosition = player.transform.position;
-                currentPosition.y += Time.deltaTime * 5f; // Adjust the speed as needed
-                player.transform.position = currentPosition;
+                float distanceToGround = Mathf.Abs(playerCollider.bounds.min.y - hit.point.y);
+                float riseSpeed = distanceToGround / climbAnimationLength;
 
-                // Update the bottom point of the collider for the next iteration
-                playerCollider = player.GetComponentInChildren<CapsuleCollider>();
+                player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
 
-                yield return null;
+                while (player.transform.position.y < hit.point.y + playerCollider.bounds.extents.y)
+                {
+                    Vector3 currentPosition = player.transform.position;
+                    currentPosition.y += Time.deltaTime * riseSpeed;
+                    player.transform.position = currentPosition;
+                    yield return null;
+                }
+
+                Vector3 finalPosition = player.transform.position;
+                finalPosition.y = hit.point.y + playerCollider.bounds.extents.y;
+                player.transform.position = finalPosition;
+            }
+            else
+            {
+                Debug.LogError("Raycast did not hit any ground layer.");
             }
 
-            // Correct the final position to ensure player is exactly at ground level
-            Vector3 finalPosition = player.transform.position;
-            finalPosition.y = hit.point.y + playerCollider.bounds.extents.y;
-            player.transform.position = finalPosition;
-
             player.ChangeAnimationState(HumanControllerAnimations.Emotion_Scared_LookAround);
-
-            yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
+            yield return new WaitForSeconds(climbAnimationLength);
 
             isDying = false;
             playerWalk.CancelAgentOverride();
@@ -286,6 +292,8 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield break;
     }
+
+
 
 
 
@@ -330,7 +338,7 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(HumanControllerAnimations.Death_Standing_Electrocution);
 
-        yield return new WaitForSeconds(AnimationUtilities.GetAnimLength(animator));
+        yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
 
         if (isSkeleton)
@@ -338,14 +346,14 @@ public class CharacterBehaviours : MonoBehaviour
             costumeControl.SwitchSkeleton();
             isSkeleton = false;
         }
-        var maxTimeOnFloor = AnimationUtilities.GetAnimLength(animator) + Random.Range(0, 2);
+        var maxTimeOnFloor = AnimationUtilities.GetCurrentAnimLength(animator) + Random.Range(0, 2);
 
-        float timeOnFloor = Random.Range(AnimationUtilities.GetAnimLength(animator), maxTimeOnFloor);
+        float timeOnFloor = Random.Range(AnimationUtilities.GetCurrentAnimLength(animator), maxTimeOnFloor);
         yield return new WaitForSeconds(timeOnFloor);
 
         player.ChangeAnimationState(HumanControllerAnimations.OnFront_ToStand_InjuredMax);
         float time = 0;
-        float duration = AnimationUtilities.GetAnimLength(animator);
+        float duration = AnimationUtilities.GetCurrentAnimLength(animator);
 
         while (time <= duration)
         {
@@ -626,7 +634,7 @@ public class CharacterBehaviours : MonoBehaviour
             string randomDanceAnim = AnimAccess.Instance.GetRandomAnimation("Dance");
             player.ChangeAnimationState(randomDanceAnim);
 
-            float animLength = AnimationUtilities.GetAnimLength(animator);
+            float animLength = AnimationUtilities.GetCurrentAnimLength(animator);
             yield return new WaitForSeconds(animLength);
         }
 

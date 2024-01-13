@@ -287,7 +287,7 @@ public class AnimalAI : MonoBehaviour
             }
         }
        
-        Debug.Log(currentAIState);
+//        Debug.Log(currentAIState);
     }
 
     public IEnumerator Die()

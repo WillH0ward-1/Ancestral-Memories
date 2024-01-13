@@ -45,7 +45,7 @@ public class BirdDensity : MonoBehaviour
         {
             birds._childAmount = targetBirdDensity;
 
-            Debug.Log("Bird Density:" + birdDensity);
+//            Debug.Log("Bird Density:" + birdDensity);
 
             yield return null;
         }

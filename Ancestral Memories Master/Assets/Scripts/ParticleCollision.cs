@@ -59,11 +59,10 @@ public class ParticleCollision : MonoBehaviour
 
     private void GenerateFlower(Vector3 position)
     {
-        Debug.Log("Faith not high enough to grow flowers!");
 
         if (player.faith >= player.maxStat / 2)
         {
-            Debug.Log("Faith high enough to grow flowers!");
+//            Debug.Log("Faith high enough to grow flowers!");
 
             GameObject flower = GetPooledObject();
             FlowerGrow flowerGrow = flower.transform.GetComponent<FlowerGrow>();
@@ -72,6 +71,9 @@ public class ParticleCollision : MonoBehaviour
             //flower.transform.localScale = new(0, 0, 0);
             flower.SetActive(true);
             StartCoroutine(FlowerLifeTime(flowerGrow, scaleControl));
+        } else
+        {
+//          Debug.Log("Faith not high enough to grow flowers!");
         }
         //flower.transform.position = position;
     }
@@ -136,7 +138,7 @@ public class ParticleCollision : MonoBehaviour
             particleGameObject = collisionEvent.colliderComponent.gameObject;
         }
 
-        Debug.Log("Particle hit ground!");
+//        Debug.Log("Particle hit ground!");
         Vector3 hitLocation = particlePos;
         Vector3 screenCoords = cam.WorldToViewportPoint(hitLocation);
 
