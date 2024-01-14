@@ -168,7 +168,7 @@ public class TempleGenerator : MonoBehaviour
         // Check if the object is null after instantiation
         if (obj == null)
         {
-            Debug.LogError("Instantiated GameObject is null in CreateMonolithOrSeat");
+            //Debug.LogWarning("Instantiated GameObject is null in CreateMonolithOrSeat");
             return null;
         }
 
@@ -208,14 +208,40 @@ public class TempleGenerator : MonoBehaviour
         return obj;
     }
 
+    public float lerpScaleTime = 2f;
 
+    private Dictionary<GameObject, Coroutine> descendCoroutines = new Dictionary<GameObject, Coroutine>();
 
     private void AnimateRising(GameObject obj)
     {
-        Vector3 defaultSize = obj == monolithPrefab ? monolithPrefab.transform.localScale : seatPlatformPrefab.transform.localScale;
+        Vector3 defaultSize = obj.transform.localScale;
+
         Vector3 startScale = new Vector3(obj.transform.localScale.x, 0, obj.transform.localScale.z);
         Vector3 endScale = new Vector3(obj.transform.localScale.x, defaultSize.y, obj.transform.localScale.z);
-        StartCoroutine(ScaleObject(obj, startScale, endScale, 1f));
+
+        StartCoroutine(ScaleObject(obj, startScale, endScale, lerpScaleTime));
+    }
+
+    private void AnimateDescend(GameObject obj)
+    {
+        Vector3 currentScale = obj.transform.localScale;
+        Vector3 endScale = new Vector3(currentScale.x, 0, currentScale.z);
+
+        // Check if there's an ongoing animation and stop it
+        if (movementCoroutines.ContainsKey(obj) && movementCoroutines[obj] != null)
+        {
+            StopCoroutine(movementCoroutines[obj]);
+        }
+
+        Coroutine coroutine = StartCoroutine(ScaleObject(obj, currentScale, endScale, lerpScaleTime));
+        movementCoroutines[obj] = coroutine; // Keep track of the coroutine
+    }
+
+    private IEnumerator AnimateDescendAndDisable(GameObject obj)
+    {
+        AnimateDescend(obj);
+        yield return new WaitForSeconds(lerpScaleTime);
+        obj.SetActive(false);
     }
 
     IEnumerator ScaleObject(GameObject obj, Vector3 startScale, Vector3 endScale, float duration)
@@ -231,6 +257,10 @@ public class TempleGenerator : MonoBehaviour
         obj.transform.localScale = endScale;
     }
 
+    public float repositionLerpTime = 2f;
+
+    private Dictionary<GameObject, Coroutine> movementCoroutines = new Dictionary<GameObject, Coroutine>();
+
     private void RepositionMonolithAndSeat(int index)
     {
         float angle = index * Mathf.PI * 2 / GetCurrentMonolithCount();
@@ -245,13 +275,24 @@ public class TempleGenerator : MonoBehaviour
 
         if (index < monoliths.Count)
         {
-            StartCoroutine(MoveObject(monoliths[index], worldMonolithPosition, 1f));
+            StartMoveObjectCoroutine(monoliths[index], worldMonolithPosition, repositionLerpTime);
         }
 
         if (index < seatPlatforms.Count)
         {
-            StartCoroutine(MoveObject(seatPlatforms[index], worldSeatPosition, 1f));
+            StartMoveObjectCoroutine(seatPlatforms[index], worldSeatPosition, repositionLerpTime);
         }
+    }
+
+    private void StartMoveObjectCoroutine(GameObject obj, Vector3 targetPosition, float duration)
+    {
+        if (movementCoroutines.ContainsKey(obj) && movementCoroutines[obj] != null)
+        {
+            StopCoroutine(movementCoroutines[obj]);
+        }
+
+        Coroutine coroutine = StartCoroutine(MoveObject(obj, targetPosition, duration));
+        movementCoroutines[obj] = coroutine;
     }
 
     IEnumerator MoveObject(GameObject obj, Vector3 targetPosition, float duration)
@@ -268,6 +309,8 @@ public class TempleGenerator : MonoBehaviour
 
         obj.transform.position = targetPosition;
     }
+
+
     private int GetCurrentMonolithCount()
     {
         float currentFaith;
@@ -290,8 +333,6 @@ public class TempleGenerator : MonoBehaviour
         float faithRatio = Mathf.Clamp((currentFaith - minStat) / (maxStat - minStat), 0f, 1f);
         return Mathf.RoundToInt(minMonoliths + (maxMonoliths - minMonoliths) * faithRatio);
     }
-
-
 
     private void UpdateMonolithsAndSeats()
     {
@@ -318,11 +359,13 @@ public class TempleGenerator : MonoBehaviour
             }
             else if (monoliths[i] != null && monoliths[i].activeSelf)
             {
-                monoliths[i].SetActive(false);
-                seatPlatforms[i].SetActive(false);
+                StartCoroutine(AnimateDescendAndDisable(monoliths[i]));
+                StartCoroutine(AnimateDescendAndDisable(seatPlatforms[i]));
             }
         }
     }
+
+
 
 
 
