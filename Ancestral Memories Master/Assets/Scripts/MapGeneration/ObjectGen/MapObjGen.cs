@@ -654,8 +654,8 @@ public class MapObjGen : MonoBehaviour
         {
             if (obj != null)
             {
-                // Get all ShaderLightColor components in the children of the object
-                ShaderLightColor[] shaderComponents = obj.GetComponentsInChildren<ShaderLightColor>();
+                // Get all ShaderLightColor components in the children of the object, including inactive ones
+                ShaderLightColor[] shaderComponents = obj.GetComponentsInChildren<ShaderLightColor>(true);
 
                 // Iterate through each ShaderLightColor component and assign timeCycleManager
                 foreach (ShaderLightColor shader in shaderComponents)
@@ -665,6 +665,7 @@ public class MapObjGen : MonoBehaviour
             }
         }
     }
+
 
 
     private void SetupDisasters()

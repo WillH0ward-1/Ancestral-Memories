@@ -72,6 +72,8 @@ public class CharacterBehaviours : MonoBehaviour
 
         groundLayer = LayerMask.GetMask("Ground");
 
+        buildManager = GetComponentInChildren<BuildingManager>();
+        buildMenu = GetComponentInChildren<BuildingMenu>();
         //animSpeed = player.activeAnimator.speed;
     }
 
@@ -157,6 +159,12 @@ public class CharacterBehaviours : MonoBehaviour
                 else
                 {
                     Debug.Log("No HumanAI component found on " + hitObject + "!");
+                }
+                break;
+            case "InstructBuild":
+                if (!dialogueIsActive)
+                {
+                    StartCoroutine(ChooseBuilding(hitObject));
                 }
                 break;
             case "PlayMusic":
@@ -985,11 +993,18 @@ public class CharacterBehaviours : MonoBehaviour
         //GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
         //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
 
+
         dialogueIsActive = true;
         dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
-        dialogue.StartDialogue();
+        dialogue.StartDialogue(Dialogue.DialogueType.IdleDialogue);
 
-        ToFrontCam();
+        if (hitObject != null && hitObject.CompareTag("Human"))
+        {
+            humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
+            humanAI.ChangeState(HumanAI.AIState.Dialogue);
+        }
+
+        //ToFrontCam();
 
         player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
 
@@ -1003,6 +1018,54 @@ public class CharacterBehaviours : MonoBehaviour
 
         dialogueIsActive = false;
         cinematicCam.ToGameZoom();
+        yield break;
+
+        //lookAtTarget = player.transform.gameObject;
+        //StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
+
+
+    }
+
+    BuildingManager buildManager;
+    BuildingMenu buildMenu;
+
+    public IEnumerator ChooseBuilding(GameObject hitObject)
+    {
+        Debug.Log("HITOBJECT: " + hitObject);
+
+        //GameObject lookAtTarget = hitObject;
+        //GameObject DefaultCamPivot = player.transform.root.Find("DefaultCamPosition").gameObject;
+        //GameObject NPCPivot = hitObject.transform.Find("NPCpivot").gameObject;
+        //StartCoroutine(cinematicCam.MoveCamToPosition(NPCPivot, lookAtTarget, 1f));
+
+        dialogueIsActive = true;
+        dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
+        dialogue.StartDialogue(Dialogue.DialogueType.BuildingPromptDialogue);
+
+        playerWalk.StopAgentOverride();
+
+        if (hitObject != null && hitObject.CompareTag("Human"))
+        {
+            humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
+            humanAI.ChangeState(HumanAI.AIState.Dialogue);
+        }
+
+        //ToFrontCam();
+
+        player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+
+        player.transform.LookAt(hitObject.transform);
+
+        buildManager.SpawnMenu();  // Calling the SpawnMenu method from the BuildingManager
+
+        yield return new WaitUntil(() => buildManager.menuIsActive == false);
+
+        playerWalk.CancelAgentOverride();
+
+        //player.ChangeAnimationState(PLAYER_IDLE);
+
+        dialogueIsActive = false;
+
         yield break;
 
         //lookAtTarget = player.transform.gameObject;

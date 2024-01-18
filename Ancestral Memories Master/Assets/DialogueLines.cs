@@ -36,9 +36,9 @@ public class DialogueLines : MonoBehaviour
         SeasonsAutumn,
         SeasonsWinter,
         Insane,
+        BuildingPrompt
     }
 
-    // Define the shared 'Insane' lines
     public List<string> sharedInsaneLines = new List<string>
     {
         "Moon shouts! Loud... too loud!",
@@ -49,6 +49,18 @@ public class DialogueLines : MonoBehaviour
         "Why sun run away? Hide?",
         "Water talks back. Angry water!",
         "Wind has face. I see it!"
+    };
+
+    public List<string> buildingPromptLines = new List<string>
+    {
+        "You want make new place?",
+        "You think, we make. What need?",
+        "Vision talk? We follow.",
+        "Together bind branches, stones?",
+        "Earth provide, we make?",
+        "What spirits have said? We make?",
+        "Stones we place. What we make?",
+        "Vision you have? What need?"
     };
 
     public Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
@@ -69,6 +81,8 @@ public class DialogueLines : MonoBehaviour
                     conversations[(name, type)] = new Dictionary<Emotions, List<string>>();
                 }
                 conversations[(name, type)][Emotions.Insane] = new List<string>(sharedInsaneLines);
+
+                conversations[(name, type)][Emotions.BuildingPrompt] = new List<string>(buildingPromptLines);
             }
         }
 
@@ -139,13 +153,22 @@ public class DialogueLines : MonoBehaviour
 
     public List<string> GetDialogue(CharacterNames characterName, CharacterTypes characterType, Emotions emotion)
     {
-        if (conversations.TryGetValue((characterName, characterType), out var emotionDialogues)
-            && emotionDialogues.TryGetValue(emotion, out var dialogue))
+        if (emotion == Emotions.BuildingPrompt)
+        {
+            // If emotion is BuildingPrompt, return a single random line from buildingPromptLines
+            int randomIndex = UnityEngine.Random.Range(0, buildingPromptLines.Count);
+            return new List<string> { buildingPromptLines[randomIndex] };
+        }
+
+        if (conversations.TryGetValue((characterName, characterType), out var emotionDialogues) &&
+            emotionDialogues.TryGetValue(emotion, out var dialogue))
         {
             return dialogue;
         }
+
         return new List<string> { "No dialogue available for this combination." };
     }
+
 
     private void InitializeDialogues()
     {
@@ -245,6 +268,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsAutumn, new List<string> { "Harvest of thoughts, rich and deep.", "Echoes of time in rustling leaves." } },
             { Emotions.SeasonsWinter, new List<string> { "A time for reflection, beneath snow's blanket.", "Dreams weave futures in winter's night." } }
         };
+
         // Deer Male dialogues
         conversations[(CharacterNames.Deer, CharacterTypes.Male)] = new Dictionary<Emotions, List<string>>
         {

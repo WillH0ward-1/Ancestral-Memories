@@ -111,9 +111,6 @@ public class RadialMenu : MonoBehaviour
         }
     }
 
-
-
-
     private IEnumerator PopButton(RadialButton button)
     {
         float time = 0;

@@ -111,11 +111,74 @@ public class TempleGenerator : MonoBehaviour
                 StopCoroutine(faithCheckCoroutine);
             }
 
+            InitializeTempleState();
             faithCheckCoroutine = StartCoroutine(CheckFaithChanges());
         }
         else
         {
             UpdateMonolithsAndSeats();
+        }
+    }
+
+    private void InitializeTempleState()
+    {
+        int currentCount = GetCurrentMonolithCount();
+
+        for (int i = 0; i < monoliths.Count; i++)
+        {
+            if (i < currentCount)
+            {
+                if (monoliths[i] != null)
+                {
+                    monoliths[i].SetActive(true);
+                }
+
+                if (seatPlatforms[i] != null)
+                {
+                    seatPlatforms[i].SetActive(true);
+                }
+            }
+            else
+            {
+                if (monoliths[i] != null)
+                {
+                    monoliths[i].SetActive(false);
+                }
+
+                if (seatPlatforms[i] != null)
+                {
+                    seatPlatforms[i].SetActive(false);
+                }
+            }
+        }
+
+        // Immediately reposition the monoliths and seats without animation
+        for (int i = 0; i < monoliths.Count; i++)
+        {
+            RepositionMonolithAndSeatInstant(i);
+        }
+    }
+
+    private void RepositionMonolithAndSeatInstant(int index)
+    {
+        float angle = index * Mathf.PI * 2 / GetCurrentMonolithCount();
+        float monolithRadius = seatPlatformRadius * sizeMultiplier + monolithSpacing * sizeMultiplier;
+        float seatRadius = seatPlatformRadius * sizeMultiplier;
+
+        Vector3 monolithPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * monolithRadius;
+        Vector3 seatPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * seatRadius;
+
+        Vector3 worldMonolithPosition = transform.position + monolithPosition;
+        Vector3 worldSeatPosition = transform.position + seatPosition;
+
+        if (index < monoliths.Count && monoliths[index] != null)
+        {
+            monoliths[index].transform.position = worldMonolithPosition;
+        }
+
+        if (index < seatPlatforms.Count && seatPlatforms[index] != null)
+        {
+            seatPlatforms[index].transform.position = worldSeatPosition;
         }
     }
 
@@ -365,10 +428,6 @@ public class TempleGenerator : MonoBehaviour
         }
     }
 
-
-
-
-
     private void CreateNPCApproachPosition(GameObject seat)
     {
         if (seat == null) return;
@@ -403,32 +462,6 @@ public class TempleGenerator : MonoBehaviour
 
         // Debugging: Draw a line in the editor to visualize the direction and distance.
         Debug.DrawLine(seat.transform.position, approachPosition.transform.position, Color.red, 5f);
-    }
-
-
-    private GameObject CreateObject(GameObject prefab, Vector3 position, Vector3 size, Material material)
-    {
-        GameObject obj = Instantiate(prefab, position, Quaternion.identity, transform);
-        obj.transform.localScale = size;
-
-        Renderer renderer = obj.GetComponentInChildren<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material = material;
-        }
-
-        if (Application.isPlaying)
-        {
-            GroundCheck(obj);
-        }
-        else
-        {
-            Vector3 editorPosition = obj.transform.position;
-            editorPosition.y = 0;
-            obj.transform.position = editorPosition;
-        }
-
-        return obj;
     }
 
     void GroundCheck(GameObject obj)

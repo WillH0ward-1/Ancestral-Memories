@@ -1392,22 +1392,38 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
+    private float rotationSpeed = 1.5f;
 
     private IEnumerator DialogueActive()
     {
         behaviourIsActive = true;
 
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
         while (behaviourIsActive)
         {
-            ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
+            if (playerBehaviours.dialogueIsActive)
+            {
+                SetIdleAnimation(currentEvolutionState);
 
-            //agent.transform.LookAt(player.transform);
+                // Smoothly rotate towards the player
+                Vector3 direction = (player.transform.position - transform.position).normalized;
+                Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+
+            }
+            else
+            {
+                ChangeState(AIState.Idle);
+                yield break;
+            }
 
             yield return null;
         }
-
-        yield break;
     }
+
 
     private IEnumerator Eat(GameObject food)
     {

@@ -88,7 +88,6 @@ public class AICharacterStats : MonoBehaviour
 
     private HumanAI humanAI;
 
-
     public virtual void OnAwake()
     {
         age = 0;
@@ -111,7 +110,47 @@ public class AICharacterStats : MonoBehaviour
         isDead = false;
 
         calculatedLifespan = CalculateLifespan();
+
+        InitializeInstruments();
     }
+
+    public void InitializeInstruments()
+    {
+        InstrumentManager instrumentManager = FindInstrumentManager(transform);
+
+        if (instrumentManager == null)
+        {
+            Debug.LogError("No InstrumentManager component found.");
+        }
+        else
+        {
+            instrumentManager.InitInstrument(this);
+        }
+    }
+
+    private InstrumentManager FindInstrumentManager(Transform parent)
+    {
+        // Check if current parent has the component
+        InstrumentManager instrumentManager = parent.GetComponent<InstrumentManager>();
+        if (instrumentManager != null)
+        {
+            return instrumentManager;
+        }
+
+        // Recursively check children
+        foreach (Transform child in parent)
+        {
+            instrumentManager = FindInstrumentManager(child);
+            if (instrumentManager != null)
+            {
+                return instrumentManager;
+            }
+        }
+
+        // Return null if the component is not found in the hierarchy
+        return null;
+    }
+
 
     public IEnumerator InitAllRelationships(List<GameObject> npcList)
     {

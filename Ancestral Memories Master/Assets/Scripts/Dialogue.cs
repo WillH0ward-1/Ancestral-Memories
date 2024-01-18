@@ -157,7 +157,13 @@ public class Dialogue : MonoBehaviour
     private GameObject clickPromptObject;
     private Func<string, string> translationFunction;
 
-    public void StartDialogue()
+    public enum DialogueType
+    {
+        IdleDialogue,
+        BuildingPromptDialogue
+    }
+
+    public void StartDialogue(DialogueType dialogueType)
     {
         if (dialogueBox == null)
         {
@@ -165,24 +171,39 @@ public class Dialogue : MonoBehaviour
             return;
         }
 
-        if (Enum.TryParse(characterName, true, out DialogueLines.CharacterNames parsedName) &&
-            Enum.TryParse(characterType, true, out DialogueLines.CharacterTypes parsedType))
-        {
-            lines = dialogueLines.GetDialogue(parsedName, parsedType, currentEmotion).ToArray();
+        DialogueLines.CharacterNames parsedName;
+        DialogueLines.CharacterTypes parsedType;
+        DialogueLines.Emotions selectedEmotion;
 
-            if (lines.Length == 0 || (lines.Length == 1 && lines[0] == "No dialogue available for this combination."))
-            {
-                Debug.LogError("No dialogues found for the specified combination.");
-                return; // Exit the method if no dialogues are found for the given combination
-            }
-
-            translationFunction = GetTranslationFunction(characterName);
-        }
-        else
+        if (!Enum.TryParse(characterName, true, out parsedName) ||
+            !Enum.TryParse(characterType, true, out parsedType))
         {
             Debug.LogError("Invalid character name or type specified.");
             return; // Exit the method if the character name or type is invalid
         }
+
+        switch (dialogueType)
+        {
+            case DialogueType.IdleDialogue:
+                selectedEmotion = currentEmotion;
+                break;
+            case DialogueType.BuildingPromptDialogue:
+                selectedEmotion = DialogueLines.Emotions.BuildingPrompt;
+                break;
+            default:
+                Debug.LogError("Invalid dialogue type specified.");
+                return;
+        }
+
+        lines = dialogueLines.GetDialogue(parsedName, parsedType, selectedEmotion).ToArray();
+
+        if (lines.Length == 0 || (lines.Length == 1 && lines[0] == "No dialogue available for this combination."))
+        {
+            Debug.LogError("No dialogues found for the specified combination.");
+            return;
+        }
+
+        translationFunction = GetTranslationFunction(characterName);
 
         Debug.Log("Dialogue Started.");
 
@@ -190,14 +211,13 @@ public class Dialogue : MonoBehaviour
         dialogueBoxInstance.transform.SetParent(transform, false);
 
         textComponent = dialogueBoxInstance.GetComponentInChildren<TextMeshProUGUI>();
-        OnTextComponentChanged?.Invoke(textComponent); // This line sends the event regardless of the value of textComponent.
+        OnTextComponentChanged?.Invoke(textComponent);
 
         if (textComponent == null)
         {
             Debug.LogError("No TextMeshProUGUI component found in the dialogue box.");
             return;
         }
-
 
         canvasInstance = dialogueBoxInstance.GetComponentInChildren<Canvas>();
         if (canvasInstance == null)
@@ -299,6 +319,7 @@ public class Dialogue : MonoBehaviour
     public float timeBetweenSyllables = 0.1f;
     public float timeBetweenWords = 0.5f;
     public float speakingSpeed = 2f;
+
     IEnumerator TypeLine()
     {
         isLineComplete = false;
