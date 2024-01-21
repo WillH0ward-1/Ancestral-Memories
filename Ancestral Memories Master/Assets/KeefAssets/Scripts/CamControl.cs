@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 //using FMODUnity;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 public class CamControl : MonoBehaviour
 {
@@ -113,6 +114,7 @@ public class CamControl : MonoBehaviour
         //cam.orthographicSize = initOrtho;
         camTarget = player.transform;
         panoramaScroll = false;
+        isInBuildMode = false;
         isSpawning = true;
 
         //cameraOffset = new Vector3(12, 2.5f, -8);
@@ -132,7 +134,6 @@ public class CamControl : MonoBehaviour
 
     void Update()
     {
-
         if (!scrollOverride)
         {
             if (!behaviours.behaviourIsActive)
@@ -160,6 +161,7 @@ public class CamControl : MonoBehaviour
 
     private void LateUpdate()
     {
+
         if (camRotateAround && !panoramaScroll)
         {
             camTurnAngle = Quaternion.AngleAxis(Input.GetAxis("Mouse ScrollWheel") * speed, Vector3.up);
@@ -236,6 +238,69 @@ public class CamControl : MonoBehaviour
 
         yield break;
     }
+
+    public bool isInBuildMode = false;
+
+    public IEnumerator BuildMode(GameObject buildingPrefab, GameObject decalProjectorPrefab)
+    {
+        isInBuildMode = true; // Enable Build Mode
+
+        float time = 0f;
+        float camLerpTime = 1f; // Duration for zoom out and in
+
+        // Store the original offset from the player
+        Vector3 originalOffset = cameraOffset;
+        // Calculate a zoomed-out offset
+        Vector3 zoomedOutOffset = originalOffset - originalOffset.normalized * -50f;
+
+        // Zoom out
+        while (time <= camLerpTime)
+        {
+            cameraOffset = Vector3.Lerp(originalOffset, zoomedOutOffset, time / camLerpTime);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        GameObject decalInstance = Instantiate(decalProjectorPrefab);
+
+        // Define the layer mask for "Ground"
+        LayerMask groundLayer = LayerMask.GetMask("Ground");
+
+        while (isInBuildMode)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
+            {
+                // Position the decal at the raycast hit point
+                Vector3 decalPosition = hit.point;
+                decalPosition.y = 50; // Set the Y position to 50
+                decalInstance.transform.position = decalPosition;
+            }
+
+            if (Input.GetMouseButtonDown(1)) // Right-click to finalize position
+            {
+                // Instantiate(buildingPrefab, decalInstance.transform.position, Quaternion.identity); // Instantiate the building
+                Destroy(decalInstance); // Destroy the temporary decal
+                break; // Exit the while loop
+            }
+
+            yield return null;
+        }
+
+        // Reset time for zooming back in
+        time = 0f;
+
+        // Zoom back in
+        while (time <= camLerpTime)
+        {
+            cameraOffset = Vector3.Lerp(zoomedOutOffset, originalOffset, time / camLerpTime);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        isInBuildMode = false; // Disable Build Mode after the coroutine is done
+    }
+
 
 
     void CancelLastCam()

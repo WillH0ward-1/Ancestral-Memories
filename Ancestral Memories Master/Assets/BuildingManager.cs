@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 public class BuildingManager : MonoBehaviour
 {
@@ -20,6 +21,17 @@ public class BuildingManager : MonoBehaviour
     public List<BuildingOption> options;
 
     public bool menuIsActive = false;
+
+    private CamControl camControl;
+    private Camera cam;
+
+    [SerializeField] private GameObject decal; 
+
+    private void Awake()
+    {
+        cam = Camera.main;
+        camControl = cam.GetComponentInChildren<CamControl>();
+    }
 
     public void SpawnMenu()
     {
@@ -57,22 +69,19 @@ public class BuildingManager : MonoBehaviour
     {
         Debug.Log("Selected building type: " + buildingType);
 
-        switch (buildingType)
+        // Find the building option based on the selected type
+        BuildingOption selectedOption = options.Find(option => option.type == buildingType);
+        if (selectedOption == null)
         {
-            case "Temple":
-                // Logic for selecting a Temple
-                break;
-            case "Fire":
-                // Logic for selecting Fire
-                break;
-            // Add more cases as needed
-            default:
-                Debug.LogWarning("Unknown building type selected: " + buildingType);
-                break;
+            Debug.LogWarning("Unknown building type selected: " + buildingType);
+            return;
         }
+
+        StartCoroutine(camControl.BuildMode(selectedOption.buildingPrefab, decal));
 
         CloseMenu();
     }
+
 
 
     public void CloseMenu()

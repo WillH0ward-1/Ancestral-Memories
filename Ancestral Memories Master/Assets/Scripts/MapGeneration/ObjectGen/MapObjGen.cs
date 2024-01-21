@@ -533,7 +533,7 @@ public class MapObjGen : MonoBehaviour
         HumanPoissonDisc(humanSampler);
         ProceduralTreePoissonDisc(treeSampler);
         LimeStonePoissonDisc(limeStoneSampler);
-        TemplePoissonDisc(templeSampler);
+        //TemplePoissonDisc(templeSampler);
 
         SetOffset();
 
@@ -554,9 +554,9 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(huntableAnimalsList);
         ListCleanup(flammableObjectList);
         ListCleanup(limeStoneList);
-        ListCleanup(templeList);
+        //ListCleanup(templeList);
 
-        GenerateTemples();
+        //GenerateTemples();
 
         mapObjectsGenerated = true;
 

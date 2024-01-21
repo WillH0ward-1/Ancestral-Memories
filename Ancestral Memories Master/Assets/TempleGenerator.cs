@@ -120,6 +120,17 @@ public class TempleGenerator : MonoBehaviour
         }
     }
 
+    public Vector3 CalculateTempleOccupationRadius()
+    {
+        float monolithRadius = seatPlatformRadius * sizeMultiplier + monolithSpacing * sizeMultiplier;
+        float maxYSize = 0f;
+
+        Vector3 occupationRadius = new Vector3(monolithRadius, maxYSize, monolithRadius);
+
+        return occupationRadius;
+    }
+
+
     private void InitializeTempleState()
     {
         int currentCount = GetCurrentMonolithCount();

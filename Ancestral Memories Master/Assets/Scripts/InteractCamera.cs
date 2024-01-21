@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class InteractCamera : MonoBehaviour
@@ -86,6 +87,11 @@ public class InteractCamera : MonoBehaviour
 
         // Reset lastHit variable
         lastHit = null;
+    }
+
+    private IEnumerator BuildMode()
+    {
+        yield return null;
     }
 
     private void AddOutline(GameObject obj, Color color)
