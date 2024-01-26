@@ -5,41 +5,81 @@ using UnityEngine.Rendering.Universal;
 public class DecalProjectorManager : MonoBehaviour
 {
     public DecalProjector decalProjector;
-    private Vector2 previousSize;
+    [SerializeField] private LayerMask invalidBuildLayers;
+
+    // Gizmo drawing variables
+    private bool shouldDrawGizmos = false;
+    private Vector3 gizmoSphereCenter;
+    private float gizmoSphereRadius;
+    private float height = 200f;
 
     private void OnEnable()
     {
-        // Get the DecalProjector component
         decalProjector = GetComponent<DecalProjector>();
         if (decalProjector == null)
         {
             Debug.LogError("DecalProjectorManager requires a DecalProjector component on the same GameObject.");
-            return;
         }
-
-        // Initialize previousSize with the current size of the decal projector
-        previousSize = new Vector2(decalProjector.size.x, decalProjector.size.y);
-        UpdateMaterialTiling();
     }
 
-    private void Update()
+    public void SetDecalSize(Vector3 newSize)
     {
-        // Check if the size of the decal projector has changed
-        if (decalProjector != null && (decalProjector.size.x != previousSize.x || decalProjector.size.y != previousSize.y))
+        if (decalProjector != null)
         {
-            UpdateMaterialTiling();
-            previousSize = new Vector2(decalProjector.size.x, decalProjector.size.y);
+            decalProjector.size = newSize;
+            decalProjector.pivot = Vector3.zero;
         }
     }
 
-    private void UpdateMaterialTiling()
+    public void SetIsValidBuildArea(bool isValid)
     {
-        if (decalProjector.material == null) return;
+        if (decalProjector != null && decalProjector.material != null)
+        {
+            decalProjector.material.SetInt("_isValidBuildArea", isValid ? 1 : 0);
+        }
+    }
 
-        // Calculate the new tiling values based on the decal projector's size
-        Vector2 newTiling = new Vector2(decalProjector.size.x / 10.0f, decalProjector.size.y / 10.0f);
+    public void SetIsBuilt(bool isBuilt)
+    {
+        if (decalProjector != null && decalProjector.material != null)
+        {
+            decalProjector.material.SetInt("_isBuilt", isBuilt ? 1 : 0);
+        }
+    }
 
-        // Apply the new tiling to the material
-        decalProjector.material.SetVector("_TexTiling", new Vector4(newTiling.x, newTiling.y, 0, 0));
+    public bool CheckForCollisions(float sphereRadius)
+    {
+        Vector3 sphereCenter = transform.position;
+        gizmoSphereCenter = sphereCenter;
+        gizmoSphereRadius = sphereRadius;
+        shouldDrawGizmos = true;
+
+        bool isCollisionDetected = Physics.CheckSphere(sphereCenter, sphereRadius, invalidBuildLayers.value);
+
+        Vector3 highPosition = new Vector3(sphereCenter.x, sphereCenter.y + height, sphereCenter.z);
+        LayerMask groundAndWaterLayers = LayerMask.GetMask("Ground", "Water");
+
+        if (Physics.SphereCast(highPosition, sphereRadius, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundAndWaterLayers))
+        {
+            if (hitInfo.collider.CompareTag("Water"))
+            {
+                isCollisionDetected = true;
+            }
+        }
+
+        return isCollisionDetected;
+    }
+
+    void OnDrawGizmos()
+    {
+        if (shouldDrawGizmos)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(gizmoSphereCenter, gizmoSphereRadius);
+
+            Vector3 highPosition = new Vector3(gizmoSphereCenter.x, gizmoSphereCenter.y + height, gizmoSphereCenter.z);
+            Gizmos.DrawLine(highPosition, gizmoSphereCenter);
+            Gizmos.DrawWireSphere(highPosition, gizmoSphereRadius);
+        }
     }
 }

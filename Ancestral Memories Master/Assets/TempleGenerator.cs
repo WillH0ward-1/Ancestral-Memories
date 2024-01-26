@@ -105,30 +105,144 @@ public class TempleGenerator : MonoBehaviour
             }
 
             isGenerated = true;
-
-            if (faithCheckCoroutine != null)
-            {
-                StopCoroutine(faithCheckCoroutine);
-            }
-
-            InitializeTempleState();
-            faithCheckCoroutine = StartCoroutine(CheckFaithChanges());
         }
         else
         {
             UpdateMonolithsAndSeats();
         }
+
+
     }
+
+    public void EnableTemple()
+    {
+        if (!isGenerated) return;
+
+        // Additionally, make sure the center platform is active if it exists
+        if (centerPlatform != null)
+        {
+            centerPlatform.SetActive(true);
+        }
+
+        if (faithCheckCoroutine != null)
+        {
+            StopCoroutine(faithCheckCoroutine);
+        }
+
+        InitializeTempleState();
+
+        faithCheckCoroutine = StartCoroutine(CheckFaithChanges());
+    }
+
+    public void DisableTemple()
+    {
+        if (!isGenerated) return;
+
+        foreach (var monolith in monoliths)
+        {
+            if (monolith != null)
+            {
+                monolith.SetActive(false);
+            }
+        }
+        foreach (var seat in seatPlatforms)
+        {
+            if (seat != null)
+            {
+                seat.SetActive(false);
+            }
+        }
+        if (centerPlatform != null)
+        {
+            centerPlatform.SetActive(false);
+        }
+    }
+
 
     public Vector3 CalculateTempleOccupationRadius()
     {
-        float monolithRadius = seatPlatformRadius * sizeMultiplier + monolithSpacing * sizeMultiplier;
-        float maxYSize = 0f;
+        // Calculate radius based on the maximum potential extent of the temple components
+        float furthestDistance = 0f;
+        Vector3 templeCenter = transform.position;
 
-        Vector3 occupationRadius = new Vector3(monolithRadius, maxYSize, monolithRadius);
+        // Include all child objects (monoliths, seats, center platform), including inactive ones
+        int childCount = transform.childCount;
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            Renderer renderer = child.GetComponentInChildren<Renderer>(true); // true to include inactive children
+            if (renderer != null)
+            {
+                Vector3 childExtent = renderer.bounds.size * 0.5f;
+                Vector3 childWorldPosition = child.position + childExtent; // furthest point
+                float distance = Vector3.Distance(templeCenter, childWorldPosition);
+                furthestDistance = Mathf.Max(furthestDistance, distance);
+            }
+        }
 
+        // Create the occupation radius vector
+        Vector3 occupationRadius = new Vector3(furthestDistance, furthestDistance, furthestDistance);
         return occupationRadius;
     }
+
+
+    public void CreateOccupationCollider()
+    {
+        // Calculate the occupation radius
+        Vector3 occupationRadius = CalculateTempleOccupationRadius();
+
+        // Use the calculated radius for the collider
+        float colliderRadius = occupationRadius.x;
+
+        // Add a SphereCollider component if it doesn't exist
+        SphereCollider collider = GetComponent<SphereCollider>();
+        if (collider == null)
+        {
+            collider = gameObject.AddComponent<SphereCollider>();
+        }
+
+        // Set the collider properties
+        collider.radius = colliderRadius;
+        //collider.isTrigger = true; // Set to true if it's a trigger collider
+        collider.center = new Vector3(0, 0, 0); // Adjust as needed
+    }
+
+    public float GetOccupationColliderRadius()
+    {
+        SphereCollider collider = GetComponent<SphereCollider>();
+        if (collider != null)
+        {
+            // Adjusting for the object's scale
+            float maxScale = Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
+            return collider.radius * maxScale;
+        }
+        else
+        {
+            Debug.LogError("SphereCollider component not found.");
+            return 0f;
+        }
+    }
+
+    public Vector3 GetColliderRadiusAsVector()
+    {
+        SphereCollider collider = GetComponent<SphereCollider>();
+        if (collider != null)
+        {
+            // Adjusting for the object's scale
+            float maxScale = Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
+            float worldSpaceRadius = collider.radius * maxScale;
+            return new Vector3(worldSpaceRadius, worldSpaceRadius, worldSpaceRadius);
+        }
+        else
+        {
+            Debug.LogError("SphereCollider component not found.");
+            return Vector3.zero;
+        }
+    }
+
+
+
+
 
 
     private void InitializeTempleState()

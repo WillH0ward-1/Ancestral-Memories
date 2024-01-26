@@ -92,8 +92,12 @@ namespace ProceduralModeling
 				leafMat
 			);
 
-			treeInstance.GenerateLeaves(root, leafMat);
-			treeInstance.GenerateFruitPoints(root);
+			if (Application.isPlaying)
+			{
+				treeInstance.GenerateLeaves(root, leafMat);
+				treeInstance.GenerateFruitPoints(root);
+			}
+
 			treeInstance.GenerateMeshCollider();
 
 			var vertices = new List<Vector3>();
@@ -257,7 +261,17 @@ namespace ProceduralModeling
 					lighting = segmentObj.AddComponent<ShaderLightColor>();
 				}
 				lighting.enabled = true;
-				lighting.timeCycleManager = ptGrow.seasonManager.timeCycle;
+
+				if (Application.isPlaying)
+				{
+					lighting.timeCycleManager = ptGrow.seasonManager.timeCycle;
+				}
+				else
+				{
+					lighting.timeCycleManager = FindObjectOfType<TimeCycleManager>();
+				}
+
+
 				segmentObj.isStatic = true;
 
 				// Assign material
@@ -686,12 +700,15 @@ namespace ProceduralModeling
 				}
 			}
 
-#if UNITY_EDITOR
+			if (Application.isPlaying)
+			{
+				LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().mesh;
+			}
+			else
+			{
+				LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().sharedMesh;  // Replace with your actual leaf mesh
+			}
 
-			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().mesh;  
-#else
-			LeafMesh = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<MeshFilter>().sharedMesh;  // Replace with your actual leaf mesh
-#endif
 			LeafMaterial = leafMat;
 			LeafMaterial.enableInstancing = true;  // Enable GPU instancing for the material
 
@@ -722,7 +739,11 @@ namespace ProceduralModeling
 
 			int fruitCount = Mathf.Min(treeFruitManager.maxFruits, FruitPoints.Count);
 
-			treeFruitManager.InitializeFruits(fruitCount);
+			if (Application.isPlaying)
+			{
+				treeFruitManager.InitializeFruits(fruitCount);
+			}
+
 		}
 
 		void OnRenderObject()

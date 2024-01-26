@@ -147,27 +147,32 @@ public class LerpTerrain : MonoBehaviour
     {
         if (seasonManager._currentSeason != SeasonManager.Season.Winter)
         {
-            ChangeState(Desert);
+            LerpVertexTiling(Desert);
         }
     }
 
     public void ToOasis()
     {
-        ChangeState(Oasis);
+        LerpVertexTiling(Oasis);
     }
 
     public void ToWetOasis()
     {
-        ChangeState(Wet);
+        LerpVertexTiling(Wet);
     }
 
-    void ChangeState(float newState)
+    void LerpVertexTiling(float newState)
     {
         if (vertexLerpCoroutine != null)
         {
             StopCoroutine(vertexLerpCoroutine);
         }
         vertexLerpCoroutine = StartCoroutine(LerpVertexTile(newState, duration));
+    }
+
+    void LerpDrought()
+    {
+
     }
 
     IEnumerator LerpVertexTile(float targetState, float duration)

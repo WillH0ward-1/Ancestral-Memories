@@ -14,7 +14,7 @@ public class TimeCycleManager : MonoBehaviour
         public Color lightColor;
     }
 
-    [SerializeField] public Light DirectionalLight;
+    public Light DirectionalLight;
     public TimeColor[] timeColors;
     [SerializeField, Range(0, 24)] private float _timeOfDay;
     public float timeMultiplier = 0.25f;
@@ -30,9 +30,7 @@ public class TimeCycleManager : MonoBehaviour
      public float defaultTimeMultiplier = 0.25f;
     [SerializeField] private float editorTimeMultiplier = 0.8f;
 
-    public float minSunIntensity = 1;
-    public float maximumSunIntensity = 1;
-    public float sunIntensity;
+    public SunIntensityManager sunIntensityManager;
 
     public int DayOfYear
     {
@@ -188,16 +186,20 @@ public class TimeCycleManager : MonoBehaviour
 
         if (DirectionalLight != null)
         {
+            sunIntensityManager = GetComponent<SunIntensityManager>();
+            sunIntensityManager.timeCycleManager = this;
+            sunIntensityManager.directionalLight = DirectionalLight;
             RenderSettings.ambientLight = lerpedLightColor;
             RenderSettings.fogColor = lerpedLightColor;
             DirectionalLight.color = lerpedLightColor;
             DirectionalLight.transform.localRotation = Quaternion.Euler(new Vector3((timePercent * 360f) - 90f, 170f, 0));
         }
 
-        if (!Application.isEditor)
+
+        if (Application.isPlaying)
         {
-           // var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
-           // Debug.Log("time of day (Fmod) = " + fmodTod);
+            // var fmodTod = FMODUnity.RuntimeManager.StudioSystem.setParameterByName("TimeOfDay", TimeOfDay);
+            // Debug.Log("time of day (Fmod) = " + fmodTod);
 
         }
     }
@@ -224,7 +226,7 @@ public class TimeCycleManager : MonoBehaviour
         lastRealTime = Time.realtimeSinceStartup;
         _dayOfYear = Mathf.RoundToInt(TimeOfDay / 24f * seasonManager.GetTotalDaysInYear());
 
-        if (Application.isEditor)
+        if (!Application.isPlaying)
         {
             timeMultiplier = editorTimeMultiplier;
         } else

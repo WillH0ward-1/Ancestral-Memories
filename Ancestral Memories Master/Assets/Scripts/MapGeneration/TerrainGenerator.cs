@@ -161,6 +161,7 @@ public class TerrainGenerator : MonoBehaviour {
 			rainControl.lerpTerrain = lerpTerrain;
 			lerpTerrain.rainControl = rainControl;
 
+
 			StartCoroutine(EnableContacts(terrainObj));
 
 			MeshFilter meshFilter = terrainObj.GetComponentInChildren<MeshFilter>();
@@ -201,6 +202,19 @@ public class TerrainGenerator : MonoBehaviour {
 
 		// Rescan the NavmeshGraph to apply the changes
 		AstarPath.active.Scan();
+
+		MeshRenderer meshRenderer = tmp.GetComponent<MeshRenderer>();
+
+		if (meshRenderer != null)
+		{
+			// Set the mask to include Light Layer default (1) and Light Layer 1 (2)
+			meshRenderer.renderingLayerMask = (1 << 0) | (1 << 1);
+		}
+		else
+		{
+			Debug.LogError("MeshRenderer component not found on the object.");
+		}
+
 		mapObjectGen.GenerateMapObjects();
 		yield break;
 	}

@@ -5,32 +5,15 @@ public class SunIntensityManager : MonoBehaviour
 {
     public float sunIntensity;
     public float minSunIntensity = 0.1f; // Minimum sun intensity
-    public float maxSunIntensity = 1.0f; // Maximum sun intensity
-    private Light directionalLight;
-    private TimeCycleManager timeCycleManager;
-
-    void Start()
-    {
-        // Get the TimeCycleManager component from the same GameObject
-        timeCycleManager = GetComponent<TimeCycleManager>();
-
-        // Get the directional light reference from TimeCycleManager
-        if (timeCycleManager != null)
-        {
-            directionalLight = timeCycleManager.DirectionalLight;
-        }
-
-        if (directionalLight == null)
-        {
-            Debug.LogError("SunIntensityManager: Directional light not found.");
-        }
-    }
+    public float maxSunIntensity = 0.8f; // Maximum sun intensity
+    public Light directionalLight;
+    public TimeCycleManager timeCycleManager;
 
     void Update()
     {
         if (timeCycleManager != null && directionalLight != null)
         {
-            timeCycleManager.sunIntensity = CalculateSunIntensity(timeCycleManager.TimeOfDay);
+            sunIntensity = CalculateSunIntensity(timeCycleManager.TimeOfDay);
             directionalLight.intensity = sunIntensity;
         }
     }

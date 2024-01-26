@@ -77,7 +77,7 @@ public class BuildingManager : MonoBehaviour
             return;
         }
 
-        StartCoroutine(camControl.BuildMode(selectedOption.buildingPrefab, decal));
+        StartCoroutine(camControl.BuildMode(selectedOption, selectedOption.buildingPrefab, decal));
 
         CloseMenu();
     }

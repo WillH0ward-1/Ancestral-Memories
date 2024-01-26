@@ -77,7 +77,7 @@ public class CanvasFX : MonoBehaviour
 
     private void Update()
     {
-        if (timeCycleManager != null && timeCycleManager.sunIntensity > sunIntensityThreshold)
+        if (timeCycleManager != null && timeCycleManager.sunIntensityManager.sunIntensity > sunIntensityThreshold)
         {
             LerpHeatDistortion(MaxHeatDistortion);
         }

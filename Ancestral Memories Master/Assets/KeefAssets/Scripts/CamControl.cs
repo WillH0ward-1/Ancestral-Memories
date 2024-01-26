@@ -2,6 +2,7 @@
 //using FMODUnity;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using static BuildingManager;
 
 public class CamControl : MonoBehaviour
 {
@@ -186,11 +187,146 @@ public class CamControl : MonoBehaviour
         }
     }
 
+    public bool isInBuildMode = false;
+
+    public IEnumerator BuildMode(BuildingOption buildOption, GameObject buildingPrefab, GameObject decalProjectorPrefab)
+    {
+        isInBuildMode = true; // Enable Build Mode
+
+        // Zoom out
+        float time = 0f;
+        float camLerpTime = 1f;
+        Vector3 originalOffset = cameraOffset;
+        Vector3 zoomedOutOffset = originalOffset - originalOffset.normalized * -50f;
+        while (time <= camLerpTime)
+        {
+            cameraOffset = Vector3.Lerp(originalOffset, zoomedOutOffset, time / camLerpTime);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        // Instantiate a temporary temple for occupation radius calculation
+        GameObject tempTemple = Instantiate(buildingPrefab);
+        TempleGenerator templeGenForRadius = tempTemple.GetComponentInChildren<TempleGenerator>();
+        templeGenForRadius.player = player; // Set player reference
+        templeGenForRadius.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
+        templeGenForRadius.GenerateTemple(); // Generate the temple
+        templeGenForRadius.CreateOccupationCollider();
+        float occupationRadius = templeGenForRadius.GetOccupationColliderRadius();
+        Vector3 occupationVectorRadius = templeGenForRadius.GetColliderRadiusAsVector();
+        templeGenForRadius.DisableTemple(); // Disable the temple for visual
+
+        // Multiply the occupation radius by 3 for the decal size
+        Vector3 scaledOccupationRadius = occupationVectorRadius * 10;
+
+        // Destroy the temporary temple instance
+        Destroy(tempTemple);
+
+        GameObject decalInstance = Instantiate(decalProjectorPrefab);
+        DecalProjectorManager decalManager = decalInstance.GetComponent<DecalProjectorManager>();
+        DecalProjector decalProjector = decalManager.decalProjector;
+
+        // Create a new material instance for the DecalProjector
+        if (decalProjector != null && decalProjector.material != null)
+        {
+            decalProjector.material = new Material(decalProjector.material);
+        }
+
+        decalManager.SetIsBuilt(false);
+        decalManager.SetDecalSize(scaledOccupationRadius); // Use the scaled radius for decal size
+
+
+
+        // Raycasting to place the decal
+        LayerMask groundLayer = LayerMask.GetMask("Ground");
+        while (isInBuildMode)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
+            {
+                Vector3 decalPosition = hit.point;
+                decalInstance.transform.position = decalPosition;
+
+                // Check for collisions using the occupation radius
+                bool isCollisionDetected = decalManager.CheckForCollisions(occupationRadius);
+                decalManager.SetIsValidBuildArea(!isCollisionDetected); // Update the decal appearance based on collision
+            }
+
+            // Finalize position with right-click only if it's a valid build area
+            if (Input.GetMouseButtonDown(1) && !decalManager.CheckForCollisions(occupationRadius))
+            {
+                GameObject finalTemple = Instantiate(buildingPrefab, hit.point, Quaternion.identity);
+                TempleGenerator finalTempleGen = finalTemple.GetComponentInChildren<TempleGenerator>();
+                finalTempleGen.player = player; // Set player reference
+                finalTempleGen.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
+                finalTempleGen.GenerateTemple();
+                finalTempleGen.EnableTemple(); // Enable the temple for visual
+                finalTempleGen.CreateOccupationCollider();
+                decalManager.SetIsBuilt(true); // Set the decal as built
+                decalManager.transform.SetParent(finalTemple.transform);
+                break; // Exit the loop
+            }
+            else if (Input.GetMouseButtonDown(1))
+            {
+                Debug.Log("Cannot build here: Invalid build area.");
+            }
+
+            yield return null;
+        }
+
+
+
+        // Zoom back in
+        time = 0f;
+        while (time <= camLerpTime)
+        {
+            cameraOffset = Vector3.Lerp(zoomedOutOffset, originalOffset, time / camLerpTime);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        isInBuildMode = false; // Exit Build Mode
+    }
+
+
+
+
+    private Vector3 PreCalculateOccupationRadius(string buildingType, GameObject buildingPrefab)
+    {
+        switch (buildingType)
+        {
+            case "Temple":
+                TempleGenerator templeGen = buildingPrefab.GetComponentInChildren<TempleGenerator>();
+                templeGen.CreateOccupationCollider();
+                return templeGen.GetColliderRadiusAsVector(); // Adjust this method as needed
+            case "Fire":
+                // Add logic for Fire occupation radius
+                break;
+                // Add more cases as needed
+        }
+        return Vector3.zero;
+    }
+
+    private void HandleBuildingInstantiation(string buildingType, Vector3 position, GameObject buildingPrefab)
+    {
+        switch (buildingType)
+        {
+            case "Temple":
+                GameObject temple = Instantiate(buildingPrefab, position, Quaternion.identity);
+                TempleGenerator templeGen = temple.GetComponentInChildren<TempleGenerator>();
+                templeGen.player = player; // Assuming 'player' is a variable in scope
+                templeGen.playerStats = player.GetComponentInChildren<AICharacterStats>();
+                templeGen.GenerateTemple();
+                break;
+            case "Fire":
+                // Logic for instantiating Fire
+                break;
+                // Add more cases as needed
+        }
+    }
+
     [SerializeField] private AudioListenerManager audioListener;
-
     [SerializeField] private float attenuationSwitchSpeed = 1f;
-
-    private float target;
     private float rotateSpeed;
 
     public IEnumerator PanoramaZoom()
@@ -238,69 +374,6 @@ public class CamControl : MonoBehaviour
 
         yield break;
     }
-
-    public bool isInBuildMode = false;
-
-    public IEnumerator BuildMode(GameObject buildingPrefab, GameObject decalProjectorPrefab)
-    {
-        isInBuildMode = true; // Enable Build Mode
-
-        float time = 0f;
-        float camLerpTime = 1f; // Duration for zoom out and in
-
-        // Store the original offset from the player
-        Vector3 originalOffset = cameraOffset;
-        // Calculate a zoomed-out offset
-        Vector3 zoomedOutOffset = originalOffset - originalOffset.normalized * -50f;
-
-        // Zoom out
-        while (time <= camLerpTime)
-        {
-            cameraOffset = Vector3.Lerp(originalOffset, zoomedOutOffset, time / camLerpTime);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        GameObject decalInstance = Instantiate(decalProjectorPrefab);
-
-        // Define the layer mask for "Ground"
-        LayerMask groundLayer = LayerMask.GetMask("Ground");
-
-        while (isInBuildMode)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
-            {
-                // Position the decal at the raycast hit point
-                Vector3 decalPosition = hit.point;
-                decalPosition.y = 50; // Set the Y position to 50
-                decalInstance.transform.position = decalPosition;
-            }
-
-            if (Input.GetMouseButtonDown(1)) // Right-click to finalize position
-            {
-                // Instantiate(buildingPrefab, decalInstance.transform.position, Quaternion.identity); // Instantiate the building
-                Destroy(decalInstance); // Destroy the temporary decal
-                break; // Exit the while loop
-            }
-
-            yield return null;
-        }
-
-        // Reset time for zooming back in
-        time = 0f;
-
-        // Zoom back in
-        while (time <= camLerpTime)
-        {
-            cameraOffset = Vector3.Lerp(zoomedOutOffset, originalOffset, time / camLerpTime);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        isInBuildMode = false; // Disable Build Mode after the coroutine is done
-    }
-
 
 
     void CancelLastCam()

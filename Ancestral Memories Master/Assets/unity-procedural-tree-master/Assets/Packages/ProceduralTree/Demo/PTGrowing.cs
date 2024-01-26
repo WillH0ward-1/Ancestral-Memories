@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Deform;
 using Pathfinding.RVO;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace ProceduralModeling
 {
@@ -13,13 +14,28 @@ namespace ProceduralModeling
         private ProceduralTree proceduralTree;
         private TreeData treeData;
         private LeafScaler leafScaler;
+        private NavMeshCutting navMeshCutting;
+        private TreeFruitManager treeFruitManager;
+
+        private BoxCollider growthInhibitionZone;
+        private BoxCollider interactionCollider;
+        private Interactable interactable;
+
+        [Header("=== External Components ===")]
+
+        public MapObjGen mapObjGen;
+        public SeasonManager seasonManager;
+        public RainControl rainControl;
         public LerpTerrain lerpTerrain;
 
-        private NavMeshCutting navMeshCutting;
-
+        [Header("=== Tree State ===")]
+        public State currentState;
         public bool isGrowing = false;
         public bool isFullyGrown = false;
+        public bool isDead = false;
+        public float time = 0f;
 
+        [Header("=== Tree Lifespan ===")]
         public float minLifeTimeSeconds = 10f;
         public float maxLifeTimeSeconds = 25f;
         public float lifeTimeSecs = 60f;
@@ -27,35 +43,35 @@ namespace ProceduralModeling
 
         private const string kGrowingKey = "_T";
 
+        [Header("=== Tree Duration Parameters ===")]
         public float minGrowBuffer = 10f;
         public float maxGrowBuffer = 60f;
         public float minGrowDuration = 30f;
         public float maxGrowDuration = 45f;
         public float minDeathDuration = 2f;
         public float maxDeathDuration = 5f;
+        public float minReviveBuffer = 20f;
+        public float maxReviveBuffer = 30f;
 
-        private float growBuffer;
+        [Header("=== Calculated Durations ===")]
+        [SerializeField] private float growBuffer;
         public float growDuration;
         public float deathDuration;
+        [SerializeField] private float reviveBuffer;
 
-        public bool isDead = false;
-
-        private TreeFruitManager treeFruitManager;
-
-        private BoxCollider growthInhibitionZone;
-
-        private Interactable interactable;
-
+        [Header("=== Navmesh Obstacle ===")]
         [SerializeField] private LayerMask entityLayers;
+        [SerializeField] private float growthInhibitionScaleFactor = 1.0f;
 
-        private bool isNavMeshCutEnabled = false;
-        private Coroutine navMeshCutCoroutine;
+        [Header("=== Tree Ground Decal ===")]
+        public GameObject dirtDecal;
 
-        public RainControl rainControl;
+        [Header("=== Tree Leaf Control ===")]
 
-        private float minSaturation = 0.0f;
-        private float maxSaturation = 2.0f;
-        private float midSaturation = 1.0f;
+        public List<GameObject> fallingLeaves;
+        public Color[] leafColorsPerSeason;
+        private string leafColourParam = "_LeafColour";
+        private Material leafMaterial;
 
         public enum State
         {
@@ -67,18 +83,13 @@ namespace ProceduralModeling
             Reviving
         }
 
-        public MapObjGen mapObjGen;
-
-        public State currentState;
-        public float time = 0f;
-
         private TreeAudioManager treeAudioSFX;
-
         private PTGrowingManager pTGrowingManager;
 
-        [SerializeField] private float growthInhibitionScaleFactor = 1.0f;
+        private DecalProjector dirtDecalProjector;
+        private DecalProjectorManager decalProjectorManager;
 
-        public SeasonManager seasonManager;
+        private Vector3 obstacleSize;
 
         private void Awake()
         {
@@ -105,13 +116,92 @@ namespace ProceduralModeling
             }
         }
 
-        private void Start()
+        private float minDecalSizeX = 0f;
+        private float minDecalSizeY = 0f;
+
+        private float maxDecalSizeX;
+        private float maxDecalSizeY;
+        private float projectionDepth;
+
+        private Vector3 maxDecalSize;
+        private Vector3 minDecalSize;
+
+        private GameObject decalInstance;
+
+        private void CreateDirtDecal()
+        {
+            decalInstance = Instantiate(dirtDecal, transform, false);
+            decalInstance.transform.localPosition = Vector3.zero; // Set localPosition instead of position
+            
+            dirtDecalProjector = decalInstance.GetComponent<DecalProjector>();
+            decalProjectorManager = decalInstance.GetComponent<DecalProjectorManager>();
+
+            maxDecalSizeX = obstacleSize.x * 80f;
+            maxDecalSizeY = obstacleSize.z * 80f;
+            projectionDepth = 100f;
+
+            maxDecalSize = new Vector3(maxDecalSizeX, maxDecalSizeY, projectionDepth);
+            minDecalSize = new Vector3(minDecalSizeX, minDecalSizeY, projectionDepth);
+
+            Vector3 decalSize = new Vector3(minDecalSizeX, minDecalSizeY, projectionDepth);
+            decalProjectorManager.SetDecalSize(decalSize);
+        }
+
+        private Coroutine lerpSizeCoroutine;
+
+        public void LerpDecalSize(Vector3 targetSize, float duration)
+        {
+            // If there is an ongoing coroutine, stop it
+            if (lerpSizeCoroutine != null)
+            {
+                StopCoroutine(lerpSizeCoroutine);
+            }
+
+            // Start a new lerp coroutine
+            lerpSizeCoroutine = StartCoroutine(LerpDecalScale(targetSize, duration));
+        }
+
+        private IEnumerator LerpDecalScale(Vector3 targetSize, float duration)
+        {
+            float timeElapsed = 0f;
+            Vector3 initialSize = new Vector3(dirtDecalProjector.size.x, dirtDecalProjector.size.y, dirtDecalProjector.size.z);
+            Vector3 newSize = initialSize;
+
+            // Lerp the size over the given duration
+            while (timeElapsed < duration)
+            {
+                newSize.x = Mathf.Lerp(initialSize.x, targetSize.x, timeElapsed / duration);
+                newSize.y = Mathf.Lerp(initialSize.y, targetSize.y, timeElapsed / duration);
+  
+                decalProjectorManager.SetDecalSize(newSize);
+
+                timeElapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Ensure the final size is set
+            newSize.x = targetSize.x;
+            newSize.y = targetSize.y;
+            decalProjectorManager.SetDecalSize(newSize);
+
+            lerpSizeCoroutine = null; // Coroutine finished
+        }
+
+        public void SetupBounds()
         {
 
             growthInhibitionZone = gameObject.AddComponent<BoxCollider>();
             growthInhibitionZone.isTrigger = true;
             growthInhibitionZone.size = new Vector3(navMeshCutting.obstacle.size.x * growthInhibitionScaleFactor, navMeshCutting.obstacle.height * growthInhibitionScaleFactor, navMeshCutting.obstacle.size.y * growthInhibitionScaleFactor);
             growthInhibitionZone.center = navMeshCutting.obstacle.center;
+            obstacleSize = growthInhibitionZone.size;
+
+            interactionCollider = gameObject.AddComponent<BoxCollider>();
+            interactionCollider.isTrigger = false;
+            interactionCollider.size = new Vector3(navMeshCutting.obstacle.size.x, 5f, navMeshCutting.obstacle.size.y);
+            interactionCollider.center = new Vector3(0, 1.5f, 0);
+
+            CreateDirtDecal();
 
             navMeshCutting.DisableNavMeshCut();
         }
@@ -120,8 +210,12 @@ namespace ProceduralModeling
 
         private void OnDestroy()
         {
-            pTGrowingManager?.UnregisterPTGrowing(this);
+            if (pTGrowingManager != null)
+            {
+                pTGrowingManager.UnregisterPTGrowing(this);
+            }
         }
+
 
         public float overlapBoxScaleFactor = 1.2f;  // exposed factor for scaling overlap box size
 
@@ -144,9 +238,19 @@ namespace ProceduralModeling
             */
         }
 
+        public void SetInteractable(bool isInteractable)
+        {
+            if (interactable.enabled != isInteractable)
+            {
+                interactable.enabled = isInteractable;
+                interactionCollider.enabled = isInteractable;
+            }
+        }
+
+
         public void GrowTree()
         {
-            interactable.enabled = false;
+            SetInteractable(false);
 
             isFullyGrown = false;
             currentState = State.Buffering;
@@ -181,10 +285,12 @@ namespace ProceduralModeling
 
         private IEnumerator GrowBuffer(bool reseed)
         {
-            interactable.enabled = false;
+            SetInteractable(false);
 
             time = 0f;
             growBuffer = Random.Range(minGrowBuffer, maxGrowBuffer);
+
+            LerpDecalSize(maxDecalSize, growBuffer);
 
             while (time < growBuffer)
             {
@@ -199,6 +305,8 @@ namespace ProceduralModeling
             }
 
             time = 0f;
+
+            isDead = false;
             StartCoroutine(Growing());
         }
 
@@ -208,7 +316,7 @@ namespace ProceduralModeling
         {
             if (!isDead)
             {
-                interactable.enabled = false;
+                SetInteractable(false);
 
                 isFullyGrown = false;
                 currentState = State.Growing;
@@ -263,10 +371,7 @@ namespace ProceduralModeling
                 currentState = State.Dead;
             }
 
-            if (interactable.enabled)
-            {
-                interactable.enabled = false;
-            }
+            SetInteractable(false);
 
             leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
             treeFruitManager.ClearFruits(); // Clear fruits during CutDown
@@ -276,7 +381,7 @@ namespace ProceduralModeling
         {
             if (!isDead)
             {
-                interactable.enabled = true;
+                SetInteractable(true);
 
                 currentState = State.Alive;
                 isFullyGrown = true;
@@ -315,7 +420,7 @@ namespace ProceduralModeling
         {
             if (!isDead)
             {
-                interactable.enabled = false;
+                SetInteractable(false);
 
                 float time = 0f;
 
@@ -353,8 +458,6 @@ namespace ProceduralModeling
 
                 isFullyGrown = false;
 
-                yield return null;
-
                 navMeshCutting.DisableNavMeshCut();
 
                 StartCoroutine(Revive());
@@ -363,8 +466,21 @@ namespace ProceduralModeling
 
         private IEnumerator Revive()
         {
-            interactable.enabled = false;
+            SetInteractable(false);
+
             isFullyGrown = false;
+
+            time = 0f;
+            reviveBuffer = Random.Range(minReviveBuffer, maxReviveBuffer);
+
+            LerpDecalSize(minDecalSize, reviveBuffer);
+
+            while (time < reviveBuffer)
+            {
+                time += Time.deltaTime;
+                yield return null;
+            }
+
             currentState = State.Reviving;
             yield return StartCoroutine(GrowBuffer(true));
         }
@@ -377,16 +493,6 @@ namespace ProceduralModeling
             time = 0f;
             StartCoroutine(Dying());
         }
-
-        public void GrowLeaves()
-        {
-            if (isFullyGrown)
-            {
-                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
-            }
-        }
-
-        public List<GameObject> fallingLeaves;
 
         private void DetachLeaves()
         {
@@ -411,10 +517,6 @@ namespace ProceduralModeling
             }
         }
 
-        public Color[] leafColorsPerSeason;
-        private string leafColourParam = "_LeafColour";
-        private Material leafMaterial;
-
         public IEnumerator LerpLeafColour(Color targetColor)
         {
             float baseLerpDuration = 5.0f; // Base duration for the color transition
@@ -433,9 +535,15 @@ namespace ProceduralModeling
             }
         }
 
+        public void GrowLeaves()
+        {
+            if (isFullyGrown)
+            {
+                leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
+            }
+        }
 
-
-        public void KillAllLeaves()
+        public void KillLeaves()
         {
             if (isFullyGrown)
             {
@@ -459,40 +567,25 @@ namespace ProceduralModeling
                     continue; // Skip if FoodAttributes is missing
                 }
 
-                // Stop any ongoing coroutines related to this fruit
                 if (treeFruitManager.growCoroutines.TryGetValue(fruit, out Coroutine growCoroutine))
                 {
                     treeFruitManager.StopCoroutine(growCoroutine);
                     treeFruitManager.growCoroutines.Remove(fruit);
                 }
 
-                // Temporarily disable fruit gravity or other physics interactions if needed
-                // DisableFruitGravity(fruit);
-
-                // Start the Fall coroutine
                 treeFruitManager.StartCoroutine(treeFruitManager.Fall(fruit, foodAttributes));
             }
         }
 
 
-
-        // Internal method to enable NavmeshCut
         public void EnableNavMeshCutInternal()
         {
             if (navMeshCutting.obstacle != null)
             {
                 navMeshCutting.obstacle.enabled = true;
             }
-
-            /*
-            if (pTGrowingManager != null)
-            {
-                pTGrowingManager.CompleteTask(this);
-            }
-            */
         }
 
-        // Internal method to disable NavmeshCut
         public void DisableNavMeshCutInternal()
         {
             if (navMeshCutting.obstacle != null)
@@ -507,88 +600,3 @@ namespace ProceduralModeling
         }
     }
 }
-
-/*
- * 
-public static Mesh Build(ProceduralTree treeInstance, TreeData data, int generations, float length, float radius, float leafSize, Material leafMat)
-{
-    data.Setup();
-    var root = new TreeBranch(
-        generations,
-        length,
-        radius,
-        data,
-        leafMat
-    );
-
-    treeInstance.GenerateLeaves(root, leafMat);
-    treeInstance.GenerateFruitPoints(root);
-    treeInstance.GenerateMeshCollider();
-
-    var vertices = new List<Vector3>();
-    var normals = new List<Vector3>();
-    var tangents = new List<Vector4>();
-    var uvs = new List<Vector2>();
-    var triangles = new List<int>();
-
-    float maxLength = TraverseMaxLength(root);
-
-    Traverse(root, (branch) =>
-    {
-        var offset = vertices.Count;
-        var vOffset = branch.Offset / maxLength;
-        var vLength = branch.Length / maxLength;
-        for (int i = 0, n = branch.Segments.Count; i < n; i++)
-        {
-            var t = 1f * i / (n - 1);
-            var v = vOffset + vLength * t;
-
-            var segment = branch.Segments[i];
-            var N = segment.Frame.Normal;
-            var B = segment.Frame.Binormal;
-
-            for (int j = 0; j <= data.radialSegments; j++)
-            {
-                // 0.0 ~ 2π
-                var u = 1f * j / data.radialSegments;
-                float rad = u * PI2;
-                float cos = Mathf.Cos(rad), sin = Mathf.Sin(rad);
-                var normal = (cos * N + sin * B).normalized;
-
-                vertices.Add(segment.Position + segment.Radius * normal);
-
-                normals.Add(normal);
-                var tangent = segment.Frame.Tangent;
-                tangents.Add(new Vector4(tangent.x, tangent.y, tangent.z, 0f));
-                uvs.Add(new Vector2(u, v));
-            }
-        }
-
-        for (int j = 1; j <= data.heightSegments; j++)
-        {
-            for (int i = 1; i <= data.radialSegments; i++)
-            {
-                int a = (data.radialSegments + 1) * (j - 1) + (i - 1);
-                int b = (data.radialSegments + 1) * j + (i - 1);
-                int c = (data.radialSegments + 1) * j + i;
-                int d = (data.radialSegments + 1) * (j - 1) + i;
-
-                a += offset;
-                b += offset;
-                c += offset;
-                d += offset;
-
-                triangles.Add(a); triangles.Add(d); triangles.Add(b);
-                triangles.Add(b); triangles.Add(d); triangles.Add(c);
-            }
-        }
-    });
-    var mesh = new Mesh();
-    mesh.vertices = vertices.ToArray();
-    mesh.normals = normals.ToArray();
-    mesh.tangents = tangents.ToArray();
-    mesh.uv = uvs.ToArray();
-    mesh.triangles = triangles.ToArray();
-    return mesh;
-}
-*/

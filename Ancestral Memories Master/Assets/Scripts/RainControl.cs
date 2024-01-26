@@ -10,7 +10,7 @@ public class RainControl : MonoBehaviour
     public LerpTerrain lerpTerrain;
     private ParticleSystem.EmissionModule emission;
     public float emissionMultiplier = 128f;
-    public SeasonManager seasons;
+    public SeasonManager seasonManager;
     public Material rainMaterial; // Material with the 'Tint' parameter
 
     [SerializeField] private float minDroughtDuration = 30f;
@@ -85,7 +85,7 @@ public class RainControl : MonoBehaviour
                     rainCoroutine = StartCoroutine(StartRaining());
                     yield break; // Exit the coroutine after starting the rain
                 }
-                else if (player.faith <= droughtThreshold && triggerDrought)
+                else if (player.faith <= droughtThreshold && triggerDrought && seasonManager._currentSeason != SeasonManager.Season.Winter)
                 {
                     if (droughtCoroutine != null)
                         StopCoroutine(droughtCoroutine);
@@ -122,7 +122,9 @@ public class RainControl : MonoBehaviour
         isRaining = true;
         rainDuration = Random.Range(minRainDuration, maxRainDuration);
 
-        if (seasons.CurrentSeason == SeasonManager.Season.Winter)
+        mapObjGen.ReviveTreeProduce();
+
+        if (seasonManager.CurrentSeason == SeasonManager.Season.Winter)
         {
             SnowShape();
             StartCoroutine(LerpMaterialColor(Color.white)); // Lerp to snow color

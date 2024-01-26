@@ -8,7 +8,7 @@ public class TreeFruitManager : MonoBehaviour
     public GameObject fruitPrefab; // Assign this in the inspector
     public Player player;
     public List<GameObject> fruits; // Stores the pooled fruit game objects
-    public int maxFruits; // Maximum number of fruits we want to instantiate
+    public int maxFruits = 50; // Maximum number of fruits we want to instantiate
     public float growTime = 3f;
     public float minDecayTime = 3f;
     public float maxDecayTime = 6f;
@@ -339,7 +339,18 @@ public class TreeFruitManager : MonoBehaviour
                 StopCoroutine(entry.Value);
             }
         }
+
+        // Clear the fruits list
+        foreach (var fruit in fruits)
+        {
+            if (fruit != null)
+            {
+                Destroy(fruit);
+            }
+        }
+        fruits.Clear();
     }
+
 
     private void ResetFruit(GameObject fruit, Vector3 position)
     {

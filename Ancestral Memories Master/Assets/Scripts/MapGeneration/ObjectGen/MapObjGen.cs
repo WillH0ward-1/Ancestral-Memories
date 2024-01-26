@@ -410,7 +410,7 @@ public class MapObjGen : MonoBehaviour
         playerBehaviours.mapObjGen = this;
         rainControl = player.GetComponentInChildren<RainControl>();
         seasonManager = FindObjectOfType<SeasonManager>();
-        rainControl.seasons = seasonManager;
+        rainControl.seasonManager = seasonManager;
         dialogueLines = GetComponentInChildren<DialogueLines>();
         vocabularyManager = GetComponentInChildren<VocabularyManager>();
         fireManager = GetComponentInChildren<FireManager>();
@@ -685,7 +685,10 @@ public class MapObjGen : MonoBehaviour
             //ProceduralModelingBase ptBase = tree.GetComponentInChildren<ProceduralModelingBase>();
             //ptBase.player = player;
             PTGrowing ptGrowing = tree.GetComponentInChildren<PTGrowing>();
+           // TreeFruitManager fruitManager = tree.GetComponentInChildren<TreeFruitManager>();
+            ptGrowing.SetupBounds();
             ptGrowing.GrowTree();
+           // fruitManager.InitializeFruits(fruitManager.maxFruits);
         }
 
         yield break;
@@ -1020,7 +1023,7 @@ public class MapObjGen : MonoBehaviour
     {
         foreach (PTGrowing ptGrow in ptGrowComponents)
         {
-            ptGrow.KillAllLeaves();
+            ptGrow.KillLeaves();
             ptGrow.KillAllFruits();
         }
     }
@@ -1033,7 +1036,7 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-    public void ReviveAllDeadProduce()
+    public void ReviveTreeProduce()
     {
         foreach (PTGrowing ptGrow in ptGrowComponents)
         {
@@ -1446,9 +1449,10 @@ public class MapObjGen : MonoBehaviour
 
         void DestroyObject(GameObject obj)
         {
-            if (Application.isEditor)
+
+            if (!Application.isPlaying)
             {
-//              Debug.Log("Object destroyed in Editor.");
+                //              Debug.Log("Object destroyed in Editor.");
                 DestroyImmediate(obj);
             }
             else
@@ -1475,7 +1479,8 @@ public class MapObjGen : MonoBehaviour
     {
         mapObjectList.Clear();
 
-        if (Application.isEditor)
+
+        if (!Application.isPlaying)
         {
 
             ResetPosOffset();
