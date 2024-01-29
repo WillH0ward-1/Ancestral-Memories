@@ -1,11 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using FIMSpace.FLook;
 using UnityEngine;
 
 public class LookAnimManager : MonoBehaviour
 {
-    private FLookAnimator lookAnimator;
+    [SerializeField] private FLookAnimator lookAnimator;
+    private Transform currentTarget;
 
     void Awake()
     {
@@ -18,10 +17,15 @@ public class LookAnimManager : MonoBehaviour
 
     public void LookAt(Transform target)
     {
-        if (lookAnimator != null && !lookAnimator.enabled)
+        if (lookAnimator != null)
         {
-            lookAnimator.enabled = true;
-            lookAnimator.ObjectToFollow = target;
+            if (currentTarget != target) // If the new target is different from the current one
+            {
+                lookAnimator.enabled = true;
+                lookAnimator.ObjectToFollow = target;
+                currentTarget = target; // Update the current target reference
+            }
+            // If the target is the same as the current one, no need to update
         }
     }
 
@@ -30,6 +34,7 @@ public class LookAnimManager : MonoBehaviour
         if (lookAnimator != null && lookAnimator.enabled)
         {
             lookAnimator.enabled = false;
+            currentTarget = null; // Clear the current target reference
         }
     }
 }

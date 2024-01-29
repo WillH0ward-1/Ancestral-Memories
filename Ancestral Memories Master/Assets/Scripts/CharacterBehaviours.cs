@@ -258,36 +258,31 @@ public class CharacterBehaviours : MonoBehaviour
             Vector3 undergroundPosition = new Vector3(spawnPointPosition.x, spawnPointPosition.y - 20f, spawnPointPosition.z);
             player.transform.position = undergroundPosition;
 
-            // Declare climbAnimationLength here
-            float climbAnimationLength = AnimationUtilities.GetAnimLength(player.animator, HumanControllerAnimations.Climb_ClimbUp01);
+            player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
+
 
             RaycastHit hit;
-            if (Physics.Raycast(playerCollider.bounds.min, Vector3.down, out hit, Mathf.Infinity, groundLayer))
+            while (!Physics.Raycast(playerCollider.bounds.min, Vector3.down, out hit, Mathf.Infinity, groundLayer) || hit.distance > playerCollider.bounds.extents.y)
             {
-                float distanceToGround = Mathf.Abs(playerCollider.bounds.min.y - hit.point.y);
-                float riseSpeed = distanceToGround / climbAnimationLength;
+                // Move player up slightly each frame
+                Vector3 currentPosition = player.transform.position;
+                currentPosition.y += Time.deltaTime * 5f; // Adjust the speed as needed
+                player.transform.position = currentPosition;
 
-                player.ChangeAnimationState(HumanControllerAnimations.Climb_ClimbUp01);
+                // Update the bottom point of the collider for the next iteration
+                playerCollider = player.GetComponentInChildren<CapsuleCollider>();
 
-                while (player.transform.position.y < hit.point.y + playerCollider.bounds.extents.y)
-                {
-                    Vector3 currentPosition = player.transform.position;
-                    currentPosition.y += Time.deltaTime * riseSpeed;
-                    player.transform.position = currentPosition;
-                    yield return null;
-                }
-
-                Vector3 finalPosition = player.transform.position;
-                finalPosition.y = hit.point.y + playerCollider.bounds.extents.y;
-                player.transform.position = finalPosition;
+                yield return null;
             }
-            else
-            {
-                Debug.LogError("Raycast did not hit any ground layer.");
-            }
+
+            // Correct the final position to ensure player is exactly at ground level
+            Vector3 finalPosition = player.transform.position;
+            finalPosition.y = hit.point.y + playerCollider.bounds.extents.y;
+            player.transform.position = finalPosition;
 
             player.ChangeAnimationState(HumanControllerAnimations.Emotion_Scared_LookAround);
-            yield return new WaitForSeconds(climbAnimationLength);
+
+            yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
             isDying = false;
             playerWalk.CancelAgentOverride();
@@ -300,7 +295,6 @@ public class CharacterBehaviours : MonoBehaviour
 
         yield break;
     }
-
 
 
 

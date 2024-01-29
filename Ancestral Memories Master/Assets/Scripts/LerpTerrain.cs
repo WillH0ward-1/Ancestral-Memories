@@ -20,6 +20,7 @@ public class LerpTerrain : MonoBehaviour
     [SerializeField] private string VertexTileParam = "_VertexTile";
     [SerializeField] private string SnowDensityParam = "_SnowDensity";
     [SerializeField] private string AutumnColourParam = "_AutumnColour";
+    [SerializeField] private string DroughtParam = "_DroughtIntensity";
 
     private float currentSnowHeight;
     private float minSnowHeight = 0.95f;
@@ -49,15 +50,16 @@ public class LerpTerrain : MonoBehaviour
         seasonManager.OnSeasonChanged.AddListener(HandleSeasonChange);
 
         GetRenderers();
-        InitSnowHeight();
+        InitTextureProperties();
         ApplyImmediateSeasonState(seasonManager.initSeason);
     }
 
-    private void InitSnowHeight()
+    private void InitTextureProperties()
     {
         foreach (Renderer r in rendererList)
         {
             r.sharedMaterial.SetFloat(SnowHeightParam, minSnowHeight);
+            r.sharedMaterial.SetFloat(DroughtParam, minDroughtIntensity);
         }
     }
 
@@ -143,14 +145,6 @@ public class LerpTerrain : MonoBehaviour
         }
     }
 
-    public void ToDesert()
-    {
-        if (seasonManager._currentSeason != SeasonManager.Season.Winter)
-        {
-            LerpVertexTiling(Desert);
-        }
-    }
-
     public void ToOasis()
     {
         LerpVertexTiling(Oasis);
@@ -170,10 +164,50 @@ public class LerpTerrain : MonoBehaviour
         vertexLerpCoroutine = StartCoroutine(LerpVertexTile(newState, duration));
     }
 
-    void LerpDrought()
-    {
+    public float minDroughtIntensity = 0f;
+    public float maxDroughtIntensity = 1f;
+    public float currentDroughtIntensity = 0f;
+    public float droughtLerpDuration = 5f;
 
+    public IEnumerator LerpDrought(bool isDrought)
+    {
+        float time = 0f;
+
+        while (time < droughtLerpDuration)
+        {
+            float lerpFactor = time / droughtLerpDuration;
+
+            if (isDrought)
+            {
+                foreach (Renderer r in rendererList)
+                {
+                    float currentDroughtIntensity = r.sharedMaterial.GetFloat(DroughtParam);
+                    currentDroughtIntensity = Mathf.Lerp(currentDroughtIntensity, maxDroughtIntensity, lerpFactor);
+                    r.sharedMaterial.SetFloat(DroughtParam, currentDroughtIntensity);
+                }
+            }
+            else
+            {
+                foreach (Renderer r in rendererList)
+                {
+                    float currentDroughtIntensity = r.sharedMaterial.GetFloat(DroughtParam);
+                    currentDroughtIntensity = Mathf.Lerp(currentDroughtIntensity, minDroughtIntensity, lerpFactor);
+                    r.sharedMaterial.SetFloat(DroughtParam, currentDroughtIntensity);
+                }
+            }
+
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        // Set the final value to ensure it reaches the target
+        float finalIntensity = isDrought ? maxDroughtIntensity : minDroughtIntensity;
+        foreach (Renderer r in rendererList)
+        {
+            r.sharedMaterial.SetFloat(DroughtParam, finalIntensity);
+        }
     }
+
 
     IEnumerator LerpVertexTile(float targetState, float duration)
     {

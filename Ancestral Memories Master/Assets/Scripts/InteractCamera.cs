@@ -9,7 +9,7 @@ public class InteractCamera : MonoBehaviour
   
     private GameObject previousHoverObj; // To track the previously hovered object
     private GameObject selectedObj; // To track the selected object
-    private Transform temporaryLookAtTarget;
+    private Transform lookAtTarget;
     private Outline outlineComponent; // To store the dynamically created outline component
 
     [SerializeField] private float maxSelectionDistance = 5f;
@@ -34,7 +34,7 @@ public class InteractCamera : MonoBehaviour
     private void Awake()
     {
         cam = Camera.main;
-        temporaryLookAtTarget = new GameObject("TemporaryLookAtTarget").transform;
+        lookAtTarget = new GameObject("LookAtTarget").transform;
     }
 
     public void InitInteractions()
@@ -147,7 +147,7 @@ public class InteractCamera : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layer))
         {
-            temporaryLookAtTarget.position = hit.point;
+            lookAtTarget.position = hit.point;
             GameObject newHoverObj = hit.transform.gameObject;
 
             if (lastHit == null) // If no object is selected
@@ -198,21 +198,24 @@ public class InteractCamera : MonoBehaviour
 
     private void UpdateLookAtTarget()
     {
-        if (!behaviour.behaviourIsActive && !behaviour.dialogueIsActive && !areaManager.traversing && temporaryLookAtTarget != null)
+        if (lookAnimManager != null)
         {
-            lookAnimManager.LookAt(temporaryLookAtTarget);
-        }
-        else
-        {
-            lookAnimManager.DisableLookAt();
+            if (!behaviour.behaviourIsActive && !behaviour.dialogueIsActive && !areaManager.traversing && lookAtTarget != null)
+            {
+                lookAnimManager.LookAt(lookAtTarget);
+            }
+            else
+            {
+                lookAnimManager.DisableLookAt();
+            }
         }
     }
 
     private void OnDestroy()
     {
-        if (temporaryLookAtTarget != null)
+        if (lookAtTarget != null)
         {
-            Destroy(temporaryLookAtTarget.gameObject);
+            Destroy(lookAtTarget.gameObject);
         }
     }
 }

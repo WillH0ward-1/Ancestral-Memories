@@ -240,11 +240,6 @@ public class TempleGenerator : MonoBehaviour
         }
     }
 
-
-
-
-
-
     private void InitializeTempleState()
     {
         int currentCount = GetCurrentMonolithCount();

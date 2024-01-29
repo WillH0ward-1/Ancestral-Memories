@@ -12,6 +12,23 @@ public class EmotionTextAnimator : MonoBehaviour
 
     public Dialogue dialogueReference;
 
+    public float joyWaveAmplitude = 3f;
+    public float joyWaveFrequency = 0.5f;
+    public float fearShakeAmount = 2f;
+    public float curiosityRotationAmount = 15f;
+    public float contentmentScaleAmount = 0.05f;
+    public float contentmentScaleFrequency = 2f;
+    public float alertnessScale = 1.5f;
+    public float sadnessMoveAmount = -10f;
+    public float praiseFloatAmount = 3f;
+    public float insaneShakeRange = 5f;
+    public float springGrowthAmount = 2f;
+    public float summerPulseAmount = 0.5f;
+    public float summerPulseFrequency = 2f;
+    public float autumnFallAmount = 2f;
+    public float winterShimmerAmount = 0.5f;
+    public float winterShimmerFrequency = 3f;
+
     private void Awake()
     {
         dialogueReference = GetComponent<Dialogue>();
@@ -166,28 +183,26 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            float offset = Mathf.Sin(Time.time + i * 0.5f) * 3f;
+            float offset = Mathf.Sin(Time.time + i * joyWaveFrequency) * joyWaveAmplitude;
             return new VertexModification(0, offset);
         });
     }
 
     IEnumerator FearEffect()
     {
-        float shakeAmount = 2f;
         return ApplyEffectToText((charInfo, i) =>
         {
-            float randX = Random.Range(-shakeAmount, shakeAmount);
-            float randY = Random.Range(-shakeAmount, shakeAmount);
+            float randX = Random.Range(-fearShakeAmount, fearShakeAmount);
+            float randY = Random.Range(-fearShakeAmount, fearShakeAmount);
             return new VertexModification(randX, randY);
         });
     }
 
     IEnumerator CuriosityEffect()
     {
-        float rotationAmount = 15f;
         return ApplyEffectToText((charInfo, i) =>
         {
-            float rotation = Mathf.Sin(Time.time + i) * rotationAmount;
+            float rotation = Mathf.Sin(Time.time + i) * curiosityRotationAmount;
             Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0, 0, rotation), Vector3.one);
             Vector3 transformedPoint = matrix.MultiplyPoint3x4(new Vector3(0, 0, 0));
             return new VertexModification(transformedPoint.x, transformedPoint.y);
@@ -198,7 +213,7 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            float scale = 1 + Mathf.Sin(Time.time * 2 + i) * 0.05f;
+            float scale = 1 + Mathf.Sin(Time.time * contentmentScaleFrequency + i) * contentmentScaleAmount;
             Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scale, scale, 1));
             Vector3 transformedPoint = matrix.MultiplyPoint3x4(new Vector3(0, 0, 0));
             return new VertexModification(transformedPoint.x, transformedPoint.y);
@@ -207,10 +222,9 @@ public class EmotionTextAnimator : MonoBehaviour
 
     IEnumerator AlertnessEffect()
     {
-        float scale = 1.5f;
         return ApplyEffectToText((charInfo, i) =>
         {
-            Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scale, scale, 1));
+            Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(alertnessScale, alertnessScale, 1));
             Vector3 transformedPoint = matrix.MultiplyPoint3x4(new Vector3(0, 0, 0));
             return new VertexModification(transformedPoint.x, transformedPoint.y);
         });
@@ -218,10 +232,9 @@ public class EmotionTextAnimator : MonoBehaviour
 
     IEnumerator SadnessEffect()
     {
-        float moveAmount = -10f;
         return ApplyEffectToText((charInfo, i) =>
         {
-            Vector3 moveVector = new Vector3(0, Mathf.Sin(Time.time) * moveAmount, 0);
+            Vector3 moveVector = new Vector3(0, Mathf.Sin(Time.time) * sadnessMoveAmount, 0);
             return new VertexModification(moveVector.x, moveVector.y);
         });
     }
@@ -230,8 +243,7 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            // Modify vertices to make characters float
-            float floatAmount = Mathf.Sin(Time.time + i) * 3f;
+            float floatAmount = Mathf.Sin(Time.time + i) * praiseFloatAmount;
             return new VertexModification(0, floatAmount);
         });
     }
@@ -240,8 +252,8 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            float randX = Random.Range(-5f, 5f);
-            float randY = Random.Range(-5f, 5f);
+            float randX = Random.Range(-insaneShakeRange, insaneShakeRange);
+            float randY = Random.Range(-insaneShakeRange, insaneShakeRange);
             return new VertexModification(randX, randY);
         });
     }
@@ -250,7 +262,7 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            float growth = Mathf.Abs(Mathf.Sin(Time.time + i)) * 2f;
+            float growth = Mathf.Abs(Mathf.Sin(Time.time + i)) * springGrowthAmount;
             return new VertexModification(0, growth);
         });
     }
@@ -259,7 +271,7 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            float pulse = Mathf.Sin(Time.time * 2 + i) * 0.5f;
+            float pulse = Mathf.Sin(Time.time * summerPulseFrequency + i) * summerPulseAmount;
             return new VertexModification(pulse, pulse);
         });
     }
@@ -268,7 +280,7 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            float fall = Mathf.Sin(Time.time + i) * 2f;
+            float fall = Mathf.Sin(Time.time + i) * autumnFallAmount;
             return new VertexModification(0, -fall); // Negative for descending effect.
         });
     }
@@ -277,8 +289,7 @@ public class EmotionTextAnimator : MonoBehaviour
     {
         return ApplyEffectToText((charInfo, i) =>
         {
-            // Slight shimmering effect to imitate frostiness
-            float shimmer = Mathf.Sin(Time.time * 3 + i) * 0.5f;
+            float shimmer = Mathf.Sin(Time.time * winterShimmerFrequency + i) * winterShimmerAmount;
             float randX = Random.Range(-shimmer, shimmer);
             float randY = Random.Range(-shimmer, shimmer);
             return new VertexModification(randX, randY);

@@ -103,17 +103,23 @@ public class RainControl : MonoBehaviour
         float time = 0;
         float droughtDuration = Random.Range(minDroughtDuration, maxDroughtDuration);
 
-        lerpTerrain.ToDesert();
+        StartCoroutine(lerpTerrain.LerpDrought(true));
+
         mapObjGen.KillAllTreeProduce();
 
         while (time < droughtDuration)
         {
+            if (seasonManager._currentSeason == SeasonManager.Season.Winter)
+            {
+                break;
+            }
+
             time += Time.deltaTime;
             yield return null;
         }
 
-        drought = false;
         rainCheckCoroutine = StartCoroutine(ChanceOfRain());
+        
     }
 
     public IEnumerator StartRaining()
@@ -124,19 +130,14 @@ public class RainControl : MonoBehaviour
 
         mapObjGen.ReviveTreeProduce();
 
-        if (seasonManager.CurrentSeason == SeasonManager.Season.Winter)
-        {
-            SnowShape();
-            StartCoroutine(LerpMaterialColor(Color.white)); // Lerp to snow color
-        }
-        else
-        {
-            RainShape();
-            StartCoroutine(LerpMaterialColor(Color.blue)); // Lerp to rain color
-        }
-
         emission.enabled = true;
         rainParticles.Play();
+
+        if (drought)
+        {
+            drought = false;
+            StartCoroutine(lerpTerrain.LerpDrought(false));
+        }
 
         float time = 0;
         while (time < rainDuration && areaManager.currentRoom == "Outside")
@@ -162,52 +163,5 @@ public class RainControl : MonoBehaviour
         rainCheckCoroutine = StartCoroutine(ChanceOfRain());
 
         yield break;
-    }
-
-    private void SnowShape()
-    {
-        var main = rainParticles.main;
-        main.startSize3D = true;
-        main.startSizeX = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
-        main.startSizeY = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
-        main.startSizeZ = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
-        // Apply without stopping the particle system
-        rainParticles.Stop(withChildren: true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        rainParticles.Play();
-    }
-
-    private void RainShape()
-    {
-        var main = rainParticles.main;
-        main.startSize3D = true;
-        main.startSizeX = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
-        main.startSizeY = new ParticleSystem.MinMaxCurve(1f, 2f);
-        main.startSizeZ = new ParticleSystem.MinMaxCurve(0.1f, 0.1f);
-        // Apply without stopping the particle system
-        rainParticles.Stop(withChildren: true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        rainParticles.Play();
-    }
-
-    private IEnumerator LerpMaterialColor(Color targetColor)
-    {
-        float lerpDuration = 1f; // Duration to lerp color
-        float time = 0f;
-
-        // Get the current properties of the material
-        renderer.GetPropertyBlock(propBlock);
-        Color startColor = propBlock.GetColor("Tint");
-
-        while (time < lerpDuration)
-        {
-            Color lerpedColor = Color.Lerp(startColor, targetColor, time / lerpDuration);
-            propBlock.SetColor("Tint", lerpedColor);
-            renderer.SetPropertyBlock(propBlock);
-
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        propBlock.SetColor("Tint", targetColor); // Ensure final color is set
-        renderer.SetPropertyBlock(propBlock);
     }
 }

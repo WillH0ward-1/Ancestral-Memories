@@ -6,7 +6,7 @@ using Phonix;
 
 public class DialogueLines : MonoBehaviour
 {
-    public enum CharacterNames
+    public enum CharacterTypes
     {
         Neanderthal,
         MidSapien,
@@ -14,8 +14,7 @@ public class DialogueLines : MonoBehaviour
         Deer
     }
 
-
-    public enum CharacterTypes
+    public enum CharacterGenders
     {
         Male,
         Female
@@ -30,6 +29,7 @@ public class DialogueLines : MonoBehaviour
         Contentment,
         Alertness,
         Sadness,
+        Hungry,
         Praise,
         SeasonsSpring,
         SeasonsSummer,
@@ -63,8 +63,8 @@ public class DialogueLines : MonoBehaviour
         "Vision you have? What need?"
     };
 
-    public Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>> conversations =
-    new Dictionary<(CharacterNames, CharacterTypes), Dictionary<Emotions, List<string>>>();
+    public Dictionary<(CharacterTypes, CharacterGenders), Dictionary<Emotions, List<string>>> conversations =
+    new Dictionary<(CharacterTypes, CharacterGenders), Dictionary<Emotions, List<string>>>();
 
     public VocabularyManager vocabularyManager;
 
@@ -72,17 +72,17 @@ public class DialogueLines : MonoBehaviour
     {
         InitializeDialogues();
 
-        foreach (CharacterNames name in Enum.GetValues(typeof(CharacterNames)))
+        foreach (CharacterTypes type in Enum.GetValues(typeof(CharacterTypes)))
         {
-            foreach (CharacterTypes type in Enum.GetValues(typeof(CharacterTypes)))
+            foreach (CharacterGenders gender in Enum.GetValues(typeof(CharacterGenders)))
             {
-                if (!conversations.ContainsKey((name, type)))
+                if (!conversations.ContainsKey((type, gender)))
                 {
-                    conversations[(name, type)] = new Dictionary<Emotions, List<string>>();
+                    conversations[(type, gender)] = new Dictionary<Emotions, List<string>>();
                 }
-                conversations[(name, type)][Emotions.Insane] = new List<string>(sharedInsaneLines);
+                conversations[(type, gender)][Emotions.Insane] = new List<string>(sharedInsaneLines);
 
-                conversations[(name, type)][Emotions.BuildingPrompt] = new List<string>(buildingPromptLines);
+                conversations[(type, gender)][Emotions.BuildingPrompt] = new List<string>(buildingPromptLines);
             }
         }
 
@@ -151,7 +151,7 @@ public class DialogueLines : MonoBehaviour
         return sortedVocabulary;
     }
 
-    public List<string> GetDialogue(CharacterNames characterName, CharacterTypes characterType, Emotions emotion)
+    public List<string> GetDialogue(CharacterTypes characterType, CharacterGenders characterGender, Emotions emotion)
     {
         if (emotion == Emotions.BuildingPrompt)
         {
@@ -160,7 +160,7 @@ public class DialogueLines : MonoBehaviour
             return new List<string> { buildingPromptLines[randomIndex] };
         }
 
-        if (conversations.TryGetValue((characterName, characterType), out var emotionDialogues) &&
+        if (conversations.TryGetValue((characterType, characterGender), out var emotionDialogues) &&
             emotionDialogues.TryGetValue(emotion, out var dialogue))
         {
             return dialogue;
@@ -173,7 +173,7 @@ public class DialogueLines : MonoBehaviour
     private void InitializeDialogues()
     {
         // Neanderthal Male
-        conversations[(CharacterNames.Neanderthal, CharacterTypes.Male)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.Neanderthal, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Day end. Fire needed.", "Berries good. Eat soon." } },
             { Emotions.Joy, new List<string> { "Little one strong, grow fast.", "Cave warm. Tribe safe." } },
@@ -181,7 +181,8 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Curiosity, new List<string> { "Bright stone in river.", "New tree. Fruit look good." } },
             { Emotions.Contentment, new List<string> { "Tribe safe. Good hunt today.", "Bird sound nice. Sky clear." } },
             { Emotions.Alertness, new List<string> { "Noise near. Protect family!", "Saw something. Ready spear." } },
-            { Emotions.Sadness, new List<string> { "Hand hurt. Hard to hunt.", "Miss old leader. He strong." } },
+            { Emotions.Sadness, new List<string> { "Sad. Body feel heavy.", "Miss old leader. He strong." } },
+            { Emotions.Hungry, new List<string> { "Stomach growls. Need hunt deer.", "Need food. Apples and mushrooms?" } },
             { Emotions.Praise, new List<string> { "You fast! Good chase.", "Fire warm. You did well." } },
             { Emotions.SeasonsSpring, new List<string> { "New plant. Air fresh.", "Little animals play. Fun watch." } },
             { Emotions.SeasonsSummer, new List<string> { "Sun hot. River cool.", "Berries everywhere. Gather!" } },
@@ -189,15 +190,16 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Cold! Need big fire.", "Hope sun come back soon." } },
         };
         // Neanderthal Female
-        conversations[(CharacterNames.Neanderthal, CharacterTypes.Female)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.Neanderthal, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Sun sets. Night near.", "Berries collected. Ready for eat." } },
             { Emotions.Joy, new List<string> { "Little one learn walk.", "Safe cave, warm fire." } },
             { Emotions.Fear, new List<string> { "Cold wind. Storm come.", "Hear growl in dark." } },
             { Emotions.Curiosity, new List<string> { "See shiny thing in water.", "Strange smell from plant." } },
             { Emotions.Contentment, new List<string> { "Cave safe. All full belly.", "Hear song of bird. Peaceful." } },
-            { Emotions.Alertness, new List<string> { "Hear rustle. Hide little ones!", "Shadow move. Be ready." } },
-            { Emotions.Sadness, new List<string> { "Hurt foot. Can't gather.", "Remember old friend." } },
+            { Emotions.Alertness, new List<string> { "Hear rustle. Maybe hide.", "Shadow move. Be ready." } },
+            { Emotions.Sadness, new List<string> { "Sad. Makes body heavy.", "Remember old friend." } },
+            { Emotions.Hungry, new List<string> { "Gather apples. Fill bellies.", "Deer tracks. Hunt for meat." } },
             { Emotions.Praise, new List<string> { "You make sharp tool!", "You keep fire alive. Good job!" } },
             { Emotions.SeasonsSpring, new List<string> { "Flower smell nice.", "Hear chirp of baby birds." } },
             { Emotions.SeasonsSummer, new List<string> { "Hot day. Seek shade.", "Time of many fruits." } },
@@ -205,7 +207,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Wrap in fur. Stay close.", "Hope for early spring." } },
         };
         // MidSapien Male dialogues
-        conversations[(CharacterNames.MidSapien, CharacterTypes.Male)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.MidSapien, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Sky changes colors.", "River murmurs to us." } },
             { Emotions.Joy, new List<string> { "Tribe dances with spirit.", "Today's hunt brings plenty." } },
@@ -214,6 +216,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "Tribe safe with fire's warmth.", "Stories echo tonight." } },
             { Emotions.Alertness, new List<string> { "Bushes stirred. Be wary.", "Strange scent on the wind." } },
             { Emotions.Sadness, new List<string> { "Tribe grieves for the lost.", "Sacred tree has fallen." } },
+            { Emotions.Hungry, new List<string> { "Insides grumbling. Very hungry. Want food.", "Deer meat good. Hunger hurting." } },
             { Emotions.Praise, new List<string> { "Your spear flies true!", "Your song touches souls." } },
             { Emotions.SeasonsSpring, new List<string> { "New life begins to sprout.", "Earth awakens once more." } },
             { Emotions.SeasonsSummer, new List<string> { "Sun's embrace warms all.", "Nights rich with stories." } },
@@ -221,7 +224,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Snow silences the land.", "We share tales and warmth." } }
         };
         // MidSapien Female dialogues
-        conversations[(CharacterNames.MidSapien, CharacterTypes.Female)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.MidSapien, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "World spins, stars guide.", "Night's canvas lit by stars." } },
             { Emotions.Joy, new List<string> { "Tribe rejoices for new life.", "Rain's dance is a blessing." } },
@@ -230,6 +233,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "Tribe's bond is our strength.", "We give thanks for earth's gifts." } },
             { Emotions.Alertness, new List<string> { "New faces near. Friend or foe?", "Watchful eyes guard the night." } },
             { Emotions.Sadness, new List<string> { "River's pull took one away.", "Elder songs stir my soul." } },
+            { Emotions.Hungry, new List<string> { "Apples dwindle. Seek elsewhere.", "Deers are plenty. To hunt or not?" } },
             { Emotions.Praise, new List<string> { "Your touch heals wounds.", "Your vision guides us to springs." } },
             { Emotions.SeasonsSpring, new List<string> { "Life stirs in the ground.", "Young voices join our songs." } },
             { Emotions.SeasonsSummer, new List<string> { "Breezes carry old chants.", "Land pulses with life." } },
@@ -237,7 +241,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Land rests beneath snow.", "Stories ward off the chill." } }
         };
         // Sapien Male dialogues
-        conversations[(CharacterNames.Sapien, CharacterTypes.Male)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.Sapien, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "The cosmos hums its eternal song.", "Nature holds secrets, deep and profound." } },
             { Emotions.Joy, new List<string> { "The dance of the stars fills my heart.", "Wisdom shared, lights another's path." } },
@@ -246,6 +250,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "In harmony, the universe sings.", "With balance, life finds its rhythm." } },
             { Emotions.Alertness, new List<string> { "Change rustles on the horizon.", "Every ripple in the pond has a tale." } },
             { Emotions.Sadness, new List<string> { "Even the wise lament what's lost.", "Transience, the eternal dance." } },
+            { Emotions.Hungry, new List<string> { "Starvation is nigh. The sacred deer, tempting me.", "Hunger pains. Must find food soon." } },
             { Emotions.Praise, new List<string> { "Your insight pierces the veil!", "In your reflections, truth is mirrored." } },
             { Emotions.SeasonsSpring, new List<string> { "Life stirs from winter's dream.", "Awakening, the world reblooms." } },
             { Emotions.SeasonsSummer, new List<string> { "The sun shares its radiant tales.", "Nature's symphony at its crescendo." } },
@@ -253,7 +258,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Nature's pause, a deep introspection.", "Silence, yet every snowflake whispers." } }
         };
         // Sapien Female dialogues
-        conversations[(CharacterNames.Sapien, CharacterTypes.Female)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.Sapien, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Every dusk, a story's end. Every dawn, a new tale.", "The river of existence flows, unceasing." } },
             { Emotions.Joy, new List<string> { "Light dances in every heart.", "In unity, the universe rejoices." } },
@@ -262,6 +267,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "In the present, the universe resides.", "Serenity, the gift of understanding." } },
             { Emotions.Alertness, new List<string> { "Winds shift, bearing new omens.", "The fire's flicker tells of changes." } },
             { Emotions.Sadness, new List<string> { "Grief, the echo of love's song.", "Every ending, a new beginning's shadow." } },
+            { Emotions.Hungry, new List<string> { "My hunger calls. Must respect deer. Seek apples instead.", "Mushrooms in shade. Nature's bounty." } },
             { Emotions.Praise, new List<string> { "Your wisdom, a beacon for us all.", "In your words, the ancients speak." } },
             { Emotions.SeasonsSpring, new List<string> { "From slumber, the world emerges.", "Every bud, a promise reborn." } },
             { Emotions.SeasonsSummer, new List<string> { "Life's dance, joyous and unbridled.", "In warmth, nature's heart beats strong." } },
@@ -270,7 +276,7 @@ public class DialogueLines : MonoBehaviour
         };
 
         // Deer Male dialogues
-        conversations[(CharacterNames.Deer, CharacterTypes.Male)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.Deer, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Water is clear.", "Forest is silent." } },
             { Emotions.Joy, new List<string> { "The sun kisses the meadow.", "A breeze dances through the antlers." } },
@@ -279,6 +285,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "The meadow is peaceful.", "Sun is warm, grass is green." } },
             { Emotions.Alertness, new List<string> { "Ears twitch at a distant sound.", "Every shadow could be a threat." } },
             { Emotions.Sadness, new List<string> { "Lost a fawn to the river's flow.", "Silent woods mourn with me." } },
+            { Emotions.Hungry, new List<string> { "Grass low. Search new meadow.", "Berries? Sweet and filling." } },
             { Emotions.Praise, new List<string> { "The elder stag stands tall.", "His wisdom guides us." } },
             { Emotions.SeasonsSpring, new List<string> { "New life stirs the forest.", "Birdsong heralds new beginnings." } },
             { Emotions.SeasonsSummer, new List<string> { "Lush fields and cool streams.", "Nature in full splendor." } },
@@ -286,7 +293,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsWinter, new List<string> { "Snow blankets the earth.", "A time of rest and reflection." } }
         };
         // Deer Female dialogues
-        conversations[(CharacterNames.Deer, CharacterTypes.Female)] = new Dictionary<Emotions, List<string>>
+        conversations[(CharacterTypes.Deer, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Grazing, always vigilant.", "The forest whispers its stories." } },
             { Emotions.Joy, new List<string> { "Fawn plays in the meadow.", "Berries are abundant." } },
@@ -295,6 +302,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "Safe among the herd.", "Protected by the grove's embrace." } },
             { Emotions.Alertness, new List<string> { "Something lurks in the shadows.", "Must shield the young ones." } },
             { Emotions.Sadness, new List<string> { "Empty nest, a fawn's journey begins.", "The forest feels the ache of absence." } },
+            { Emotions.Hungry, new List<string> { "Fawns nibble scarce grass.", "Forage deeper. Find sustenance." } },
             { Emotions.Praise, new List<string> { "The doe leads with grace.", "Her elegance captivates us all." } },
             { Emotions.SeasonsSpring, new List<string> { "Fresh buds signal hope.", "Nature wakes from slumber." } },
             { Emotions.SeasonsSummer, new List<string> { "Days of plenty and warmth.", "Nights under the watchful moon." } },

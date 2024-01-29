@@ -109,6 +109,8 @@ public class CamControl : MonoBehaviour
 
     [SerializeField] private TitleUIControl titleControlUI;
 
+    public TimeCycleManager timeCycleManager;
+
     public void Start()
     {
         cam.fieldOfView = initZoom;
@@ -198,6 +200,7 @@ public class CamControl : MonoBehaviour
         float camLerpTime = 1f;
         Vector3 originalOffset = cameraOffset;
         Vector3 zoomedOutOffset = originalOffset - originalOffset.normalized * -50f;
+
         while (time <= camLerpTime)
         {
             cameraOffset = Vector3.Lerp(originalOffset, zoomedOutOffset, time / camLerpTime);
@@ -216,10 +219,8 @@ public class CamControl : MonoBehaviour
         Vector3 occupationVectorRadius = templeGenForRadius.GetColliderRadiusAsVector();
         templeGenForRadius.DisableTemple(); // Disable the temple for visual
 
-        // Multiply the occupation radius by 3 for the decal size
         Vector3 scaledOccupationRadius = occupationVectorRadius * 10;
 
-        // Destroy the temporary temple instance
         Destroy(tempTemple);
 
         GameObject decalInstance = Instantiate(decalProjectorPrefab);
@@ -234,8 +235,6 @@ public class CamControl : MonoBehaviour
 
         decalManager.SetIsBuilt(false);
         decalManager.SetDecalSize(scaledOccupationRadius); // Use the scaled radius for decal size
-
-
 
         // Raycasting to place the decal
         LayerMask groundLayer = LayerMask.GetMask("Ground");
@@ -261,6 +260,7 @@ public class CamControl : MonoBehaviour
                 finalTempleGen.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
                 finalTempleGen.GenerateTemple();
                 finalTempleGen.EnableTemple(); // Enable the temple for visual
+                SetupShaderLights(finalTemple);
                 finalTempleGen.CreateOccupationCollider();
                 decalManager.SetIsBuilt(true); // Set the decal as built
                 decalManager.transform.SetParent(finalTemple.transform);
@@ -274,8 +274,6 @@ public class CamControl : MonoBehaviour
             yield return null;
         }
 
-
-
         // Zoom back in
         time = 0f;
         while (time <= camLerpTime)
@@ -286,6 +284,21 @@ public class CamControl : MonoBehaviour
         }
 
         isInBuildMode = false; // Exit Build Mode
+    }
+
+    void SetupShaderLights(GameObject obj)
+    {
+        if (obj != null)
+        {
+            // Get all ShaderLightColor components in the children of the object, including inactive ones
+            ShaderLightColor[] shaderComponents = obj.GetComponentsInChildren<ShaderLightColor>(true);
+
+            // Iterate through each ShaderLightColor component and assign timeCycleManager
+            foreach (ShaderLightColor shader in shaderComponents)
+            {
+                shader.timeCycleManager = timeCycleManager;
+            }
+        }
     }
 
 

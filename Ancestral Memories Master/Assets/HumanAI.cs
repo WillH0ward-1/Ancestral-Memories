@@ -84,6 +84,14 @@ public class HumanAI : MonoBehaviour
 
     private EyeBlink eyeBlink;
 
+    private LookAnimManager lookAnimManager;
+
+    private EmotionManager emotionManager;
+
+    public SeasonManager seasonManager;
+
+    private Dialogue dialogue;
+
     public void InitHuman()
     {
 
@@ -99,6 +107,10 @@ public class HumanAI : MonoBehaviour
         playerWalk = player.GetComponentInChildren<PlayerWalk>();
         stats = transform.GetComponentInChildren<AICharacterStats>();
         seeker = transform.GetComponentInChildren<Seeker>();
+        lookAnimManager = transform.GetComponentInChildren<LookAnimManager>();
+        emotionManager = transform.GetComponentInChildren<EmotionManager>();
+        dialogue = transform.GetComponentInChildren<Dialogue>();
+
         eyeBlink = FindEyes(transform);
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(StartHarvest(target));
@@ -132,49 +144,92 @@ public class HumanAI : MonoBehaviour
         return null;
     }
 
+    SeasonManager.Season lastSeason;
+
+    private void Start()
+    {
+        stats.OnEvolutionChanged += HandleEvolutionChange;
+        SetDialogueAttributes();
+    }
+
+    private void HandleEvolutionChange(float evolutionFraction, float minStat, float maxStat)
+    {
+        float oneThird = (maxStat - minStat) / 3.0f;
+        float twoThirds = oneThird * 2;
+
+        if (evolutionFraction >= minStat && evolutionFraction < oneThird)
+        {
+            currentEvolutionState = EvolutionState.Neanderthal;
+        }
+        else if (evolutionFraction >= oneThird && evolutionFraction < twoThirds)
+        {
+            currentEvolutionState = EvolutionState.MidSapien;
+        }
+        else if (evolutionFraction >= twoThirds)
+        {
+            currentEvolutionState = EvolutionState.Sapien;
+        }
+
+        dialogue.characterType = currentEvolutionState.ToString();
+    }
+
     void Update()
     {
-        if (!stats.isDead)
+        LookAt();
+
+        if (lastSeason != seasonManager._currentSeason)
         {
-            switch (stats.evolution)
+            lastSeason = seasonManager._currentSeason; // update the lastSeason to current
+
+            switch (seasonManager._currentSeason)
             {
-                case var e when (e >= 0 && e < 33):
-                    currentEvolutionState = EvolutionState.Neanderthal;
+                case SeasonManager.Season.Spring:
+                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsSpring);
                     break;
-
-                case var e when (e >= 33 && e < 66):
-                    currentEvolutionState = EvolutionState.MidSapien;
+                case SeasonManager.Season.Summer:
+                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsSummer);
                     break;
-
-                case var e when (e >= 66):
-                    currentEvolutionState = EvolutionState.Sapien;
+                case SeasonManager.Season.Autumn:
+                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsAutumn);
                     break;
-
+                case SeasonManager.Season.Winter:
+                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsWinter);
+                    break;
                 default:
                     break;
             }
         }
-    }
 
-    public void DisableLookAt()
-    {
-        if (lookAnimator.enabled)
+        if (stats.hunger <= stats.maxStat / 3)
         {
-            lookAnimator.enabled = false;
+            emotionManager.AddEmotion(DialogueLines.Emotions.Hungry);
+            emotionManager.AddEmotion(DialogueLines.Emotions.Sadness);
+        }
+        else
+        {
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Hungry);
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Sadness);
+        }
+
+        if (stats.faith >= stats.maxStat / 1.5 && stats.hunger >= stats.maxStat / 1.5 && stats.health >= stats.maxStat / 1.5)
+        {
+            emotionManager.AddEmotion(DialogueLines.Emotions.Joy);
+        } else
+        {
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Joy);
         }
     }
 
-    public void EnableLookAt()
+    void SetDialogueAttributes()
     {
-        if (!lookAnimator.enabled)
-        {
-            lookAnimator.enabled = true;
-        }
+        dialogue.characterName = stats.npcName;
+        dialogue.characterGender = stats.gender.ToString();
+        dialogue.characterType = currentEvolutionState.ToString();
     }
 
     public IEnumerator Die()
     {
-        DisableLookAt();
+        lookAnimManager.DisableLookAt();
 
         if (eyeBlink != null)
         {
@@ -241,21 +296,22 @@ public class HumanAI : MonoBehaviour
 
     void LookAt()
     {
-        if (!ragdollController.isRagdollActive)
+        if (!stats.isDead && !ragdollController.isRagdollActive)
         {
-            if (inRange || fluteControl.fluteActive)
+            if (inRange && currentAIState == AIState.Idle || fluteControl.fluteActive)
             {
-                lookAnimator.enabled = true;
+                lookAnimManager.LookAt(player.transform);
             }
             else
             {
-                lookAnimator.enabled = false;
+                lookAnimManager.DisableLookAt();
             }
         }
     }
 
     private void OnDestroy()
     {
+        stats.OnEvolutionChanged -= HandleEvolutionChange;
         RemoveFromPopulation();
     }
 

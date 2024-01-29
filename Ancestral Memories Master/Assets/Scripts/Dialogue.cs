@@ -49,8 +49,10 @@ public class Dialogue : MonoBehaviour
     private int conversationIndex;
     private GameObject dialogueBoxInstance;
 
-    [SerializeField] private string characterName;
-    [SerializeField] private string characterType;
+    public string characterName;
+    public string characterType;
+    public string characterGender;
+
     private bool useRandomDialogue;
 
     [SerializeField] private float distance;
@@ -171,12 +173,10 @@ public class Dialogue : MonoBehaviour
             return;
         }
 
-        DialogueLines.CharacterNames parsedName;
-        DialogueLines.CharacterTypes parsedType;
         DialogueLines.Emotions selectedEmotion;
 
-        if (!Enum.TryParse(characterName, true, out parsedName) ||
-            !Enum.TryParse(characterType, true, out parsedType))
+        if (!Enum.TryParse(characterType, true, out DialogueLines.CharacterTypes parsedType) ||
+            !Enum.TryParse(characterGender, true, out DialogueLines.CharacterGenders parsedGender))
         {
             Debug.LogError("Invalid character name or type specified.");
             return; // Exit the method if the character name or type is invalid
@@ -195,7 +195,7 @@ public class Dialogue : MonoBehaviour
                 return;
         }
 
-        lines = dialogueLines.GetDialogue(parsedName, parsedType, selectedEmotion).ToArray();
+        lines = dialogueLines.GetDialogue(parsedType, parsedGender, selectedEmotion).ToArray();
 
         if (lines.Length == 0 || (lines.Length == 1 && lines[0] == "No dialogue available for this combination."))
         {
@@ -203,7 +203,7 @@ public class Dialogue : MonoBehaviour
             return;
         }
 
-        translationFunction = GetTranslationFunction(characterName);
+        translationFunction = GetTranslationFunction(characterType);
 
         Debug.Log("Dialogue Started.");
 
@@ -260,17 +260,17 @@ public class Dialogue : MonoBehaviour
         }
     }
 
-    private Func<string, string> GetTranslationFunction(string characterName)
+    private Func<string, string> GetTranslationFunction(string characterType)
     {
-        if (characterName.Equals("Neanderthal", StringComparison.OrdinalIgnoreCase))
+        if (characterType.Equals("Neanderthal", StringComparison.OrdinalIgnoreCase))
         {
             return languageGenerator.TranslateToNeanderthal;
         }
-        else if (characterName.Equals("MidSapien", StringComparison.OrdinalIgnoreCase))
+        else if (characterType.Equals("MidSapien", StringComparison.OrdinalIgnoreCase))
         {
             return languageGenerator.TranslateToMidSapien;
         }
-        else if (characterName.Equals("Sapien", StringComparison.OrdinalIgnoreCase))
+        else if (characterType.Equals("Sapien", StringComparison.OrdinalIgnoreCase))
         {
             return languageGenerator.TranslateToSapien;
         } 
@@ -345,7 +345,7 @@ public class Dialogue : MonoBehaviour
 
             if (!transform.CompareTag("Animal"))
             {
-                GetDialogueAudio(characterName, conversationName, characterType, conversationIndex);
+                GetDialogueAudio(characterType, conversationName, characterGender, conversationIndex);
             }
 
             clickPromptObject.SetActive(false);
@@ -524,7 +524,7 @@ public class Dialogue : MonoBehaviour
             {
                 int randomIndex = UnityEngine.Random.Range(0, phonemeFiles.Length);
                 string randomFileNameWithoutExtension = Path.GetFileNameWithoutExtension(phonemeFiles[randomIndex]);
-                string indexPart = randomFileNameWithoutExtension.Replace(characterName + "-" + characterType + "-" + PhonemeIdentifier, "");
+                string indexPart = randomFileNameWithoutExtension.Replace(characterType + "-" + characterGender + "-" + PhonemeIdentifier, "");
                 return baseKey + indexPart;
             }
         }

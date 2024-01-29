@@ -69,7 +69,9 @@ public class AICharacterStats : MonoBehaviour
 
     public enum NpcType { Human, Animal }
 
-    public enum NpcGender { Male, Animal }
+    public enum NpcGender { Male, Female }
+
+    public NpcGender gender;
 
     public enum HumanEvolutionState { Neanderthal, MidSapien, Sapien }
 
@@ -109,9 +111,12 @@ public class AICharacterStats : MonoBehaviour
 
         isDead = false;
 
+        GiveName();
+
         calculatedLifespan = CalculateLifespan();
 
         InitializeInstruments();
+
     }
 
     public void InitializeInstruments()
@@ -204,6 +209,10 @@ public class AICharacterStats : MonoBehaviour
         }
     }
 
+    public void SetGender()
+    {
+
+    }
 
     public void UpdateRelationshipStatus(GameObject npc, RelationshipType newRelation)
     {
@@ -279,7 +288,6 @@ public class AICharacterStats : MonoBehaviour
         }
 
         StartCoroutine(StartLifespanCheckWhenReady());
-        GiveName();
     }
 
     private IEnumerator StartLifespanCheckWhenReady()

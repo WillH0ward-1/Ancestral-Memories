@@ -342,6 +342,8 @@ public class MapObjGen : MonoBehaviour
 
     private FireManager fireManager;
 
+    private CamControl camControl;
+
     public IEnumerator WaterSFXEmitterGen()
     {
         Vector3[] verts = waterEmitterTransform.GetComponent<MeshFilter>().mesh.vertices;
@@ -406,6 +408,8 @@ public class MapObjGen : MonoBehaviour
         player = FindObjectOfType<Player>();
         interactCam = camera.GetComponentInChildren<InteractCamera>();
         interactCam.InitInteractions();
+        camControl = camera.GetComponentInChildren<CamControl>();
+        camControl.timeCycleManager = timeCycleManager;
         playerBehaviours = player.GetComponentInChildren<CharacterBehaviours>();
         playerBehaviours.mapObjGen = this;
         rainControl = player.GetComponentInChildren<RainControl>();
@@ -870,6 +874,7 @@ public class MapObjGen : MonoBehaviour
             humanAI.player = player;
             humanAI.playerBehaviours = playerBehaviours;
             humanAI.resources = resources;
+            humanAI.seasonManager = seasonManager;
 
             Dialogue dialogue = humanInstance.GetComponentInChildren<Dialogue>();
             dialogue.player = player;

@@ -35,7 +35,7 @@ public class StatsUI : MonoBehaviour
     private Player player;
 
     private bool isUIVisible;
-
+ 
     private void Awake()
     {
         player = FindObjectOfType<Player>();

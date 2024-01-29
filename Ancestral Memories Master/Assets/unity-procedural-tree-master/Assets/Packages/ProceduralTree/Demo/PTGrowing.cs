@@ -311,6 +311,14 @@ namespace ProceduralModeling
         }
 
         float growTime;
+        // droughtGrowthBuffer: This factor determines how much slower the tree will grow during a drought.
+        // For example, a value of 3 means the tree will grow three times slower during a drought.
+        public float droughtGrowthBuffer = 3f;
+
+        // lerpTimeAdjustment: This value determines the speed at which the growDuration adapts to changing drought conditions.
+        // A smaller value makes the transition faster, and a larger value makes it slower.
+        private float lerpTimeAdjustment = 5f; // Adjust this value as needed
+
 
         private IEnumerator Growing()
         {
@@ -323,6 +331,9 @@ namespace ProceduralModeling
                 time = 0f;
                 isDead = false;
                 growDuration = Random.Range(minGrowDuration, maxGrowDuration);
+
+                // Start the drought adjustment coroutine
+                StartCoroutine(AdjustForDrought());
 
                 treeAudioSFX.StartTreeGrowthSFX(State.Growing);
 
@@ -351,6 +362,24 @@ namespace ProceduralModeling
                 StartCoroutine(Lifetime());
             }
         }
+
+        private IEnumerator AdjustForDrought()
+        {
+            float originalDuration = growDuration;
+            while (currentState == State.Growing)
+            {
+                if (rainControl.drought)
+                {
+                    growDuration = Mathf.Lerp(growDuration, originalDuration * droughtGrowthBuffer, Time.deltaTime / lerpTimeAdjustment);
+                }
+                else
+                {
+                    growDuration = Mathf.Lerp(growDuration, originalDuration, Time.deltaTime / lerpTimeAdjustment);
+                }
+                yield return null;
+            }
+        }
+
 
 
         public void KillTree()
