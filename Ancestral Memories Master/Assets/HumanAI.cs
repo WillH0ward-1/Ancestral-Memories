@@ -14,7 +14,32 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    public enum AIState { Idle, Walking, Harvest, Running, Following, Dialogue, Conversate, HuntFood, Eat, HuntMeat, Attack, Wander, RunningPanic, Die, Revive, Electrocution, GetUp, Carry }
+    public enum AIState { Idle,
+        Walking,
+        Harvest,
+        Running,
+        Following,
+        Dialogue,
+        Conversate,
+        HuntFood,
+        Eat,
+        HuntMeat,
+        Attack,
+        Wander,
+        RunningPanic,
+        Die,
+        Revive,
+        Electrocution,
+        GetUp,
+        Carry,
+        PlayMusic,
+        ShamanIntroduction,
+        ShamanHumanTutorial,
+        ShamanFluteTutorial,
+        ShamanTreeTutorial,
+        ShamanMushroomTutorial
+
+    }
 
     [SerializeField] private AIState state = AIState.Idle;
 
@@ -91,6 +116,8 @@ public class HumanAI : MonoBehaviour
     public SeasonManager seasonManager;
 
     private Dialogue dialogue;
+
+    private string shamanTag = "Shaman";
 
     public void InitHuman()
     {
@@ -224,7 +251,13 @@ public class HumanAI : MonoBehaviour
     {
         dialogue.characterName = stats.npcName;
         dialogue.characterGender = stats.gender.ToString();
-        dialogue.characterType = currentEvolutionState.ToString();
+        if (!IsShaman())
+        {
+            dialogue.characterType = currentEvolutionState.ToString();
+        } else
+        {
+            dialogue.characterType = shamanTag;
+        }
     }
 
     public IEnumerator Die()
@@ -298,7 +331,7 @@ public class HumanAI : MonoBehaviour
     {
         if (!stats.isDead && !ragdollController.isRagdollActive)
         {
-            if (inRange && currentAIState == AIState.Idle || fluteControl.fluteActive)
+            if (inRange && currentAIState == AIState.Idle)
             {
                 lookAnimManager.LookAt(player.transform);
             }
@@ -384,6 +417,18 @@ public class HumanAI : MonoBehaviour
     public void AddToPopulation()
     {
         resources.AddResourceObject("Population", transform.gameObject);
+    }
+
+    public bool IsShaman()
+    {
+        if (gameObject.CompareTag(shamanTag))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     [SerializeField] private float idleWalkRadius = 1000f;
@@ -810,6 +855,9 @@ public class HumanAI : MonoBehaviour
                     case AIState.GetUp:
                         StartCoroutine(GetUp(true));
                         break;
+                    case AIState.PlayMusic:
+                        StartCoroutine(PlayMusic());
+                        break;
                     default:
                         break;
                 }
@@ -889,8 +937,6 @@ public class HumanAI : MonoBehaviour
 
         yield break;
     }
-
-
 
     public Vector3? FindRandomPointWithinRadius(float radius)
     {
@@ -1436,17 +1482,28 @@ public class HumanAI : MonoBehaviour
 
         //agent.speed = 0f;
         //agent.ResetPath();
+        behaviourIsActive = true;
 
         aiPath.maxSpeed = 0f;
         aiPath.destination = transform.position;
         aiPath.canMove = false;
 
+
         ChangeAnimationState(HumanControllerAnimations.Action_Item_PickUp);
 
-        behaviourIsActive = true;
 
         yield break;
     }
+
+    private IEnumerator PlayMusic()
+    {
+        behaviourIsActive = true;
+
+        ChangeAnimationState(HumanControllerAnimations.Music_PlayFlute01);
+
+        yield break;
+    }
+
 
     private float rotationSpeed = 1.5f;
 
@@ -1460,7 +1517,7 @@ public class HumanAI : MonoBehaviour
 
         while (behaviourIsActive)
         {
-            if (playerBehaviours.dialogueIsActive)
+            if (dialogue.dialogueActive)
             {
                 SetIdleAnimation(currentEvolutionState);
 

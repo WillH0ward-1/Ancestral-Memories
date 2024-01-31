@@ -162,7 +162,15 @@ public class Dialogue : MonoBehaviour
     public enum DialogueType
     {
         IdleDialogue,
-        BuildingPromptDialogue
+        BuildingPromptDialogue,
+        ShamanIntroduction,
+        ShamanFluteTutorial,
+        ShamanFluteTutorialFail,
+        ShamanTreeTutorial,
+        ShamanHumanTutorial,
+        ShamanMushroomTutorial,
+        ShamanConclusion
+
     }
 
     public void StartDialogue(DialogueType dialogueType)
@@ -189,6 +197,27 @@ public class Dialogue : MonoBehaviour
                 break;
             case DialogueType.BuildingPromptDialogue:
                 selectedEmotion = DialogueLines.Emotions.BuildingPrompt;
+                break;
+            case DialogueType.ShamanIntroduction:
+                selectedEmotion = DialogueLines.Emotions.ShamanIntroduction;
+                break;
+            case DialogueType.ShamanFluteTutorial:
+                selectedEmotion = DialogueLines.Emotions.ShamanFluteTutorial;
+                break;
+            case DialogueType.ShamanFluteTutorialFail:
+                selectedEmotion = DialogueLines.Emotions.ShamanFluteTutorialFail;
+                break;
+            case DialogueType.ShamanTreeTutorial:
+                selectedEmotion = DialogueLines.Emotions.ShamanTreeTutorial;
+                break;
+            case DialogueType.ShamanHumanTutorial:
+                selectedEmotion = DialogueLines.Emotions.ShamanHumanTutorial;
+                break;
+            case DialogueType.ShamanMushroomTutorial:
+                selectedEmotion = DialogueLines.Emotions.ShamanMushroomTutorial;
+                break;
+            case DialogueType.ShamanConclusion:
+                selectedEmotion = DialogueLines.Emotions.ShamanConclusion;
                 break;
             default:
                 Debug.LogError("Invalid dialogue type specified.");

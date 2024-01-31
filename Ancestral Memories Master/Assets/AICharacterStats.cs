@@ -195,6 +195,9 @@ public class AICharacterStats : MonoBehaviour
             if (gameObject.CompareTag("Human"))
             {
                 typeIdentifier = "Citizen: ";
+            } else if (gameObject.CompareTag("Shaman"))
+            {
+                typeIdentifier = "Shaman: ";
             }
             else if (gameObject.CompareTag("Animal"))
             {
@@ -282,12 +285,14 @@ public class AICharacterStats : MonoBehaviour
 
     void Start()
     {
-        if (transform.CompareTag("Human"))
+        if (transform.CompareTag("Human") || transform.CompareTag("Shaman"))
         {
             humanAI = GetComponentInChildren<HumanAI>();
         }
 
-        StartCoroutine(StartLifespanCheckWhenReady());
+        if (!transform.CompareTag("Shaman")){
+            StartCoroutine(StartLifespanCheckWhenReady());
+        }
     }
 
     private IEnumerator StartLifespanCheckWhenReady()
@@ -352,41 +357,44 @@ public class AICharacterStats : MonoBehaviour
 
         if (!isDead)
         {
-            if (hunger > minStat)
+            if (humanAI != null && !humanAI.IsShaman())
             {
-                isStarving = false;
-
-                if (useFaith)
+                if (hunger > minStat)
                 {
-                    hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
+                    isStarving = false;
+
+                    if (useFaith)
+                    {
+                        hunger -= Time.deltaTime * hungerFactor * (1.0f + faithFactor * faithInfluence);
+                    }
+                    else
+                    {
+                        hunger -= Time.deltaTime * hungerFactor;
+                    }
+
+                    hunger = Mathf.Clamp(hunger, minStat, maxStat);
                 }
                 else
                 {
-                    hunger -= Time.deltaTime * hungerFactor;
+                    isStarving = true;
+
+                    if (useFaith)
+                    {
+                        health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
+                    }
+                    else
+                    {
+                        health -= Time.deltaTime * healthFactor;
+                    }
+
+                    health = Mathf.Clamp(health, minStat, maxStat);
                 }
 
-                hunger = Mathf.Clamp(hunger, minStat, maxStat);
-            }
-            else
-            {
-                isStarving = true;
-
-                if (useFaith)
+                if (useFaith && faith > minStat)
                 {
-                    health -= Time.deltaTime * healthFactor * (1.0f + faithFactor * faithInfluence);
+                    faith -= Time.deltaTime * faithFactor;
+                    faith = Mathf.Clamp(faith, minStat, maxStat);
                 }
-                else
-                {
-                    health -= Time.deltaTime * healthFactor;
-                }
-
-                health = Mathf.Clamp(health, minStat, maxStat);
-            }
-
-            if (useFaith && faith > minStat)
-            {
-                faith -= Time.deltaTime * faithFactor;
-                faith = Mathf.Clamp(faith, minStat, maxStat);
             }
 
             if (health <= minStat)
@@ -399,7 +407,7 @@ public class AICharacterStats : MonoBehaviour
         OnHealthChanged?.Invoke(HealthFraction, minStat, maxStat);
         OnFaithChanged?.Invoke(FaithFraction, minStat, maxStat);
         OnPsychChanged?.Invoke(PsychFraction, minStat, maxStat);
-       
+
         if (transform.CompareTag("Human"))
         {
             UpdateEvolution();
@@ -407,12 +415,24 @@ public class AICharacterStats : MonoBehaviour
             if (isDead && !isDying && humanAI != null)
             {
                 humanAI.ChangeState(HumanAI.AIState.Die);
+                MinAllStats();
             }
 
-        } else if (transform.CompareTag("Player"))
+        }
+        else if (transform.CompareTag("Shaman"))
+        {
+            evolution = maxStat;
+            evolutionState = EvolutionState;
+
+            if (isDead && !isDying && humanAI != null)
+            {
+                humanAI.ChangeState(HumanAI.AIState.Die);
+            }
+        }
+        else if (transform.CompareTag("Player"))
         {
             UpdateEvolution();
-        }
+        } 
     }
 
     public float evolutionSpeedFactor = 0.1f;  // New factor to determine the speed of evolution convergence
@@ -457,6 +477,14 @@ public class AICharacterStats : MonoBehaviour
         }
     }
 
+    public void ReinitializeAll()
+    {
+        isDead = false;
+
+        MaxAllStats();
+        ResetAge();
+    }
+
     public void SetHealth(float value)
     {
         health = value;
@@ -478,19 +506,24 @@ public class AICharacterStats : MonoBehaviour
         OnHungerChanged?.Invoke(HungerFraction, minStat, maxStat);
     }
 
-    public void ReinitializeAll()
-    {
-        isDead = false;
-
-        MaxAllStats();
-        ResetAge();
-    }
-
     public void MaxAllStats()
     {
-        SetFaith(maxStat);
-        SetHealth(maxStat);
-        SetHunger(maxStat);
+        if (faith != maxStat) SetFaith(maxStat);
+        if (health != maxStat) SetHealth(maxStat);
+        if (hunger != maxStat) SetHunger(maxStat);
+    }
+
+    public void MinAllStats()
+    {
+        if (faith != minStat) SetFaith(minStat);
+        if (health != minStat) SetHealth(minStat);
+        if (hunger != minStat) SetHunger(minStat);
+    }
+
+
+    public void KillInstant()
+    {
+        SetHealth(minStat);
     }
 
     public void ResetAge()

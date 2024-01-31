@@ -53,6 +53,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] private GameObject[] proceduralTrees;
     [SerializeField] private GameObject[] limeStones;
     [SerializeField] private GameObject[] temples;
+    [SerializeField] private GameObject[] shamans;
 
     [SerializeField] private GameObject spawnPointPrefab;
 
@@ -137,6 +138,7 @@ public class MapObjGen : MonoBehaviour
     [SerializeField] float minimumLimeStoneRadius = 70;
     [SerializeField] float minimumSpawnPointRadius = 70;
     [SerializeField] float minimumTempleRadius = 70;
+    [SerializeField] float minimumShamanRadius = 70;
 
     [Header("========================================================================================================================")]
 
@@ -169,6 +171,7 @@ public class MapObjGen : MonoBehaviour
     private readonly string caveTag = "Cave";
     private readonly string limeStoneTag = "Limestone";
     private readonly string structureTag = "Structure";
+    private readonly string shamanTag = "Shaman";
 
     [Header("========================================================================================================================")]
 
@@ -280,6 +283,7 @@ public class MapObjGen : MonoBehaviour
 
     public List<GameObject> humanPopulationList;
     public List<GameObject> huntableAnimalsList;
+    public List<GameObject> shamanList;
 
     [Header("========================================================================================================================")]
     [Header("Flammable Objects")]
@@ -521,6 +525,7 @@ public class MapObjGen : MonoBehaviour
         PoissonDiscSampler humanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumHumanRadius);
         PoissonDiscSampler limeStoneSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumLimeStoneRadius);
         PoissonDiscSampler templeSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumTempleRadius);
+        PoissonDiscSampler shamanSampler = new PoissonDiscSampler(sampleWidth, sampleHeight, minimumShamanRadius);
 
         //TreePoissonDisc(treeSampler);
         //AppleTreePoissonDisc(appleTreeSampler);
@@ -537,6 +542,7 @@ public class MapObjGen : MonoBehaviour
         HumanPoissonDisc(humanSampler);
         ProceduralTreePoissonDisc(treeSampler);
         LimeStonePoissonDisc(limeStoneSampler);
+
         //TemplePoissonDisc(templeSampler);
 
         SetOffset();
@@ -558,6 +564,7 @@ public class MapObjGen : MonoBehaviour
         ListCleanup(huntableAnimalsList);
         ListCleanup(flammableObjectList);
         ListCleanup(limeStoneList);
+
         //ListCleanup(templeList);
 
         //GenerateTemples();
@@ -577,6 +584,7 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(StartProceduralTreeGrowth(treeList));
 
         SpawnPlayer();
+        SpawnShaman();
 
         SetupShaderLightColours();
         SetupDeformers();
@@ -760,6 +768,8 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
+    private GameObject playerInitialSpawnPoint;
+
     public GameObject GetRandomMapObject(GameObject[] mapElements)
     {
         return mapElements[Random.Range(0, mapElements.Length)];
@@ -768,18 +778,18 @@ public class MapObjGen : MonoBehaviour
     void SpawnPlayer()
     {
         InitializeFlute();
-        player.transform.position = SetSpawnPosition(spawnPointsList);
+        playerInitialSpawnPoint = SetInitialPlayerSpawnPosition(spawnPointsList);
+        player.transform.position = playerInitialSpawnPoint.transform.position;
     }
 
-    public Vector3 SetSpawnPosition(List<GameObject> spawnPointsList)
+    public GameObject SetInitialPlayerSpawnPosition(List<GameObject> spawnPointsList)
     {
-        int randomIndex = Random.Range(0, spawnPointsList.Count); // Get a random index within the range of the list
-        GameObject randomSpawnPoint = spawnPointsList[randomIndex]; // Get the spawn point at that index
-        Vector3 position = randomSpawnPoint.transform.position; // Set the position of the transform to the position of the randomly selected spawn point
-
-        return position;
+        int randomIndex = Random.Range(0, spawnPointsList.Count);
+        GameObject initialSpawnPoint = spawnPointsList[randomIndex];
+        // Optionally remove the spawn point from the list if it should not be used again for initialization
+        // spawnPointsList.RemoveAt(randomIndex);
+        return initialSpawnPoint;
     }
-
     void SpawnPointsPoissonDisc(PoissonDiscSampler spawnPointSampler)
     {
         foreach (Vector2 sample in spawnPointSampler.Samples())
@@ -790,6 +800,21 @@ public class MapObjGen : MonoBehaviour
 
             spawnPointsList.Add(spawnPointInstance);
         }
+    }
+
+    public GameObject GetRandomSpawnPointExcludingPlayer()
+    {
+        List<GameObject> availableSpawnPoints = new List<GameObject>(spawnPointsList);
+        availableSpawnPoints.Remove(playerInitialSpawnPoint); // Exclude player's initial spawn point
+
+        if (availableSpawnPoints.Count == 0)
+        {
+            Debug.LogError("No spawn points available!");
+            return null;
+        }
+
+        int randomIndex = Random.Range(0, availableSpawnPoints.Count);
+        return availableSpawnPoints[randomIndex];
     }
 
     void AnimalPoissonDisc(PoissonDiscSampler animalSampler)
@@ -904,6 +929,67 @@ public class MapObjGen : MonoBehaviour
             //GroundCheck(instantiatedPrefab);
             //WaterCheck();
         }
+    }
+
+    void SpawnShaman()
+    {
+
+        GameObject shaman = GetRandomMapObject(shamans);
+
+        GameObject shamanInstance = Instantiate(shaman, GetRandomSpawnPointExcludingPlayer().transform.position, Quaternion.identity);
+
+        shamanInstance.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+
+        shamanInstance.tag = shamanTag;
+
+        int humanLayer = LayerMask.NameToLayer("Human");
+        shamanInstance.layer = humanLayer;
+
+        float randomXScale = humanAverageScale.x;
+        float randomYScale = humanAverageScale.y;
+        float randomZScale = humanAverageScale.z;
+
+        shamanInstance.transform.localScale = new Vector3(randomXScale, randomYScale, randomZScale);
+        shamanInstance.transform.SetParent(hierarchyRoot.transform);
+
+        LerpDeformation deform = shamanInstance.transform.GetComponentInChildren<LerpDeformation>();
+        deform.enabled = false;
+
+        HumanAI humanAI = shamanInstance.GetComponentInChildren<HumanAI>();
+        humanAI.mapObjGen = this;
+        humanAI.player = player;
+        humanAI.playerBehaviours = playerBehaviours;
+        humanAI.resources = resources;
+        humanAI.seasonManager = seasonManager;
+
+        Dialogue dialogue = shamanInstance.GetComponentInChildren<Dialogue>();
+        dialogue.player = player;
+        dialogue.vocabularyManager = vocabularyManager;
+        dialogue.dialogueLines = dialogueLines;
+
+        AICharacterStats humanStats = shamanInstance.GetComponentInChildren<AICharacterStats>();
+        humanStats.time = timeCycleManager;
+        humanStats.SubscribeToBirthday();
+        allHumanStats.Add(humanStats);
+
+        FLookAnimator lookAnimator = shamanInstance.GetComponentInChildren<FLookAnimator>();
+        lookAnimator.enabled = true;
+        lookAnimator.ObjectToFollow = player.transform;
+
+        humanAI.lookAnimator = lookAnimator;
+
+        deform.enabled = true;
+
+        mapObjectList.Add(shamanInstance);
+        npcList.Add(shamanInstance);
+        humanPopulationList.Add(shamanInstance);
+        flammableObjectList.Add(shamanInstance);
+
+        humanAI.InitHuman();
+
+        //GroundCheck(instantiatedPrefab);
+        //WaterCheck();
+        
     }
 
     void EnableNavMeshAgents(List<GameObject> list)

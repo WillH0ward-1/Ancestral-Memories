@@ -11,6 +11,9 @@ public class MouseClickWaiter : MonoBehaviour
 
     private Camera cam;
 
+    QuestManager questManager;
+    QuestUI questUI;
+
     private void Awake()
     {
         cam = Camera.main;
@@ -21,6 +24,8 @@ public class MouseClickWaiter : MonoBehaviour
 
     private void Start()
     {
+        questManager = QuestManager.Instance;
+        questUI = questManager.transform.GetComponentInChildren<QuestUI>();
         StartCoroutine(WaitForMouseClick());
     }
 
@@ -37,6 +42,7 @@ public class MouseClickWaiter : MonoBehaviour
             {
                 camControl.ToSpawnZoom();
                 titleControlUI.StartCoroutine(titleControlUI.FadeTextToZeroAlpha(2f));
+                questUI.InitializeQuests();
                 waitForClick = false;
                 autoFitText.isResizing = false;
             }

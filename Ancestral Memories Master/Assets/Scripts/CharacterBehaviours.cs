@@ -13,6 +13,7 @@ public class CharacterBehaviours : MonoBehaviour
     public PlayerWalk playerWalk;
     public Player player;
 
+    public Camera cam;
     public CamControl cinematicCam;
 
     public GameObject firstPersonController;
@@ -56,7 +57,27 @@ public class CharacterBehaviours : MonoBehaviour
 
     public string lastState;
 
+    QuestManager questManager;
+
+    InteractCamera interactCam;
+
     //EVENT_CALLBACK callbackDelegate;
+
+    void Awake()
+    {
+        cam = Camera.main;
+        cinematicCam = cam.GetComponentInChildren<CamControl>();
+        interactCam = cam.GetComponentInChildren<InteractCamera>();
+
+        cinematicCam.gameObject.SetActive(true);
+
+        if (firstPersonController != null)
+        {
+            firstPersonController.SetActive(false);
+            thirdPersonCamActive = cinematicCam.gameObject.activeInHierarchy;
+            firstPersonCamActive = firstPersonController.activeInHierarchy;
+        }
+    }
 
     void Start()
     {
@@ -74,6 +95,8 @@ public class CharacterBehaviours : MonoBehaviour
 
         buildManager = GetComponentInChildren<BuildingManager>();
         buildMenu = GetComponentInChildren<BuildingMenu>();
+
+        questManager = QuestManager.Instance;
         //animSpeed = player.activeAnimator.speed;
     }
 
@@ -402,21 +425,6 @@ public class CharacterBehaviours : MonoBehaviour
 
     [SerializeField] AudioListenerManager audioListener;
 
-    private void Awake()
-    {
-
-        cinematicCam.gameObject.SetActive(true);
-
-        if (firstPersonController != null)
-        {
-            firstPersonController.SetActive(false);
-            thirdPersonCamActive = cinematicCam.gameObject.activeInHierarchy;
-            firstPersonCamActive = firstPersonController.activeInHierarchy;
-        }
-
-
-    }
-
     public IEnumerator Look()
     {
         /*cinematicCamActive = !cinematicCamActive;
@@ -534,7 +542,10 @@ public class CharacterBehaviours : MonoBehaviour
 
         player.ChangeAnimationState(HumanControllerAnimations.Music_PlayFlute01);
 
-        cinematicCam.ToPlayMusicZoom();
+        if (!dialogueIsActive)
+        {
+            cinematicCam.ToPlayMusicZoom();
+        }
         //cinematicCam.StartCoroutine(cinematicCam.MoveCamToPosition(frontFacingPivot, lookAtTarget, camMoveDuration));
 
         fluteControl.EnableFluteControl();
@@ -547,7 +558,11 @@ public class CharacterBehaviours : MonoBehaviour
         player.ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
         fluteControl.StopAll();
         //cinematicCam.scrollOverride = false;
-        cinematicCam.ToGameZoom();
+
+        if (!dialogueIsActive)
+        {
+            cinematicCam.ToGameZoom();
+        }
 
         yield break;
     }
@@ -978,6 +993,7 @@ public class CharacterBehaviours : MonoBehaviour
 
     private Dialogue dialogue;
 
+
     public IEnumerator Talk(GameObject hitObject)
     {
         Debug.Log("HITOBJECT: " + hitObject);
@@ -990,9 +1006,41 @@ public class CharacterBehaviours : MonoBehaviour
 
         dialogueIsActive = true;
         dialogue = hitObject.transform.GetComponentInChildren<Dialogue>();
-        dialogue.StartDialogue(Dialogue.DialogueType.IdleDialogue);
 
         if (hitObject != null && hitObject.CompareTag("Human"))
+        {
+            dialogue.StartDialogue(Dialogue.DialogueType.IdleDialogue);
+
+        } else if (hitObject != null && hitObject.CompareTag("Shaman"))
+        {
+            switch (questManager.GetCurrentQuest())
+            {
+                case QuestManager.Quests.ShamanIntroduction:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanIntroduction);
+                    break;
+                case QuestManager.Quests.ShamanTreeTutorial:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanTreeTutorial);
+                    break;
+                case QuestManager.Quests.ShamanHumanTutorial:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanHumanTutorial);
+                    break;
+                case QuestManager.Quests.ShamanMushroomTutorial:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanMushroomTutorial);
+                    break;
+                case QuestManager.Quests.ShamanFluteTutorial:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanFluteTutorial);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (hitObject.CompareTag("Shaman"))
+        {
+            playerWalk.StopAgentOverride();
+        }
+
+        if (hitObject != null && hitObject.CompareTag("Human") || hitObject.CompareTag("Shaman"))
         {
             humanAI = hitObject.transform.GetComponentInParent<HumanAI>();
             humanAI.ChangeState(HumanAI.AIState.Dialogue);
@@ -1010,13 +1058,85 @@ public class CharacterBehaviours : MonoBehaviour
 
         //player.ChangeAnimationState(PLAYER_IDLE);
 
+        if (hitObject.CompareTag("Shaman"))
+        {
+            switch (questManager.GetCurrentQuest())
+            {
+                case QuestManager.Quests.ShamanIntroduction:
+                    questManager.CompleteQuest(QuestManager.Quests.ShamanIntroduction);
+                    break;
+                case QuestManager.Quests.ShamanTreeTutorial:
+                    questManager.CompleteQuest(QuestManager.Quests.ShamanTreeTutorial);
+                    break;
+                case QuestManager.Quests.ShamanHumanTutorial:
+                    questManager.CompleteQuest(QuestManager.Quests.ShamanHumanTutorial);
+                    break;
+                case QuestManager.Quests.ShamanMushroomTutorial:
+                    questManager.CompleteQuest(QuestManager.Quests.ShamanMushroomTutorial);
+                    break;
+                case QuestManager.Quests.ShamanFluteTutorial:
+
+                    humanAI.ChangeState(HumanAI.AIState.PlayMusic);
+
+                    bool questCompleted = false;
+
+                    while (!questCompleted)
+                    {
+                        interactCam.InteractRequired(player.gameObject);
+
+                        yield return new WaitUntil(() => fluteControl.fluteActive);
+
+                        float time = 0;
+                        float targetTime = 10f;
+
+                        // Continue as long as the flute is active and the target time isn't reached
+                        while (fluteControl.fluteActive && time <= targetTime)
+                        {
+                            time += Time.deltaTime;
+                            yield return null;
+                        }
+
+                        // Check if the flute was played for the entire duration
+                        if (time >= targetTime)
+                        {
+                            humanAI.ChangeState(HumanAI.AIState.Dialogue);
+                            questManager.CompleteQuest(QuestManager.Quests.ShamanFluteTutorial);
+                            dialogue.StartDialogue(Dialogue.DialogueType.ShamanConclusion);
+
+                            yield return new WaitUntil(() => dialogue.dialogueActive == false);
+
+                            humanAI.stats.KillInstant();
+                            questManager.CompleteQuest(QuestManager.Quests.ShamansConclusion);
+
+                            questCompleted = true;
+                        }
+                        else
+                        {
+                            // Start fail dialogue and wait for it to finish
+                            dialogue.StartDialogue(Dialogue.DialogueType.ShamanFluteTutorialFail);
+                            humanAI.ChangeState(HumanAI.AIState.Dialogue);
+
+                            yield return new WaitUntil(() => dialogue.dialogueActive == false);
+
+                            humanAI.ChangeState(HumanAI.AIState.PlayMusic);
+                        }
+                    }
+                    interactCam.ResetInteractRequired();
+
+                    break;
+                default:
+                    break;
+            }
+
+            playerWalk.CancelAgentOverride();
+        }
+
         dialogueIsActive = false;
         cinematicCam.ToGameZoom();
         yield break;
 
         //lookAtTarget = player.transform.gameObject;
         //StartCoroutine(cinematicCam.MoveCamToPosition(DefaultCamPivot, lookAtTarget, 15f));
-
 
     }
 

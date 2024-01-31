@@ -27,7 +27,6 @@ public class TitleUIControl : MonoBehaviour
     [SerializeField] private float lightAngleLerpDuration = 2f;  // Duration for one complete lerp cycle (0 to 6 to 0)
     private Coroutine lightAngleLerpCoroutine;
 
-
     private void Awake()
     {
         text = transform.GetComponent<TextMeshProUGUI>();

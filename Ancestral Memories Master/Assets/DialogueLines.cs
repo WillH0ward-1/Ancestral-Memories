@@ -11,7 +11,8 @@ public class DialogueLines : MonoBehaviour
         Neanderthal,
         MidSapien,
         Sapien,
-        Deer
+        Deer,
+        Shaman
     }
 
     public enum CharacterGenders
@@ -36,7 +37,14 @@ public class DialogueLines : MonoBehaviour
         SeasonsAutumn,
         SeasonsWinter,
         Insane,
-        BuildingPrompt
+        BuildingPrompt,
+        ShamanIntroduction,
+        ShamanFluteTutorial,
+        ShamanFluteTutorialFail,
+        ShamanTreeTutorial,
+        ShamanHumanTutorial,
+        ShamanMushroomTutorial,
+        ShamanConclusion
     }
 
     public List<string> sharedInsaneLines = new List<string>
@@ -308,6 +316,25 @@ public class DialogueLines : MonoBehaviour
             { Emotions.SeasonsSummer, new List<string> { "Days of plenty and warmth.", "Nights under the watchful moon." } },
             { Emotions.SeasonsAutumn, new List<string> { "Gathering for the winter ahead.", "Nature's lullaby in rustling leaves." } },
             { Emotions.SeasonsWinter, new List<string> { "Huddled together, we brave the cold.", "Dreaming of spring's promise." } }
+        };
+
+        conversations[(CharacterTypes.Shaman, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
+        {
+            { Emotions.ShamanIntroduction, new List<string> { "So, it is you who my wisdom shall be passed down to. The spirits have spoken. Who am I to question their wisdom?",
+                                                              "There is much for you to learn. Now, walk with me." } },
+            { Emotions.ShamanHumanTutorial, new List<string> { "Take care of the tribe. They hurt, they hunger, they need faith to be strong." } },
+            { Emotions.ShamanTreeTutorial, new List<string> { "These trees have lived here far longer than you and I. For that, they deserve respect.",
+                                                              "The rain nourishes their roots and leaves, without rain, they shall not bear fruit." } },
+            { Emotions.ShamanMushroomTutorial, new List<string> { "The sacred mushroom. It is your teacher, you are it's student.",
+                                                                  "Throughout Spring, Summer and Autumn, rain shall bring them forth, they retreat in the winter." } },
+             { Emotions.ShamanFluteTutorial, new List<string> { "I will teach you how to play the sacred flute, it shall lift our spirits.",
+                                                                "Now, listen closely."} },
+             { Emotions.ShamanFluteTutorialFail, new List<string> { "Why did you stop? You started off pretty good! Let's try again...",
+                                                                "Now, listen closely."} },
+            { Emotions.ShamanConclusion, new List<string> { "Now you've got it! You learn quickly.",
+                                                             "Do not take what I have taught you for granted.",
+                                                             "My work here is done. Now, I must leave you.",
+                                                             "Goodbye... Shaman.", } },
         };
     }
 }

@@ -139,21 +139,72 @@ public class InteractCamera : MonoBehaviour
         return distance <= maxSelectionDistance && distance >= minSelectionDistance;
     }
 
+    private GameObject requiredInteractable = null;
+    private bool interactionOverride = false;
+
+    public void InteractRequired(GameObject interactable)
+    {
+        requiredInteractable = interactable;
+    }
+
+    public void ResetInteractRequired()
+    {
+        requiredInteractable = null;
+    }
+
+    public void SetInteractionOverride(bool overrideStatus)
+    {
+        interactionOverride = overrideStatus;
+    }
+
     private void Update()
     {
-        if (behaviour.behaviourIsActive || behaviour.dialogueIsActive) return;
+        // Exit the method if certain conditions are active
+        if (behaviour.behaviourIsActive || (behaviour.dialogueIsActive && requiredInteractable == null))
+        {
+            return;
+        }
 
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layer))
         {
-            lookAtTarget.position = hit.point;
             GameObject newHoverObj = hit.transform.gameObject;
 
-            if (lastHit == null) // If no object is selected
+            // Handle interaction override
+            if (interactionOverride)
             {
-                // Apply hover outline to new hovered objects
-                if (hoverObj != newHoverObj)
+                // Allow interaction only with the required interactable, or none if it's null
+                if (newHoverObj != requiredInteractable)
+                {
+                    return;
+                }
+            }
+
+            lookAtTarget.position = hit.point;
+
+            if (requiredInteractable == null || newHoverObj == requiredInteractable)
+            {
+                if (lastHit == null) // No object is selected
+                {
+                    // Apply hover outline to new hovered objects
+                    if (hoverObj != newHoverObj)
+                    {
+                        if (hoverObj != null)
+                        {
+                            RemoveOutline(hoverObj);
+                        }
+
+                        hoverObj = newHoverObj;
+                        Interactable interactable = hoverObj.GetComponentInChildren<Interactable>();
+
+                        if (interactable != null && interactable.enabled && IsSelectable(hit.distance))
+                        {
+                            AddHoverOutline(hoverObj);
+                        }
+                    }
+                }
+                else if (hoverObj != lastHit) // An object is selected, maintain its outline
                 {
                     if (hoverObj != null)
                     {
@@ -161,22 +212,7 @@ public class InteractCamera : MonoBehaviour
                     }
 
                     hoverObj = newHoverObj;
-                    Interactable interactable = hoverObj.GetComponentInChildren<Interactable>();
-
-                    if (interactable != null && interactable.enabled && IsSelectable(hit.distance))
-                    {
-                        AddHoverOutline(hoverObj);
-                    }
                 }
-            }
-            else if (hoverObj != lastHit) // If an object is selected, maintain its outline
-            {
-                if (hoverObj != null)
-                {
-                    RemoveOutline(hoverObj);
-                }
-
-                hoverObj = newHoverObj;
             }
         }
         else
@@ -193,6 +229,8 @@ public class InteractCamera : MonoBehaviour
         if (Input.GetMouseButtonDown(1)) HandleMouseDown();
         if (Input.GetMouseButtonUp(1)) HandleMouseUp();
     }
+
+
 
 
 
