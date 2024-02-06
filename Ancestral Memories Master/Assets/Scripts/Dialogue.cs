@@ -161,12 +161,15 @@ public class Dialogue : MonoBehaviour
 
     public enum DialogueType
     {
+        IntroductionDialogue,
         IdleDialogue,
         BuildingPromptDialogue,
         ShamanIntroduction,
         ShamanFluteTutorial,
         ShamanFluteTutorialFail,
         ShamanTreeTutorial,
+        ShamanFireTutorial,
+        ShamanLightningTutorial,
         ShamanHumanTutorial,
         ShamanMushroomTutorial,
         ShamanConclusion
@@ -195,6 +198,9 @@ public class Dialogue : MonoBehaviour
             case DialogueType.IdleDialogue:
                 selectedEmotion = currentEmotion;
                 break;
+            case DialogueType.IntroductionDialogue:
+                selectedEmotion = DialogueLines.Emotions.IntroductionDialogue;
+                break;
             case DialogueType.BuildingPromptDialogue:
                 selectedEmotion = DialogueLines.Emotions.BuildingPrompt;
                 break;
@@ -210,6 +216,12 @@ public class Dialogue : MonoBehaviour
             case DialogueType.ShamanTreeTutorial:
                 selectedEmotion = DialogueLines.Emotions.ShamanTreeTutorial;
                 break;
+            case DialogueType.ShamanFireTutorial:
+                selectedEmotion = DialogueLines.Emotions.ShamanFireTutorial;
+                break;
+            case DialogueType.ShamanLightningTutorial:
+                selectedEmotion = DialogueLines.Emotions.ShamanLightningTutorial;
+                break;
             case DialogueType.ShamanHumanTutorial:
                 selectedEmotion = DialogueLines.Emotions.ShamanHumanTutorial;
                 break;
@@ -224,7 +236,7 @@ public class Dialogue : MonoBehaviour
                 return;
         }
 
-        lines = dialogueLines.GetDialogue(parsedType, parsedGender, selectedEmotion).ToArray();
+        lines = dialogueLines.GetDialogue(parsedType, parsedGender, selectedEmotion, characterName).ToArray();
 
         if (lines.Length == 0 || (lines.Length == 1 && lines[0] == "No dialogue available for this combination."))
         {

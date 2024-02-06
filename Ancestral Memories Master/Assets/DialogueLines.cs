@@ -23,6 +23,7 @@ public class DialogueLines : MonoBehaviour
 
     public enum Emotions
     {
+        IntroductionDialogue,
         Neutral,
         Joy,
         Fear,
@@ -42,10 +43,15 @@ public class DialogueLines : MonoBehaviour
         ShamanFluteTutorial,
         ShamanFluteTutorialFail,
         ShamanTreeTutorial,
+        ShamanLightningTutorial,
+        ShamanFireTutorial,
         ShamanHumanTutorial,
         ShamanMushroomTutorial,
         ShamanConclusion
     }
+
+    public Dialogue dialogue;
+    public AICharacterStats stats;
 
     public List<string> sharedInsaneLines = new List<string>
     {
@@ -159,8 +165,12 @@ public class DialogueLines : MonoBehaviour
         return sortedVocabulary;
     }
 
-    public List<string> GetDialogue(CharacterTypes characterType, CharacterGenders characterGender, Emotions emotion)
+    public string name;
+
+    public List<string> GetDialogue(CharacterTypes characterType, CharacterGenders characterGender, Emotions emotion, string characterName)
     {
+        name = characterName;
+
         if (emotion == Emotions.BuildingPrompt)
         {
             // If emotion is BuildingPrompt, return a single random line from buildingPromptLines
@@ -183,24 +193,26 @@ public class DialogueLines : MonoBehaviour
         // Neanderthal Male
         conversations[(CharacterTypes.Neanderthal, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
-            { Emotions.Neutral, new List<string> { "Day end. Fire needed.", "Berries good. Eat soon." } },
+            { Emotions.IntroductionDialogue, new List<string> { "You new around here.", "My 'name'? What that? No mind. Seem friendly." } },
+            { Emotions.Neutral, new List<string> { "Day end. Fire needed.", "Apples good. Eat soon." } },
             { Emotions.Joy, new List<string> { "Little one strong, grow fast.", "Cave warm. Tribe safe." } },
             { Emotions.Fear, new List<string> { "Sky dark. Storm scary.", "Beast noise. Need sharp stick." } },
             { Emotions.Curiosity, new List<string> { "Bright stone in river.", "New tree. Fruit look good." } },
             { Emotions.Contentment, new List<string> { "Tribe safe. Good hunt today.", "Bird sound nice. Sky clear." } },
             { Emotions.Alertness, new List<string> { "Noise near. Protect family!", "Saw something. Ready spear." } },
             { Emotions.Sadness, new List<string> { "Sad. Body feel heavy.", "Miss old leader. He strong." } },
-            { Emotions.Hungry, new List<string> { "Stomach growls. Need hunt deer.", "Need food. Apples and mushrooms?" } },
+            { Emotions.Hungry, new List<string> { "Stomach growls. Need hunt deer.", "Need food. Apple or mushroom?" } },
             { Emotions.Praise, new List<string> { "You fast! Good chase.", "Fire warm. You did well." } },
             { Emotions.SeasonsSpring, new List<string> { "New plant. Air fresh.", "Little animals play. Fun watch." } },
-            { Emotions.SeasonsSummer, new List<string> { "Sun hot. River cool.", "Berries everywhere. Gather!" } },
+            { Emotions.SeasonsSummer, new List<string> { "Sun hot. River cool.", "Skin hot. Try not to burn." } },
             { Emotions.SeasonsAutumn, new List<string> { "Trees orange and red. Look nice.", "Stack food. Winter come." } },
             { Emotions.SeasonsWinter, new List<string> { "Cold! Need big fire.", "Hope sun come back soon." } },
         };
         // Neanderthal Female
         conversations[(CharacterTypes.Neanderthal, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
-            { Emotions.Neutral, new List<string> { "Sun sets. Night near.", "Berries collected. Ready for eat." } },
+            { Emotions.IntroductionDialogue, new List<string> { "You new around here.", "My 'name'? What that? No mind. Seem friendly." } },
+            { Emotions.Neutral, new List<string> { "Sun sets. Night near.", "Apples collected. Ready for eat." } },
             { Emotions.Joy, new List<string> { "Little one learn walk.", "Safe cave, warm fire." } },
             { Emotions.Fear, new List<string> { "Cold wind. Storm come.", "Hear growl in dark." } },
             { Emotions.Curiosity, new List<string> { "See shiny thing in water.", "Strange smell from plant." } },
@@ -217,6 +229,7 @@ public class DialogueLines : MonoBehaviour
         // MidSapien Male dialogues
         conversations[(CharacterTypes.MidSapien, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
+            { Emotions.IntroductionDialogue, new List<string> { "Haven't seen you before", "I'm " + name + ". Good we meet." } },
             { Emotions.Neutral, new List<string> { "Sky changes colors.", "River murmurs to us." } },
             { Emotions.Joy, new List<string> { "Tribe dances with spirit.", "Today's hunt brings plenty." } },
             { Emotions.Fear, new List<string> { "Dark shadows move.", "Night's sounds bring unease." } },
@@ -234,6 +247,7 @@ public class DialogueLines : MonoBehaviour
         // MidSapien Female dialogues
         conversations[(CharacterTypes.MidSapien, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
+            { Emotions.IntroductionDialogue, new List<string> { "Haven't seen you before", "I'm " + name + ". Good we meet." } },
             { Emotions.Neutral, new List<string> { "World spins, stars guide.", "Night's canvas lit by stars." } },
             { Emotions.Joy, new List<string> { "Tribe rejoices for new life.", "Rain's dance is a blessing." } },
             { Emotions.Fear, new List<string> { "Sky's dark signs trouble.", "A distant cry warns us." } },
@@ -251,6 +265,7 @@ public class DialogueLines : MonoBehaviour
         // Sapien Male dialogues
         conversations[(CharacterTypes.Sapien, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
+            { Emotions.IntroductionDialogue, new List<string> { "Greetings. We haven't met before.", "My name is " + name + ". Good to meet you." } },
             { Emotions.Neutral, new List<string> { "The cosmos hums its eternal song.", "Nature holds secrets, deep and profound." } },
             { Emotions.Joy, new List<string> { "The dance of the stars fills my heart.", "Wisdom shared, lights another's path." } },
             { Emotions.Fear, new List<string> { "Shadows grow when ignorance thrives.", "Eclipses, while transient, dim the soul's light." } },
@@ -268,6 +283,7 @@ public class DialogueLines : MonoBehaviour
         // Sapien Female dialogues
         conversations[(CharacterTypes.Sapien, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
+            { Emotions.IntroductionDialogue, new List<string> { "Greetings. We haven't met before.", "My name is " + name + ". Good to meet you." } },
             { Emotions.Neutral, new List<string> { "Every dusk, a story's end. Every dawn, a new tale.", "The river of existence flows, unceasing." } },
             { Emotions.Joy, new List<string> { "Light dances in every heart.", "In unity, the universe rejoices." } },
             { Emotions.Fear, new List<string> { "Darkness, a canvas for the soul's light.", "Unknown paths, veiled in mystery." } },
@@ -293,7 +309,7 @@ public class DialogueLines : MonoBehaviour
             { Emotions.Contentment, new List<string> { "The meadow is peaceful.", "Sun is warm, grass is green." } },
             { Emotions.Alertness, new List<string> { "Ears twitch at a distant sound.", "Every shadow could be a threat." } },
             { Emotions.Sadness, new List<string> { "Lost a fawn to the river's flow.", "Silent woods mourn with me." } },
-            { Emotions.Hungry, new List<string> { "Grass low. Search new meadow.", "Berries? Sweet and filling." } },
+            { Emotions.Hungry, new List<string> { "Grass low. Search new meadow.", "Apples? Sweet and filling." } },
             { Emotions.Praise, new List<string> { "The elder stag stands tall.", "His wisdom guides us." } },
             { Emotions.SeasonsSpring, new List<string> { "New life stirs the forest.", "Birdsong heralds new beginnings." } },
             { Emotions.SeasonsSummer, new List<string> { "Lush fields and cool streams.", "Nature in full splendor." } },
@@ -304,7 +320,7 @@ public class DialogueLines : MonoBehaviour
         conversations[(CharacterTypes.Deer, CharacterGenders.Female)] = new Dictionary<Emotions, List<string>>
         {
             { Emotions.Neutral, new List<string> { "Grazing, always vigilant.", "The forest whispers its stories." } },
-            { Emotions.Joy, new List<string> { "Fawn plays in the meadow.", "Berries are abundant." } },
+            { Emotions.Joy, new List<string> { "Fawn plays in the meadow.", "Apples are abundant." } },
             { Emotions.Fear, new List<string> { "Heard a Neanderthal's footsteps.", "Wolves howling nearby." } },
             { Emotions.Curiosity, new List<string> { "A butterfly's delicate dance.", "New scents brought by the wind." } },
             { Emotions.Contentment, new List<string> { "Safe among the herd.", "Protected by the grove's embrace." } },
@@ -320,21 +336,47 @@ public class DialogueLines : MonoBehaviour
 
         conversations[(CharacterTypes.Shaman, CharacterGenders.Male)] = new Dictionary<Emotions, List<string>>
         {
-            { Emotions.ShamanIntroduction, new List<string> { "So, it is you who my wisdom shall be passed down to. The spirits have spoken. Who am I to question their wisdom?",
-                                                              "There is much for you to learn. Now, walk with me." } },
-            { Emotions.ShamanHumanTutorial, new List<string> { "Take care of the tribe. They hurt, they hunger, they need faith to be strong." } },
-            { Emotions.ShamanTreeTutorial, new List<string> { "These trees have lived here far longer than you and I. For that, they deserve respect.",
-                                                              "The rain nourishes their roots and leaves, without rain, they shall not bear fruit." } },
+            { Emotions.ShamanIntroduction, new List<string> { "So, it is you who my wisdom shall be passed down to. The Spirits have spoken. Who am I to question their wisdom?",
+                                                              "There is much for you to learn." } },
+
+            { Emotions.ShamanHumanTutorial, new List<string> { "Take care of the tribe. Just like you, they hurt, they hunger, they need faith to be strong." } },
+
+            { Emotions.ShamanTreeTutorial, new List<string> { "The trees have lived here far longer than you and I can conceive. For that, they deserve respect.",
+                                                              "The rain, the life giver, nourishes the tree's roots and leaves, without rain, they die, and shall not bear fruit.",
+                                                              "Though we must harvest the trees for their wood, do not allow yourself to eradicate the forest! The Spirits will not be pleased.",
+                                                              "You may retrieve seeds from the fallen fruits of the tree and plant them. Be patient, and new life shall grow.",
+                                                              "Our spiritual offerings to the Spirits keep these grounds fertile. So, do not dissapoint them...",
+                                                              "Now... I shall awaken the trees from their long slumber... " } },
+
+            { Emotions.ShamanLightningTutorial, new List<string> { "Heed my warning. Beware the wrath of God. If you lack faith, his thunderbolts will show no mercy.",
+                                                                   "Fire will cause relentless devasation to whatever stands in its way."
+            } },
+
+            { Emotions.ShamanFireTutorial, new List<string> { "Speaking of fire, you must fear it, yet learn to harness its power.",
+                                                              "Our most sacred of rituals depends on fire. Use the wood you gather to create bonfires.",
+                                                              "Not only will it keep the tribe warm during the winter, but you will elevate their faith in providing this neccesity.",
+            } },
+
             { Emotions.ShamanMushroomTutorial, new List<string> { "The sacred mushroom. It is your teacher, you are it's student.",
                                                                   "Throughout Spring, Summer and Autumn, rain shall bring them forth, they retreat in the winter." } },
+
              { Emotions.ShamanFluteTutorial, new List<string> { "I will teach you how to play the sacred flute, it shall lift our spirits.",
                                                                 "Now, listen closely."} },
+
              { Emotions.ShamanFluteTutorialFail, new List<string> { "Why did you stop? You started off pretty good! Let's try again...",
-                                                                "Now, listen closely."} },
-            { Emotions.ShamanConclusion, new List<string> { "Now you've got it! You learn quickly.",
-                                                             "Do not take what I have taught you for granted.",
-                                                             "My work here is done. Now, I must leave you.",
-                                                             "Goodbye... Shaman.", } },
+                                                                "Now, listen closely. " } },
+
+            { Emotions.ShamanConclusion, new List<string> { "Now you've got it!",
+                                                             "Do not take what I have taught you for granted...",
+                                                             "Without this wisdom, we are nothing.",
+                                                             "Meet now with your fellow bretherin, without their help, we shall all perish.",
+                                                             "Without your leadership, they are faithless and weak. Using what i've taught you, instil them with strength.",
+                                                             "Before you are able to gain their help, you must first gain their trust.",
+                                                             "First, you must introduce yourself to them, keep them fed.",
+                                                             "They are loyal as can be, provided you are loyal to them.",
+                                                             "My work here is done, and my time is nigh... Now, I must leave you...",
+                                                             "...The Spirits...they're calling...",
+                                                             "...Goodbye... Shaman." } },
         };
     }
 }

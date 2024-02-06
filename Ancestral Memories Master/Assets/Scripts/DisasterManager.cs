@@ -95,27 +95,30 @@ public class DisasterManager : MonoBehaviour
 
     void TriggerDisaster()
     {
-        target = GetRandomTarget();
-        disasterOccuring = true;
-
-        if (target != null)
+        if (player.faith <= player.minStat / 3)
         {
-            lightning.StrikeLightning(target);
+            target = GetRandomTarget();
+            disasterOccuring = true;
 
-            var existingTarget = struckTargets.FirstOrDefault(st => st.TargetTransform == target);
-            if (existingTarget.TargetTransform != null)
+            if (target != null)
             {
-                existingTarget.EligibleTime = Time.time + targetCooldownDuration;
+                lightning.StrikeLightning(target);
+
+                var existingTarget = struckTargets.FirstOrDefault(st => st.TargetTransform == target);
+                if (existingTarget.TargetTransform != null)
+                {
+                    existingTarget.EligibleTime = Time.time + targetCooldownDuration;
+                }
+                else
+                {
+                    struckTargets.Add(new StruckTarget { TargetTransform = target, EligibleTime = Time.time + targetCooldownDuration });
+                }
+
+                lastStruckTarget = target; // Update the last struck target
+
+                struckTargets.RemoveAll(st => st.EligibleTime <= Time.time);
+
             }
-            else
-            {
-                struckTargets.Add(new StruckTarget { TargetTransform = target, EligibleTime = Time.time + targetCooldownDuration });
-            }
-
-            lastStruckTarget = target; // Update the last struck target
-
-            struckTargets.RemoveAll(st => st.EligibleTime <= Time.time);
-
         }
 
         StartCoroutine(DisasterCoolDown());

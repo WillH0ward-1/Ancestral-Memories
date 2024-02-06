@@ -8,6 +8,7 @@ public class ResourcesManager : MonoBehaviour
     public List<GameObject> WoodList;
     public List<GameObject> PopulationList;
     public List<GameObject> StoneList;
+    public List<GameObject> FollowersList;
 
     private Dictionary<string, List<GameObject>> resourceObjects = new Dictionary<string, List<GameObject>>();
     private ResourcesUI resourcesUI;
@@ -18,11 +19,13 @@ public class ResourcesManager : MonoBehaviour
         WoodList = new List<GameObject>();
         PopulationList = new List<GameObject>();
         StoneList = new List<GameObject>();
+        FollowersList = new List<GameObject>(); 
 
         resourceObjects["Food"] = FoodList;
         resourceObjects["Wood"] = WoodList;
-        resourceObjects["Population"] = PopulationList;
         resourceObjects["Stone"] = StoneList;
+        resourceObjects["Population"] = PopulationList;
+        resourceObjects["Followers"] = FollowersList;
 
         if (resourcesUI == null)
         {
@@ -41,8 +44,9 @@ public class ResourcesManager : MonoBehaviour
         // Assuming you want to clear and reinitialize the lists
         FoodList.Clear();
         WoodList.Clear();
-        PopulationList.Clear();
         StoneList.Clear();
+        PopulationList.Clear();
+        FollowersList.Clear(); // Clear followers list
 
         UpdateUI();
     }

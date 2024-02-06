@@ -189,7 +189,30 @@ public class CamControl : MonoBehaviour
         }
     }
 
+    public IEnumerator CamPosZoom(Vector3 targetOffset, float duration)
+    {
+        Vector3 startOffset = cameraOffset; // 'cameraOffset' should be the current offset of the camera from its target
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            t = Mathf.SmoothStep(0f, 1f, t); // Use SmoothStep for a smoother transition
+
+            cameraOffset = Vector3.Lerp(startOffset, targetOffset, t); // Interpolates from the start offset to the target offset over time
+
+            yield return null;
+        }
+
+        // Ensure the camera is exactly at the target offset after the loop
+        cameraOffset = targetOffset;
+    }
+
+
     public bool isInBuildMode = false;
+
+
 
     public IEnumerator BuildMode(BuildingOption buildOption, GameObject buildingPrefab, GameObject decalProjectorPrefab)
     {
@@ -208,36 +231,57 @@ public class CamControl : MonoBehaviour
             yield return null;
         }
 
-        // Instantiate a temporary temple for occupation radius calculation
-        GameObject tempTemple = Instantiate(buildingPrefab);
-        TempleGenerator templeGenForRadius = tempTemple.GetComponentInChildren<TempleGenerator>();
-        templeGenForRadius.player = player; // Set player reference
-        templeGenForRadius.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
-        templeGenForRadius.GenerateTemple(); // Generate the temple
-        templeGenForRadius.CreateOccupationCollider();
-        float occupationRadius = templeGenForRadius.GetOccupationColliderRadius();
-        Vector3 occupationVectorRadius = templeGenForRadius.GetColliderRadiusAsVector();
-        templeGenForRadius.DisableTemple(); // Disable the temple for visual
+        float occupationRadius = 0f;
+        Vector3 occupationVectorRadius = Vector3.zero;
 
-        Vector3 scaledOccupationRadius = occupationVectorRadius * 10;
+        GameObject tempPrefab = Instantiate(buildingPrefab);
+        float radius = 0f;
 
-        Destroy(tempTemple);
+        switch (buildOption.type)
+        {
+            case BuildingType.Temple:
+
+                TempleGenerator templeGenForRadius = tempPrefab.GetComponentInChildren<TempleGenerator>();
+                templeGenForRadius.player = player; // Set player reference
+                templeGenForRadius.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
+                templeGenForRadius.GenerateTemple(); // Generate the temple
+                templeGenForRadius.CreateOccupationCollider();
+
+                occupationRadius = templeGenForRadius.GetOccupationColliderRadius();
+                occupationVectorRadius = templeGenForRadius.GetColliderRadiusAsVector() / 2;
+                templeGenForRadius.DisableTemple(); // Disable the temple for visual
+                break;
+
+            case BuildingType.Campfire:
+                radius = tempPrefab.GetComponentInChildren<SphereCollider>().radius / 2;
+                occupationVectorRadius = new Vector3(radius, radius, radius);
+                break;
+
+            case BuildingType.Settlement:
+                radius = tempPrefab.GetComponentInChildren<SphereCollider>().radius / 2;
+                occupationVectorRadius = new Vector3(radius, radius, radius);
+                break;
+
+        }
+
+        Vector3 scaledOccupationRadius = occupationVectorRadius;
+
+        Destroy(tempPrefab);
 
         GameObject decalInstance = Instantiate(decalProjectorPrefab);
         DecalProjectorManager decalManager = decalInstance.GetComponent<DecalProjectorManager>();
         DecalProjector decalProjector = decalManager.decalProjector;
 
-        // Create a new material instance for the DecalProjector
         if (decalProjector != null && decalProjector.material != null)
         {
             decalProjector.material = new Material(decalProjector.material);
         }
 
         decalManager.SetIsBuilt(false);
-        decalManager.SetDecalSize(scaledOccupationRadius); // Use the scaled radius for decal size
+        decalManager.SetDecalSize(scaledOccupationRadius);
 
-        // Raycasting to place the decal
         LayerMask groundLayer = LayerMask.GetMask("Ground");
+
         while (isInBuildMode)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -254,16 +298,22 @@ public class CamControl : MonoBehaviour
             // Finalize position with right-click only if it's a valid build area
             if (Input.GetMouseButtonDown(1) && !decalManager.CheckForCollisions(occupationRadius))
             {
-                GameObject finalTemple = Instantiate(buildingPrefab, hit.point, Quaternion.identity);
-                TempleGenerator finalTempleGen = finalTemple.GetComponentInChildren<TempleGenerator>();
-                finalTempleGen.player = player; // Set player reference
-                finalTempleGen.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
-                finalTempleGen.GenerateTemple();
-                finalTempleGen.EnableTemple(); // Enable the temple for visual
-                SetupShaderLights(finalTemple);
-                finalTempleGen.CreateOccupationCollider();
+                GameObject finalPrefab = Instantiate(buildingPrefab, hit.point, Quaternion.identity);
+
+                if (buildOption.type == BuildingType.Temple)
+                {
+                    TempleGenerator finalTempleGen = finalPrefab.GetComponentInChildren<TempleGenerator>();
+                    finalTempleGen.player = player; // Set player reference
+                    finalTempleGen.playerStats = player.GetComponentInChildren<AICharacterStats>(); // Set player stats
+                    finalTempleGen.GenerateTemple();
+                    finalTempleGen.EnableTemple(); // Enable the temple for visual
+                    SetupShaderLights(finalPrefab);
+                    finalTempleGen.CreateOccupationCollider();
+                }
+
+
                 decalManager.SetIsBuilt(true); // Set the decal as built
-                decalManager.transform.SetParent(finalTemple.transform);
+                decalManager.transform.SetParent(finalPrefab.transform);
                 break; // Exit the loop
             }
             else if (Input.GetMouseButtonDown(1))
@@ -285,6 +335,8 @@ public class CamControl : MonoBehaviour
 
         isInBuildMode = false; // Exit Build Mode
     }
+
+
 
     void SetupShaderLights(GameObject obj)
     {

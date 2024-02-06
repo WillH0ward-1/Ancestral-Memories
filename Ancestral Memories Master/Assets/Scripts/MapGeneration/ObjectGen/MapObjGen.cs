@@ -262,6 +262,8 @@ public class MapObjGen : MonoBehaviour
 
     private Vector3 zeroScale = new Vector3(0.0000001f, 0.0000001f, 0.0000001f);
 
+    private List<List<GameObject>> listOfLists = new List<List<GameObject>>();
+    List<List<AICharacterStats>> listOfStatsLists = new List<List<AICharacterStats>>();
     public List<GameObject> mapObjectList;
     public List<GameObject> treeList;
     public List<GameObject> treeGrowingList;
@@ -347,6 +349,7 @@ public class MapObjGen : MonoBehaviour
     private FireManager fireManager;
 
     private CamControl camControl;
+    private FollowersManager followersManager;
 
     public IEnumerator WaterSFXEmitterGen()
     {
@@ -424,6 +427,9 @@ public class MapObjGen : MonoBehaviour
         fireManager = GetComponentInChildren<FireManager>();
         fireManager.mapObjGen = this;
         resources = FindObjectOfType<ResourcesManager>();
+        followersManager = player.GetComponentInChildren<FollowersManager>();
+        followersManager.resourcesManager = resources;
+
         FormationController formationController = GetComponentInChildren<FormationController>();
         formationController.mapObjGen = this;
         formationController.InitFormationAgents();
@@ -435,15 +441,33 @@ public class MapObjGen : MonoBehaviour
 
     public IEnumerator InitAllRelationships()
     {
-        foreach (GameObject g in npcList)
+        // Directly iterate over NPCs to initialize their relationships
+        foreach (GameObject npc in humanPopulationList)
         {
-            AICharacterStats stats = g.GetComponentInChildren<AICharacterStats>();
-            stats.mapObjGen = this;
-            StartCoroutine(stats.InitAllRelationships(npcList));
+            if (npc != null)
+            {
+                AICharacterStats stats = npc.GetComponentInChildren<AICharacterStats>();
+                if (stats != null)
+                {
+                    stats.mapObjGen = this;
+                    stats.player = player;
+                    stats.InitAllRelationships(humanPopulationList);
+                }
+            }
+        }
+
+        // Initialize the player's relationships if needed
+        AICharacterStats playerStats = player.GetComponentInChildren<AICharacterStats>();
+        if (playerStats != null)
+        {
+            playerStats.mapObjGen = this;
+            playerStats.player = player;
+            playerStats.InitAllRelationships(humanPopulationList);
         }
 
         yield break;
     }
+
 
 
     private void InitAudioManager()
@@ -489,6 +513,45 @@ public class MapObjGen : MonoBehaviour
         //DeformableManager playerDeformManager = playerDeform.transform.gameObject.AddComponent<DeformableManager>();
         // playerDeformManager.update = true;
     }
+
+    void InitializeLists()
+    {
+        listOfLists.Add(mapObjectList);
+        listOfLists.Add(npcList);
+        listOfLists.Add(humanPopulationList);
+        listOfLists.Add(huntableAnimalsList);
+        listOfLists.Add(flammableObjectList);
+        listOfLists.Add(limeStoneList);
+        listOfLists.Add(treeList);
+        listOfLists.Add(grassList);
+        listOfLists.Add(stoneList);
+        listOfLists.Add(spawnPointsList);
+        listOfStatsLists.Add(allHumanStats);
+
+    }
+
+    void RemoveGameObjectFromAllLists(GameObject objToRemove)
+    {
+        foreach (var list in listOfLists)
+        {
+            if (list.Contains(objToRemove))
+            {
+                list.Remove(objToRemove);
+            }
+        }
+    }
+
+    void RemoveAIStatsFromAllLists(AICharacterStats stats)
+    {
+        foreach (var list in listOfStatsLists)
+        {
+            if (list.Contains(stats))
+            {
+                list.Remove(stats);
+            }
+        }
+    }
+
 
 
     public void GenerateMapObjects()
@@ -543,6 +606,8 @@ public class MapObjGen : MonoBehaviour
         ProceduralTreePoissonDisc(treeSampler);
         LimeStonePoissonDisc(limeStoneSampler);
 
+        InitializeLists();
+
         //TemplePoissonDisc(templeSampler);
 
         SetOffset();
@@ -554,16 +619,6 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(WaterSFXEmitterGen());
         DestroyDeadZones();
 
-        ListCleanup(spawnPointsList);
-        ListCleanup(mapObjectList);
-        ListCleanup(treeList);
-        ListCleanup(npcList);
-        ListCleanup(grassList);
-        ListCleanup(humanPopulationList);
-        ListCleanupAIStats(allHumanStats);
-        ListCleanup(huntableAnimalsList);
-        ListCleanup(flammableObjectList);
-        ListCleanup(limeStoneList);
 
         //ListCleanup(templeList);
 
@@ -581,7 +636,7 @@ public class MapObjGen : MonoBehaviour
 
         GetPTGrowComponents();
 
-        StartCoroutine(StartProceduralTreeGrowth(treeList));
+        //StartCoroutine(StartProceduralTreeGrowth(treeList));
 
         SpawnPlayer();
         SpawnShaman();
@@ -602,27 +657,83 @@ public class MapObjGen : MonoBehaviour
         for (int i = objectsList.Count - 1; i >= 0; i--)
         {
             GameObject obj = objectsList[i];
-            if (!obj.CompareTag(limeStoneTag))
+            if (obj != null && !obj.CompareTag(limeStoneTag))
             {
-                if (obj != null && Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundAndWaterLayerMask))
+                if (Physics.Raycast(obj.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundAndWaterLayerMask))
                 {
-                    if (hit.collider.CompareTag(waterTag) || hit.collider == null)
+                    if (hit.collider.CompareTag(waterTag))
                     {
+                        if (obj.CompareTag("Human"))
+                        {
+                            var stats = obj.GetComponentInChildren<AICharacterStats>();
+                            if (stats != null) RemoveAIStatsFromAllLists(stats);
+                        }
+                        RemoveGameObjectFromAllLists(obj);
                         DestroyObject(obj);
-                        objectsList.RemoveAt(i);
+                    }
+                    else
+                    {
+                        AnchorToGround(obj);
                     }
                 }
                 else
                 {
-                    // Object is either null or not properly positioned, remove from list
-                    objectsList.RemoveAt(i);
+                    if (obj.CompareTag("Human"))
+                    {
+                        var stats = obj.GetComponentInChildren<AICharacterStats>();
+                        if (stats != null) RemoveAIStatsFromAllLists(stats);
+                    }
+                    RemoveGameObjectFromAllLists(obj);
+                    DestroyObject(obj);
                 }
             }
-
-
-            AnchorToGround(obj);
         }
     }
+
+    public IEnumerator CheckOverWater(List<GameObject> list)
+    {
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = list[i];
+            if (obj != null && IsOverWater(obj, checkOffset, out float hitPointY))
+            {
+                obj.transform.position = new Vector3(obj.transform.position.x, hitPointY, obj.transform.position.z);
+            }
+            else
+            {
+                if (obj.CompareTag("Human"))
+                {
+                    var stats = obj.GetComponentInChildren<AICharacterStats>();
+                    if (stats != null) RemoveAIStatsFromAllLists(stats);
+                }
+                RemoveGameObjectFromAllLists(obj);
+                DestroyObject(obj);
+            }
+        }
+        yield break;
+    }
+
+    void DestroyDeadZones()
+    {
+        for (int i = mapObjectList.Count - 1; i >= 0; i--)
+        {
+            GameObject gameObject = mapObjectList[i];
+            if (gameObject != null && Physics.Raycast(gameObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
+            {
+                if (hitFloor.collider.CompareTag("DeadZone") && !gameObject.CompareTag("Structure"))
+                {
+                    if (gameObject.CompareTag("Human"))
+                    {
+                        var stats = gameObject.GetComponentInChildren<AICharacterStats>();
+                        if (stats != null) RemoveAIStatsFromAllLists(stats);
+                    }
+                    RemoveGameObjectFromAllLists(gameObject);
+                    DestroyObject(gameObject);
+                }
+            }
+        }
+    }
+
 
     void DestroyObject(GameObject obj)
     {
@@ -636,29 +747,6 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-
-
-    public IEnumerator CheckOverWater(List<GameObject> list)
-    {
-        // Iterate in reverse order to safely remove items from the list
-        for (int i = list.Count - 1; i >= 0; i--)
-        {
-            GameObject obj = list[i];
-            if (obj != null && IsOverWater(obj, checkOffset, out float hitPointY))
-            {
-                // Adjust emitter position to the hit point Y-coordinate
-                obj.transform.position = new Vector3(obj.transform.position.x, hitPointY, obj.transform.position.z);
-            }
-            else
-            {
-                // Destroy the object and remove it from the list
-                list.RemoveAt(i);
-                Destroy(obj);
-            }
-        }
-
-        yield break;
-    }
 
     void SetupShaderLightColours()
     {
@@ -678,7 +766,20 @@ public class MapObjGen : MonoBehaviour
         }
     }
 
-
+    public void SetAllHumanInteractables(InteractableManager.InteractableAction newAction)
+    {
+        foreach(GameObject human in humanPopulationList)
+        {
+            if (human != null)
+            {
+                InteractableManager interactableManager = human.GetComponentInChildren<InteractableManager>();
+                if (interactableManager != null)
+                {
+                    interactableManager.AddOption(newAction);
+                }
+            }
+        }
+    }
 
     private void SetupDisasters()
     {
@@ -696,11 +797,14 @@ public class MapObjGen : MonoBehaviour
         {
             //ProceduralModelingBase ptBase = tree.GetComponentInChildren<ProceduralModelingBase>();
             //ptBase.player = player;
-            PTGrowing ptGrowing = tree.GetComponentInChildren<PTGrowing>();
-           // TreeFruitManager fruitManager = tree.GetComponentInChildren<TreeFruitManager>();
-            ptGrowing.SetupBounds();
-            ptGrowing.GrowTree();
-           // fruitManager.InitializeFruits(fruitManager.maxFruits);
+            if (tree != null)
+            {
+                PTGrowing ptGrowing = tree.GetComponentInChildren<PTGrowing>();
+                // TreeFruitManager fruitManager = tree.GetComponentInChildren<TreeFruitManager>();
+                ptGrowing.SetupBounds();
+                StartCoroutine(ptGrowing.GrowTreeInstant());
+            }
+            // fruitManager.InitializeFruits(fruitManager.maxFruits);
         }
 
         yield break;
@@ -972,6 +1076,7 @@ public class MapObjGen : MonoBehaviour
         humanStats.SubscribeToBirthday();
         allHumanStats.Add(humanStats);
 
+
         FLookAnimator lookAnimator = shamanInstance.GetComponentInChildren<FLookAnimator>();
         lookAnimator.enabled = true;
         lookAnimator.ObjectToFollow = player.transform;
@@ -983,7 +1088,6 @@ public class MapObjGen : MonoBehaviour
         mapObjectList.Add(shamanInstance);
         npcList.Add(shamanInstance);
         humanPopulationList.Add(shamanInstance);
-        flammableObjectList.Add(shamanInstance);
 
         humanAI.InitHuman();
 
@@ -1519,42 +1623,6 @@ public class MapObjGen : MonoBehaviour
         
 
     }
-
-    void DestroyDeadZones()
-    {
-        for (int i = mapObjectList.Count - 1; i >= 0; i--)
-        {
-            GameObject gameObject = mapObjectList[i];
-            if (gameObject != null)
-            {
-                if (Physics.Raycast(gameObject.transform.position, Vector3.down, out RaycastHit hitFloor, Mathf.Infinity, deadZoneLayerMask))
-                {
-                    if (hitFloor.collider.CompareTag("DeadZone") && !gameObject.CompareTag("Structure"))
-                    {
-                        mapObjectList.RemoveAt(i); // Remove from list to keep it updated
-                        DestroyObject(gameObject);
-                    }
-                }
-            }
-        }
-
-        void DestroyObject(GameObject obj)
-        {
-
-            if (!Application.isPlaying)
-            {
-                //              Debug.Log("Object destroyed in Editor.");
-                DestroyImmediate(obj);
-            }
-            else
-            {
-//               Debug.Log("Object destroyed in game.");
-                Destroy(obj);
-            }
-        }
-    }
-
-
 
     void SetOffset()
     {

@@ -67,30 +67,33 @@ public class RainControl : MonoBehaviour
     {
         while (true) // Repeat indefinitely
         {
-            if (!isRaining)
+            if (!QuestManager.Instance.IsShamanQuestActive())
             {
-                float time = 0;
-                float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
+                if (!isRaining)
+                {
+                    float time = 0;
+                    float rainWaitDuration = Random.Range(minWaitForRain, maxWaitForRain);
 
-                while (time < rainWaitDuration)
-                {
-                    time += Time.deltaTime;
-                    yield return null;
-                }
+                    while (time < rainWaitDuration)
+                    {
+                        time += Time.deltaTime;
+                        yield return null;
+                    }
 
-                if (player.faith >= droughtThreshold && areaManager.currentRoom == "Outside")
-                {
-                    if (rainCoroutine != null)
-                        StopCoroutine(rainCoroutine);
-                    rainCoroutine = StartCoroutine(StartRaining());
-                    yield break; // Exit the coroutine after starting the rain
-                }
-                else if (player.faith <= droughtThreshold && triggerDrought && seasonManager._currentSeason != SeasonManager.Season.Winter)
-                {
-                    if (droughtCoroutine != null)
-                        StopCoroutine(droughtCoroutine);
-                    droughtCoroutine = StartCoroutine(Drought());
-                    yield break; // Exit the coroutine after starting the drought
+                    if (player.faith >= droughtThreshold && areaManager.currentRoom == "Outside")
+                    {
+                        if (rainCoroutine != null)
+                            StopCoroutine(rainCoroutine);
+                        rainCoroutine = StartCoroutine(StartRaining());
+                        yield break; // Exit the coroutine after starting the rain
+                    }
+                    else if (player.faith <= droughtThreshold && triggerDrought && seasonManager._currentSeason != SeasonManager.Season.Winter)
+                    {
+                        if (droughtCoroutine != null)
+                            StopCoroutine(droughtCoroutine);
+                        droughtCoroutine = StartCoroutine(Drought());
+                        yield break; // Exit the coroutine after starting the drought
+                    }
                 }
             }
             yield return null; // Wait for the next frame before continuing

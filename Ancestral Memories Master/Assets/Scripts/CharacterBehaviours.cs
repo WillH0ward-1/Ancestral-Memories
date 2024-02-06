@@ -61,6 +61,8 @@ public class CharacterBehaviours : MonoBehaviour
 
     InteractCamera interactCam;
 
+    InteractableManager interactableManager;
+
     //EVENT_CALLBACK callbackDelegate;
 
     void Awake()
@@ -68,6 +70,7 @@ public class CharacterBehaviours : MonoBehaviour
         cam = Camera.main;
         cinematicCam = cam.GetComponentInChildren<CamControl>();
         interactCam = cam.GetComponentInChildren<InteractCamera>();
+        playerStats = transform.GetComponentInChildren<AICharacterStats>();
 
         cinematicCam.gameObject.SetActive(true);
 
@@ -90,6 +93,7 @@ public class CharacterBehaviours : MonoBehaviour
         tool.Sheathe(wieldedStoneAxe, sheathedStoneAxe);
         pickUpManager = player.GetComponentInChildren<PickUpObject>();
         animator = GetComponentInChildren<Animator>();
+        interactableManager = GetComponentInChildren<InteractableManager>();
 
         groundLayer = LayerMask.GetMask("Ground");
 
@@ -427,41 +431,34 @@ public class CharacterBehaviours : MonoBehaviour
 
     public IEnumerator Look()
     {
-        /*cinematicCamActive = !cinematicCamActive;
-        firstPersonCamActive = !firstPersonCamActive;
-
-        cinematicCam.gameObject.SetActive(cinematicCamActive);
-        firstPersonController.SetActive(firstPersonCamActive);
-        */
-
         behaviourIsActive = true;
 
-        clouds.ManualCloudOverrideStart();
-        cinematicCam.ToPanoramaZoom();
+        // Calculate the zoom-in offset towards the player
+        Vector3 playerPosition = player.transform.position; // Assuming 'player' is a reference to the player object
+        Vector3 originalOffset = cinematicCam.cameraOffset; // Define the original or normal camera offset
+        Vector3 zoomInOffset = originalOffset - originalOffset.normalized * 20f;
 
-        //audioListener.StartCoroutine(audioListener.MoveAudioListener(cinematicCam.transform.gameObject, 1f));
+        float zoomInDuration = 1f;
+
+        interactCam.SetInteractionOverride(true);
+
+        yield return StartCoroutine(cinematicCam.CamPosZoom(zoomInOffset, zoomInDuration));
 
         Debug.Log("Click to exit this action.");
         yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 
+        float zoomOutDuration = 1f; // Duration for zooming out
+
+        yield return StartCoroutine(cinematicCam.CamPosZoom(originalOffset, zoomOutDuration));
+
+
+        interactCam.SetInteractionOverride(false);
+
         behaviourIsActive = false;
-        clouds.ManualCloudOverrideStop();
-
-        cinematicCam.panoramaScroll = false;
-
-        //audioListener.SetDefaultAttenuation();
-
-        cinematicCam.ToGameZoom();
-
-        /*cinematicCamActive = !cinematicCamActive;
-       firstPersonCamActive = !firstPersonCamActive;
-
-       cinematicCam.gameObject.SetActive(cinematicCamActive);
-       firstPersonController.SetActive(firstPersonCamActive);
-         */
 
         yield break;
     }
+
 
 
     [SerializeField] private float faithFactor = 0.25f;
@@ -992,6 +989,8 @@ public class CharacterBehaviours : MonoBehaviour
     }
 
     private Dialogue dialogue;
+    AICharacterStats humanStats;
+    AICharacterStats playerStats;
 
 
     public IEnumerator Talk(GameObject hitObject)
@@ -1009,7 +1008,35 @@ public class CharacterBehaviours : MonoBehaviour
 
         if (hitObject != null && hitObject.CompareTag("Human"))
         {
-            dialogue.StartDialogue(Dialogue.DialogueType.IdleDialogue);
+            humanStats = hitObject.GetComponentInChildren<AICharacterStats>();
+            AICharacterStats.RelationshipType relationshipStatus = playerStats.GetRelationshipStatus(hitObject);
+
+            switch (relationshipStatus)
+            {
+                case AICharacterStats.RelationshipType.Friend:
+                    dialogue.StartDialogue(Dialogue.DialogueType.IdleDialogue);
+                    break;
+                case AICharacterStats.RelationshipType.Stranger:
+                    dialogue.StartDialogue(Dialogue.DialogueType.IntroductionDialogue);
+                    playerStats.UpdateRelationshipStatus(hitObject, AICharacterStats.RelationshipType.Friend);
+                    humanStats.UpdateRelationshipStatus(player.gameObject, AICharacterStats.RelationshipType.Friend);
+                    break;
+                case AICharacterStats.RelationshipType.Enemy:
+                    Debug.Log("This character is an enemy.");
+                    break;
+                default:
+                    Debug.Log("Unknown relationship status.");
+                    break;
+            }
+
+            switch (questManager.GetCurrentQuest())
+            {
+                case QuestManager.Quests.TalkToNeanderthals:
+                    questManager.CompleteQuest(QuestManager.Quests.TalkToNeanderthals);
+                    break;
+                default:
+                    break;
+            }
 
         } else if (hitObject != null && hitObject.CompareTag("Shaman"))
         {
@@ -1020,6 +1047,12 @@ public class CharacterBehaviours : MonoBehaviour
                     break;
                 case QuestManager.Quests.ShamanTreeTutorial:
                     dialogue.StartDialogue(Dialogue.DialogueType.ShamanTreeTutorial);
+                    break;
+                case QuestManager.Quests.ShamanLightningTutorial:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanLightningTutorial);
+                    break;
+                case QuestManager.Quests.ShamanFireTutorial:
+                    dialogue.StartDialogue(Dialogue.DialogueType.ShamanFireTutorial);
                     break;
                 case QuestManager.Quests.ShamanHumanTutorial:
                     dialogue.StartDialogue(Dialogue.DialogueType.ShamanHumanTutorial);
@@ -1066,10 +1099,28 @@ public class CharacterBehaviours : MonoBehaviour
                     questManager.CompleteQuest(QuestManager.Quests.ShamanIntroduction);
                     break;
                 case QuestManager.Quests.ShamanTreeTutorial:
+
+                    humanAI.ChangeState(HumanAI.AIState.PrayToSky);
+                    StartCoroutine(rainControl.StartRaining());
+
+                    yield return new WaitForSeconds(3f);
+
+                    StartCoroutine(mapObjGen.StartProceduralTreeGrowth(mapObjGen.treeList));
+
+                    yield return new WaitForSeconds(3f);
+
+                    humanAI.ChangeState(HumanAI.AIState.IdleStatic);
+
                     questManager.CompleteQuest(QuestManager.Quests.ShamanTreeTutorial);
                     break;
                 case QuestManager.Quests.ShamanHumanTutorial:
                     questManager.CompleteQuest(QuestManager.Quests.ShamanHumanTutorial);
+                    break;
+                case QuestManager.Quests.ShamanFireTutorial:
+                    questManager.CompleteQuest(QuestManager.Quests.ShamanFireTutorial);
+                    break;
+                case QuestManager.Quests.ShamanLightningTutorial:
+                    questManager.CompleteQuest(QuestManager.Quests.ShamanLightningTutorial);
                     break;
                 case QuestManager.Quests.ShamanMushroomTutorial:
                     questManager.CompleteQuest(QuestManager.Quests.ShamanMushroomTutorial);
@@ -1079,6 +1130,8 @@ public class CharacterBehaviours : MonoBehaviour
                     humanAI.ChangeState(HumanAI.AIState.PlayMusic);
 
                     bool questCompleted = false;
+
+                    interactableManager.AddOption(InteractableManager.InteractableAction.PlayMusic);
 
                     while (!questCompleted)
                     {
@@ -1099,14 +1152,18 @@ public class CharacterBehaviours : MonoBehaviour
                         // Check if the flute was played for the entire duration
                         if (time >= targetTime)
                         {
-                            humanAI.ChangeState(HumanAI.AIState.Dialogue);
+                            interactCam.InteractRequired(player.gameObject);
+                            interactCam.SetInteractionOverride(true);
                             questManager.CompleteQuest(QuestManager.Quests.ShamanFluteTutorial);
                             dialogue.StartDialogue(Dialogue.DialogueType.ShamanConclusion);
+                            humanAI.ChangeState(HumanAI.AIState.IdleStatic);
 
                             yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
                             humanAI.stats.KillInstant();
                             questManager.CompleteQuest(QuestManager.Quests.ShamansConclusion);
+
+                            mapObjGen.SetAllHumanInteractables(InteractableManager.InteractableAction.Talk);
 
                             questCompleted = true;
                         }
@@ -1114,13 +1171,15 @@ public class CharacterBehaviours : MonoBehaviour
                         {
                             // Start fail dialogue and wait for it to finish
                             dialogue.StartDialogue(Dialogue.DialogueType.ShamanFluteTutorialFail);
-                            humanAI.ChangeState(HumanAI.AIState.Dialogue);
+                            humanAI.ChangeState(HumanAI.AIState.IdleStatic);
 
                             yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
                             humanAI.ChangeState(HumanAI.AIState.PlayMusic);
                         }
                     }
+
+                    interactCam.SetInteractionOverride(false);
                     interactCam.ResetInteractRequired();
 
                     break;

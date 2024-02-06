@@ -116,7 +116,7 @@ public class StatsUI : MonoBehaviour
     {
         if (!transform.CompareTag("Player") && !transform.CompareTag("Animal") && InRange(player.gameObject))
         {
-            if (stats.isDead)
+            if (!stats.isDead)
             {
                 ShowUI();
                 UpdateUI();

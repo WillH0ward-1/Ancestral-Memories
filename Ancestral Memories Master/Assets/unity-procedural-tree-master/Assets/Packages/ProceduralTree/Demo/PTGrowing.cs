@@ -260,6 +260,25 @@ namespace ProceduralModeling
             StartCoroutine(GrowBuffer(false));
         }
 
+        public IEnumerator GrowTreeInstant()
+        {
+            SetInteractable(false);
+
+            isFullyGrown = false;
+            currentState = State.Buffering;
+            time = 0f;
+            treeData.Setup();
+            leafScaler.SetLeafScale(leafScaler.minGrowthScale);
+
+            while (IsAnyEntityInGrowthZone())
+            {
+                yield return null;
+            }
+
+            isDead = false;
+            StartCoroutine(Growing());
+        }
+
         public bool ValidateTree()
         {
             if (isGrowing || isDead || !isFullyGrown)

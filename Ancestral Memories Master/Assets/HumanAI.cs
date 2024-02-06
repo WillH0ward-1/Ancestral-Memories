@@ -14,7 +14,9 @@ using System;
 public class HumanAI : MonoBehaviour
 {
 
-    public enum AIState { Idle,
+    public enum AIState {
+        Idle,
+        IdleStatic,
         Walking,
         Harvest,
         Running,
@@ -33,6 +35,7 @@ public class HumanAI : MonoBehaviour
         GetUp,
         Carry,
         PlayMusic,
+        PrayToSky,
         ShamanIntroduction,
         ShamanHumanTutorial,
         ShamanFluteTutorial,
@@ -119,6 +122,10 @@ public class HumanAI : MonoBehaviour
 
     private string shamanTag = "Shaman";
 
+    public InteractableManager interactableManager;
+
+    public QuestManager questManager;
+
     public void InitHuman()
     {
 
@@ -137,6 +144,7 @@ public class HumanAI : MonoBehaviour
         lookAnimManager = transform.GetComponentInChildren<LookAnimManager>();
         emotionManager = transform.GetComponentInChildren<EmotionManager>();
         dialogue = transform.GetComponentInChildren<Dialogue>();
+        interactableManager = transform.GetComponentInChildren<InteractableManager>();
 
         eyeBlink = FindEyes(transform);
 
@@ -144,6 +152,8 @@ public class HumanAI : MonoBehaviour
         stateActions[AIState.Carry] = (target) => StartCoroutine(CarryTo(carryingObject, GetClosest(mapObjGen.templeList, aiBehaviours.ValidateTemple).transform.position));
         stateActions[AIState.Eat] = (target) => StartCoroutine(Eat(target));
         stateActions[AIState.Attack] = (target) => StartCoroutine(Attack(target));
+
+        questManager = QuestManager.Instance;
 
         AddToPopulation();
 
@@ -245,6 +255,41 @@ public class HumanAI : MonoBehaviour
         {
             emotionManager.RemoveEmotion(DialogueLines.Emotions.Joy);
         }
+
+        if (IsFriend(player.gameObject))
+        {
+            if (questManager.IsQuestCompleted(QuestManager.Quests.CreateSettlement))
+            {
+                EnableInteractableAction(InteractableManager.InteractableAction.InstructHarvest);
+            }
+
+            if (questManager.IsQuestCompleted(QuestManager.Quests.GatherWood))
+            {
+                EnableInteractableAction(InteractableManager.InteractableAction.InstructHunt);
+            }
+
+            if (questManager.IsQuestCompleted(QuestManager.Quests.GainAFollower))
+            {
+                EnableInteractableAction(InteractableManager.InteractableAction.InstructBuild);
+            }
+        }
+        
+    }
+
+    void EnableInteractableAction(InteractableManager.InteractableAction newAction)
+    {
+        if (interactableManager != null)
+        {
+            interactableManager.AddOption(newAction);
+        }
+    }
+
+    void DisableInteractableAction(InteractableManager.InteractableAction action)
+    {
+        if (interactableManager != null)
+        {
+            interactableManager.RemoveOption(action);
+        }
     }
 
     void SetDialogueAttributes()
@@ -281,13 +326,17 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallBackwards);
         yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
-        if (stats.faith >= stats.maxStat / 2)
+        if (!IsShaman())
         {
-            AddToPopulation();
-            ChangeState(AIState.Revive);
-        } else
-        {
-            yield break;
+            if (stats.faith >= stats.maxStat / 2)
+            {
+                AddToPopulation();
+                ChangeState(AIState.Revive);
+            }
+            else
+            {
+                yield break;
+            }
         }
 
         yield break;
@@ -331,7 +380,7 @@ public class HumanAI : MonoBehaviour
     {
         if (!stats.isDead && !ragdollController.isRagdollActive)
         {
-            if (inRange && currentAIState == AIState.Idle)
+            if (inRange && currentAIState == AIState.Idle || currentAIState == AIState.IdleStatic)
             {
                 lookAnimManager.LookAt(player.transform);
             }
@@ -435,6 +484,19 @@ public class HumanAI : MonoBehaviour
     [SerializeField] private float minWalkDistance = 500f; // Adjusted for better logic
     [SerializeField] private float maxWalkDistance = 1000f; // Adjusted for better logic
 
+    public bool IsFriend(GameObject character)
+    {
+        AICharacterStats.RelationshipType relationshipStatus = stats.GetRelationshipStatus(character);
+
+        return relationshipStatus switch
+        {
+            AICharacterStats.RelationshipType.Friend => true,
+            AICharacterStats.RelationshipType.Stranger => false,
+            AICharacterStats.RelationshipType.Enemy => false,
+            _ => false,
+        };
+    }
+
     private IEnumerator Idle()
     {
         aiPath.maxSpeed = 0f;
@@ -460,7 +522,10 @@ public class HumanAI : MonoBehaviour
             {
                 if (!inRange && fluteControl.fluteActive)
                 {
-                    ChangeState(AIState.Following);
+                    if (IsFriend(player.gameObject))
+                    {
+                        ChangeState(AIState.Following);
+                    }
                 }
 
                 time -= Time.deltaTime;
@@ -482,6 +547,48 @@ public class HumanAI : MonoBehaviour
             yield return null;
         }
     }
+
+    private IEnumerator IdleStatic()
+    {
+        aiPath.maxSpeed = 0f;
+        aiPath.destination = transform.position;
+        aiPath.canMove = false;
+
+        behaviourIsActive = true;
+
+        // Initialize a timer
+        float timer = 0f;
+        float timeoutDuration = 30f; // 30 seconds
+
+        while (behaviourIsActive)
+        {
+            SetIdleAnimation(currentEvolutionState); // Update the idle animation based on state
+
+            if (!inRange && fluteControl.fluteActive)
+            {
+                if (IsFriend(player.gameObject)){
+                    ChangeState(AIState.Following);
+                }
+
+                yield break;
+            }
+
+            // Increment the timer by the time elapsed since last frame
+            timer += Time.deltaTime;
+
+            // Check if the timer has exceeded the timeout duration
+            if (timer >= timeoutDuration)
+            {
+                // Timer has elapsed, change state to Idle and break the loop
+                ChangeState(AIState.Idle);
+                yield break;
+            }
+
+            yield return null;
+        }
+    }
+
+
 
     public float timeSinceLastShock = 0;
     public float shockCooldownTime = 30f; // You can adjust this value as needed
@@ -583,7 +690,10 @@ public class HumanAI : MonoBehaviour
 
             if (!inRange && (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive))
             {
-                ChangeState(AIState.Following);
+                if (IsFriend(player.gameObject))
+                {
+                    ChangeState(AIState.Following);
+                }
             }
 
             else if (aiPath.reachedDestination)
@@ -777,11 +887,17 @@ public class HumanAI : MonoBehaviour
                     case AIState.Idle:
                         StartCoroutine(Idle());
                         break;
+                    case AIState.IdleStatic:
+                        StartCoroutine(IdleStatic());
+                        break;
                     case AIState.Wander:
                         StartCoroutine(Wander());
                         break;
                     case AIState.Conversate:
                         StartCoroutine(EnterConversation());
+                        break;
+                    case AIState.PrayToSky:
+                        StartCoroutine(PrayToSky());
                         break;
                     case AIState.Harvest:
                         GameObject tree = null;
@@ -1504,6 +1620,15 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
+    private IEnumerator PrayToSky()
+    {
+        behaviourIsActive = true;
+
+        ChangeAnimationState(HumanControllerAnimations.Action_PrayTowardsSky_Floating);
+
+        yield break;
+    }
+
 
     private float rotationSpeed = 1.5f;
 
@@ -1646,19 +1771,28 @@ public class HumanAI : MonoBehaviour
         }
     }
 
-
     private IEnumerator Follow(Transform target)
     {
         behaviourIsActive = true;
         aiPath.canMove = true;
 
+
+        if (questManager.GetCurrentQuest() == QuestManager.Quests.GainAFollower)
+        {
+            questManager.CompleteQuest(QuestManager.Quests.GainAFollower);
+        }
+
         while (behaviourIsActive)
         {
             UpdateRange(target);
 
-            aiPath.destination = player.transform.position;
+            // Only set the destination if the player is out of range to keep following
+            if (!inRange)
+            {
+                aiPath.destination = target.transform.position;
+                aiPath.canMove = true; // Ensure AI can move towards the player
 
-            if (!inRange) {
+                // Adjust speed based on the distance to the player
                 if (inRunningRange)
                 {
                     ChangeAnimationState(HumanControllerAnimations.Run_Neanderthal_Jog01);
@@ -1670,11 +1804,22 @@ public class HumanAI : MonoBehaviour
                     aiPath.maxSpeed = walkingSpeed;
                 }
             }
+            else
+            {
+                // If in range, slow down and eventually stop, but be ready to move again
+                SetIdleAnimation(currentEvolutionState);
+                aiPath.maxSpeed = 0f;
+                // Do not set aiPath.canMove to false here as it might need to resume following
+            }
 
+            // Constantly check if the target has moved and if the AI needs to resume following
             if (aiPath.reachedDestination || inRange)
             {
-                ChangeAnimationState(HumanControllerAnimations.Idle_Neanderthal);
-                ChangeState(AIState.Idle);
+                if (TargetHasMoved(target))
+                {
+                    // If the target has moved significantly, resume following
+                    aiPath.canMove = true;
+                }
             }
 
             yield return null;
@@ -1683,7 +1828,21 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
-    
+    private float followDistanceThreshold = 20f;
+
+    // Utility method to check if the target has moved significantly
+    private bool TargetHasMoved(Transform target)
+    {
+        // Implement logic to check if the target has moved
+        // This could be a simple distance check from the last known position
+        // For example:
+        float distanceToTarget = Vector3.Distance(transform.position, target.position);
+        return distanceToTarget > followDistanceThreshold; // someThreshold is the distance to decide if target moved significantly
+    }
+
+
+
+
     public float walkingRange = 50f; // Set to desired constant value
     public float minimumRange = 20f;
     public bool inWalkingRange;

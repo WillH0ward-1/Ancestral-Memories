@@ -87,8 +87,16 @@ public class AICharacterStats : MonoBehaviour
     public List<Relationship> relationships = new List<Relationship>();
 
     public MapObjGen mapObjGen;
+    public Player player;
 
     private HumanAI humanAI;
+
+    private void Awake()
+    {
+        if (transform.CompareTag("Human")){
+            OnAwake();
+        }
+    }
 
     public virtual void OnAwake()
     {
@@ -157,32 +165,48 @@ public class AICharacterStats : MonoBehaviour
     }
 
 
-    public IEnumerator InitAllRelationships(List<GameObject> npcList)
+    public void InitAllRelationships(List<GameObject> npcPopulationList)
     {
-        foreach (GameObject g in npcList)
+        relationships.Clear();
+
+        foreach (GameObject npc in npcPopulationList)
         {
-            AICharacterStats stats = g.GetComponentInChildren<AICharacterStats>();
-
-            // Clear existing relationships
-            stats.relationships.Clear();
-
-            // Add relationships
-            foreach (GameObject other in npcList)
+            if (npc != gameObject)
             {
-                if (other != g) // Don't add self
+                Relationship relationship = new Relationship
                 {
-                    Relationship relationship = new Relationship
-                    {
-                        npc = other,
-                        type = RelationshipType.Stranger // default to Stranger
-                    };
-                    stats.relationships.Add(relationship);
-                }
+                    npc = npc,
+                    type = RelationshipType.Stranger // Default to stranger
+                };
+                relationships.Add(relationship);
             }
         }
 
-        yield break;
+        if (gameObject != player)
+        {
+            Relationship playerRelationship = new Relationship
+            {
+                npc = player.gameObject,
+                type = RelationshipType.Stranger 
+            };
+            relationships.Add(playerRelationship);
+        }
     }
+
+
+    public RelationshipType GetRelationshipStatus(GameObject npc)
+    {
+        foreach (var relationship in relationships)
+        {
+            if (relationship.npc == npc)
+            {
+                return relationship.type;
+            }
+        }
+
+        return RelationshipType.Stranger;
+    }
+
 
     public void GiveName()
     {
@@ -357,7 +381,7 @@ public class AICharacterStats : MonoBehaviour
 
         if (!isDead)
         {
-            if (humanAI != null && !humanAI.IsShaman())
+            if (humanAI != null && !humanAI.IsShaman() &&!QuestManager.Instance.IsShamanQuestActive())
             {
                 if (hunger > minStat)
                 {

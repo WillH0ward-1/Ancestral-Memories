@@ -64,17 +64,31 @@ public class ResourcesUI : MonoBehaviour
         }
     }
 
-    public void UpdateResourceCount(string resourceTypeName, int count)
+public void UpdateResourceCount(string resourceTypeName, int count)
+{
+    if (resourceTexts.TryGetValue(resourceTypeName, out var textComponent))
     {
-        if (resourceTexts.TryGetValue(resourceTypeName, out var textComponent))
+        // Update the text component with the new count
+        textComponent.text = $"{resourceTypeName}: {count}";
+
+        // Find the background GameObject by name
+        var backgroundName = $"{resourceTypeName}Background";
+        var backgroundGameObject = textComponent.transform.parent.Find(backgroundName)?.gameObject;
+
+        if (backgroundGameObject != null)
         {
-            textComponent.text = $"{resourceTypeName}: {count}";
-        }
-        else
-        {
-            // Handle the case where the resource type is not found
+            // Calculate the width based on the number of digits
+            var digitCount = Mathf.Max(1, Mathf.FloorToInt(Mathf.Log10(count) + 1));
+            var additionalWidth = (digitCount - 1) * 10f; // Add 10 units of width for each additional digit beyond 1
+            var backgroundRectTransform = backgroundGameObject.GetComponent<RectTransform>();
+            
+            // Calculate the new width
+            var newWidth = textComponent.preferredWidth + padding + additionalWidth;
+            backgroundRectTransform.sizeDelta = new Vector2(newWidth, backgroundRectTransform.sizeDelta.y);
         }
     }
+}
+
 
     public void ClearUIElementsList()
     {
@@ -117,23 +131,56 @@ public class ResourcesUI : MonoBehaviour
         resourceTexts.Clear();
     }
 
+    float padding = 5f;
+
     private void CreateResourceUI(string resourceName, int value)
     {
-        GameObject resourceUI = new GameObject($"UI: {resourceName}", typeof(RectTransform), typeof(TextMeshProUGUI));
+        // Create the UI GameObject with RectTransform
+        GameObject resourceUI = new GameObject($"UI: {resourceName}", typeof(RectTransform));
         resourceUI.transform.SetParent(transform, false);
 
-        TextMeshProUGUI tmp = resourceUI.GetComponent<TextMeshProUGUI>();
+        // Add and setup TextMeshProUGUI component
+        TextMeshProUGUI tmp = resourceUI.AddComponent<TextMeshProUGUI>();
         SetupTextMeshPro(tmp, resourceName, value);
 
+        // Calculate height based on font size
+        float backgroundHeight = (tmp.fontSize / 12) * tmp.fontSize; // Additional space to cover text appropriately
+
+        // Create background image GameObject as a child of the resource UI
+        GameObject bgImageGameObject = new GameObject($"{resourceName}Background", typeof(RectTransform), typeof(Canvas), typeof(Image));
+        bgImageGameObject.transform.SetParent(resourceUI.transform, false);
+
+        // Add and configure the Canvas component
+        Canvas bgCanvas = bgImageGameObject.GetComponent<Canvas>();
+        bgCanvas.overrideSorting = true;
+        bgCanvas.sortingOrder = -1; // Set sorting order to ensure it's rendered behind the text
+
+        // Setup the background image
+        Image bgImage = bgImageGameObject.GetComponent<Image>();
+        bgImage.color = Color.black; // Set background color to black
+        RectTransform bgRectTransform = bgImageGameObject.GetComponent<RectTransform>();
+        bgRectTransform.anchorMin = new Vector2(0.5f, 1f); // Center horizontally, top vertically
+        bgRectTransform.anchorMax = new Vector2(0.5f, 1f);
+        bgRectTransform.anchoredPosition = new Vector2(0, 0); // Position at the anchors
+        bgRectTransform.sizeDelta = new Vector2(tmp.preferredWidth + padding, backgroundHeight); // Set size based on text
+        bgRectTransform.pivot = new Vector2(0.5f, 1f); // Pivot at the top center
+        bgImage.raycastTarget = false; // Make sure it's not a raycast receiver
+
+        // Adjust RectTransform of the resource UI to fit the content
         RectTransform rectTransform = resourceUI.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(160, uiHeight);
+        rectTransform.sizeDelta = new Vector2(tmp.preferredWidth, backgroundHeight);
         rectTransform.anchorMin = new Vector2(0.5f, 1f);
         rectTransform.anchorMax = new Vector2(0.5f, 1f);
         rectTransform.pivot = new Vector2(0.5f, 1f);
 
+        // Add the RectTransform to the list for management and positioning
         uiElements.Add(rectTransform);
+
+        // Update the position of the RectTransform in the UI
         UpdateUIElementPosition(rectTransform);
     }
+
+
 
     private void SetupTextMeshPro(TextMeshProUGUI tmp, string resourceName, int value)
     {

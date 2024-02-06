@@ -9,16 +9,16 @@ public class QuestManager : MonoBehaviour
     {
         ShamanIntroduction,
         ShamanTreeTutorial,
+        ShamanLightningTutorial,
+        ShamanFireTutorial,
         ShamanHumanTutorial,
         ShamanMushroomTutorial,
         ShamanFluteTutorial,
         ShamansConclusion,
         TalkToNeanderthals,
         GainAFollower,
-        GatherWood,
         CreateSettlement,
-        CreateCampfire,
-        RainDance,
+        GatherWood,
         GatherApples,
         GatherStone,
         CreateHome,
@@ -108,6 +108,13 @@ public class QuestManager : MonoBehaviour
     {
         return completedQuests.Contains(quest);
     }
+
+    public bool IsShamanQuestActive()
+    {
+        // Return true if the current quest's name starts with "Shaman"
+        return currentQuest.ToString().StartsWith("Shaman");
+    }
+
 
     // Additional methods can be added to manage prerequisites, etc.
 }

@@ -510,6 +510,7 @@ public class PlayerWalk : MonoBehaviour
 
         ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog02);
 
+        walkTowardSpeed = runThreshold + 1;
         walkAnimFactor = walkTowardSpeed / animFactor;
         player.AdjustAnimationSpeed(walkAnimFactor);
 
@@ -518,7 +519,7 @@ public class PlayerWalk : MonoBehaviour
         //agent.isStopped = false;
 
         aiPath.destination = destination;
-        aiPath.maxSpeed = speed;
+        aiPath.maxSpeed = walkTowardSpeed;
         aiPath.canMove = true;
 
         float timeElapsed = 0f;

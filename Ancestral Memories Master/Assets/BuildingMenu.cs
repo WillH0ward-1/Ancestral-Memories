@@ -96,7 +96,7 @@ public class BuildingMenu : MonoBehaviour
         }
     }
 
-    public void SelectOption(string buildingType)
+    public void SelectOption(BuildingManager.BuildingType buildingType)
     {
         manager.SelectBuildingOption(buildingType);
     }

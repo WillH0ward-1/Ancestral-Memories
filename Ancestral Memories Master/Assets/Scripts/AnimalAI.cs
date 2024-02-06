@@ -161,6 +161,7 @@ public class AnimalAI : MonoBehaviour
         {
             while (time >= 0)
             {
+                /*
                 if (!inRange)
                 {
                     if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
@@ -168,6 +169,7 @@ public class AnimalAI : MonoBehaviour
                         ChangeState(AIState.Following);
                     }
                 }
+                */
 
                 time -= Time.deltaTime;
 
@@ -210,11 +212,14 @@ public class AnimalAI : MonoBehaviour
 
         while (behaviourIsActive)
         {
+            /*
             if (playerBehaviours.isPsychdelicMode && inRange && player.isBlessed || fluteControl.fluteActive)
             {
                 ChangeState(AIState.Following);
             }
-            else if (aiPath.reachedDestination)
+            */
+
+            if (aiPath.reachedDestination)
             {
                 ChangeState(AIState.Eating);
             }

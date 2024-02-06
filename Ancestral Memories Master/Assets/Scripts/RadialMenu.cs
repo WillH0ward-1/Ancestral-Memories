@@ -38,6 +38,14 @@ public class RadialMenu : MonoBehaviour
     }
     public void SpawnButtons(Interactable obj, GameObject lastHit, RaycastHit hit)
     {
+        if (obj.options == null || obj.options.Length == 0)
+        {
+            // If there are no options, don't proceed further and potentially destroy the menu
+            Debug.LogWarning("No options to spawn for RadialMenu.");
+            Destroy(gameObject); // Destroy the radial menu if there are no options to prevent errors
+            return; // Exit the function
+        }
+
         this.lastHit = lastHit;
         rayHit = hit;
 

@@ -7,7 +7,7 @@ public class BuildMenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public Image circle;
     public Image icon;
     public string title;
-    public string buildingType;
+    public BuildingManager.BuildingType buildingType;
     public BuildingMenu myMenu;
 
     Color defaultColor;
