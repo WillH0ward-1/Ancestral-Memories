@@ -235,7 +235,6 @@ public class CamControl : MonoBehaviour
         Vector3 occupationVectorRadius = Vector3.zero;
 
         GameObject tempPrefab = Instantiate(buildingPrefab);
-        float radius = 0f;
 
         switch (buildOption.type)
         {
@@ -248,18 +247,18 @@ public class CamControl : MonoBehaviour
                 templeGenForRadius.CreateOccupationCollider();
 
                 occupationRadius = templeGenForRadius.GetOccupationColliderRadius();
-                occupationVectorRadius = templeGenForRadius.GetColliderRadiusAsVector() / 2;
+                occupationVectorRadius = templeGenForRadius.GetColliderRadiusAsVector() * 2;
                 templeGenForRadius.DisableTemple(); // Disable the temple for visual
                 break;
 
             case BuildingType.Campfire:
-                radius = tempPrefab.GetComponentInChildren<SphereCollider>().radius / 2;
-                occupationVectorRadius = new Vector3(radius, radius, radius);
+                occupationRadius = tempPrefab.GetComponentInChildren<SphereCollider>().radius * 2;
+                occupationVectorRadius = new Vector3(occupationRadius, occupationRadius, occupationRadius);
                 break;
 
             case BuildingType.Settlement:
-                radius = tempPrefab.GetComponentInChildren<SphereCollider>().radius / 2;
-                occupationVectorRadius = new Vector3(radius, radius, radius);
+                occupationRadius = tempPrefab.GetComponentInChildren<SphereCollider>().radius * 2;
+                occupationVectorRadius = new Vector3(occupationRadius, occupationRadius, occupationRadius);
                 break;
 
         }

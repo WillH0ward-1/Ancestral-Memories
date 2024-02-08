@@ -62,6 +62,8 @@ public class PlayerWalk : MonoBehaviour
     private RichAI aiPath;
     private AICharacterStats stats;
 
+    private AudioFootStepManager audioFootStepManager;
+
     void Awake()
     {
         //agent.stoppingDistance = defaultStoppingDistance;
@@ -73,6 +75,7 @@ public class PlayerWalk : MonoBehaviour
         player = GetComponentInChildren<Player>();
         behaviours = player.GetComponentInChildren<CharacterBehaviours>();
         stats = player.GetComponent<AICharacterStats>();
+        audioFootStepManager = player.GetComponentInChildren<AudioFootStepManager>();
 
         head.Add(playerHead);
         feet.Add(leftFoot);
@@ -386,7 +389,23 @@ public class PlayerWalk : MonoBehaviour
         {
             ChangeState(HumanControllerAnimations.Run_Neanderthal_Jog02);
         }
+
+        // Assuming 'speed' has been calculated
+        float remappedSpeed = Remap(speed, 0, runThreshold, 0, 1); // Adjust the 'runThreshold' to your max speed if needed
+
+        // Ensure remappedSpeed does not exceed bounds
+        remappedSpeed = Mathf.Clamp(remappedSpeed, 0, 1);
+
+        // Update force parameter based on remapped speed
+        audioFootStepManager.SetForce(remappedSpeed);
+
     }
+
+    float Remap(float value, float from1, float to1, float from2, float to2)
+    {
+        return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+    }
+
 
     float defaultStoppingDistance = 0f;
     public float stoppingDistance;
