@@ -421,6 +421,8 @@ public class MapObjGen : MonoBehaviour
         playerBehaviours.mapObjGen = this;
         rainControl = player.GetComponentInChildren<RainControl>();
         seasonManager = FindObjectOfType<SeasonManager>();
+        weather = FindObjectOfType<WeatherControl>();
+        weather.player = player;
         rainControl.seasonManager = seasonManager;
         dialogueLines = GetComponentInChildren<DialogueLines>();
         vocabularyManager = GetComponentInChildren<VocabularyManager>();
@@ -429,6 +431,8 @@ public class MapObjGen : MonoBehaviour
         resources = FindObjectOfType<ResourcesManager>();
         followersManager = player.GetComponentInChildren<FollowersManager>();
         followersManager.resourcesManager = resources;
+        AudioFootStepManager playerAudioFootStepManager = player.GetComponentInChildren<AudioFootStepManager>();
+        playerAudioFootStepManager.lerpTerrain = lerpTerrain;
 
         FormationController formationController = GetComponentInChildren<FormationController>();
         formationController.mapObjGen = this;
@@ -437,6 +441,17 @@ public class MapObjGen : MonoBehaviour
         stats.time = timeCycleManager;
         stats.SubscribeToBirthday();
         
+    }
+
+    void InitWind()
+    {
+        if (weather != null)
+        {
+            weather.InitializeWindZonePool();
+        } else
+        {
+            Debug.LogError("WeatherControl component reference in MapObjGen 'InitWind' is null!");
+        }
     }
 
     public IEnumerator InitAllRelationships()
@@ -635,6 +650,8 @@ public class MapObjGen : MonoBehaviour
         EnableStudioEmitters(grassList);
 
         GetPTGrowComponents();
+
+        InitWind();
 
         //StartCoroutine(StartProceduralTreeGrowth(treeList));
 
@@ -1022,6 +1039,9 @@ public class MapObjGen : MonoBehaviour
             humanAI.lookAnimator = lookAnimator;
 
             deform.enabled = true;
+
+            AudioFootStepManager humanAudioFootStepManager = humanInstance.GetComponentInChildren<AudioFootStepManager>();
+            humanAudioFootStepManager.lerpTerrain = lerpTerrain;
 
             mapObjectList.Add(humanInstance);
             npcList.Add(humanInstance);

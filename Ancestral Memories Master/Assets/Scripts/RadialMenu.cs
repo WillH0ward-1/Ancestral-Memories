@@ -159,7 +159,7 @@ public class RadialMenu : MonoBehaviour
 
             if (selected)
             {
-                Debug.Log("Selected " + selected.title + " !");
+//                Debug.Log("Selected " + selected.title + " !");
 
                 if (selected.title == "Enter")
                 {
@@ -171,13 +171,13 @@ public class RadialMenu : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Walking Toward.");
+//                    Debug.Log("Walking Toward.");
                     behaviours.WalkToward(lastHit, selected.title, rayHit);
                 }
             }
             else
             {
-                Debug.Log("Not Selected!");
+//                Debug.Log("Not Selected!");
             }
         }
     }

@@ -128,16 +128,16 @@ public class LerpTerrain : MonoBehaviour
         switch (season)
         {
             case SeasonManager.Season.Summer:
-                ToOasis();
+                ToDryOasis();
                 break;
             case SeasonManager.Season.Autumn:
-                ToOasis();
+                ToDryOasis();
                 break;
             case SeasonManager.Season.Winter:
                 ToWetOasis();
                 break;
             case SeasonManager.Season.Spring:
-                ToOasis();
+                ToDryOasis();
                 break;
             default:
                 // Handle default case
@@ -145,7 +145,7 @@ public class LerpTerrain : MonoBehaviour
         }
     }
 
-    public void ToOasis()
+    public void ToDryOasis()
     {
         LerpVertexTiling(Oasis);
     }
@@ -267,7 +267,7 @@ public class LerpTerrain : MonoBehaviour
     }
 
 
-    private float currentSnowDensity;
+    public float currentSnowDensity;
 
     private IEnumerator LerpSnowDensity(float targetValue)
     {

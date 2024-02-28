@@ -320,7 +320,7 @@ public class FireManager : MonoBehaviour
 
                 objectsOnFire.Add(hitObj);
 
-                Debug.Log(hitObj + " is on fire!");
+//                Debug.Log(hitObj + " is on fire!");
 
                 if (!fireCoroutines.TryGetValue(hitObj, out List<Coroutine> coroutinesList))
                 {
@@ -416,7 +416,7 @@ public class FireManager : MonoBehaviour
             if (humanAI != null)
             {
                 humanAI.stats.isTerrified = false;
-                Debug.Log("Is terrified?: " + humanAI.stats.isTerrified);
+//                Debug.Log("Is terrified?: " + humanAI.stats.isTerrified);
             } else
             {
                 Debug.LogError("FireManager.StopFireOnObject(): HumanAI -" + humanAI + "- is null! ");
@@ -458,7 +458,7 @@ public class FireManager : MonoBehaviour
         }
 
         ObjectOnFire(target, false);
-        Debug.Log($"Fire stopped on {target.name}");
+//        Debug.Log($"Fire stopped on {target.name}");
     }
 
     private void HandleFirePoints(GameObject firePoint)

@@ -214,6 +214,6 @@ public class LanguageGenerator : MonoBehaviour
         string translatedText = TranslateByEvolutionFactor(englishInput);
         Debug.Log(translatedText);
 
-        formantSynth.Speak(translatedText);
+//        formantSynth.Speak(translatedText);
     }
 }

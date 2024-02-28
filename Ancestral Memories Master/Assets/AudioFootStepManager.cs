@@ -41,6 +41,8 @@ public class AudioFootStepManager : MonoBehaviour
     private float midVal = 0.5f;
     private int maxVal = 1;
 
+    public LerpTerrain lerpTerrain;
+
     private void Awake()
     {
         cSoundObj = GetComponent<CsoundUnity>();
@@ -57,7 +59,7 @@ public class AudioFootStepManager : MonoBehaviour
 
     public void TriggerFootstep()
     {
-        CabbageAudioManager.Instance.SetTrigger(cSoundObj, Instrument, true);
+        StartCoroutine(CabbageAudioManager.Instance.TriggerOneShot(cSoundObj, OneStepParam, true));
     }
 
     public void SetSneak(bool enabled)
@@ -78,12 +80,21 @@ public class AudioFootStepManager : MonoBehaviour
 
     public void SetTextureLerp(float grass, float wood, float stone, float mudMix, float water, float snow)
     {
-        StartCoroutine(InterpolateParameter(GrassParam, grass));
-        StartCoroutine(InterpolateParameter(WoodParam, wood));
-        StartCoroutine(InterpolateParameter(StoneParam, stone));
-        StartCoroutine(InterpolateParameter(MudMixParam, mudMix));
-        StartCoroutine(InterpolateParameter(WaterParam, water));
-        StartCoroutine(InterpolateParameter(SnowParam, snow));
+        // Start interpolation for each texture parameter
+        StartCoroutine(CabbageAudioManager.Instance.SetParameterWithLerp(cSoundObj, GrassParam, currentGrass, grass, textureTransitionTime));
+        StartCoroutine(CabbageAudioManager.Instance.SetParameterWithLerp(cSoundObj, WoodParam, currentWood, wood, textureTransitionTime));
+        StartCoroutine(CabbageAudioManager.Instance.SetParameterWithLerp(cSoundObj, StoneParam, currentStone, stone, textureTransitionTime));
+        StartCoroutine(CabbageAudioManager.Instance.SetParameterWithLerp(cSoundObj, MudMixParam, currentMudMix, mudMix, textureTransitionTime));
+        StartCoroutine(CabbageAudioManager.Instance.SetParameterWithLerp(cSoundObj, WaterParam, currentWater, water, textureTransitionTime));
+        StartCoroutine(CabbageAudioManager.Instance.SetParameterWithLerp(cSoundObj, SnowParam, currentSnow, snow, textureTransitionTime));
+
+        // Update the current parameter values
+        currentGrass = grass;
+        currentWood = wood;
+        currentStone = stone;
+        currentMudMix = mudMix;
+        currentWater = water;
+        currentSnow = snow;
     }
 
     public void SetTextureInstant(float grass, float wood, float stone, float mudMix, float water, float snow)
@@ -122,28 +133,6 @@ public class AudioFootStepManager : MonoBehaviour
             case SnowParam: currentSnow = newValue; break;
                 // Add cases for other parameters as necessary
         }
-    }
-
-
-    private IEnumerator InterpolateParameter(string parameterName, float targetValue)
-    {
-        float timeElapsed = 0f;
-        float startValue = GetCurrentParameterValue(parameterName);
-
-        while (timeElapsed < textureTransitionTime)
-        {
-            // Interpolate the current value towards the target value over the transition time
-            float currentValue = Mathf.Lerp(startValue, targetValue, timeElapsed / textureTransitionTime);
-            CabbageAudioManager.Instance.SetParameter(cSoundObj, parameterName, currentValue);
-            timeElapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        // Ensure the final value is set
-        CabbageAudioManager.Instance.SetParameter(cSoundObj, parameterName, targetValue);
-
-        // Update the current value for the parameter
-        UpdateCurrentParameterValue(parameterName, targetValue);
     }
 
 

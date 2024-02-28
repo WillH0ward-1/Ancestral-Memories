@@ -77,8 +77,8 @@ public class Dialogue : MonoBehaviour
 
     private void Awake()
     {
-        languageGenerator = GetComponent<LanguageGenerator>();
-        formantSynth = GetComponent<FormantSynthesizer>();
+        languageGenerator = GetComponentInChildren<LanguageGenerator>();
+        formantSynth = GetComponentInChildren<FormantSynthesizer>();
 
         ValidateEvents();
 
@@ -314,7 +314,11 @@ public class Dialogue : MonoBehaviour
         else if (characterType.Equals("Sapien", StringComparison.OrdinalIgnoreCase))
         {
             return languageGenerator.TranslateToSapien;
-        } 
+        }
+        else if (characterType.Equals("Shaman", StringComparison.OrdinalIgnoreCase))
+        {
+            return languageGenerator.TranslateToSapien;
+        }
 
         // Default to original lines if character name is not recognized
         return (line) => line;
@@ -357,8 +361,8 @@ public class Dialogue : MonoBehaviour
     public bool isSyllabic = false;
     public VocabularyManager vocabularyManager;
 
-    public float timeBetweenSyllables = 0.1f;
-    public float timeBetweenWords = 0.5f;
+   // public float timeBetweenSyllables = 0.1f;
+   // public float timeBetweenWords = 0.5f;
     public float speakingSpeed = 2f;
 
     IEnumerator TypeLine()
@@ -373,7 +377,7 @@ public class Dialogue : MonoBehaviour
 
         if (speak)
         {
-            StartCoroutine(HandleSpeaking(translatedLine));
+            StartCoroutine(HandleSpeaking(originalLine));
         }
 
         while (translatedIndex < translatedLine.Length)
@@ -386,7 +390,7 @@ public class Dialogue : MonoBehaviour
 
             if (!transform.CompareTag("Animal"))
             {
-                GetDialogueAudio(characterType, conversationName, characterGender, conversationIndex);
+//                GetDialogueAudio(characterType, conversationName, characterGender, conversationIndex);
             }
 
             clickPromptObject.SetActive(false);
@@ -423,16 +427,23 @@ public class Dialogue : MonoBehaviour
         string currentWord = "";
         foreach (char c in translatedLine)
         {
-            currentWord += c;
             if (c == ' ' || c == translatedLine[translatedLine.Length - 1])
             {
-                formantSynth.Speak(currentWord.Trim());
-                float deviation = UnityEngine.Random.Range(-0.5f, 0.5f); // e.g., 5% deviation
-                yield return new WaitForSeconds(speakingSpeed * (1 + deviation));
-                currentWord = ""; // Reset the current word
+                currentWord += c; // Append the character to currentWord before trimming
+                if (!string.IsNullOrWhiteSpace(currentWord))
+                {
+                    // Wait until the Speak coroutine for the current word completes
+                    yield return StartCoroutine(formantSynth.Speak(currentWord.Trim(), speakingSpeed));
+                    currentWord = ""; // Reset the current word for the next loop iteration
+                }
+            }
+            else
+            {
+                currentWord += c; // Append the character to build up the current word
             }
         }
     }
+
 
 
 
@@ -506,7 +517,7 @@ public class Dialogue : MonoBehaviour
             string key = name + "/" + type + "/" + name + "-" + conversationName + "-" + type + "-" + lineIndex;
             dialogueKeyRef = key;
 
-            Debug.Log(key);
+//            Debug.Log(key);
 
 
             if (transform.CompareTag("Campfire"))

@@ -93,7 +93,7 @@ public class TreeFruitManager : MonoBehaviour
             Mathf.RoundToInt(fruitCount * (player.faith / 100f)),
             Mathf.RoundToInt(fruitCount * minFruitFallPercentage)
         );
-        Debug.Log($"Fruits to fall: {fruitsToFall}, Fruit Pool Count: {fruitPool.Count}");
+//        Debug.Log($"Fruits to fall: {fruitsToFall}, Fruit Pool Count: {fruitPool.Count}");
 
         for (int i = 0; i < fruitsToFall; i++)
         {

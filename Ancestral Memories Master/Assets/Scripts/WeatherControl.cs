@@ -7,8 +7,6 @@ using System.Linq;
 
 public class WeatherControl : MonoBehaviour
 {
-    //public EventReference wind2DEvent;
-
     public GameObject windZone;
 
     public float windStrength = 0;
@@ -16,45 +14,91 @@ public class WeatherControl : MonoBehaviour
     [SerializeField] private float targetLeafShakeStrength;
 
     [SerializeField] private float targetLeafSpeed;
-    public bool wind2DActive;
 
     [SerializeField] private Renderer[] windAffectedRenderers;
 
     [SerializeField] private Transform windZones;
-    [SerializeField] private int maxWindZoneInstances = 4;
 
-    [SerializeField] private Transform parent;
-    [SerializeField] private Player player;
+                                                                                                                                    
+    public Player player;
 
     [SerializeField] LerpParams lerpParams;
 
-    //[SerializeField] private List<Renderer> windAffectedRenderers;
-
     public List<Transform> windAffectedRendererList = new List<Transform>();
-    public List<Transform> activeWindZones = new List<Transform>();
+    private Queue<GameObject> windZonePool = new Queue<GameObject>(); // Correctly using Queue here
 
-    private void Awake()
-    {
-        player = FindObjectOfType<Player>();
 
-        parent = player.transform;
-       // func = Lerp.GetLerpFunction(lerpParams.lerpType);
-    }
-
-    void Start()
-    {
-        ListCleanup(windAffectedRendererList);
-        //EventInstance windAudio2DInstance = RuntimeManager.CreateInstance(wind2DEvent);
-
-    }
+    [SerializeField] private int maxWindZoneInstances = 4;
+    [SerializeField] private float spawnRadius = 20f;
+    [SerializeField] private float minLifeTime = 10f;
+    [SerializeField] private float maxLifeTime = 30f;
 
     [SerializeField] private float minSpawnBuffer = 5;
     [SerializeField] private float maxSpawnBuffer = 15;
 
-    [SerializeField] private float minLifeTime = 15;
-    [SerializeField] private float maxLifeTime = 40;
+    private float currentAmpAttack;
+    private float currentAmpDecay;
+    private float currentAmpSustain;
+    private float currentAmpRelease;
 
-    [SerializeField] private float spawnRadius = 5;
+    public void InitializeWindZonePool()
+    {
+        ListCleanup(windAffectedRendererList);
+
+        for (int i = 0; i < maxWindZoneInstances; i++)
+        {
+            GameObject windZoneInstance = Instantiate(windZone);
+            AudioWindManager audioManager = windZoneInstance.GetComponentInChildren<AudioWindManager>();
+            audioManager.InitCsoundObj();
+            audioManager.player = player;
+            windZoneInstance.SetActive(false);
+            windZonePool.Enqueue(windZoneInstance);
+        }
+
+        StartCoroutine(SpawnWindZones());
+    }
+
+    private IEnumerator SpawnWindZones()
+    {
+        while (true)
+        {
+            if (windZonePool.Count > 0)
+            {
+                SpawnWindZone();
+            }
+            yield return new WaitForSeconds(minLifeTime);
+        }
+    }
+
+    private void SpawnWindZone()
+    {
+        if (windZonePool.Count == 0) return;
+
+        GameObject windZoneInstance = windZonePool.Dequeue();
+        Vector3 spawnPosition = player.transform.position + Random.insideUnitSphere * spawnRadius;
+        spawnPosition.y = player.transform.position.y;
+        windZoneInstance.transform.position = spawnPosition;
+        windZoneInstance.transform.SetParent(player.transform);
+        windZoneInstance.SetActive(true);
+        AudioWindManager audioManager = windZoneInstance.GetComponentInChildren<AudioWindManager>();
+        audioManager.SetPlayState(true);
+        audioManager.StartCoroutine(audioManager.AdjustWindParametersBasedOnFaith());
+
+        StartCoroutine(WindZoneLifetime(windZoneInstance, Random.Range(minLifeTime, maxLifeTime), audioManager));
+    }
+
+
+    private IEnumerator WindZoneLifetime(GameObject windZoneInstance, float lifetime, AudioWindManager audioWindManager)
+    {
+        yield return new WaitForSeconds(lifetime);
+
+        audioWindManager.SetPlayState(false);
+        currentAmpRelease = audioWindManager.GetADSR(AudioWindManager.ADSRStage.Release);
+        yield return new WaitForSeconds(currentAmpRelease);
+
+        windZoneInstance.SetActive(false);
+        windZonePool.Enqueue(windZoneInstance);
+    }
 
 
     void ListCleanup(List<Transform> list)
@@ -66,9 +110,11 @@ public class WeatherControl : MonoBehaviour
         }
     }
 
-    public IEnumerator UpdateWind()
+    bool active;
+
+    public IEnumerator UpdateWindRenderers()
     {
-        bool active = true;
+        active = true;
 
         while (active)
         {
@@ -94,19 +140,6 @@ public class WeatherControl : MonoBehaviour
         windStrength = targetWindStrength;
     }
 
-    /*
-    private IEnumerator WindTimeout(GameObject instance, EventInstance wind3DInstance)
-    {
-        yield return new WaitForSeconds(Random.Range(minLifeTime, maxLifeTime));
-
-        wind3DInstance.release();
-        Destroy(instance);
-        ListCleanup(activeWindZones);
-        //StartCoroutine(SpawnBuffer());
-        yield break;
-    }
-    */
-
     [SerializeField] float windMin = 0f;
     [SerializeField] float windMax = 1f;
 
@@ -119,8 +152,6 @@ public class WeatherControl : MonoBehaviour
     private void OnEnable() => player.OnFaithChanged += WindStrength;
     private void OnDisable() => player.OnFaithChanged -= WindStrength;
 
-    //private System.Func<float, float> func;
-
     private void WindStrength(float faith, float minFaith, float maxFaith)
     {
         var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
@@ -131,27 +162,5 @@ public class WeatherControl : MonoBehaviour
         targetWindStrength = windOutput;
         targetLeafShakeStrength = leafOutput;
         targetLeafSpeed = leafSpeedOutput;
-
-        //targetWindStrength = OscillateWindStrength(windOutput, windMin, windMax);
-        //targetLeafShakeStrength = OscillateWindStrength(leafOutput, leafShakeMin, leafShakeMax);
-        //targetLeafSpeed = OscillateWindStrength(leafSpeedOutput, leafSpeedMin, leafSpeedMax);
     }
-
-    /*
-     * 
-     * Unused oscillator 
-     * 
-     * [SerializeField] private float oscillationSpeed = 0.5f; // adjust this to change the range of oscillation
-     * 
-    private float OscillateWindStrength(float targetValue, float min, float max)
-    {
-        float oscillationRange = Random.Range(-min, max);
-
-        float time = Time.time * oscillationSpeed;
-        float amplitude = oscillationRange * 0.5f;
-        float offset = targetValue + amplitude;
-
-        return Mathf.Sin(time) * amplitude + offset;
-    }
-    */
 }

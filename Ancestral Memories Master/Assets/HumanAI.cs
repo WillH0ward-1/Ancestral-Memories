@@ -126,6 +126,8 @@ public class HumanAI : MonoBehaviour
 
     public QuestManager questManager;
 
+    private FormantSynthesizer formantSynth;
+
     public void InitHuman()
     {
 
@@ -145,7 +147,8 @@ public class HumanAI : MonoBehaviour
         emotionManager = transform.GetComponentInChildren<EmotionManager>();
         dialogue = transform.GetComponentInChildren<Dialogue>();
         interactableManager = transform.GetComponentInChildren<InteractableManager>();
-
+        formantSynth = transform.GetComponentInChildren<FormantSynthesizer>();
+        
         eyeBlink = FindEyes(transform);
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(StartHarvest(target));
@@ -534,13 +537,17 @@ public class HumanAI : MonoBehaviour
 
             if (time <= 0)
             {
-                if (ShouldWander())
+                if (!IsShaman())
                 {
-                    ChangeState(AIState.Wander);
-                    yield break;
-                } else
-                {
-                    ChangeState(AIState.Idle); // If not wandering, stay idle
+                    if (ShouldWander())
+                    {
+                        ChangeState(AIState.Wander);
+                        yield break;
+                    }
+                    else
+                    {
+                        ChangeState(AIState.Idle); // If not wandering, stay idle
+                    }
                 }
             }
 
@@ -858,6 +865,11 @@ public class HumanAI : MonoBehaviour
                 isCarrying = false;
             }
 
+            if (formantSynth.isSinging)
+            {
+                StartCoroutine(formantSynth.StopSingDrone());
+            }
+
             if (state == AIState.Following)
             {
                 followManager.AddFollower(transform.gameObject);
@@ -1028,17 +1040,17 @@ public class HumanAI : MonoBehaviour
                 if (newDestination.HasValue)
                 {
                     aiPath.destination = newDestination.Value;
-                    Debug.Log($"New destination set: {newDestination.Value}");
+//                    Debug.Log($"New destination set: {newDestination.Value}");
                 }
                 else
                 {
-                    Debug.LogWarning("Failed to find a new destination point.");
+//                    Debug.LogWarning("Failed to find a new destination point.");
                 }
             }
 
             if (!aiPath.pathPending && aiPath.reachedEndOfPath)
             {
-                Debug.Log("Reached destination, looking for a new point.");
+ //               Debug.Log("Reached destination, looking for a new point.");
                 nextDirectionChangeTime = Time.time; // Immediate direction change
             }
 
@@ -1623,6 +1635,8 @@ public class HumanAI : MonoBehaviour
     private IEnumerator PrayToSky()
     {
         behaviourIsActive = true;
+
+        StartCoroutine(formantSynth.SingDrone(FormantSynthesizer.DroneType.DroneSteady));
 
         ChangeAnimationState(HumanControllerAnimations.Action_PrayTowardsSky_Floating);
 

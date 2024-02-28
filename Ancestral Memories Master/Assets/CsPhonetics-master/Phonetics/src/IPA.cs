@@ -224,9 +224,9 @@ namespace Qkmaxware.Phonetics
             foreach (var entry in deserializedIpaSymbols)
             {
                 string symbolStr = entry.Value.Symbol;
-                if (formantDictionary.ContainsKey(symbolStr))
+                if (Formants.ContainsKey(symbolStr))
                 {
-                    var line = $"{symbolStr}: {string.Join(",", formantDictionary[symbolStr])}";
+                    var line = $"{symbolStr}: {string.Join(",", Formants[symbolStr])}";
                     lines.Add(line);
                 }
             }
@@ -268,11 +268,11 @@ namespace Qkmaxware.Phonetics
                     }
                 }
 
-                // If the symbol wasn't found in any category, you can decide whether you want to handle it in a special way or ignore it.
                 if (!found)
                 {
-                    // Handle unknown symbol if needed
+                    Debug.LogWarning($"Unrecognized IPA symbol: '{currentChar}' in word: '{ipaString}'. Skipping this symbol.");
                 }
+
             }
 
             return formantFrequencies;
@@ -282,88 +282,90 @@ namespace Qkmaxware.Phonetics
         public static Dictionary<string, Dictionary<string, int[]>> Formants = new Dictionary<string, Dictionary<string, int[]>>
         {
             // Monophthongal vowels
+            // Monophthongal vowels
             ["Monophthongal vowels"] = new Dictionary<string, int[]>
             {
-                {"i", new int[] {270, 2290, 3010}},
-                {"ɪ", new int[] {400, 2200, 2900}},
-                {"e", new int[] {400, 2300, 3000}},
-                {"ɛ", new int[] {600, 1800, 2500}},
-                {"æ", new int[] {650, 1700, 2400}},
-                {"ɑ", new int[] {700, 1150, 2600}},
-                {"ɔ", new int[] {500, 1000, 2500}},
-                {"o", new int[] {450, 800, 2600}},
-                {"u", new int[] {300, 800, 2400}},
-                {"ʊ", new int[] {400, 900, 2500}},
-                {"ʌ", new int[] {600, 1200, 2400}},
-                {"ɝ", new int[] {500, 1500, 2500}},
-                {"ə", new int[] {500, 1500, 2500}}
+                {"i", new int[] {270, 2290, 3010, 3310, 3700}},
+                {"ɪ", new int[] {400, 2200, 2900, 3300, 3700}},
+                {"e", new int[] {400, 2300, 3000, 3300, 3700}},
+                {"ɛ", new int[] {600, 1800, 2500, 2900, 3300}},
+                {"æ", new int[] {650, 1700, 2400, 2800, 3200}},
+                {"ɑ", new int[] {700, 1150, 2600, 3000, 3400}},
+                {"ɔ", new int[] {500, 1000, 2500, 2900, 3300}},
+                {"o", new int[] {450, 800, 2600, 3000, 3400}},
+                {"u", new int[] {300, 800, 2400, 2800, 3200}},
+                {"ʊ", new int[] {400, 900, 2500, 2900, 3300}},
+                {"ʌ", new int[] {600, 1200, 2400, 2800, 3200}},
+                {"ɝ", new int[] {500, 1500, 2500, 2900, 3300}},
+                {"ə", new int[] {500, 1500, 2500, 2900, 3300}}
             },
 
             // Diphthongs
             ["Diphthongs"] = new Dictionary<string, int[]>
             {
-                {"aɪ", new int[] {650, 1850, 2850}},
-                {"aʊ", new int[] {750, 1250, 2500}},
-                {"oʊ", new int[] {450, 800, 2400}},
-                {"eɪ", new int[] {400, 2300, 3000}},
-                {"ɔɪ", new int[] {490, 1250, 2390}}
+                {"aɪ", new int[] {650, 1850, 2850, 3250, 3650}},
+                {"aʊ", new int[] {750, 1250, 2500, 2900, 3300}},
+                {"oʊ", new int[] {450, 800, 2400, 2800, 3200}},
+                {"eɪ", new int[] {400, 2300, 3000, 3400, 3800}},
+                {"ɔɪ", new int[] {490, 1250, 2390, 2790, 3190}}
             },
 
-            // Plosives (stops)
+            // Plosives
             ["Plosives"] = new Dictionary<string, int[]>
             {
-                {"p", new int[] {900, 2200, 3450}},
-                {"b", new int[] {700, 2100, 3400}},
-                {"t", new int[] {1650, 4200, 5500}},
-                {"d", new int[] {1600, 4000, 5200}},
-                {"k", new int[] {1400, 3800, 6000}},
-                {"g", new int[] {1100, 3000, 4000}}
+                {"p", new int[] {900, 2200, 3450, 3850, 4250}},
+                {"b", new int[] {700, 2100, 3400, 3800, 4200}},
+                {"t", new int[] {1650, 4200, 5500, 5900, 6300}},
+                {"d", new int[] {1600, 4000, 5200, 5600, 6000}},
+                {"k", new int[] {1400, 3800, 6000, 6400, 6800}},
+                {"g", new int[] {1100, 3000, 4000, 4400, 4800}}
             },
 
             // Affricates
             ["Affricates"] = new Dictionary<string, int[]>
             {
-                {"ʧ", new int[] {2300, 3400, 5000}},
-                {"ʤ", new int[] {2100, 2900, 4400}}
+                {"ʧ", new int[] {2300, 3400, 5000, 5400, 5800}},
+                {"ʤ", new int[] {2100, 2900, 4400, 4800, 5200}}
             },
 
             // Fricatives
             ["Fricatives"] = new Dictionary<string, int[]>
             {
-                {"f", new int[] {760, 1300, 3000}},
-                {"v", new int[] {570, 840, 2410}},
-                {"θ", new int[] {1800, 2600, 3400}},
-                {"ð", new int[] {1400, 2050, 2850}},
-                {"s", new int[] {2200, 5900, 8100}},
-                {"z", new int[] {2400, 4600, 6500}},
-                {"ʃ", new int[] {2300, 3900, 5800}},
-                {"ʒ", new int[] {2200, 3700, 5400}}
+                {"f", new int[] {760, 1300, 3000, 3400, 3800}},
+                {"v", new int[] {570, 840, 2410, 2810, 3210}},
+                {"θ", new int[] {1800, 2600, 3400, 3800, 4200}},
+                {"ð", new int[] {1400, 2050, 2850, 3250, 3650}},
+                {"s", new int[] {2200, 5900, 8100, 8500, 8900}},
+                {"z", new int[] {2400, 4600, 6500, 6900, 7300}},
+                {"ʃ", new int[] {2300, 3900, 5800, 6200, 6600}},
+                {"ʒ", new int[] {2200, 3700, 5400, 5800, 6200}}
             },
 
             // Nasals
             ["Nasals"] = new Dictionary<string, int[]>
             {
-                {"m", new int[] {250, 2300, 3300}},
-                {"n", new int[] {250, 1750, 2500}},
-                {"ŋ", new int[] {450, 1500, 2100}}
+                {"m", new int[] {250, 2300, 3300, 3700, 4100}},
+                {"n", new int[] {250, 1750, 2500, 2900, 3300}},
+                {"ŋ", new int[] {450, 1500, 2100, 2500, 2900}}
             },
 
-            // Liquids and glides
+            // Liquids and Glides
             ["Liquids and glides"] = new Dictionary<string, int[]>
-        {
-                {"l", new int[] {450, 1450, 2600}},
-                {"ɹ", new int[] {300, 1400, 2600}},
-                {"j", new int[] {250, 2200, 3000}},
-                {"w", new int[] {300, 900, 2500}}
+            {
+                {"l", new int[] {450, 1450, 2600, 3000, 3400}},
+                {"ɹ", new int[] {300, 1400, 2600, 3000, 3400}},
+                {"j", new int[] {250, 2200, 3000, 3400, 3800}},
+                {"w", new int[] {300, 900, 2500, 2900, 3300}}
             },
 
             // Approximants
             ["Approximants"] = new Dictionary<string, int[]>
             {
-                {"ɻ", new int[] {450, 1800, 2400}},  // retroflex approximant
-                {"ɰ", new int[] {300, 2200, 3400}}  // voiced velar approximant
+                {"ɻ", new int[] {450, 1800, 2400, 2800, 3200}},
+                {"ɰ", new int[] {300, 2200, 3400, 3800, 4200}}
             }
-        };
+    };
+    
 
 
 
@@ -423,22 +425,5 @@ namespace Qkmaxware.Phonetics
             }
             return builder.ToString();
         }
-
-        private Dictionary<string, string[]> formantDictionary = new Dictionary<string, string[]>
-        {
-            { "a", new[] { "800", "1300", "2800" } },   // Mock values for example
-            { "ɑ", new[] { "700", "1150", "2600" } },   // General American 'father'
-            { "æ", new[] { "650", "1700", "2400" } },   // General American 'cat'
-            { "e", new[] { "400", "2300", "3000" } },   // Close to 'face'
-            { "ɛ", new[] { "600", "1800", "2500" } },   // General American 'bet'
-            { "ɚ", new[] { "500", "1500", "2500" } },   // R-colored 'nurse', this is a rough estimate
-            { "i", new[] { "300", "2400", "3000" } },   // General American 'fleece'
-            { "ɪ", new[] { "400", "2200", "2900" } },   // General American 'kit'
-            { "o", new[] { "450", "800", "2600" } },    // Close to 'goat'
-            { "ɔ", new[] { "500", "1000", "2500" } },   // General American 'thought'
-            { "u", new[] { "300", "800", "2400" } },    // General American 'goose'
-            { "ʊ", new[] { "400", "900", "2500" } },    // General American 'foot'
-            { "ʌ", new[] { "600", "1200", "2400" } }    // General American 'strut'
-        };
     }
 }

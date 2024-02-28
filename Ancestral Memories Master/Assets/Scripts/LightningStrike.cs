@@ -71,7 +71,7 @@ public class LightningStrike : MonoBehaviour
             return;
         }
 
-        Debug.Log("Target: " + target.name);
+//        Debug.Log("Target: " + target.name);
 
         // Define the delegate outside of the switch for scope reasons
         Action deathAnimationTrigger = null;
@@ -115,7 +115,7 @@ public class LightningStrike : MonoBehaviour
 
     public IEnumerator Strike(Transform target, Action killTarget)
     {
-        Debug.Log("Lightning!");
+//        Debug.Log("Lightning!");
 
         GameObject lightning = GetLightningFromPool();
         lightningSFX = lightning.GetComponent<LightningSoundEffects>();
@@ -154,7 +154,7 @@ public class LightningStrike : MonoBehaviour
 
     private IEnumerator Retreat(GameObject lightning)
     {
-        Debug.Log("Lightning End!");
+//        Debug.Log("Lightning End!");
         StartCoroutine(disasterManager.DisasterCoolDown());
         ReturnLightningToPool(lightning);  // Returning to pool instead of destroying
         yield break;

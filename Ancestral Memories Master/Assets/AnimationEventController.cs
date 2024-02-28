@@ -11,7 +11,7 @@ public class AnimationEventController : MonoBehaviour
         audioFootStepManager = transform.GetComponentInChildren<AudioFootStepManager>();
     }
 
-    public void TriggerFootStep()
+    public void TriggerFootstep()
     {
         audioFootStepManager.TriggerFootstep();
     }

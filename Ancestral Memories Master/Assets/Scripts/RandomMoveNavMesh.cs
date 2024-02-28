@@ -1,41 +1,53 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
+using Pathfinding;
 
-public class RandomMoveNavMesh : MonoBehaviour
+public class RandomMoveAStar : MonoBehaviour
 {
-    [SerializeField] private NavMeshAgent navMeshAgent;
     [SerializeField] private float radius = 10f;
+    [SerializeField] private float maxTravelRadius = 20f; // The maximum radius the AI can move from its starting position
     [SerializeField] private float minWait = 10f;
     [SerializeField] private float maxWait = 50f;
+    [SerializeField] private float defaultStoppingDistance = 1f;
+
+    private RichAI ai;
+    private Vector3 startPosition; // To keep track of the starting position
 
     private void Awake()
     {
-        navMeshAgent = GetComponent<NavMeshAgent>();
-        navMeshAgent.enabled = false;
+        ai = GetComponent<RichAI>();
+
+        ai = transform.GetComponentInChildren<RichAI>();
+        ai.endReachedDistance = defaultStoppingDistance;
+        ai.acceleration = 10000;
+
+        startPosition = transform.position; // Save the starting position
     }
 
     private void OnEnable()
     {
-        navMeshAgent.enabled = true;
         StartCoroutine(UpdateDirection());
     }
 
     private IEnumerator UpdateDirection()
     {
-        Vector3 randomDirection = Random.insideUnitSphere * radius;
-        randomDirection += transform.position;
-        NavMeshHit hit;
-        NavMesh.SamplePosition(randomDirection, out hit, radius, NavMesh.AllAreas);
-        Vector3 finalPosition = hit.position;
+        while (true)
+        {
+            Vector3 randomDirection = Random.insideUnitSphere * radius;
+            randomDirection += transform.position;
 
-        navMeshAgent.SetDestination(finalPosition);
+            // Ensure the destination is within the maxTravelRadius from the startPosition
+            if ((randomDirection - startPosition).sqrMagnitude > maxTravelRadius * maxTravelRadius)
+            {
+                // If outside maxTravelRadius, adjust to be within the limit
+                randomDirection = startPosition + (randomDirection - startPosition).normalized * maxTravelRadius;
+            }
 
-        yield return new WaitForSeconds(Random.Range(minWait, maxWait));
+            Vector3 finalPosition = randomDirection;
 
-        StartCoroutine(UpdateDirection());
+            ai.destination = finalPosition;
 
-        yield break;
+            yield return new WaitForSeconds(Random.Range(minWait, maxWait));
+        }
     }
 }

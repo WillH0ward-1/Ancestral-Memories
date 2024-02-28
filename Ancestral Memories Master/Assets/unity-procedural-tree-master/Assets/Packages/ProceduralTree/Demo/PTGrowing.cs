@@ -91,6 +91,8 @@ namespace ProceduralModeling
 
         private Vector3 obstacleSize;
 
+        private AudioTreeManager audioTree;
+
         private void Awake()
         {
             proceduralTree = GetComponentInChildren<ProceduralTree>();
@@ -104,6 +106,9 @@ namespace ProceduralModeling
             treeAudioSFX = GetComponent<TreeAudioManager>();
             treeFruitManager = GetComponent<TreeFruitManager>();
             interactable = GetComponent<Interactable>();
+
+            audioTree = GetComponentInChildren<AudioTreeManager>();
+            audioTree.pTGrowing = this;
 
             currentState = State.Buffering;
             time = 0f;
@@ -338,6 +343,10 @@ namespace ProceduralModeling
         // A smaller value makes the transition faster, and a larger value makes it slower.
         private float lerpTimeAdjustment = 5f; // Adjust this value as needed
 
+        int maxGrow = 1;
+        int minGrow = 0;
+        float halfGrow = 0.5f;
+        float growAudioTime = 0;
 
         private IEnumerator Growing()
         {
@@ -354,12 +363,15 @@ namespace ProceduralModeling
                 // Start the drought adjustment coroutine
                 StartCoroutine(AdjustForDrought());
 
-                treeAudioSFX.StartTreeGrowthSFX(State.Growing);
+                
+                //treeAudioSFX.StartTreeGrowthSFX(State.Growing);
 
                 yield return null;
                 navMeshCutting.EnableNavMeshCut();
 
                 mapObjGen.treeGrowingList.Add(transform.gameObject);
+
+                audioTree.SetPlayState(true);
 
                 while (time < growDuration)
                 {
@@ -367,7 +379,11 @@ namespace ProceduralModeling
                     {
                         isGrowing = true;
                         float t = time / growDuration;
-                        growTime = Mathf.Lerp(0, 1, t);
+
+                        UpdateGrowAudioTime(t);
+
+                        growTime = Mathf.Lerp(minGrow, maxGrow, t);
+                        audioTree.SetGrowthFX(growAudioTime);
                         material.SetFloat(kGrowingKey, growTime);
                         time += Time.deltaTime;
                     }
@@ -376,9 +392,25 @@ namespace ProceduralModeling
                 }
 
                 isGrowing = false;
+                audioTree.SetPlayState(false);
+
                 time = 0f;
 
                 StartCoroutine(Lifetime());
+            }
+        }
+
+        private void UpdateGrowAudioTime(float t)
+        {
+            if (t <= halfGrow)
+            {
+                float remappedT = t / halfGrow;
+                growAudioTime = Mathf.Lerp(0, 1, remappedT);
+            }
+            else
+            {
+                float remappedT = (t - halfGrow) / halfGrow;
+                growAudioTime = Mathf.Lerp(maxGrow, minGrow, remappedT);
             }
         }
 
@@ -485,7 +517,8 @@ namespace ProceduralModeling
 
                 KillAllFruits();
 
-                treeAudioSFX.StartTreeGrowthSFX(State.Dying);
+                audioTree.SetPlayState(true);
+                //treeAudioSFX.StartTreeGrowthSFX(State.Dying);
 
                 while (time < leafScaler.lerpduration)
                 {
@@ -499,12 +532,16 @@ namespace ProceduralModeling
                 {
                     float t = time / deathDuration;
                     growTime = Mathf.Lerp(1, 0, t);
+
+                    UpdateGrowAudioTime(t);
+                    audioTree.SetGrowthFX(growAudioTime);
                     material.SetFloat(kGrowingKey, growTime);
                     time += Time.deltaTime;
                     yield return null;
                 }
 
                 isFullyGrown = false;
+                audioTree.SetPlayState(false);
 
                 navMeshCutting.DisableNavMeshCut();
 

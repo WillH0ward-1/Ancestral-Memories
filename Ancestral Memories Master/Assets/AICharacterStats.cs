@@ -133,7 +133,7 @@ public class AICharacterStats : MonoBehaviour
 
         if (instrumentManager == null)
         {
-            Debug.LogError("No InstrumentManager component found.");
+//            Debug.LogError("No InstrumentManager component found.");
         }
         else
         {
