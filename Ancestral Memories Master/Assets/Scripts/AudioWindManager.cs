@@ -88,27 +88,28 @@ public class AudioWindManager : MonoBehaviour
     public IEnumerator AdjustWindParametersBasedOnFaith()
     {
         windIsActive = true;
+        float lastTargetValue = float.NaN; 
 
         while (windIsActive)
         {
             if (player != null)
             {
                 float faithLevel = player.faith; // Assuming Player script has a 'faith' float variable
-
-//                Debug.Log("FAITH: " + player.faith + "/" + faithLevel);
+                                                 // Debug.Log("FAITH: " + player.faith + "/" + faithLevel);
 
                 float targetValue = Mathf.Lerp(globalMax, globalMin, faithLevel);
+                // Debug.Log("TARGETVAL " + targetValue);
 
-//                Debug.Log("TARGETVAL " + targetValue);
-
-                SetAllWindParameters(targetValue);
-
+                // Only call SetAllWindParameters if targetValue has changed
+                if (targetValue != lastTargetValue)
+                {
+                    SetAllWindParameters(targetValue);
+                    lastTargetValue = targetValue; // Update lastTargetValue with the new targetValue
+                }
             }
 
             yield return null;
         }
-
-
     }
 
 

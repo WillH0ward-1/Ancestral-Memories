@@ -3,24 +3,28 @@ form caption("FormantSynth"), size(765, 650), colour(129, 129, 129), pluginId("t
 
 label bounds(10, 10, 200, 20), text("Formant Synthesizer"), fontColour(255, 255, 255, 255), font("default", 16)
 
-groupbox bounds(5, 85, 80, 400), text("Master"), colour(200, 200, 200)
-vslider bounds(20, 105, 50, 375), channel("kMasterVolume"), range(0, 1, 0.5), text("Vol.") trackerColour(0, 0, 255, 255)
+groupbox bounds(5, 155, 80, 400), text("Master"), colour(200, 200, 200)
+vslider bounds(20, 175, 50, 375), channel("kMasterVolume"), range(0, 1, 0.5), text("Vol.") trackerColour(0, 255, 0, 255)
     
-button bounds(155, 80, 90, 50), channel("toggleDrone"), identChannel("toggleDroneID"), text("Loop: OFF"), latched(1), colour(255, 0, 0), fontColour(255, 255, 255)
-button bounds(90, 80, 60, 50), channel("toggleSpeak"), identChannel("toggleSpeakID"), text("Speak"), latched(0), colour(255, 0, 0), fontColour(255, 255, 255)
+button bounds(145, 80, 90, 50), channel("toggleDrone"), identChannel("toggleDroneID"), text("Loop: OFF"), latched(1), colour(255, 0, 0), fontColour(255, 255, 255)
+button bounds(80, 80, 60, 50), channel("toggleSpeak"), identChannel("toggleSpeakID"), text("Speak"), latched(0), colour(255, 0, 0), fontColour(255, 255, 255)
+button bounds(15, 80, 60, 50), channel("toggleScream"), identChannel("toggleScreamID"), text("Scream"), latched(1), colour(255, 0, 0), fontColour(255, 255, 255)
+
 
 rslider bounds(240, 70, 60, 60), channel("tune"), range(-24, 24, 0), text("Tune"), trackerColour(0, 0, 255, 255)
 rslider bounds(300, 70, 60, 60), channel("fineTune"), range(-1, 1, 0), text("Fine-Tune"), trackerColour(0, 0, 255, 255)  
 rslider bounds(360, 70, 60, 60), channel("lfoFrequency"), range(0.1, 10, 3), text("LFO Frequency"), trackerColour(0, 0, 255, 255)
-rslider bounds(420, 70, 60, 60), channel("lfoDepth"), range(0, 1, 0.1), text("LFO Depth"), trackerColour(0, 0, 255, 255)
+rslider bounds(420, 70, 60, 60), channel("lfoDepth"), range(0, 1, 0.2), text("LFO Depth"), trackerColour(0, 0, 255, 255)
 rslider bounds(480, 70, 60, 60), channel("lfoWaveform"), range(0, 1, 0), text("LFO Waveform"), trackerColour(0, 0, 255, 255)
-hslider bounds(90, 135, 220, 20), channel("waveformShapeSlider"), range(0, 1, 0.5), text("Waveform Shape"), trackerColour(0, 0, 255, 255)
-hslider bounds(90, 155, 220, 20), channel("waveformSkew"), range(0, 1, 0.5), text("Waveform Skew"), trackerColour(0, 0, 255, 255)
-hslider bounds(90, 175, 220, 20), channel("harmonicSlider"), range(0, 1, 0.8), text("Harmonics")
+hslider bounds(90, 135, 220, 20), channel("waveformShapeSlider"), range(0, 1, 0.2), text("Waveform Shape"), trackerColour(0, 0, 255, 255)
+hslider bounds(90, 155, 220, 20), channel("waveformSkew"), range(0, 1, 1), text("Waveform Skew"), trackerColour(0, 0, 255, 255)
+hslider bounds(90, 175, 220, 20), channel("harmonicSlider"), range(0, 1, 0.8), text("Harmonics"), trackerColour(0, 200, 0)
+hslider bounds(90, 195, 220, 20), channel("genderSlider"), range(0, 1, 1), text("Gender"), trackerColour(0, 200, 0)
+hslider bounds(90, 215, 220, 20), channel("Force"), range(0, 1, 0), text("Force"), trackerColour(0, 200, 0)
 
 xypad bounds(325, 190, 200, 160), channel("xCoordinate", "yCoordinate") 
-hslider bounds(325, 355, 200, 20), channel("xCoord"), range(0, 1, 0.5, 1) 
-vslider bounds(530, 190, 20, 160), channel("yCoord"), range(0, 1, 0.5, 1) 
+hslider bounds(325, 355, 200, 20), channel("xCoord"), range(0, 1, 0.5, 1), colour(200, 200, 200)
+vslider bounds(530, 190, 20, 160), channel("yCoord"), range(0, 1, 0.5, 1), colour(200, 200, 200)
 
 
 button bounds(325, 140, 80, 25), channel("autoVowel"), identChannel("autoVowelID"), text("AutoVowel"), colour(100, 100, 255), fontColour(255, 255, 255)
@@ -50,7 +54,7 @@ plant("Bandwidth") {
 
 plant("NoiseAmount") {
     hslider bounds(550, 100, 200, 20), channel("noiseAmountSlider"), range(0, 1, 0.1), text("Breathiness") trackerColour(0, 0, 255, 255)
-    hslider bounds(550, 130, 200, 20), channel("toneVolumeSlider"), range(0, 1, 0.5), text("Tone") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 130, 200, 20), channel("toneVolumeSlider"), range(0, 1, 1), text("Tone") trackerColour(0, 0, 255, 255)
 }
 
 ;hslider bounds(100, 350, 200, 20), channel("blendFactor"), range(0, 1, 0.5), text("Blend"), trackerColour(150, 150, 150, 255) textColour(255, 255, 255, 255)
@@ -94,8 +98,8 @@ plant("FILTERADSR") {
 </CsOptions>
 <CsInstruments>
 
-ksmps = 32
-nchnls = 1
+ksmps = 512
+nchnls = 2
 0dbfs = 1
 
 giDuration = 0.01
@@ -121,6 +125,9 @@ instr UpdateGUI
         
     kToggleDrone chnget "toggleDrone"
     kTrigDrone changed kToggleDrone 
+    
+    kToggleScream chnget "toggleScream"
+    kTrigScream changed kToggleScream
 
     if kTrigDrone == 1 then
         if kToggleDrone == 1 then
@@ -135,6 +142,21 @@ instr UpdateGUI
         endif
     endif
     
+    if kTrigScream == 1 then
+        if kToggleScream == 1 then
+            chnset "text(\"Drone: ON\")", "toggleDroneID"
+            event "i", "LoopSound", 0, -1 ; Start the LoopSound
+            event "i", "XYPad", 0, -1 ; Start the XYPad
+        elseif kToggleScream == 0 then
+            chnset "text(\"Drone: OFF\")", "toggleDroneID"
+            turnoff2 "LoopSound", 0, 0.01 ; Stop the LoopSound 
+            event "i", "InitXYPad", 0, 1
+            turnoff2 "XYPad", 0, 0.01 ; Stop the XYPad
+        endif
+    endif
+    
+    
+    
     kToggleFilter chnget "toggleFilter"
     kTrigFilter changed kToggleFilter 
 
@@ -148,23 +170,25 @@ instr UpdateGUI
     
     ; Button Colouring 
     
-    iNumButtons = 5
+    iNumButtons = 6
     SChannels[] init iNumButtons
     SIdentChannels[] init iNumButtons
     gkPrevButtonStates[] init iNumButtons
     kButtonStates[] init iNumButtons
 
     SChannels[0] = "toggleDrone"
-    SChannels[1] = "autoVowel"
-    SChannels[2] = "splatter"
-    SChannels[3] = "hardSplat"
-    SChannels[4] = "toggleEnvelope"
+    SChannels[1] = "toggleScream"
+    SChannels[2] = "autoVowel"
+    SChannels[3] = "splatter"
+    SChannels[4] = "hardSplat"
+    SChannels[5] = "toggleEnvelope"
 
     SIdentChannels[0] = "toggleDroneID"
-    SIdentChannels[1] = "autoVowelID"
-    SIdentChannels[2] = "splatterID"
-    SIdentChannels[3] = "hardSplatID"
-    SIdentChannels[4] = "toggleEnvelopeID"
+    SIdentChannels[1] = "toggleScreamID"
+    SIdentChannels[2] = "autoVowelID"
+    SIdentChannels[3] = "splatterID"
+    SIdentChannels[4] = "hardSplatID"
+    SIdentChannels[5] = "toggleEnvelopeID"
     
     kIndexInit = 0
     until kIndexInit == iNumButtons do
@@ -257,17 +281,46 @@ instr LoopSound
         kLFOSignal phasor kLFOFreq
         kLFO = (kLFOSignal * 2 - 1) * kLFODepth
     endif
-
+    
+    
     ; === TONE SIGNAL GENERATION ===
     
     kMasterVolume chnget "kMasterVolume"
     kWaveformShape chnget "waveformShapeSlider"
     kWaveformSkew chnget "waveformSkew"
     kHarmonics chnget "harmonicSlider"
-
+    kGender chnget "genderSlider"
+    kForce chnget "Force"
+    kLFOSpeed = 1
+    
     kDrive = 1 + kHarmonics^2 * 5  ; Saturation formula
+    
+    ; Assuming kGender ranges from 0 to 1, scale to 0 to 12 for semitones
+    kGenderPitchShift = kGender * 12
+    
+    ; Adjust the LFO speed modulation based on WindRandomness
+    kSpeedModRange = 0.5 + (kForce * 0.5) ; Scale from min (0.5) to max (1.0)
+    kSpeedFluctuation = randi(-kSpeedModRange, kSpeedModRange, 1000) * 4 ; Fluctuation rate based on randomness
+    kLFOSpeedModulated = kLFOSpeed + (kLFOSpeed * kSpeedFluctuation)
 
-    kTuneFreq = 220 * pow(2, (kTune + kLFO)/12 + kFineTune/100)
+    ; Adjust the LFO depth modulation based on WindRandomness
+    kDepthModRange = 0.01 + (kForce * 1) ; Scale from min (0.5) to max (1.0)
+    kDepthFluctuation = randi(-kDepthModRange, kDepthModRange, 500) * 3 ; Apply fluctuation to depth
+    kLFODepthModulated = kLFODepth + (kLFODepth * kDepthFluctuation)
+
+    ; Ensure the modulated values stay within bounds
+    kLFOSpeedModulated = max(min(kLFOSpeedModulated, 20), 0.01) ; Speed
+    kLFODepthModulated = max(min(kLFODepthModulated, 1), 0.1) ; Depth
+
+    ; Generate LFO + modulate with calculated speed and depth
+    kLFO lfo 1, kLFOSpeedModulated
+    kLFO = kLFO * kLFODepthModulated
+
+    kForceShift = kForce * 24 * kLFO
+    
+    ; Include kGenderPitchShift in the pitch calculation
+    kTuneFreq = 110 * pow(2, (kTune + kLFO + kGenderPitchShift + kForceShift)/12 + kFineTune/100)
+
     asigTuneFreq = a(kTuneFreq)
     aWaveformShape = a(kWaveformShape)
     aWaveformSkew = a(kWaveformSkew)
@@ -380,9 +433,8 @@ instr LoopSound
     ; === NOISE/BREATH GENERATION ===
     
     kNoiseAmount chnget "noiseAmountSlider"
-    aPink pinker
     aWhite rand 1
-    aBreathNoise = aPink * 0.01 + aWhite * 0.01
+    aBreathNoise = aWhite * 0.01
     aBreathNoise *= kNoiseAmount * aEnv * (1 + 0.2 * kLFO)
     aBreathNoise = butterhp(aBreathNoise, 300)
 
@@ -410,7 +462,7 @@ instr LoopSound
     aMix = limit(aMix, -1, 1)
     aMix *= kMasterVolume
     
-    outs aMix
+    outs aMix, aMix
 
 endin
 

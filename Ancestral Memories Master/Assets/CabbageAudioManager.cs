@@ -36,11 +36,6 @@ public class CabbageAudioManager : MonoBehaviour
         //Debug.Log($"Trigger {parameterName} set to: {stateValue}");
     }
 
-    internal void SetParameter(float growTime)
-    {
-        throw new NotImplementedException();
-    }
-
     public IEnumerator TriggerOneShot(CsoundUnity cSound, string parameterName, bool turnOn)
     {
         // First, set the parameter to the opposite state to ensure a change occurs

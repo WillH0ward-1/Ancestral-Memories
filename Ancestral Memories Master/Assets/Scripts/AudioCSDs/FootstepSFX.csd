@@ -55,13 +55,13 @@ form caption("Terrain Sound"), size(450, 880), guiMode("polling"), colour(0, 0, 
 
 <CsoundSynthesizer>
 <CsOptions>
--n -d
+-n -d 
 </CsOptions>
 <CsInstruments>
 
 sr = 44100
-ksmps = 32
-nchnls = 1
+ksmps = 512
+nchnls = 2
 0dbfs = 1
 
 ; ADSR and targetHeel for Grass
@@ -761,7 +761,7 @@ endif
     aOut limit aOut, -1, 1
     aOut *= 0.9
 
-    outs aOut
+    outs aOut, aOut
 
 endin
 

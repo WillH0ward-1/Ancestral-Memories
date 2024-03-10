@@ -26,8 +26,8 @@ signaldisplay bounds(10, 610, 380, 180), colour("green") displayType("waveform")
 <CsInstruments>
 
 ; Global variables
-ksmps = 32
-nchnls = 1
+ksmps = 512
+nchnls = 2
 0dbfs = 1
 
 instr DetectTriggers
@@ -146,7 +146,7 @@ aOut = aRumbleAttenuated + aWhistleComb ; Make sure to include aWhistleBPF in th
 ; Control overall amplitude
 aOut *= aAmpEnv * kWindStrength  * 0.2
 
-outs aOut  ; Output the audio signal
+outs aOut, aOut  ; Output the audio signal
 
 display aOut, .1, 1
 

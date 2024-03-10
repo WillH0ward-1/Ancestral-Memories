@@ -23,8 +23,8 @@ signaldisplay bounds(10, 580, 380, 160), colour("green") displayType("waveform")
 <CsInstruments>
 
 sr = 44100
-ksmps = 32
-nchnls = 1
+ksmps = 512
+nchnls = 2
 0dbfs  = 1
 
 instr DetectTriggers
@@ -113,7 +113,7 @@ aSnapping reson aSnappingSrc, kSnappingFreq, kSnappingBandwidth
 
 aOut = aSnapping + aCrackling + aCreaking + aRumble
 
-outs aOut
+outs aOut, aOut
 
 display aOut, .1, 1
 

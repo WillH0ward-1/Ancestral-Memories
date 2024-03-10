@@ -139,10 +139,15 @@ public class CorruptionControl : MonoBehaviour
 
     private void UpdateCorruption(float faithOutput)
     {
-        float currentCorruption = faithOutput;
-        currentCorruptionVal = Mathf.Lerp(currentCorruption, faithOutput, 2f * Time.deltaTime);
+        // Assuming currentCorruptionVal is meant to smoothly transition to faithOutput over time
+        // Removed redundant Lerp operation since it was effectively a no-op in the original code.
+        currentCorruptionVal = faithOutput;
 
-        // Retrieve all Renderer components in this GameObject and its children
+        // Check tags and conditions once, outside the loop
+        bool isTree = transform.CompareTag("Trees");
+        bool isDrought = rain != null && rain.drought;
+        bool isPsychedelicMode = behaviours != null && behaviours.isPsychdelicMode;
+
         Renderer[] allRenderers = GetComponentsInChildren<Renderer>();
         foreach (Renderer renderer in allRenderers)
         {
@@ -150,22 +155,23 @@ public class CorruptionControl : MonoBehaviour
             {
                 if (m != null)
                 {
-                    // Set _Karma if the material has this property
+                    // Update _Karma property
                     if (m.HasProperty("_Karma"))
                     {
                         m.SetFloat("_Karma", currentCorruptionVal);
                     }
 
-                    if (transform.CompareTag("Trees"))
+                    // Handle Trees tag specifics
+                    if (isTree)
                     {
-                        if (rain != null && rain.drought)
+                        if (isDrought)
                         {
                             if (!LeafManualOverrideActive)
                             {
                                 StartCoroutine(LeafOverride(currentCorruptionVal, newMin, manualLeafLerpSpeed));
                             }
 
-                            // Set _LeafDensity if the material has this property
+                            // Update _LeafDensity for drought condition
                             if (m.HasProperty("_LeafDensity"))
                             {
                                 m.SetFloat("_LeafDensity", overrideModifer);
@@ -173,6 +179,7 @@ public class CorruptionControl : MonoBehaviour
                         }
                         else
                         {
+                            // Normal tree handling
                             if (m.HasProperty("_LeafDensity"))
                             {
                                 m.SetFloat("_LeafDensity", currentCorruptionVal);
@@ -187,18 +194,16 @@ public class CorruptionControl : MonoBehaviour
                         }
                     }
 
-                    if (behaviours != null && behaviours.isPsychdelicMode)
+                    // Psychedelic mode handling
+                    if (isPsychedelicMode && m.HasProperty("_WarpStrength"))
                     {
-                        // Set _WarpStrength if the material has this property
-                        if (m.HasProperty("_WarpStrength"))
-                        {
-                            m.SetFloat("_WarpStrength", modifier);
-                        }
+                        m.SetFloat("_WarpStrength", modifier);
                     }
                 }
             }
         }
     }
+
 
 
 }
