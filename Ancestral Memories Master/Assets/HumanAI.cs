@@ -128,6 +128,7 @@ public class HumanAI : MonoBehaviour
 
     private FormantSynthesizer formantSynth;
 
+
     public void InitHuman()
     {
 
@@ -162,7 +163,107 @@ public class HumanAI : MonoBehaviour
 
         ChangeState(AIState.Idle);
 
+        QuestManager.OnQuestCompleted += HandleQuestCompletion;
+        stats.OnHungerChanged += HandleStatChange;
+        stats.OnFaithChanged += HandleStatChange;
+        stats.OnHealthChanged += HandleStatChange;
+
     }
+
+    void OnDisable()
+    {
+        seasonManager.OnSeasonChanged.RemoveListener(HandleSeasonChange);
+        QuestManager.OnQuestCompleted -= HandleQuestCompletion;
+        stats.OnHungerChanged -= HandleStatChange;
+        stats.OnFaithChanged -= HandleStatChange;
+        stats.OnHealthChanged -= HandleStatChange;
+    }
+
+    void HandleStatChange(float fraction, float min, float max)
+    {
+        EvaluateEmotion();
+    }
+
+    private void EvaluateEmotion()
+    {
+        // Check conditions for hunger and sadness
+        if (stats.hunger <= stats.maxStat / 3)
+        {
+            emotionManager.AddEmotion(DialogueLines.Emotions.Hungry);
+            emotionManager.AddEmotion(DialogueLines.Emotions.Sadness);
+        }
+        else
+        {
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Hungry);
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Sadness);
+        }
+
+        // Check condition for joy
+        if (stats.faith >= stats.maxStat / 1.5 && stats.hunger >= stats.maxStat / 1.5 && stats.health >= stats.maxStat / 1.5)
+        {
+            emotionManager.AddEmotion(DialogueLines.Emotions.Joy);
+        }
+        else
+        {
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Joy);
+        }
+    }
+
+
+    private void HandleHungerChange(float newHungerValue)
+    {
+        if (newHungerValue <= stats.maxStat / 3)
+        {
+            emotionManager.AddEmotion(DialogueLines.Emotions.Hungry);
+            emotionManager.AddEmotion(DialogueLines.Emotions.Sadness);
+        }
+        else
+        {
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Hungry);
+            emotionManager.RemoveEmotion(DialogueLines.Emotions.Sadness);
+        }
+    }
+
+    private void HandleQuestCompletion(QuestManager.Quests quest)
+    {
+        switch (quest)
+        {
+            case QuestManager.Quests.CreateSettlement:
+                EnableInteractableAction(InteractableManager.InteractableAction.InstructHarvest);
+                break;
+            case QuestManager.Quests.GatherWood:
+                EnableInteractableAction(InteractableManager.InteractableAction.InstructHunt);
+                break;
+            case QuestManager.Quests.GainAFollower:
+                EnableInteractableAction(InteractableManager.InteractableAction.InstructBuild);
+                break;
+                // Add more cases as needed
+        }
+    }
+
+    private void HandleSeasonChange(SeasonManager.Season newSeason)
+    {
+        lastSeason = newSeason; // Directly update the lastSeason to the newSeason
+
+        switch (newSeason) // Use the parameter directly
+        {
+            case SeasonManager.Season.Spring:
+                emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsSpring);
+                break;
+            case SeasonManager.Season.Summer:
+                emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsSummer);
+                break;
+            case SeasonManager.Season.Autumn:
+                emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsAutumn);
+                break;
+            case SeasonManager.Season.Winter:
+                emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsWinter);
+                break;
+            default:
+                break;
+        }
+    }
+
 
     private EyeBlink FindEyes(Transform parent)
     {
@@ -186,9 +287,21 @@ public class HumanAI : MonoBehaviour
 
     SeasonManager.Season lastSeason;
 
+    public bool isHuman;
+    public bool isShaman;
+    public bool isPlayer;
+
+    void Awake()
+    {
+        isHuman = transform.CompareTag("Human");
+        isShaman = transform.CompareTag("Shaman");
+        isPlayer = transform.CompareTag("Player");
+    }
+
     private void Start()
     {
         stats.OnEvolutionChanged += HandleEvolutionChange;
+        seasonManager.OnSeasonChanged.AddListener(HandleSeasonChange);
         SetDialogueAttributes();
     }
 
@@ -217,29 +330,6 @@ public class HumanAI : MonoBehaviour
     {
         LookAt();
 
-        if (lastSeason != seasonManager._currentSeason)
-        {
-            lastSeason = seasonManager._currentSeason; // update the lastSeason to current
-
-            switch (seasonManager._currentSeason)
-            {
-                case SeasonManager.Season.Spring:
-                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsSpring);
-                    break;
-                case SeasonManager.Season.Summer:
-                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsSummer);
-                    break;
-                case SeasonManager.Season.Autumn:
-                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsAutumn);
-                    break;
-                case SeasonManager.Season.Winter:
-                    emotionManager.AddEmotion(DialogueLines.Emotions.SeasonsWinter);
-                    break;
-                default:
-                    break;
-            }
-        }
-
         if (stats.hunger <= stats.maxStat / 3)
         {
             emotionManager.AddEmotion(DialogueLines.Emotions.Hungry);
@@ -258,26 +348,24 @@ public class HumanAI : MonoBehaviour
         {
             emotionManager.RemoveEmotion(DialogueLines.Emotions.Joy);
         }
-
-        if (IsFriend(player.gameObject))
-        {
-            if (questManager.IsQuestCompleted(QuestManager.Quests.CreateSettlement))
-            {
-                EnableInteractableAction(InteractableManager.InteractableAction.InstructHarvest);
-            }
-
-            if (questManager.IsQuestCompleted(QuestManager.Quests.GatherWood))
-            {
-                EnableInteractableAction(InteractableManager.InteractableAction.InstructHunt);
-            }
-
-            if (questManager.IsQuestCompleted(QuestManager.Quests.GainAFollower))
-            {
-                EnableInteractableAction(InteractableManager.InteractableAction.InstructBuild);
-            }
-        }
         
     }
+
+    void LookAt()
+    {
+        if (!stats.isDead && !ragdollController.isRagdollActive)
+        {
+            if (inRange && currentAIState == AIState.Idle || currentAIState == AIState.IdleStatic)
+            {
+                lookAnimManager.LookAt(player.transform);
+            }
+            else
+            {
+                lookAnimManager.DisableLookAt();
+            }
+        }
+    }
+
 
     void EnableInteractableAction(InteractableManager.InteractableAction newAction)
     {
@@ -299,7 +387,7 @@ public class HumanAI : MonoBehaviour
     {
         dialogue.characterName = stats.npcName;
         dialogue.characterGender = stats.gender.ToString();
-        if (!IsShaman())
+        if (!isShaman)
         {
             dialogue.characterType = currentEvolutionState.ToString();
         } else
@@ -329,7 +417,7 @@ public class HumanAI : MonoBehaviour
         ChangeAnimationState(HumanControllerAnimations.Death_Standing_FallBackwards);
         yield return new WaitForSeconds(AnimationUtilities.GetCurrentAnimLength(animator));
 
-        if (!IsShaman())
+        if (!isShaman)
         {
             if (stats.faith >= stats.maxStat / 2)
             {
@@ -377,21 +465,6 @@ public class HumanAI : MonoBehaviour
         ChangeState(AIState.Idle);
 
         yield break;
-    }
-
-    void LookAt()
-    {
-        if (!stats.isDead && !ragdollController.isRagdollActive)
-        {
-            if (inRange && currentAIState == AIState.Idle || currentAIState == AIState.IdleStatic)
-            {
-                lookAnimManager.LookAt(player.transform);
-            }
-            else
-            {
-                lookAnimManager.DisableLookAt();
-            }
-        }
     }
 
     private void OnDestroy()
@@ -471,17 +544,6 @@ public class HumanAI : MonoBehaviour
         resources.AddResourceObject("Population", transform.gameObject);
     }
 
-    public bool IsShaman()
-    {
-        if (gameObject.CompareTag(shamanTag))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
 
     [SerializeField] private float idleWalkRadius = 1000f;
     [SerializeField] private float minWalkDistance = 500f; // Adjusted for better logic
@@ -537,7 +599,7 @@ public class HumanAI : MonoBehaviour
 
             if (time <= 0)
             {
-                if (!IsShaman())
+                if (!isShaman)
                 {
                     if (ShouldWander())
                     {

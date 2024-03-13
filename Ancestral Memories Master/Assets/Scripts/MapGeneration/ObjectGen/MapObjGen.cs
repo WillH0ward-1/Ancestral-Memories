@@ -142,6 +142,13 @@ public class MapObjGen : MonoBehaviour
 
     [Header("========================================================================================================================")]
 
+    [Header("Max Objects")]
+    [Space(10)]
+
+    public int maxHumans = 0;
+
+    [Header("========================================================================================================================")]
+
     [Header("Navmesh")]
     [Space(10)]
 
@@ -634,6 +641,7 @@ public class MapObjGen : MonoBehaviour
         StartCoroutine(WaterSFXEmitterGen());
         DestroyDeadZones();
 
+        SetMaxObj(humanPopulationList, maxHumans);
 
         //ListCleanup(templeList);
 
@@ -668,6 +676,56 @@ public class MapObjGen : MonoBehaviour
         //RandomizeTreecolours();
 
     }
+
+
+
+    void SetMaxObj(List<GameObject> listOfObjects, int maxValue)
+    {
+        // Ensure maxValue is not negative.
+        maxValue = Mathf.Max(maxValue, 0);
+
+        // Check if the current count exceeds the maximum allowed value.
+        while (listOfObjects.Count > maxValue)
+        {
+            // Calculate the index of the last object in the list.
+            int lastIndex = listOfObjects.Count - 1;
+
+            // Retrieve the last object.
+            GameObject objToRemove = listOfObjects[lastIndex];
+
+            if (objToRemove != null)
+            {
+                // Check if the object is a human and requires special handling.
+                if (objToRemove.CompareTag("Human"))
+                {
+                    // Attempt to remove AI stats from all lists if they exist.
+                    var stats = objToRemove.GetComponentInChildren<AICharacterStats>();
+                    if (stats != null)
+                    {
+                        RemoveAIStatsFromAllLists(stats);
+                    }
+
+                    // Use the centralized method to remove the GameObject from all lists.
+                    RemoveGameObjectFromAllLists(objToRemove);
+                }
+                else
+                {
+                    // For non-human objects, just remove from the current list.
+                    listOfObjects.RemoveAt(lastIndex);
+                }
+
+                // Destroy the object after handling list removals.
+                DestroyObject(objToRemove);
+            }
+            else
+            {
+                // Just in case the object is null, remove it from the list.
+                listOfObjects.RemoveAt(lastIndex);
+            }
+        }
+    }
+
+
 
     void GroundCheck(List<GameObject> objectsList)
     {
@@ -992,6 +1050,7 @@ public class MapObjGen : MonoBehaviour
 
     void HumanPoissonDisc(PoissonDiscSampler humanSampler)
     {
+
         foreach (Vector2 sample in humanSampler.Samples())
         {
             GameObject randomHuman = GetRandomMapObject(humans);
@@ -1049,11 +1108,9 @@ public class MapObjGen : MonoBehaviour
             flammableObjectList.Add(humanInstance);
 
             humanAI.InitHuman();
-
-            //GroundCheck(instantiatedPrefab);
-            //WaterCheck();
         }
     }
+
 
     void SpawnShaman()
     {

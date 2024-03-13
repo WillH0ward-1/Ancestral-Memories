@@ -211,7 +211,7 @@ public class AudioWindManager : MonoBehaviour
 
     public void SetPlayState(bool isOn)
     {
-        Debug.Log("Setting Play State To: " + isOn);
+       // Debug.Log("Setting Play State To: " + isOn);
         StartCoroutine(CabbageAudioManager.Instance.TriggerOneShot(cSoundObj, toggleWind, isOn));
     }
 

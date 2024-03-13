@@ -38,14 +38,29 @@ public class CabbageAudioManager : MonoBehaviour
 
     public IEnumerator TriggerOneShot(CsoundUnity cSound, string parameterName, bool turnOn)
     {
-        // First, set the parameter to the opposite state to ensure a change occurs
-        cSound.SetChannel(parameterName, turnOn ? 0 : 1);
-        yield return null; // Wait for one frame to ensure the command has been processed
+        if (turnOn)
+        {
+            cSound.SetChannel(parameterName, 0);
+        }
+        else
+        {
+            cSound.SetChannel(parameterName, 1);
+        }
+        yield return null;
 
-        // Then, set it to the desired state
-        cSound.SetChannel(parameterName, turnOn ? 1 : 0);
-        yield return null; // Wait for another frame to ensure the command has been processed
+        if (turnOn)
+        {
+            cSound.SetChannel(parameterName, 1);
+        }
+        else
+        {
+            cSound.SetChannel(parameterName, 0);
+        }
+        yield return null;
+
+        yield break;
     }
+
 
     public IEnumerator SetParameterWithLerp(CsoundUnity cSound, string parameterName, float startValue, float endValue, float duration)
     {
@@ -56,11 +71,13 @@ public class CabbageAudioManager : MonoBehaviour
             float currentValue = Mathf.Lerp(startValue, endValue, elapsedTime / duration);
             cSound.SetChannel(parameterName, currentValue);
             elapsedTime += Time.deltaTime;
-            yield return null; // Wait for the next frame
+            yield return null; 
         }
 
         // Ensure the parameter is set to the final value.
         cSound.SetChannel(parameterName, endValue);
+
+        yield break;
     }
 
 

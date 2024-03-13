@@ -381,7 +381,7 @@ public class AICharacterStats : MonoBehaviour
 
         if (!isDead)
         {
-            if (humanAI != null && !humanAI.IsShaman() &&!QuestManager.Instance.IsShamanQuestActive())
+            if (humanAI != null && !humanAI.isShaman &&!QuestManager.Instance.IsShamanQuestActive())
             {
                 if (hunger > minStat)
                 {

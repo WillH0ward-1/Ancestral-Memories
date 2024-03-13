@@ -31,10 +31,12 @@ public class QuestManager : MonoBehaviour
         SpeakToShamanSpirit,
         GatherCitizensAtTemple,
         TellTripStoryToTribe
-        
-
         // Add more quests here as needed
     }
+
+    // Declare a delegate and an event for when a quest is completed
+    public delegate void QuestCompleted(Quests quest);
+    public static event QuestCompleted OnQuestCompleted;
 
     public static QuestManager Instance { get; private set; }
 
@@ -55,7 +57,6 @@ public class QuestManager : MonoBehaviour
         }
     }
 
-
     private Quests currentQuest;
     private HashSet<Quests> completedQuests = new HashSet<Quests>();
 
@@ -75,7 +76,6 @@ public class QuestManager : MonoBehaviour
         }
     }
 
-
     public Quests GetCurrentQuest()
     {
         return currentQuest;
@@ -83,16 +83,18 @@ public class QuestManager : MonoBehaviour
 
     public void CompleteQuest(Quests quest)
     {
-        if (quest == currentQuest)
+        if (!completedQuests.Contains(quest))
         {
             completedQuests.Add(quest);
+            // Fire the OnQuestCompleted event whenever a quest is marked as completed
+            OnQuestCompleted?.Invoke(quest);
             AdvanceToNextQuest();
         }
     }
 
     private void AdvanceToNextQuest()
     {
-        Quests lastQuest = (Quests)System.Enum.GetValues(typeof(Quests)).Length - 1;
+        Quests lastQuest = (Quests)Enum.GetValues(typeof(Quests)).Length - 1;
         if (currentQuest < lastQuest)
         {
             SetCurrentQuest(currentQuest + 1);
@@ -114,7 +116,6 @@ public class QuestManager : MonoBehaviour
         // Return true if the current quest's name starts with "Shaman"
         return currentQuest.ToString().StartsWith("Shaman");
     }
-
 
     // Additional methods can be added to manage prerequisites, etc.
 }

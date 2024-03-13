@@ -70,6 +70,6 @@ public class BodyHairControl : MonoBehaviour
 
     private void EvolutionChanged(float evolution, float minEvolution, float maxEvolution)
     {
-        targetHairThickness = Mathf.Lerp(minHairThickness, maxHairThickness, evolution / maxEvolution);
+        targetHairThickness = Mathf.Lerp(maxHairThickness, maxHairThickness, evolution / maxEvolution);
     }
 }
