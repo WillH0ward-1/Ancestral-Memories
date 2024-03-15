@@ -128,6 +128,7 @@ public class HumanAI : MonoBehaviour
 
     private FormantSynthesizer formantSynth;
 
+    private AudioInstrumentManager audioInstrumentManager;
 
     public void InitHuman()
     {
@@ -149,7 +150,8 @@ public class HumanAI : MonoBehaviour
         dialogue = transform.GetComponentInChildren<Dialogue>();
         interactableManager = transform.GetComponentInChildren<InteractableManager>();
         formantSynth = transform.GetComponentInChildren<FormantSynthesizer>();
-        
+        audioInstrumentManager = transform.GetComponentInChildren<AudioInstrumentManager>();
+
         eyeBlink = FindEyes(transform);
 
         stateActions[AIState.Harvest] = (target) => StartCoroutine(StartHarvest(target));
@@ -608,7 +610,28 @@ public class HumanAI : MonoBehaviour
                     }
                     else
                     {
-                        ChangeState(AIState.Idle); // If not wandering, stay idle
+                        if (stats.faith >= stats.maxStat / 2)
+                        {
+                            // Generate a random number between 0 and 1
+                            float randomChance = UnityEngine.Random.Range(0f, 1f);
+
+                            // Define a threshold for deciding when to change state to PlayMusic
+                            float threshold = 0.75f; 
+
+                            // If the random number is less than or equal to the threshold, change state to PlayMusic
+                            if (randomChance <= threshold)
+                            {
+                                ChangeState(AIState.PlayMusic);
+                            }
+                            else
+                            {
+                                ChangeState(AIState.Idle);
+                            }
+                        }
+                        else
+                        {
+                            ChangeState(AIState.Idle); // If faith is less than half, stay idle
+                        }
                     }
                 }
             }
@@ -776,7 +799,7 @@ public class HumanAI : MonoBehaviour
 
     private bool ShouldWander()
     {
-        int chanceToWander = 1;
+        float chanceToWander = 0.5f;
         return UnityEngine.Random.value <= chanceToWander;
     }
 
@@ -1685,14 +1708,37 @@ public class HumanAI : MonoBehaviour
         yield break;
     }
 
+    private float playMusicIdleTime = 20f;
+
     private IEnumerator PlayMusic()
     {
         behaviourIsActive = true;
-
         ChangeAnimationState(HumanControllerAnimations.Music_PlayFlute01);
+        audioInstrumentManager.PlayRandomMelody();
+
+        // Randomize the play time between 10 and 20 seconds.
+        float playMusicIdleTime = UnityEngine.Random.Range(10f, 20f);
+
+        float time = 0f;
+        // Continue playing for up to the randomized playMusicIdleTime.
+        while (time <= playMusicIdleTime)
+        {
+            if (!behaviourIsActive)
+            {
+                break;
+            }
+
+            time += Time.deltaTime; // Ensure time accumulates
+            yield return null;
+        }
+
+        audioInstrumentManager.StopFlute();
+        ChangeState(AIState.Idle);
 
         yield break;
     }
+
+
 
     private IEnumerator PrayToSky()
     {

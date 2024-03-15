@@ -992,6 +992,7 @@ public class CharacterBehaviours : MonoBehaviour
     AICharacterStats humanStats;
     AICharacterStats playerStats;
 
+    private AudioInstrumentManager audioInstrumentManager;
 
     public IEnumerator Talk(GameObject hitObject)
     {
@@ -1040,6 +1041,8 @@ public class CharacterBehaviours : MonoBehaviour
 
         } else if (hitObject != null && hitObject.CompareTag("Shaman"))
         {
+            audioInstrumentManager = hitObject.GetComponentInChildren<AudioInstrumentManager>();
+
             switch (questManager.GetCurrentQuest())
             {
                 case QuestManager.Quests.ShamanIntroduction:
@@ -1143,6 +1146,10 @@ public class CharacterBehaviours : MonoBehaviour
                         float targetTime = 10f;
 
                         // Continue as long as the flute is active and the target time isn't reached
+
+                        humanAI.ChangeState(HumanAI.AIState.PlayMusic);
+                        audioInstrumentManager.PlayRandomMelody();
+
                         while (fluteControl.fluteActive && time <= targetTime)
                         {
                             time += Time.deltaTime;
@@ -1152,6 +1159,7 @@ public class CharacterBehaviours : MonoBehaviour
                         // Check if the flute was played for the entire duration
                         if (time >= targetTime)
                         {
+                            audioInstrumentManager.StopFlute();
                             interactCam.InteractRequired(player.gameObject);
                             interactCam.SetInteractionOverride(true);
                             questManager.CompleteQuest(QuestManager.Quests.ShamanFluteTutorial);
@@ -1170,12 +1178,14 @@ public class CharacterBehaviours : MonoBehaviour
                         else
                         {
                             // Start fail dialogue and wait for it to finish
+                            audioInstrumentManager.StopFlute();
+
                             dialogue.StartDialogue(Dialogue.DialogueType.ShamanFluteTutorialFail);
                             humanAI.ChangeState(HumanAI.AIState.IdleStatic);
 
                             yield return new WaitUntil(() => dialogue.dialogueActive == false);
 
-                            humanAI.ChangeState(HumanAI.AIState.PlayMusic);
+                            questCompleted = false;
                         }
                     }
 

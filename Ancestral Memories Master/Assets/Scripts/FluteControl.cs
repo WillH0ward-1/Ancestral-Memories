@@ -42,7 +42,9 @@ public class FluteControl : MonoBehaviour
 
     public MapObjGen mapObjGen;
 
+    private AudioInstrumentManager audioInstrumentManager;
     /*
+     * 
     private void Awake()
     {
         //attenuationObject = transform.root.gameObject;
@@ -58,6 +60,7 @@ public class FluteControl : MonoBehaviour
     {
         screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
         playerSFX = GetComponentInChildren<AudioSFXManager>();
+        audioInstrumentManager = GetComponentInChildren<AudioInstrumentManager>();
     }
 
     public void InitializeFlute()
@@ -96,9 +99,10 @@ public class FluteControl : MonoBehaviour
 
         maxInterval = initInterval; // Play note immediately on first press
         StartCoroutine(ModifyFaithOverTime());
+
         while (Input.GetMouseButton(0))
         {
-            noteBank = musicManager.notesToUse;
+            noteBank = audioInstrumentManager.notesToUse;
 
             if (Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0)
             {
@@ -113,10 +117,13 @@ public class FluteControl : MonoBehaviour
 
             distance = Vector2.Distance(screenCenter, Input.mousePosition);
             var t = Mathf.InverseLerp(minDistance, maxDistance, distance);
-            maxNoteIndex = musicManager.notesToUse.Length - 1;
+            maxNoteIndex = audioInstrumentManager.notesToUse.Length - 1;
             noteIndex = Mathf.RoundToInt(Mathf.Lerp(minNoteIndex, maxNoteIndex, t));
 
-            string note = musicManager.notesToUse[noteIndex];
+            // Ensure noteIndex is within the bounds of the array
+            noteIndex = (int)Mathf.Clamp(noteIndex, minNoteIndex, maxNoteIndex);
+
+            string note = audioInstrumentManager.notesToUse[noteIndex];
 
             if (currentNote != note && fluteActive)
             {
@@ -170,9 +177,11 @@ public class FluteControl : MonoBehaviour
     {
         fluteActive = true;
 
-        string key = instrumentFileRootName + "/" + instrument + "/" + note;
+        //string key = instrumentFileRootName + "/" + instrument + "/" + note;
 
-        UnityEngine.Debug.Log(key);
+        audioInstrumentManager.PlayNote(note);
+
+        //UnityEngine.Debug.Log(key);
 
         /*
         EventInstance instrumentInstance = RuntimeManager.CreateInstance(eventPath);
@@ -201,6 +210,7 @@ public class FluteControl : MonoBehaviour
     {
         fluteActive = false;
 
+        audioInstrumentManager.StopFlute();
         // instanceRef.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 
         // Stop the coroutine

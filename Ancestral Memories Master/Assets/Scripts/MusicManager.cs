@@ -51,18 +51,6 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private float output = 0;
     [SerializeField] private int faithModulateOutput;
 
-    /*
-    [SerializeField] private EventReference strings_EventPath;
-    [SerializeField] private EventReference pianoTail_EventPath;
-    [SerializeField] private EventReference plateScrapeSynth_EventPath;
-    [SerializeField] private EventReference jawHarp_EventPath;
-    [SerializeField] private EventReference hangDrum_EventPath;
-    [SerializeField] private EventReference marimba_EventPath;
-    [SerializeField] private EventReference playerFlute_EventPath;
-    [SerializeField] private EventReference sine_EventPath;
-    [SerializeField] private EventReference darkAmbientSwell_EventPath;
-    */
-
     public enum Instruments // The Instruments type containing the names of instruments
                             // This is held in the InstrumentInfo dictionary
     {
@@ -77,47 +65,12 @@ public class MusicManager : MonoBehaviour
         DarkAmbientSwell
     }
 
-    /*
-    public Dictionary<Instruments, EventReference> InstrumentInfo = new() // Holds the name and FMOD reference
-    {
-        { Instruments.Strings, new EventReference() },
-        { Instruments.PianoTail, new EventReference() },
-        { Instruments.PlateScrapeSynth, new EventReference() },
-        { Instruments.HangDrum, new EventReference() },
-        { Instruments.JawHarp, new EventReference() },
-        { Instruments.Marimba, new EventReference() },
-        { Instruments.PlayerFlute, new EventReference() },
-        { Instruments.Sine, new EventReference() },
-        { Instruments.DarkAmbientSwell, new EventReference() }
-    };
-    */
-
 
     public int stringsVoiceCount = 4; // Initialise voice counts here. 
-    /*
-     * Unused voice count variables, just demonstration:
-     * 
-    public int PlateScrapeSynthVoiceCount = 1;
-    public int HangDrumVoiceCount = 1; 
-    public int MarimbaVoiceCount = 1; 
-    public int PlayerFluteVoiceCount = 1; 
-    public int SineVoiceCount = 1;
-    */
 
-    private void SetEventReferences() // Sets all of the event paths in the dictionary so it may be accessed
-                                      // as one object, along with it's instrument name
+    private void SetEventReferences()
     {
-        /*
-        InstrumentInfo[Instruments.Strings] = strings_EventPath;
-        InstrumentInfo[Instruments.PianoTail] = pianoTail_EventPath;
-        InstrumentInfo[Instruments.PlateScrapeSynth] = plateScrapeSynth_EventPath;
-        InstrumentInfo[Instruments.HangDrum] = hangDrum_EventPath;
-        InstrumentInfo[Instruments.JawHarp] = jawHarp_EventPath;
-        InstrumentInfo[Instruments.Marimba] = marimba_EventPath;
-        InstrumentInfo[Instruments.PlayerFlute] = playerFlute_EventPath;
-        InstrumentInfo[Instruments.Sine] = sine_EventPath;
-        InstrumentInfo[Instruments.DarkAmbientSwell] = darkAmbientSwell_EventPath;
-        */
+
     }
 
     public float minBuffer = 10f;
