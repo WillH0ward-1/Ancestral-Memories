@@ -10,6 +10,7 @@ public class WeatherControl : MonoBehaviour
     public GameObject windZone;
 
     public float windStrength = 0;
+
     [SerializeField] private float targetWindStrength;
     [SerializeField] private float targetLeafShakeStrength;
 
@@ -26,6 +27,7 @@ public class WeatherControl : MonoBehaviour
 
     public List<Transform> windAffectedRendererList = new List<Transform>();
     private Queue<GameObject> windZonePool = new Queue<GameObject>(); // Correctly using Queue here
+    private List<AudioWindManager> activeAudioManagers = new List<AudioWindManager>();
 
 
     [SerializeField] private int maxWindZoneInstances = 4;
@@ -56,6 +58,46 @@ public class WeatherControl : MonoBehaviour
         }
 
         StartCoroutine(SpawnWindZones());
+        StartCoroutine(UpdateAverageWindStrengthPeriodically());
+    }
+
+    public float CalculateAverageWindStrength()
+    {
+        if (activeAudioManagers.Count == 0) return 0f;
+
+        float totalWindStrength = 0f;
+        foreach (var audioManager in activeAudioManagers)
+        {
+            totalWindStrength += audioManager.currentWindStrength;
+        }
+        return totalWindStrength / activeAudioManagers.Count;
+    }
+
+    public float averageWindStrength = 0f;
+
+    private IEnumerator UpdateAverageWindStrengthPeriodically()
+    {
+        while (true)
+        {
+            averageWindStrength = CalculateAverageWindStrength();
+            // Use averageWindStrength as needed
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    public void RegisterActiveWindZone(AudioWindManager audioManager)
+    {
+        if (!activeAudioManagers.Contains(audioManager))
+        {
+            activeAudioManagers.Add(audioManager);
+        }
+    }
+
+    public void UnregisterActiveWindZone(AudioWindManager audioManager)
+    {
+        activeAudioManagers.Remove(audioManager);
     }
 
     private IEnumerator SpawnWindZones()
@@ -81,9 +123,10 @@ public class WeatherControl : MonoBehaviour
         windZoneInstance.transform.SetParent(player.transform);
         windZoneInstance.SetActive(true);
         AudioWindManager audioManager = windZoneInstance.GetComponentInChildren<AudioWindManager>();
+        RegisterActiveWindZone(audioManager);
         audioManager.SetPlayState(true);
         audioManager.StartCoroutine(audioManager.AdjustWindParametersBasedOnFaith());
-
+       
         StartCoroutine(WindZoneLifetime(windZoneInstance, Random.Range(minLifeTime, maxLifeTime), audioManager));
     }
 
@@ -96,6 +139,7 @@ public class WeatherControl : MonoBehaviour
         currentAmpRelease = audioWindManager.GetADSR(AudioWindManager.ADSRStage.Release);
         yield return new WaitForSeconds(currentAmpRelease);
 
+        UnregisterActiveWindZone(audioWindManager);
         windZoneInstance.SetActive(false);
         windZonePool.Enqueue(windZoneInstance);
     }
@@ -135,11 +179,6 @@ public class WeatherControl : MonoBehaviour
         yield break;
     }
 
-    private void Update()
-    {
-        windStrength = targetWindStrength;
-    }
-
     [SerializeField] float windMin = 0f;
     [SerializeField] float windMax = 1f;
 
@@ -148,19 +187,4 @@ public class WeatherControl : MonoBehaviour
 
     [SerializeField] float leafShakeMin = 0.5f;
     [SerializeField] float leafShakeMax = 3f;
-
-    private void OnEnable() => player.OnFaithChanged += WindStrength;
-    private void OnDisable() => player.OnFaithChanged -= WindStrength;
-
-    private void WindStrength(float faith, float minFaith, float maxFaith)
-    {
-        var t = Mathf.InverseLerp(minFaith, maxFaith, faith);
-        float windOutput = Mathf.Lerp(windMin, windMax, t);
-        float leafOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
-        float leafSpeedOutput = Mathf.Lerp(leafShakeMin, leafShakeMax, t);
-
-        targetWindStrength = windOutput;
-        targetLeafShakeStrength = leafOutput;
-        targetLeafSpeed = leafSpeedOutput;
-    }
 }

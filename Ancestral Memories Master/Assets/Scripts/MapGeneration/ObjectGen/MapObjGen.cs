@@ -1095,6 +1095,9 @@ public class MapObjGen : MonoBehaviour
             lookAnimator.enabled = true;
             lookAnimator.ObjectToFollow = player.transform;
 
+            AudioReverbManager reverbManager = humanInstance.GetComponentInChildren<AudioReverbManager>();
+            reverbManager.player = player;
+
             humanAI.lookAnimator = lookAnimator;
 
             deform.enabled = true;
@@ -1254,6 +1257,10 @@ public class MapObjGen : MonoBehaviour
             treeFruitManager.player = player;
             treeFruitManager.mapObjGen = this;
             treeFruitManager.resources = resources;
+
+            AudioTreeLeavesManager audioTreeLeaves = treeInstance.transform.GetComponentInChildren<AudioTreeLeavesManager>();
+            audioTreeLeaves.weatherControl = weather;
+
             //ptGrow.GrowTree();
 
             ProceduralTree pt = treeInstance.GetComponentInChildren<ProceduralTree>();

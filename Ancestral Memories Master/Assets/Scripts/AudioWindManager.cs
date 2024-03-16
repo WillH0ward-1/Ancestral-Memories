@@ -23,7 +23,7 @@ public class AudioWindManager : MonoBehaviour
     private const float globalMin = 0f;
     private const float globalMax = 1f;
 
-    [SerializeField] private float currentWindStrength = globalMin;
+    public float currentWindStrength = globalMin;
     [SerializeField] private float currentWindWhistle = globalMin;
     [SerializeField] private float currentWindWhistleResonance = globalMin;
     [SerializeField] private float currentWindRumble = globalMin;
@@ -123,6 +123,14 @@ public class AudioWindManager : MonoBehaviour
         CabbageAudioManager.Instance.SetParameter(cSoundObj, lfo, targetValue);
         CabbageAudioManager.Instance.SetParameter(cSoundObj, lfoDepth, targetValue);
         CabbageAudioManager.Instance.SetParameter(cSoundObj, windRandomness, targetValue);
+
+        currentWindStrength = targetValue;
+        currentWindWhistle = targetValue;
+        currentWindWhistleResonance = targetValue;
+        currentWindRumble = targetValue;
+        currentLFO = targetValue;
+        currentLFODepth = targetValue;
+        currentWindRandomness = targetValue;
     }
 
     private void ResetWindParameters()

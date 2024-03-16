@@ -91,7 +91,8 @@ namespace ProceduralModeling
 
         private Vector3 obstacleSize;
 
-        private AudioTreeManager audioTree;
+        private AudioTreeManager audioTreeGrow;
+        private AudioTreeLeavesManager audioTreeLeaves;
 
         private void Awake()
         {
@@ -107,8 +108,8 @@ namespace ProceduralModeling
             treeFruitManager = GetComponent<TreeFruitManager>();
             interactable = GetComponent<Interactable>();
 
-            audioTree = GetComponentInChildren<AudioTreeManager>();
-            audioTree.pTGrowing = this;
+            audioTreeGrow = GetComponentInChildren<AudioTreeManager>();
+            audioTreeGrow.pTGrowing = this;
 
             currentState = State.Buffering;
             time = 0f;
@@ -371,7 +372,7 @@ namespace ProceduralModeling
 
                 mapObjGen.treeGrowingList.Add(transform.gameObject);
 
-                audioTree.SetPlayState(true);
+                audioTreeGrow.SetPlayState(true);
 
                 while (time < growDuration)
                 {
@@ -383,7 +384,7 @@ namespace ProceduralModeling
                         UpdateGrowAudioTime(t);
 
                         growTime = Mathf.Lerp(minGrow, maxGrow, t);
-                        audioTree.SetGrowthFX(growAudioTime);
+                        audioTreeGrow.SetGrowthFX(growAudioTime);
                         material.SetFloat(kGrowingKey, growTime);
                         time += Time.deltaTime;
                     }
@@ -392,7 +393,7 @@ namespace ProceduralModeling
                 }
 
                 isGrowing = false;
-                audioTree.SetPlayState(false);
+                audioTreeGrow.SetPlayState(false);
 
                 time = 0f;
 
@@ -472,10 +473,13 @@ namespace ProceduralModeling
                 if (!rainControl.drought && seasonManager._currentSeason != SeasonManager.Season.Winter)
                 {
                     leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.maxGrowthScale, leafScaler.lerpduration);
+                    audioTreeLeaves.SetPlayState(true);
+                    audioTreeLeaves.SetLeafGrowthFX(leafScaler.lerpduration);
+                    
                     treeFruitManager.SpawnFruits(proceduralTree.FruitPoints);
                 }
 
-                StartCoroutine(treeAudioSFX.LeafRustleSFX());
+                StartCoroutine(RustleTreeLeaves());
 
                 while (time < lifeTimeSecs)
                 {
@@ -488,6 +492,21 @@ namespace ProceduralModeling
                 time = 0f;
                 StartCoroutine(Dying());
             }
+        }
+
+        public WeatherControl weatherControl;
+
+        private IEnumerator RustleTreeLeaves()
+        {
+            while (!isDead)
+            {
+                float windStrength = weatherControl.averageWindStrength;
+                audioTreeLeaves.SetLeafRustlingFX(windStrength);
+
+                yield return null;
+            }
+
+            yield break;
         }
 
         public float GetRemainingLifetime()
@@ -514,10 +533,12 @@ namespace ProceduralModeling
                 mapObjGen.treeGrowingList.Remove(transform.gameObject);
 
                 leafScaler.LerpScale(leafScaler.CurrentScale, leafScaler.minGrowthScale, leafScaler.lerpduration);
+                audioTreeLeaves.SetLeafGrowthFX(leafScaler.lerpduration);
+                audioTreeLeaves.SetLeafRustlingFX(leafScaler.lerpduration);
 
                 KillAllFruits();
 
-                audioTree.SetPlayState(true);
+                audioTreeGrow.SetPlayState(true);
                 //treeAudioSFX.StartTreeGrowthSFX(State.Dying);
 
                 while (time < leafScaler.lerpduration)
@@ -534,14 +555,16 @@ namespace ProceduralModeling
                     growTime = Mathf.Lerp(1, 0, t);
 
                     UpdateGrowAudioTime(t);
-                    audioTree.SetGrowthFX(growAudioTime);
+                    audioTreeGrow.SetGrowthFX(growAudioTime);
+
                     material.SetFloat(kGrowingKey, growTime);
                     time += Time.deltaTime;
                     yield return null;
                 }
 
                 isFullyGrown = false;
-                audioTree.SetPlayState(false);
+
+                audioTreeGrow.SetPlayState(false);
 
                 navMeshCutting.DisableNavMeshCut();
 
